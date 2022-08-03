@@ -1,0 +1,48 @@
+HELP.md
+
+### Gradle ###
+.gradle
+**/build/
+!gradle-wrapper.jar
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+.run
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Emacs backup files
+*.*~
+
+### Mac directory metadata
+.DS_Store
+
+### write-config script output
+config/
+
+### Ignore generated credentials from google-github-actions/auth
+gha-creds-*.json
+
+### jEnv
+.java-version
