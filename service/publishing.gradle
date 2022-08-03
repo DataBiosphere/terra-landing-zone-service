@@ -1,0 +1,38 @@
+def artifactory_repo_key = System.getenv("ARTIFACTORY_REPO_KEY") != null ? System.getenv("ARTIFACTORY_REPO_KEY") : 'libs-snapshot-local'
+def artifactory_username = System.getenv('ARTIFACTORY_USERNAME')
+def artifactory_password = System.getenv('ARTIFACTORY_PASSWORD')
+
+java {
+    // Builds sources into the published package as part of the 'assemble' task.
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        terraPolicyService(MavenPublication) {
+            artifactId = "terra-landing-zone-service"
+            from components.java
+            versionMapping {
+                usage("java-runtime") {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+}
+
+artifactory {
+    publish {
+        contextUrl = 'https://broadinstitute.jfrog.io/broadinstitute/'
+        repository {
+            repoKey = "${artifactory_repo_key}"
+            username = "${artifactory_username}"
+            password = "${artifactory_password}"
+        }
+        defaults {
+            publications('terraLandingZoneService')
+            publishArtifacts = true
+            publishPom = true
+        }
+    }
+}
