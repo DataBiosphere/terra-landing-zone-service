@@ -1,0 +1,73 @@
+plugins {
+    id 'bio.terra.landingzone.java-spring-library-conventions'
+    id 'de.undercouch.download'
+    id 'com.google.cloud.tools.jib'
+    id 'com.srcclr.gradle'
+    id 'org.sonarqube'
+    id 'com.jfrog.artifactory' version '4.18.2'
+    id 'org.liquibase.gradle' version '2.1.0'
+}
+
+apply from: 'publishing.gradle'
+
+dependencies {
+    implementation 'bio.terra:terra-common-lib'
+    implementation 'org.apache.commons:commons-dbcp2:2.9.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:2.7.0'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.0'
+    implementation 'org.springframework.retry:spring-retry:1.3.3'
+    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.12:0.1-61135c7'
+    implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
+    implementation 'org.postgresql:postgresql:42.3.3'
+    implementation 'javax.servlet:jstl:1.2'
+
+    liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
+    liquibaseRuntime 'info.picocli:picocli:4.6.1'
+    liquibaseRuntime 'org.postgresql:postgresql:42.3.3'
+    liquibaseRuntime 'ch.qos.logback:logback-classic:1.2.3'
+
+    // Spotbugs dependencies
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation('org.springframework.boot:spring-boot-starter-test:2.7.0') {
+        // Fixes warning about multiple occurrences of JSONObject on the classpath
+        exclude group: 'com.vaadin.external.google', module: 'android-json'
+    }
+}
+
+// We use Spring Boot gradle plugin in a non-Spring Boot environment to manage Spring Boot dependency.
+// Disable bootJar and enable jar task back since this is actually not a Spring Boot app.
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+test {
+    useJUnitPlatform ()
+}
+
+sonarqube {
+    properties {
+        property 'sonar.projectName', 'terra-landing-zone-service' 
+        property 'sonar.projectKey', 'terra-landing-zone-service'
+        property 'sonar.organization', 'broad-databiosphere'
+        property 'sonar.host.url', 'https://sonarcloud.io'
+    }
+}
+
+liquibase {
+    activities {
+        catalog {
+            changeLogFile 'src/main/resources/db/changelog.xml'
+            url 'jdbc:postgresql://localhost:5432/landingzone_db'
+            username 'dbuser'
+            password 'dbpwd'
+            logLevel 'info'
+        }
+    }
+}
