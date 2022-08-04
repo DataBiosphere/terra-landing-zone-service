@@ -13,8 +13,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     basePackages = {
       "bio.terra.common.logging",
       "bio.terra.common.migrate",
-      "bio.terra.common.kubernetes",
-      // "bio.terra.common.stairway",
       "bio.terra.landingzone"
     })
 @EnableRetry

@@ -4,63 +4,38 @@ plugins {
     id 'com.google.cloud.tools.jib'
     id 'com.srcclr.gradle'
     id 'org.sonarqube'
-    id 'com.jfrog.artifactory' version '4.31.9'
-    id 'org.liquibase.gradle' version '2.2.0'
+    id 'com.jfrog.artifactory' version '4.18.2'
+    id 'org.liquibase.gradle' version '2.1.0'
 }
 
 apply from: 'publishing.gradle'
 
 dependencies {
     implementation 'bio.terra:terra-common-lib'
+    implementation 'bio.terra:terra-cloud-resource-lib:2.0.1-J17-SNAPSHOT'
     implementation 'org.apache.commons:commons-dbcp2:2.9.0'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:3.1.0'
-    implementation 'org.springframework.boot:spring-boot-starter-web:3.0.6'
-    implementation 'org.springframework.retry:spring-retry:2.0.1'
-    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6d19a41'
-    implementation 'bio.terra:billing-profile-manager-client:0.1.29-SNAPSHOT'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:2.7.0'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.0'
+    implementation 'org.springframework.retry:spring-retry:1.3.3'
+    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.12:0.1-61135c7'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
-    implementation 'org.postgresql:postgresql:42.6.0'
+    implementation 'org.postgresql:postgresql:42.3.3'
     implementation 'javax.servlet:jstl:1.2'
-    implementation group: 'com.azure', name: 'azure-core', version: '1.39.0'
-    implementation (group: 'com.azure', name: 'azure-identity', version: '1.9.0') {
-        // the msal4j transitive dependency is still pulling in an old version of json-smart
-        // which is vulnerable to CVE-2023-1370
-        // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611
-        exclude group: 'net.minidev', module: 'json-smart'
-    }
-    implementation group: 'net.minidev', 'name': 'json-smart', version: '2.4.10'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.26.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.26.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.26.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.26.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresql', version: '1.0.2'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0-beta.3'
 
-    // at commit time, azure-resourcemanager-monitor v2.20.0 is the latest but starting with v2.19.0
-    // attributes of com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner
-    // are missing making creation of DataCollectionRules impossible via java client lib
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.26.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0-beta.5'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.26.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
-
-    liquibaseRuntime 'org.liquibase:liquibase-core:4.22.0'
-    liquibaseRuntime 'info.picocli:picocli:4.7.3'
-    liquibaseRuntime 'org.postgresql:postgresql:42.6.0'
-    liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.7'
+    liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
+    liquibaseRuntime 'info.picocli:picocli:4.6.1'
+    liquibaseRuntime 'org.postgresql:postgresql:42.3.3'
+    liquibaseRuntime 'ch.qos.logback:logback-classic:1.2.3'
 
     // Spotbugs dependencies
     compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
     spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
 
-    testImplementation 'org.mockito:mockito-inline:5.2.0'
-    testImplementation 'org.awaitility:awaitility:4.2.0'
-    testImplementation('org.springframework.boot:spring-boot-starter-test:3.1.0') {
+    testImplementation 'org.mockito:mockito-inline:3.8.0'
+    testImplementation('org.springframework.boot:spring-boot-starter-test:2.7.0') {
         // Fixes warning about multiple occurrences of JSONObject on the classpath
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
@@ -76,36 +51,14 @@ jar {
     enabled = true
 }
 
-// Modify the standard :test task to only include unit-tagged and library-tagged tests.
 test {
-    useJUnitPlatform {
-        includeTags "unit", "library"
-    }
-}
-
-task unitTest(type: Test) {
-    useJUnitPlatform {
-        includeTags "unit"
-    }
-    outputs.upToDateWhen { false }
-}
-
-// Create a new :integrationTest task to run integration tests. This won't be executed as
-// part of the standard `./gradlew build` invocation.
-task integrationTest(type: Test) {
-    useJUnitPlatform {
-        includeTags "integration"
-    }
-    shouldRunAfter test
-    // Force tests to always be re-run, since integration tests involve communicating with external
-    // resources.
-    outputs.upToDateWhen { false }
+    useJUnitPlatform ()
 }
 
 sonarqube {
     properties {
-        property 'sonar.projectName', 'terra-landing-zone-service'
-        property 'sonar.projectKey', 'DataBiosphere_terra-landing-zone-service'
+        property 'sonar.projectName', 'terra-landing-zone-service' 
+        property 'sonar.projectKey', 'terra-landing-zone-service'
         property 'sonar.organization', 'broad-databiosphere'
         property 'sonar.host.url', 'https://sonarcloud.io'
     }

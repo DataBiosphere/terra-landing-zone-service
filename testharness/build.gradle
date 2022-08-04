@@ -3,21 +3,17 @@ plugins {
 }
 
 dependencies {
-    implementation (project(":service")) {
-        // the msal4j transitive dependency is still pulling in an old version of json-smart
-        // which is vulnerable to CVE-2023-1370
-        // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611
-        exclude group: 'net.minidev', module: 'json-smart'
-    }
-    implementation 'net.minidev:json-smart:2.4.11'
-
+    implementation project(":service")
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
 
-    testImplementation 'org.apache.commons:commons-lang3:3.12.0'
+    //implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: "5.7.0"
+
+    testImplementation 'bio.terra:terra-cloud-resource-lib:2.0.1-J17-SNAPSHOT'
+    testImplementation 'org.apache.commons:commons-lang3:3.8.1'
 
     // Spotbugs dependencies
     compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
@@ -25,15 +21,12 @@ dependencies {
 
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
-        exclude group: 'net.minidev', module: 'json-smart'
     }
     testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
-
     // Allows us to mock final classes
-    testImplementation 'org.mockito:mockito-inline:5.2.0'
+    testImplementation 'org.mockito:mockito-inline:2.13.0'
 
     jacocoTestReport {
-        dependsOn(':service:compileTestJava')
         reports {
             // sonarqube requires XML coverage output to upload coverage data
             xml.required = true
@@ -46,7 +39,7 @@ dependencies {
 
     test {
         useJUnitPlatform {
-            includeTags "library","unit"
+            includeTags "library"
         }
         outputs.upToDateWhen { false }
         finalizedBy jacocoTestReport
@@ -54,17 +47,5 @@ dependencies {
             includes = ["bio.terra.landingzone.**" ]
             includeNoLocationClasses = true
         }
-    }
-
-    // Create a new :integrationTest task to run integration tests. This won't be executed as
-    // part of the standard `./gradlew build` invocation.
-    task integrationTest(type: Test) {
-        useJUnitPlatform {
-            includeTags "integration"
-        }
-        shouldRunAfter test
-        // Force tests to always be re-run, since integration tests involve communicating with external
-        // resources.
-        outputs.upToDateWhen { false }
     }
 }
