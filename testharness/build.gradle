@@ -1,0 +1,51 @@
+plugins {
+    id 'bio.terra.landingzone.java-spring-app-conventions'
+}
+
+dependencies {
+    implementation project(":service")
+    implementation 'bio.terra:terra-common-lib'
+    implementation 'org.apache.commons:commons-dbcp2'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.retry:spring-retry'
+
+    //implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: "5.7.0"
+
+    testImplementation 'bio.terra:terra-cloud-resource-lib:2.0.1-J17-SNAPSHOT'
+    testImplementation 'org.apache.commons:commons-lang3:3.8.1'
+
+    // Spotbugs dependencies
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'com.vaadin.external.google', module: 'android-json'
+    }
+    testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
+    // Allows us to mock final classes
+    testImplementation 'org.mockito:mockito-inline:2.13.0'
+
+    jacocoTestReport {
+        reports {
+            // sonarqube requires XML coverage output to upload coverage data
+            xml.required = true
+            html.required = true
+        }
+
+        additionalSourceDirs.from = files("$rootDir/service/src")
+        additionalClassDirs.from = files("$rootDir/service/build/classes")
+    }
+
+    test {
+        useJUnitPlatform {
+            includeTags "library"
+        }
+        outputs.upToDateWhen { false }
+        finalizedBy jacocoTestReport
+        jacoco {
+            includes = ["bio.terra.landingzone.**" ]
+            includeNoLocationClasses = true
+        }
+    }
+}

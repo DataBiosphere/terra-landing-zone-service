@@ -6,11 +6,11 @@ import bio.terra.common.exception.MissingRequiredFieldException;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
@@ -28,12 +28,14 @@ public class LandingZoneDao {
           + " FROM landingzone";
 
   private final Logger logger = LoggerFactory.getLogger(LandingZoneDao.class);
+  private final LandingZoneDatabaseConfiguration landingZoneDatabaseConfiguration;
   private final NamedParameterJdbcTemplate jdbcLandingZoneTemplate;
 
   @Autowired
-  public LandingZoneDao(
-      @Qualifier("jdbcLandingZoneTemplate") NamedParameterJdbcTemplate jdbcLandingZoneTemplate) {
-    this.jdbcLandingZoneTemplate = jdbcLandingZoneTemplate;
+  public LandingZoneDao(LandingZoneDatabaseConfiguration landingZoneDatabaseConfiguration) {
+    this.landingZoneDatabaseConfiguration = landingZoneDatabaseConfiguration;
+    this.jdbcLandingZoneTemplate =
+        new NamedParameterJdbcTemplate(landingZoneDatabaseConfiguration.getDataSource());
   }
 
   /**
