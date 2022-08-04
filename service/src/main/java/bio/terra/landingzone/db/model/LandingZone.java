@@ -1,6 +1,6 @@
-package bio.terra.landingzone.sevice.model;
+package bio.terra.landingzone.db.model;
 
-import bio.terra.landingzone.service.exceptions.MissingRequiredFieldsException;
+import bio.terra.landingzone.db.exception.MissingRequiredFieldsException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.HashMap;

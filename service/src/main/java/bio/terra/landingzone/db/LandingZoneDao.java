@@ -5,7 +5,7 @@ import bio.terra.common.db.WriteTransaction;
 import bio.terra.common.exception.MissingRequiredFieldException;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
-import bio.terra.landingzone.sevice.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZone;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
