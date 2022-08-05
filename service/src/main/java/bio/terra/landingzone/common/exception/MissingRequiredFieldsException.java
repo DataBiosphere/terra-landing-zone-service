@@ -1,4 +1,4 @@
-package bio.terra.landingzone.db.exception;
+package bio.terra.landingzone.common.exception;
 
 import bio.terra.common.exception.InternalServerErrorException;
 

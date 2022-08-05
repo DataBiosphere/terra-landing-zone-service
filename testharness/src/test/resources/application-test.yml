@@ -1,0 +1,6 @@
+landingzone:
+  landingzone-database:
+    initialize-on-start: true
+    password: dbpwd
+    uri: jdbc:postgresql://127.0.0.1:5432/landingzone_db
+    username: dbuser

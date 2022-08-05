@@ -111,7 +111,7 @@ jobs:
         with:
           status: failure
           channel: "#terra-wsm-alerts"
-          username: "TPS push to main branch"
+          username: "TLZS push to main branch"
           author_name: "build-and-test"
           icon_emoji: ":triangular_ruler:"
           fields: job, commit
