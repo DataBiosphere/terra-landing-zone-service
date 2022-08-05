@@ -1,32 +1,36 @@
 package bio.terra.landingzone.service.landingzone.azure.model;
 
-import bio.terra.landingzone.db.exception.MissingRequiredFieldsException;
-import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class AzureLandingZoneDefinition {
+  private final String definition;
   private final String name;
+  private final String description;
   private final String version;
-  private final Map<String, String> parameters;
 
-  public AzureLandingZoneDefinition(String name, String version, Map<String, String> parameters) {
+  public AzureLandingZoneDefinition(
+      String definition, String name, String description, String version) {
+    this.definition = definition;
     this.name = name;
+    this.description = description;
     this.version = version;
-    this.parameters = parameters;
+  }
+
+  public String getDefinition() {
+    return this.definition;
   }
 
   public String getName() {
-    return name;
+    return this.name;
+  }
+
+  public String getDescription() {
+    return this.description;
   }
 
   public String getVersion() {
-    return version;
-  }
-
-  public Map<String, String> getParameters() {
-    return parameters;
+    return this.version;
   }
 
   @Override
@@ -35,18 +39,24 @@ public class AzureLandingZoneDefinition {
 
     if (o == null || getClass() != o.getClass()) return false;
 
-    AzureLandingZoneDefinition azureLandingZone = (AzureLandingZoneDefinition) o;
+    AzureLandingZoneDefinition template = (AzureLandingZoneDefinition) o;
 
     return new EqualsBuilder()
-        .append(name, azureLandingZone.name)
-        .append(version, azureLandingZone.version)
-        .append(parameters, azureLandingZone.parameters)
+        .append(definition, template.definition)
+        .append(name, template.name)
+        .append(description, template.description)
+        .append(version, template.version)
         .isEquals();
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37).append(name).append(version).append(parameters).toHashCode();
+    return new HashCodeBuilder(17, 37)
+        .append(definition)
+        .append(name)
+        .append(description)
+        .append(version)
+        .toHashCode();
   }
 
   public static Builder builder() {
@@ -54,12 +64,23 @@ public class AzureLandingZoneDefinition {
   }
 
   public static class Builder {
+    private String definition;
     private String name;
+    private String description;
     private String version;
-    private Map<String, String> parameters;
+
+    public Builder definition(String definition) {
+      this.definition = definition;
+      return this;
+    }
 
     public Builder name(String name) {
       this.name = name;
+      return this;
+    }
+
+    public Builder description(String description) {
+      this.description = description;
       return this;
     }
 
@@ -68,16 +89,8 @@ public class AzureLandingZoneDefinition {
       return this;
     }
 
-    public Builder parameters(Map<String, String> parameters) {
-      this.parameters = parameters;
-      return this;
-    }
-
     public AzureLandingZoneDefinition build() {
-      if (StringUtils.isEmpty(name)) {
-        throw new MissingRequiredFieldsException("Azure landing zone definition requires name");
-      }
-      return new AzureLandingZoneDefinition(name, version, parameters);
+      return new AzureLandingZoneDefinition(definition, name, description, version);
     }
   }
 }

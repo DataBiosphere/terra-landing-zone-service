@@ -11,11 +11,11 @@ import bio.terra.cloudres.azure.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.cloudres.azure.landingzones.deployment.ResourcePurpose;
 import bio.terra.cloudres.azure.landingzones.management.LandingZoneManager;
 import bio.terra.cloudres.azure.landingzones.management.ResourcesReader;
-import bio.terra.common.exception.ValidationException;
 import bio.terra.landingzone.db.LandingZoneDao;
+import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneDefinition;
+import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneResource;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneTemplate;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.NotImplementedException;
@@ -83,7 +83,7 @@ public class AzureLandingZoneServiceTest {
           .thenReturn(deployedResources);
       DefinitionVersion requestedVersion = DefinitionVersion.V1;
       var azureLandingZoneDefinition =
-          new AzureLandingZoneDefinition(
+          new AzureLandingZoneRequest(
               mockFactory1.getClass().getName(), requestedVersion.toString(), null);
 
       var azureLandingZone =
@@ -123,10 +123,10 @@ public class AzureLandingZoneServiceTest {
 
       DefinitionVersion notImplementedVersion = DefinitionVersion.V5;
       var azureLandingZoneDefinition =
-          new AzureLandingZoneDefinition(
+          new AzureLandingZoneRequest(
               mockFactory1.getClass().getName(), notImplementedVersion.toString(), null);
       Assertions.assertThrows(
-          ValidationException.class,
+          AzureLandingZoneDefinitionNotFound.class,
           () ->
               azureLandingZoneService.createLandingZone(
                   azureLandingZoneDefinition,
@@ -176,7 +176,7 @@ public class AzureLandingZoneServiceTest {
       staticMockLandingZoneManager
           .when(LandingZoneManager::listDefinitionFactories)
           .thenReturn(factories);
-      List<AzureLandingZoneTemplate> templates =
+      List<AzureLandingZoneDefinition> templates =
           azureLandingZoneService.listLandingZoneDefinitions();
 
       assertEquals(
@@ -200,7 +200,7 @@ public class AzureLandingZoneServiceTest {
   }
 
   private long countAzureLandingZoneTemplateRecordsWithAttribute(
-      List<AzureLandingZoneTemplate> list,
+      List<AzureLandingZoneDefinition> list,
       String name,
       String description,
       String className,

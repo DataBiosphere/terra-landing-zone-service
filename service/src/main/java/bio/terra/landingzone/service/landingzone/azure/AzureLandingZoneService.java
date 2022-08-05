@@ -5,13 +5,13 @@ import bio.terra.cloudres.azure.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.cloudres.azure.landingzones.deployment.DeployedResource;
 import bio.terra.cloudres.azure.landingzones.deployment.ResourcePurpose;
 import bio.terra.cloudres.azure.landingzones.management.LandingZoneManager;
-import bio.terra.common.exception.ValidationException;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneDefinition;
+import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneResource;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneTemplate;
 import com.azure.core.util.ExpandableStringEnum;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,27 +37,30 @@ public class AzureLandingZoneService {
   }
 
   public AzureLandingZone createLandingZone(
-      AzureLandingZoneDefinition azureLandingZone,
+      AzureLandingZoneRequest azureLandingZone,
       LandingZoneManager landingZoneManager,
       String resourceGroupName)
-      throws ValidationException {
+      throws AzureLandingZoneDefinitionNotFound {
 
-    Predicate<FactoryDefinitionInfo> requiredTemplate =
+    Predicate<FactoryDefinitionInfo> requiredDefinition =
         (FactoryDefinitionInfo f) ->
-            f.className().equals(azureLandingZone.getName())
+            f.className().equals(azureLandingZone.getDefinition())
                 && f.versions().stream()
                     .map(ExpandableStringEnum::toString)
                     .toList()
                     .contains(azureLandingZone.getVersion());
     var requestedFactory =
-        LandingZoneManager.listDefinitionFactories().stream().filter(requiredTemplate).findFirst();
+        LandingZoneManager.listDefinitionFactories().stream()
+            .filter(requiredDefinition)
+            .findFirst();
 
     if (requestedFactory.isEmpty()) {
       logger.warn(
           "Azure landing zone definition with name={} and version={} doesn't exist",
-          azureLandingZone.getName(),
+          azureLandingZone.getDefinition(),
           azureLandingZone.getVersion());
-      throw new ValidationException("Requested landing zone definition doesn't exist");
+      throw new AzureLandingZoneDefinitionNotFound(
+          "Requested landing zone definition doesn't exist");
     }
 
     UUID landingZoneId = UUID.randomUUID();
@@ -72,11 +75,16 @@ public class AzureLandingZoneService {
         LandingZone.builder()
             .landingZoneId(landingZoneId)
             .resourceGroupId(resourceGroupName)
-            .definition(azureLandingZone.getName())
+            .definition(azureLandingZone.getDefinition())
             .displayName(requestedFactory.get().description())
             .description(requestedFactory.get().description())
             .properties(azureLandingZone.getParameters())
             .build());
+    logger.info(
+        "Azure Landing Zone definition with the following "
+            + "parameters: definition={}, version={}successfully created.",
+        azureLandingZone.getDefinition(),
+        azureLandingZone.getVersion());
     return AzureLandingZone.builder()
         .id(landingZoneId.toString())
         .deployedResources(
@@ -94,15 +102,15 @@ public class AzureLandingZoneService {
   }
 
   @Cacheable("landingZoneDefinitions")
-  public List<AzureLandingZoneTemplate> listLandingZoneDefinitions() {
-    List<AzureLandingZoneTemplate> landingZoneTemplates = new ArrayList<>();
+  public List<AzureLandingZoneDefinition> listLandingZoneDefinitions() {
+    List<AzureLandingZoneDefinition> landingZoneTemplates = new ArrayList<>();
     for (var factoryInfo : LandingZoneManager.listDefinitionFactories()) {
       factoryInfo
           .versions()
           .forEach(
               version ->
                   landingZoneTemplates.add(
-                      AzureLandingZoneTemplate.builder()
+                      AzureLandingZoneDefinition.builder()
                           // TODO: remove FQN
                           .definition(factoryInfo.className())
                           .name(factoryInfo.name())
