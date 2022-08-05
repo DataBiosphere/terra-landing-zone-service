@@ -5,7 +5,7 @@ env:
     host: jdbc:postgresql://${DATABASE_HOSTNAME:127.0.0.1}:5432
     init: ${INIT_DB:false}
     policy:
-      name: ${DATABASE_NAME:policy_db}
+      name: ${DATABASE_NAME:landingzone_db}
       pass: ${DATABASE_USER_PASSWORD:dbpwd}
       user: ${DATABASE_USER:dbuser}
   tracing:

@@ -1,7 +1,5 @@
 package bio.terra.landingzone.db;
 
-import bio.terra.common.db.ReadTransaction;
-import bio.terra.common.db.WriteTransaction;
 import bio.terra.common.exception.MissingRequiredFieldException;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
@@ -18,6 +16,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /** LandingZoneDao includes operations on the landing zone tables. */
 @Component
@@ -44,7 +45,10 @@ public class LandingZoneDao {
    * @param landingzone all properties of the landing zone to create
    * @return landingzone id
    */
-  @WriteTransaction
+  @Transactional(
+      isolation = Isolation.SERIALIZABLE,
+      propagation = Propagation.REQUIRED,
+      transactionManager = "tlzTransactionManager")
   public UUID createLandingZone(LandingZone landingzone) {
     final String sql =
         "INSERT INTO landingzone (landingzone_id, resource_group, definition_id, definition_version_id, display_name, description, properties) "
@@ -74,8 +78,8 @@ public class LandingZoneDao {
                 "Landing Zone with id %s already exists - display name %s definition %s version %s",
                 landingZoneUuid,
                 landingzone.getDisplayName().toString(),
-                landingzone.getDefinition().toString(),
-                landingzone.getVersion().toString()),
+                landingzone.getDefinition(),
+                landingzone.getVersion()),
             e);
       } else {
         throw e;
@@ -88,7 +92,10 @@ public class LandingZoneDao {
    * @param landingZoneUuid unique identifier of the landing zone
    * @return true on successful delete, false if there's nothing to delete
    */
-  @WriteTransaction
+  @Transactional(
+      isolation = Isolation.SERIALIZABLE,
+      propagation = Propagation.REQUIRED,
+      transactionManager = "tlzTransactionManager")
   public boolean deleteLandingZone(UUID landingZoneUuid) {
     final String sql = "DELETE FROM landingzone WHERE landingzone_id = :id";
 
@@ -120,7 +127,10 @@ public class LandingZoneDao {
                     String.format("Landing Zone %s not found.", uuid.toString())));
   }
 
-  @ReadTransaction
+  @Transactional(
+      isolation = Isolation.SERIALIZABLE,
+      propagation = Propagation.REQUIRED,
+      transactionManager = "tlzTransactionManager")
   public Optional<LandingZone> getLandingZoneIfExists(UUID uuid) {
     if (uuid == null) {
       throw new MissingRequiredFieldException("Valid landing zone id is required");
