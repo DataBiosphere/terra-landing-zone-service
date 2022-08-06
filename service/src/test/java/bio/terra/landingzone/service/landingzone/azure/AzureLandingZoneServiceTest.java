@@ -13,12 +13,12 @@ import bio.terra.cloudres.azure.landingzones.management.LandingZoneManager;
 import bio.terra.cloudres.azure.landingzones.management.ResourcesReader;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDefinitionNotFound;
+import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneResource;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -193,7 +193,7 @@ public class AzureLandingZoneServiceTest {
   @Test
   public void deleteAzureLandingZoneThrowsException() {
     Assertions.assertThrows(
-        NotImplementedException.class,
+        AzureLandingZoneDeleteNotImplemented.class,
         () -> azureLandingZoneService.deleteLandingZone("lz-1"),
         "Delete operation is not supported");
     Mockito.verify(landingZoneDao, Mockito.never()).createLandingZone(ArgumentMatchers.any());

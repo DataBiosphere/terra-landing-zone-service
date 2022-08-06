@@ -8,6 +8,7 @@ import bio.terra.cloudres.azure.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDefinitionNotFound;
+import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
@@ -18,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,6 +139,6 @@ public class AzureLandingZoneService {
   }
 
   public void deleteLandingZone(String landingZoneId) {
-    throw new NotImplementedException("Delete operation is not implemented");
+    throw new AzureLandingZoneDeleteNotImplemented("Delete operation is not implemented");
   }
 }
