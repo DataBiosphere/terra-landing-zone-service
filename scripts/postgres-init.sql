@@ -1,2 +1,2 @@
 CREATE DATABASE landingzone_db;
-CREATE ROLE dbuser WITH LOGIN ENCRYPTED PASSWORD 'dbpwd';
+CREATE ROLE landingzoneuser WITH LOGIN ENCRYPTED PASSWORD 'landingzonepwd';

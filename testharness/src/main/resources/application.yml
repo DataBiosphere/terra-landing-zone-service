@@ -6,8 +6,8 @@ env:
     init: ${INIT_DB:false}
     landingzone:
       name: ${DATABASE_NAME:landingzone_db}
-      pass: ${DATABASE_USER_PASSWORD:dbpwd}
-      user: ${DATABASE_USER:dbuser}
+      pass: ${DATABASE_USER_PASSWORD:landingzonepwd}
+      user: ${DATABASE_USER:landingzoneuser}
   tracing:
     exportEnabled: ${CLOUD_TRACE_ENABLED:false}
     samplingRate: ${SAMPLING_PROBABILITY:0}
