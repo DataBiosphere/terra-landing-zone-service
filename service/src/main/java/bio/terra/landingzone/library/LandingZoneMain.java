@@ -2,6 +2,7 @@ package bio.terra.landingzone.library;
 
 import bio.terra.common.migrate.LiquibaseMigrator;
 import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
+import bio.terra.landingzone.library.stairway.StairwayService;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -10,6 +11,9 @@ import org.springframework.context.ApplicationContext;
  */
 public class LandingZoneMain {
   private static final String CHANGELOG_PATH = "landingzonedb/changelog.xml";
+  private static final String LANDING_ZONE_STAIRWAY_BEAN_NAME = "landingZoneStairway";
+  private static final String LANDING_ZONE_STAIRWAY_OPTIONS_BUILDER_BEAN_NAME =
+      "landingZoneStairwayOptionsBuilder";
 
   public static void initialize(
       ApplicationContext applicationContext, LiquibaseMigrator migrateService) {
@@ -21,5 +25,22 @@ public class LandingZoneMain {
     } else if (landingZoneDatabaseConfiguration.isUpgradeOnStart()) {
       migrateService.upgrade(CHANGELOG_PATH, landingZoneDatabaseConfiguration.getDataSource());
     }
+
+    // initialize Landing Zone Stairway
+    //    StairwayComponent stairwayComponent =
+    //        applicationContext.getBean(LANDING_ZONE_STAIRWAY_BEAN_NAME, StairwayComponent.class);
+    //    LandingZoneStairwayDatabaseConfiguration landingZoneStairwayDatabaseConfiguration =
+    //            applicationContext.getBean(LandingZoneStairwayDatabaseConfiguration.class);
+
+    // This lib isn't aware of WSM scope
+    // Object flightBeanBag = applicationContext.getBean(FlightBeanBag.class); //WSM scope
+
+    //    StairwayComponent.StairwayOptionsBuilder stairwayOptionsBuilder =
+    //        applicationContext.getBean(LANDING_ZONE_STAIRWAY_OPTIONS_BUILDER_BEAN_NAME,
+    // StairwayComponent.StairwayOptionsBuilder.class);
+
+    StairwayService stairwayService =
+        applicationContext.getBean("landingZoneStairwayService", StairwayService.class);
+    stairwayService.initialize();
   }
 }
