@@ -16,7 +16,18 @@ on:
     # to run tests even when we only change a markdown file. So don't do what I did and put a
     # paths-ignore right here!
   workflow_dispatch: {}
-
+env:
+  VAULT_ADDR: https://clotho.broadinstitute.org:8200
+  VAULT_SERVICE_ACCOUNT_ADMIN_PATH: secret/dsde/terra/crl-test/default/service-account-admin.json
+  VAULT_SERVICE_ACCOUNT_USER_PATH: secret/dsde/terra/crl-test/default/service-account-user.json
+  VAULT_SERVICE_ACCOUNT_JANITOR_CLIENT_PATH: secret/dsde/terra/kernel/integration/tools/crl_janitor/client-sa
+  VAULT_AZURE_MANAGED_APP_CLIENT_PATH: secret/dsde/terra/azure/common/managed-app-publisher
+  # Where to store the retrieved service accounts credentials for Google integration tests.
+  SERVICE_ACCOUNT_ADMIN_FILE: service/src/test/resources/integration_service_account_admin.json
+  SERVICE_ACCOUNT_USER_FILE: service/src/test/resources/integration_service_account_user.json
+  SERVICE_ACCOUNT_JANITOR_CLIENT_FILE: service/src/test/resources/integration_service_account_janitor_client.json
+  AZURE_MANAGED_APP_CLIENT_FILE: service/src/test/resources/integration_azure_managed_app_client.json
+  AZURE_PROPERTIES_FILE: service/src/test/resources/integration_azure_env.properties
 jobs:
   bump-check:
     runs-on: ubuntu-latest
@@ -74,6 +85,57 @@ jobs:
         # Needed by sonar to get the git history for the branch the PR will be merged into.
         with:
           fetch-depth: 0
+        - name: Pull Vault image
+          run: docker pull vault:1.1.0
+        # Currently, there's no way to add capabilities to Docker actions on Git, and Vault needs IPC_LOCK to run.
+        - name: Get Vault token
+          id: vault-token-step
+          run: |
+                VAULT_TOKEN=$(docker run --rm --cap-add IPC_LOCK \
+                  -e "VAULT_ADDR=${VAULT_ADDR}" \
+                  vault:1.1.0 \
+                  vault write -field token \
+                    auth/approle/login role_id=${{ secrets.VAULT_APPROLE_ROLE_ID }} \
+                    secret_id=${{ secrets.VAULT_APPROLE_SECRET_ID }})
+                echo ::set-output name=vault-token::$VAULT_TOKEN
+                echo ::add-mask::$VAULT_TOKEN
+        - name: Get service account credentials from Vault
+          id: vault-secret-step
+          run: |
+                docker run --rm --cap-add IPC_LOCK \
+                  -e "VAULT_TOKEN=${{ steps.vault-token-step.outputs.vault-token }}" \
+                  -e "VAULT_ADDR=${VAULT_ADDR}" \
+                  vault:1.1.0 \
+                  vault read -format json $VAULT_SERVICE_ACCOUNT_ADMIN_PATH \
+                  | jq .data > $SERVICE_ACCOUNT_ADMIN_FILE &&#
+                docker run --rm --cap-add IPC_LOCK \
+                  -e "VAULT_TOKEN=${{ steps.vault-token-step.outputs.vault-token }}" \
+                  -e "VAULT_ADDR=${VAULT_ADDR}" \
+                  vault:1.1.0 \
+                  vault read -format json $VAULT_SERVICE_ACCOUNT_USER_PATH \
+                  | jq .data > $SERVICE_ACCOUNT_USER_FILE &&#
+                docker run --rm --cap-add IPC_LOCK \
+                  -e "VAULT_TOKEN=${{ steps.vault-token-step.outputs.vault-token }}" \
+                  -e "VAULT_ADDR=${VAULT_ADDR}" \
+                  vault:1.1.0 \
+                  vault read -format json $VAULT_SERVICE_ACCOUNT_JANITOR_CLIENT_PATH \
+                  | jq -r .data.key | base64 -d > $SERVICE_ACCOUNT_JANITOR_CLIENT_FILE &&#
+                docker run --rm --cap-add IPC_LOCK \
+                  -e "VAULT_TOKEN=${{ steps.vault-token-step.outputs.vault-token }}" \
+                  -e "VAULT_ADDR=${VAULT_ADDR}" \
+                  vault:1.1.0 \
+                  vault read -format json $VAULT_AZURE_MANAGED_APP_CLIENT_PATH \
+                  | jq .data > $AZURE_MANAGED_APP_CLIENT_FILE
+      - name: Write Azure properties file
+        run: |
+              AZURE_MANAGED_APP_CLIENT_ID=$(jq -r '."client-id"' ${AZURE_MANAGED_APP_CLIENT_FILE})
+              AZURE_MANAGED_APP_CLIENT_SECRET=$(jq -r '."client-secret"' ${AZURE_MANAGED_APP_CLIENT_FILE})
+              AZURE_MANAGED_APP_TENANT_ID=$(jq -r '."tenant-id"' ${AZURE_MANAGED_APP_CLIENT_FILE})
+              cat > ${AZURE_PROPERTIES_FILE} <<EOF
+              integration.azure.admin.clientId=${AZURE_MANAGED_APP_CLIENT_ID}
+              integration.azure.admin.clientSecret=${AZURE_MANAGED_APP_CLIENT_SECRET}
+              integration.azure.admin.tenantId=${AZURE_MANAGED_APP_TENANT_ID}
+              EOF
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -86,6 +148,9 @@ jobs:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -f ./scripts/postgres-init.sql
+
+      - name: Test Service and Library with coverage
+        run: ./gradlew --build-cache service:test jacocoTestReport --scan
 
       - name: Test with coverage
         run: ./gradlew --build-cache testharness:test jacocoTestReport --scan
