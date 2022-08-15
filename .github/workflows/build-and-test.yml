@@ -85,12 +85,12 @@ jobs:
         # Needed by sonar to get the git history for the branch the PR will be merged into.
         with:
           fetch-depth: 0
-        - name: Pull Vault image
-          run: docker pull vault:1.1.0
+      - name: Pull Vault image
+        run: docker pull vault:1.1.0
         # Currently, there's no way to add capabilities to Docker actions on Git, and Vault needs IPC_LOCK to run.
-        - name: Get Vault token
-          id: vault-token-step
-          run: |
+      - name: Get Vault token
+        id: vault-token-step
+        run: |
                 VAULT_TOKEN=$(docker run --rm --cap-add IPC_LOCK \
                   -e "VAULT_ADDR=${VAULT_ADDR}" \
                   vault:1.1.0 \
@@ -99,9 +99,9 @@ jobs:
                     secret_id=${{ secrets.VAULT_APPROLE_SECRET_ID }})
                 echo ::set-output name=vault-token::$VAULT_TOKEN
                 echo ::add-mask::$VAULT_TOKEN
-        - name: Get service account credentials from Vault
-          id: vault-secret-step
-          run: |
+      - name: Get service account credentials from Vault
+        id: vault-secret-step
+        run: |
                 docker run --rm --cap-add IPC_LOCK \
                   -e "VAULT_TOKEN=${{ steps.vault-token-step.outputs.vault-token }}" \
                   -e "VAULT_ADDR=${VAULT_ADDR}" \
