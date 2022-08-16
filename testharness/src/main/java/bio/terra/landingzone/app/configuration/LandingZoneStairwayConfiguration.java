@@ -1,10 +1,11 @@
-package bio.terra.landingzone.library.configuration.stairway;
+package bio.terra.landingzone.app.config;
 
 import bio.terra.common.db.DataSourceInitializer;
 import bio.terra.common.kubernetes.KubeProperties;
 import bio.terra.common.kubernetes.KubeService;
 import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.StairwayProperties;
+import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
 import bio.terra.landingzone.library.stairway.StairwayService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,20 +20,6 @@ public class LandingZoneStairwayConfiguration {
   public StairwayProperties getStairwayProperties() {
     return new StairwayProperties();
   }
-
-  //  @Bean
-  //  @ConfigurationProperties(prefix = "terra.common.kubernetes")
-  //  public KubeProperties getKubeProperties() {
-  //    return new KubeProperties();
-  //  }
-
-  //  @Bean
-  //  public KubeService getKubeService(KubeProperties kubeProperties) {
-  //    return new KubeService(
-  //        kubeProperties.getPodName(),
-  //        kubeProperties.isInKubernetes(),
-  //        kubeProperties.getPodNameFilter());
-  //  }
 
   @Bean("landingZoneStairwayOptionsBuilder")
   public StairwayComponent.StairwayOptionsBuilder getStairwayOptionsBuilder(
