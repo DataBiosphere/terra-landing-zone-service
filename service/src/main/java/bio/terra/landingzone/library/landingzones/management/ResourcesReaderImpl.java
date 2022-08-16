@@ -36,6 +36,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   private List<DeployedResource> listResourceByTag(String resourceGroup, String key, String value) {
+    logger.info("Listing resources by tag. group:{} key:{} value:{} ", resourceGroup, key, value);
     return this.azureResourceManager
         .genericResources()
         .listByTag(resourceGroup, key, value)
@@ -45,6 +46,8 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   private DeployedResource toLandingZoneDeployedResource(GenericResource r) {
+    logger.info(
+        "To landing zone deployed resource: {} type: {} tags: {}", r.id(), r.type(), r.tags());
     return new DeployedResource(r.id(), r.type(), r.tags(), r.region().name());
   }
 
@@ -67,7 +70,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
     Network vNet = azureResourceManager.networks().getById(resource.resourceId());
 
     if (vNet == null) {
-      logger.logExceptionAsError(
+      throw logger.logExceptionAsError(
           new RuntimeException(
               "The resource provided is not VNet or the resource is no longer available"));
     }

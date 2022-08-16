@@ -1,9 +1,6 @@
 package bio.terra.landingzone.library.landingzones.management;
 
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.hasSize;
 
 import bio.terra.landingzone.library.landingzones.TestArmResourcesFactory;
 import bio.terra.landingzone.library.landingzones.TestUtils;
@@ -129,13 +126,14 @@ class ResourcesReaderImplTest {
 
     await()
         .atMost(Duration.ofSeconds(20))
-        .until(() -> resourcesReader.listSharedResources().size() == 1);
-
-    var resources = resourcesReader.listSharedResources();
-
-    assertThat(
-        deployedStorage.resourceId(),
-        equalToIgnoringCase(TestUtils.findFirstStorageAccountId(resources)));
+        .until(
+            () -> {
+              var resources = resourcesReader.listSharedResources();
+              return resources.size() == 1
+                  && deployedStorage
+                      .resourceId()
+                      .equalsIgnoreCase(TestUtils.findFirstStorageAccountId(resources));
+            });
   }
 
   @Test
@@ -144,33 +142,28 @@ class ResourcesReaderImplTest {
     await()
         .atMost(Duration.ofSeconds(20))
         .until(
-            () ->
-                resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE).size()
-                    == 1);
-
-    var resources = resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
-
-    assertThat(resources, hasSize(1));
-    assertThat(
-        deployedStorage.resourceId(),
-        equalToIgnoringCase(TestUtils.findFirstStorageAccountId(resources)));
+            () -> {
+              var resources =
+                  resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
+              return resources.size() == 1
+                  && deployedStorage
+                      .resourceId()
+                      .equalsIgnoreCase(TestUtils.findFirstStorageAccountId(resources));
+            });
   }
 
   @Test
   void listVNetWithSubnetPurpose_returnsDeployedVNet() throws InterruptedException {
+
     await()
         .atMost(Duration.ofSeconds(20))
         .until(
-            () ->
-                resourcesReader
-                        .listVNetWithSubnetPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
-                        .size()
-                    == 1);
-
-    var resources =
-        resourcesReader.listVNetWithSubnetPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
-
-    assertThat(resources, hasSize(1));
-    assertThat(getDeployedVNet().Id(), equalToIgnoringCase(resources.iterator().next().Id()));
+            () -> {
+              var resources =
+                  resourcesReader.listVNetWithSubnetPurpose(
+                      SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+              return resources.size() == 1
+                  && deployedVNet.Id().equalsIgnoreCase(resources.iterator().next().Id());
+            });
   }
 }

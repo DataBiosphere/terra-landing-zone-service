@@ -12,8 +12,6 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployme
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
-import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.List;
 
