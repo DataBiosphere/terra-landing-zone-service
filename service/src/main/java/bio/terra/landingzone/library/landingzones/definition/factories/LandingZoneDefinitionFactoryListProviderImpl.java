@@ -58,7 +58,7 @@ public class LandingZoneDefinitionFactoryListProviderImpl
     return new FactoryDefinitionInfo(
         factory.header().definitionName(),
         factory.header().definitionDescription(),
-        factoryClass.getName(),
+        factoryClass.getSimpleName(),
         factory.availableVersions());
   }
 
