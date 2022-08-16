@@ -31,8 +31,6 @@ public class AzureIntegrationUtils {
 
   /**
    * Gets an Azure TokenCredential object for an Azure admin account. This account has the roles
-   * needed to operate the CRL APIs in the integration test project, e.g. create and delete
-   * resources.
    * needed to operate the integration test project, e.g. create and delete resources.
    *
    * @return TokenCredential
