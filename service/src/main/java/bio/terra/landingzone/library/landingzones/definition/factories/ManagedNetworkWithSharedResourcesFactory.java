@@ -87,28 +87,10 @@ public class ManagedNetworkWithSharedResourcesFactory extends ArmClientsDefiniti
               .withRegion(resourceGroup.region())
               .withExistingResourceGroup(resourceGroup.name());
 
-      var aks =
-          azureResourceManager
-              .kubernetesClusters()
-              .define(nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
-              .withExistingResourceGroup(resourceGroup)
-              .withDefaultVersion()
-              .withSystemAssignedManagedServiceIdentity()
-              .defineAgentPool(
-                  nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_AGENT_POOL_NAME_LENGTH))
-              .withVirtualMachineSize(ContainerServiceVMSizeTypes.STANDARD_A2_V2)
-              .withAgentPoolVirtualMachineCount(1)
-              .withAgentPoolMode(AgentPoolMode.SYSTEM)
-              .attach()
-              .withDnsPrefix(
-                  nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH));
-
       return deployment
           .withResourceWithPurpose(storage, ResourcePurpose.SHARED_RESOURCE)
           .withVNetWithPurpose(vNet, "compute", SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
-          .withResourceWithPurpose(relay, ResourcePurpose.SHARED_RESOURCE)
-          .withResourceWithPurpose(aks, ResourcePurpose.SHARED_RESOURCE);
+          .withResourceWithPurpose(relay, ResourcePurpose.SHARED_RESOURCE);
     }
   }
 }

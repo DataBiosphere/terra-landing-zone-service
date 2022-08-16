@@ -37,12 +37,12 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
             .collectList()
             .block();
 
-    assertThat(resources, hasSize(4));
+    assertThat(resources, hasSize(3));
 
     // check if you can read lz resources
     TimeUnit.SECONDS.sleep(3); // wait for tag propagation...
     var sharedResources = landingZoneManager.reader().listSharedResources();
-    assertThat(sharedResources, hasSize(3));
+    assertThat(sharedResources, hasSize(2));
     var vNet =
         landingZoneManager
             .reader()

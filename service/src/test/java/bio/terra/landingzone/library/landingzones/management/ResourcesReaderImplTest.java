@@ -1,5 +1,6 @@
 package bio.terra.landingzone.library.landingzones.management;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.hasSize;
@@ -23,10 +24,12 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +80,7 @@ class ResourcesReaderImplTest {
     deployedStorage = getDeployedStorage();
     deployedVNet = getDeployedVNet();
     TimeUnit.SECONDS.sleep(10); // give some time for replication of tag data
+    Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
   }
 
   @AfterAll
@@ -123,15 +127,12 @@ class ResourcesReaderImplTest {
   @Test
   void listSharedResources_storageResourceIsSharedResource() throws InterruptedException {
 
+    await()
+        .atMost(Duration.ofSeconds(20))
+        .until(() -> resourcesReader.listSharedResources().size() == 1);
+
     var resources = resourcesReader.listSharedResources();
 
-    // try again, as tags may take some time to be indexed.
-    if (resources.size() == 0) {
-      TimeUnit.SECONDS.sleep(30);
-      resources = resourcesReader.listSharedResources();
-    }
-
-    assertThat(resources, hasSize(1));
     assertThat(
         deployedStorage.resourceId(),
         equalToIgnoringCase(TestUtils.findFirstStorageAccountId(resources)));
@@ -139,13 +140,15 @@ class ResourcesReaderImplTest {
 
   @Test
   void listResourcesByPurpose_storageResourceIsSharedResource() throws InterruptedException {
-    var resources = resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
 
-    // try again, as tags may take some time to be indexed.
-    if (resources.size() == 0) {
-      TimeUnit.SECONDS.sleep(30);
-      resources = resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
-    }
+    await()
+        .atMost(Duration.ofSeconds(20))
+        .until(
+            () ->
+                resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE).size()
+                    == 1);
+
+    var resources = resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
 
     assertThat(resources, hasSize(1));
     assertThat(
@@ -155,15 +158,17 @@ class ResourcesReaderImplTest {
 
   @Test
   void listVNetWithSubnetPurpose_returnsDeployedVNet() throws InterruptedException {
+    await()
+        .atMost(Duration.ofSeconds(20))
+        .until(
+            () ->
+                resourcesReader
+                        .listVNetWithSubnetPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
+                        .size()
+                    == 1);
+
     var resources =
         resourcesReader.listVNetWithSubnetPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
-
-    // try again, as tags may take some time to be indexed.
-    if (resources.size() == 0) {
-      TimeUnit.SECONDS.sleep(30);
-      resources =
-          resourcesReader.listVNetWithSubnetPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
-    }
 
     assertThat(resources, hasSize(1));
     assertThat(getDeployedVNet().Id(), equalToIgnoringCase(resources.iterator().next().Id()));

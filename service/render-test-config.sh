@@ -6,26 +6,10 @@
 
 VAULT_TOKEN=${1:-$(cat $HOME/.vault-token)}
 DSDE_TOOLBOX_DOCKER_IMAGE=broadinstitute/dsde-toolbox:consul-0.20.0
-VAULT_SERVICE_ACCOUNT_ADMIN_PATH=secret/dsde/terra/crl-test/default/service-account-admin.json
-VAULT_SERVICE_ACCOUNT_USER_PATH=secret/dsde/terra/crl-test/default/service-account-user.json
-VAULT_SERVICE_ACCOUNT_JANITOR_CLIENT_PATH=secret/dsde/terra/kernel/integration/tools/crl_janitor/client-sa
 VAULT_AZURE_MANAGED_APP_CLIENT_PATH=secret/dsde/terra/azure/common/managed-app-publisher
-SERVICE_ACCOUNT_ADMIN_OUTPUT_FILE_PATH="$(dirname $0)"/src/test/resources/integration_service_account_admin.json
-SERVICE_ACCOUNT_USER_OUTPUT_FILE_PATH="$(dirname $0)"/src/test/resources/integration_service_account_user.json
-SERVICE_ACCOUNT_JANITOR_CLIENT_OUTPUT_FILE_PATH="$(dirname $0)"/src/test/resources/integration_service_account_janitor_client.json
 AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH="$(dirname $0)"/src/test/resources/integration_azure_managed_app_client.json
 AZURE_PROPERTIES_OUTPUT_FILE_PATH="$(dirname $0)"/src/test/resources/integration_azure_env.properties
 
-docker run --rm -e VAULT_TOKEN=$VAULT_TOKEN ${DSDE_TOOLBOX_DOCKER_IMAGE} \
-            vault read -format json ${VAULT_SERVICE_ACCOUNT_ADMIN_PATH} \
-            | jq -r .data > ${SERVICE_ACCOUNT_ADMIN_OUTPUT_FILE_PATH}
-docker run --rm -e VAULT_TOKEN=$VAULT_TOKEN ${DSDE_TOOLBOX_DOCKER_IMAGE} \
-            vault read -format json ${VAULT_SERVICE_ACCOUNT_USER_PATH} \
-            | jq -r .data > ${SERVICE_ACCOUNT_USER_OUTPUT_FILE_PATH}
-docker run --rm --cap-add IPC_LOCK \
-            -e VAULT_TOKEN=$VAULT_TOKEN ${DSDE_TOOLBOX_DOCKER_IMAGE} \
-            vault read -format json ${VAULT_SERVICE_ACCOUNT_JANITOR_CLIENT_PATH} \
-            | jq -r .data.key | base64 -d > ${SERVICE_ACCOUNT_JANITOR_CLIENT_OUTPUT_FILE_PATH}
 docker run --rm --cap-add IPC_LOCK \
             -e VAULT_TOKEN=$VAULT_TOKEN ${DSDE_TOOLBOX_DOCKER_IMAGE} \
             vault read -format json ${VAULT_AZURE_MANAGED_APP_CLIENT_PATH} \
