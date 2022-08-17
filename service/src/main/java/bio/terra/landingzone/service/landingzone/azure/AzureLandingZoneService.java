@@ -111,7 +111,6 @@ public class AzureLandingZoneService {
               version ->
                   landingZoneTemplates.add(
                       AzureLandingZoneDefinition.builder()
-                          // TODO: remove FQN
                           .definition(factoryInfo.className())
                           .name(factoryInfo.name())
                           .description(factoryInfo.description())
