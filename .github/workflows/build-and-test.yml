@@ -16,6 +16,10 @@ on:
     # to run tests even when we only change a markdown file. So don't do what I did and put a
     # paths-ignore right here!
   workflow_dispatch: {}
+env:
+  AZURE_PUBLISHER_CLIENT_ID: ${{ secrets.AZURE_PUBLISHER_CLIENT_ID }}
+  AZURE_PUBLISHER_CLIENT_SECRET: ${{ secrets.AZURE_PUBLISHER_CLIENT_SECRET }}
+  AZURE_PUBLISHER_TENANT_ID: ${{ secrets.AZURE_PUBLISHER_TENANT_ID }}
 
 jobs:
   bump-check:
@@ -86,6 +90,9 @@ jobs:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -f ./scripts/postgres-init.sql
+
+      - name: Test Service and Library with coverage
+        run: ./gradlew --build-cache service:test jacocoTestReport --scan
 
       - name: Test with coverage
         run: ./gradlew --build-cache testharness:test jacocoTestReport --scan

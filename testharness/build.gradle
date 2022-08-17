@@ -39,7 +39,7 @@ dependencies {
 
     test {
         useJUnitPlatform {
-            includeTags "library"
+            includeTags "library","unit"
         }
         outputs.upToDateWhen { false }
         finalizedBy jacocoTestReport
@@ -47,5 +47,16 @@ dependencies {
             includes = ["bio.terra.landingzone.**" ]
             includeNoLocationClasses = true
         }
+    }
+    // Create a new :integrationTest task to run integration tests. This won't be executed as
+    // part of the standard `./gradlew build` invocation.
+    task integrationTest(type: Test) {
+        useJUnitPlatform {
+            includeTags "integration"
+        }
+        shouldRunAfter test
+        // Force tests to always be re-run, since integration tests involve communicating with external
+        // resources.
+        outputs.upToDateWhen { false }
     }
 }

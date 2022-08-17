@@ -12,7 +12,6 @@ apply from: 'publishing.gradle'
 
 dependencies {
     implementation 'bio.terra:terra-common-lib:0.0.61-SNAPSHOT'
-    implementation 'bio.terra:terra-cloud-resource-lib:2.0.1-J17-SNAPSHOT'
     implementation 'org.apache.commons:commons-dbcp2:2.9.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:2.7.0'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.7.0'
@@ -21,6 +20,16 @@ dependencies {
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
     implementation 'javax.servlet:jstl:1.2'
+    implementation group: 'com.azure', name: 'azure-core', version: '1.24.1'
+    implementation group: 'com.azure', name: 'azure-identity', version: '1.4.3'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.15.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.15.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.15.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.1'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.15.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresql', version: '1.0.2'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.15.0'
 
     liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
     liquibaseRuntime 'info.picocli:picocli:4.6.1'
@@ -35,6 +44,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
 
     testImplementation 'org.mockito:mockito-inline:3.8.0'
+    testImplementation 'org.awaitility:awaitility:4.2.0'
     testImplementation('org.springframework.boot:spring-boot-starter-test:2.7.0') {
         // Fixes warning about multiple occurrences of JSONObject on the classpath
         exclude group: 'com.vaadin.external.google', module: 'android-json'
