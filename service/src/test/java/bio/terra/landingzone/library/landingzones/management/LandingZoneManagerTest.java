@@ -131,7 +131,7 @@ class LandingZoneManagerTest {
         new FactoryDefinitionInfo(
             TestLandingZoneFactory.LZ_NAME,
             TestLandingZoneFactory.LZ_DESC,
-            TestLandingZoneFactory.class.getName(),
+            TestLandingZoneFactory.class.getSimpleName(),
             List.of(DefinitionVersion.V1));
 
     assertThat(factories, hasItem(testFactory));
