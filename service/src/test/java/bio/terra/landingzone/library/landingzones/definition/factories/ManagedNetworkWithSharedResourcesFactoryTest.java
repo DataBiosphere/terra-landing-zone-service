@@ -38,7 +38,7 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
             .collectList()
             .block();
 
-    //three resources deployed -vnet, relay and storage
+    // three resources deployed -vnet, relay and storage
     assertThat(resources, hasSize(3));
 
     // check if you can read lz resources
@@ -47,7 +47,8 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
         .until(
             () -> {
               var sharedResources = landingZoneManager.reader().listSharedResources();
-              return sharedResources.size() == 2; //there should be two resources, relay and storage
+              return sharedResources.size()
+                  == 2; // there should be two resources, relay and storage
             });
 
     await()
@@ -58,7 +59,7 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
                   landingZoneManager
                       .reader()
                       .listVNetWithSubnetPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
-              return vNets.size() == 1; //only one vnet.
+              return vNets.size() == 1; // only one vnet.
             });
   }
 }
