@@ -2,8 +2,6 @@ package bio.terra.landingzone.service.landingzone.azure;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
@@ -43,11 +41,10 @@ public class AzureLandingZoneServiceTest {
   private AzureLandingZoneService azureLandingZoneService;
 
   @Mock private LandingZoneManager landingZoneManager;
-  @Mock private LandingZoneDao landingZoneDao;
 
   @BeforeEach
   public void setup() {
-    azureLandingZoneService = new AzureLandingZoneService(landingZoneDao);
+    azureLandingZoneService = new AzureLandingZoneService();
   }
 
   @Test
@@ -88,7 +85,7 @@ public class AzureLandingZoneServiceTest {
 
       var azureLandingZone =
           azureLandingZoneService.createLandingZone(
-              azureLandingZoneDefinition, landingZoneManager, "resourceGroup");
+              azureLandingZoneDefinition, landingZoneManager);
 
       assertNotNull(azureLandingZone);
       assertNotNull(azureLandingZone.getId());
@@ -97,7 +94,6 @@ public class AzureLandingZoneServiceTest {
           azureLandingZone.getDeployedResources(), 1, VNET_1, VIRTUAL_NETWORK, TAGS, REGION);
       validateDeployedResource(
           azureLandingZone.getDeployedResources(), 1, VNET_SUBNET_1, SUBNET, TAGS, REGION);
-      Mockito.verify(landingZoneDao, Mockito.times(1)).createLandingZone(ArgumentMatchers.any());
     }
   }
 
@@ -130,9 +126,7 @@ public class AzureLandingZoneServiceTest {
           () ->
               azureLandingZoneService.createLandingZone(
                   azureLandingZoneDefinition,
-                  landingZoneManager,
-                  "Requested landing zone definition doesn't exist"));
-      Mockito.verify(landingZoneDao, Mockito.never()).createLandingZone(ArgumentMatchers.any());
+                  landingZoneManager));
     }
   }
 
@@ -196,7 +190,6 @@ public class AzureLandingZoneServiceTest {
         AzureLandingZoneDeleteNotImplemented.class,
         () -> azureLandingZoneService.deleteLandingZone("lz-1"),
         "Delete operation is not supported");
-    Mockito.verify(landingZoneDao, Mockito.never()).createLandingZone(ArgumentMatchers.any());
   }
 
   private long countAzureLandingZoneTemplateRecordsWithAttribute(

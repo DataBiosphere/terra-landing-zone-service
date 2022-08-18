@@ -1,7 +1,5 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
-import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
@@ -21,7 +19,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
@@ -29,17 +26,9 @@ import org.springframework.stereotype.Component;
 public class AzureLandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(AzureLandingZoneService.class);
 
-  private final LandingZoneDao landingZoneDao;
-
-  @Autowired
-  public AzureLandingZoneService(LandingZoneDao landingZoneDao) {
-    this.landingZoneDao = landingZoneDao;
-  }
-
   public AzureLandingZone createLandingZone(
       AzureLandingZoneRequest azureLandingZone,
-      LandingZoneManager landingZoneManager,
-      String resourceGroupName)
+      LandingZoneManager landingZoneManager)
       throws AzureLandingZoneDefinitionNotFound {
 
     Predicate<FactoryDefinitionInfo> requiredDefinition =
@@ -71,18 +60,9 @@ public class AzureLandingZoneService {
             DefinitionVersion.fromString(azureLandingZone.getVersion()),
             azureLandingZone.getParameters());
 
-    landingZoneDao.createLandingZone(
-        LandingZone.builder()
-            .landingZoneId(landingZoneId)
-            .resourceGroupId(resourceGroupName)
-            .definition(azureLandingZone.getDefinition())
-            .displayName(requestedFactory.get().description())
-            .description(requestedFactory.get().description())
-            .properties(azureLandingZone.getParameters())
-            .build());
     logger.info(
         "Azure Landing Zone definition with the following "
-            + "parameters: definition={}, version={}successfully created.",
+            + "parameters: definition={}, version={} successfully created.",
         azureLandingZone.getDefinition(),
         azureLandingZone.getVersion());
     return AzureLandingZone.builder()
