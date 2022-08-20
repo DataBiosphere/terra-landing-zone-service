@@ -1,10 +1,11 @@
-package bio.terra.landingzone.app.config;
+package bio.terra.landingzone.app.configuration;
 
 import bio.terra.common.db.DataSourceInitializer;
 import bio.terra.common.kubernetes.KubeProperties;
 import bio.terra.common.kubernetes.KubeService;
 import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.StairwayProperties;
+import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
 import bio.terra.landingzone.library.stairway.StairwayService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,6 +20,12 @@ public class LandingZoneStairwayConfiguration {
   @ConfigurationProperties(prefix = "landingzone.stairway")
   public StairwayProperties getStairwayProperties() {
     return new StairwayProperties();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "workspace.azure")
+  public LandingZoneAzureConfiguration getLandingZoneAzureConfiguration() {
+    return new LandingZoneAzureConfiguration();
   }
 
   @Bean("landingZoneStairwayOptionsBuilder")

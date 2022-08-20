@@ -27,8 +27,7 @@ public class AzureLandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(AzureLandingZoneService.class);
 
   public AzureLandingZone createLandingZone(
-      AzureLandingZoneRequest azureLandingZone,
-      LandingZoneManager landingZoneManager)
+      AzureLandingZoneRequest azureLandingZone, LandingZoneManager landingZoneManager)
       throws AzureLandingZoneDefinitionNotFound {
 
     Predicate<FactoryDefinitionInfo> requiredDefinition =

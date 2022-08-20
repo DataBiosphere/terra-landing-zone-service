@@ -124,7 +124,7 @@ public class LandingZoneManager {
 
     return new LandingZoneDefinitionFactoryListProviderImpl()
         .listFactoriesClasses().stream()
-            .filter(f -> f.getName().equals(className))
+            .filter(f -> f.getSimpleName().equals(className))
             .findFirst()
             .orElseThrow(() -> new RuntimeException("Invalid factory definition name"));
   }

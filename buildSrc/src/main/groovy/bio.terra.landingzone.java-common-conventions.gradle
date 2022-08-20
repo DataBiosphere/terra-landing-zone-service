@@ -46,7 +46,7 @@ dependencies {
     testImplementation 'ch.qos.logback:logback-classic:1.2.10'
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
-    implementation 'bio.terra:terra-common-lib:0.0.60-SNAPSHOT'
+    implementation 'bio.terra:terra-common-lib:0.0.66-SNAPSHOT'
 }
 
 tasks.named('test') {
@@ -87,4 +87,3 @@ spotbugsMain {
         }
     }
 }
-

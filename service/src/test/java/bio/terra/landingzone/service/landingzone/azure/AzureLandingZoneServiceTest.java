@@ -2,6 +2,7 @@ package bio.terra.landingzone.service.landingzone.azure;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
@@ -84,8 +85,7 @@ public class AzureLandingZoneServiceTest {
               mockFactory1.getClass().getName(), requestedVersion.toString(), null);
 
       var azureLandingZone =
-          azureLandingZoneService.createLandingZone(
-              azureLandingZoneDefinition, landingZoneManager);
+          azureLandingZoneService.createLandingZone(azureLandingZoneDefinition, landingZoneManager);
 
       assertNotNull(azureLandingZone);
       assertNotNull(azureLandingZone.getId());
@@ -125,8 +125,7 @@ public class AzureLandingZoneServiceTest {
           AzureLandingZoneDefinitionNotFound.class,
           () ->
               azureLandingZoneService.createLandingZone(
-                  azureLandingZoneDefinition,
-                  landingZoneManager));
+                  azureLandingZoneDefinition, landingZoneManager));
     }
   }
 
