@@ -3,19 +3,24 @@ package bio.terra.landingzone.resource.landingzone;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.model.AzureCloudContext;
-import bio.terra.landingzone.resource.ExternalResource;
 import bio.terra.landingzone.resource.ExternalResourceType;
-import bio.terra.landingzone.resource.flight.create.CreateExternalResourceFlight;
+import bio.terra.landingzone.resource.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.resource.model.StewardshipType;
 import java.util.Map;
 import java.util.UUID;
 
-public class ExternalLandingZoneResource extends ExternalResource {
+public class JobLandingZoneDefinition {
   private final String definition;
   private final String version;
   private final Map<String, String> properties;
 
-  public ExternalLandingZoneResource(
+  public AzureCloudContext getAzureCloudContext() {
+    return azureCloudContext;
+  }
+
+  private final AzureCloudContext azureCloudContext;
+
+  public JobLandingZoneDefinition(
       UUID resourceId,
       String definition,
       String version,
@@ -23,10 +28,11 @@ public class ExternalLandingZoneResource extends ExternalResource {
       String name,
       String description,
       AzureCloudContext azureCloudContext) {
-    super(resourceId, name, description, azureCloudContext);
+    // super(resourceId, name, description, azureCloudContext);
     this.definition = definition;
     this.version = version;
     this.properties = properties;
+    this.azureCloudContext = azureCloudContext;
   }
 
   public String getDefinition() {
@@ -41,19 +47,16 @@ public class ExternalLandingZoneResource extends ExternalResource {
     return properties;
   }
 
-  @Override
   public ExternalResourceType getResourceType() {
     return ExternalResourceType.AZURE_LANDING_ZONE;
   }
 
-  @Override
   public StewardshipType getStewardshipType() {
     return StewardshipType.EXTERNAL;
   }
 
-  @Override
   public void addCreateSteps(
-      CreateExternalResourceFlight flight, LandingZoneFlightBeanBag flightBeanBag) {
+      CreateLandingZoneFlight flight, LandingZoneFlightBeanBag flightBeanBag) {
 
     flight.addStep(
         new CreateAzureExternalLandingZoneStep(
@@ -72,7 +75,7 @@ public class ExternalLandingZoneResource extends ExternalResource {
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
 
-    ExternalLandingZoneResource that = (ExternalLandingZoneResource) o;
+    JobLandingZoneDefinition that = (JobLandingZoneDefinition) o;
 
     return definition.equals(that.getDefinition()) && version.equals(that.getVersion());
   }
@@ -85,8 +88,8 @@ public class ExternalLandingZoneResource extends ExternalResource {
     return result;
   }
 
-  public static ExternalLandingZoneResource.Builder builder() {
-    return new ExternalLandingZoneResource.Builder();
+  public static JobLandingZoneDefinition.Builder builder() {
+    return new JobLandingZoneDefinition.Builder();
   }
 
   public static class Builder {
@@ -133,8 +136,8 @@ public class ExternalLandingZoneResource extends ExternalResource {
       return this;
     }
 
-    public ExternalLandingZoneResource build() {
-      return new ExternalLandingZoneResource(
+    public JobLandingZoneDefinition build() {
+      return new JobLandingZoneDefinition(
           resourceId, definition, version, properties, name, description, azureCloudContext);
     }
   }

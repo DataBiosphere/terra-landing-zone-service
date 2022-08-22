@@ -5,7 +5,7 @@ import bio.terra.landingzone.library.AzureLandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.resource.flight.utils.FlightUtils;
-import bio.terra.landingzone.service.landingzone.azure.AzureLandingZoneService;
+import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneResource;
@@ -26,13 +26,13 @@ public class CreateAzureExternalLandingZoneStep implements Step {
   private static final Logger logger =
       LoggerFactory.getLogger(CreateAzureExternalLandingZoneStep.class);
 
-  private final AzureLandingZoneService azureLandingZoneService;
+  private final LandingZoneService landingZoneService;
   private final AzureLandingZoneManagerProvider azureLandingZoneManagerProvider;
 
   public CreateAzureExternalLandingZoneStep(
-      AzureLandingZoneService azureLandingZoneService,
+      LandingZoneService landingZoneService,
       AzureLandingZoneManagerProvider azureLandingZoneManagerProvider) {
-    this.azureLandingZoneService = azureLandingZoneService;
+    this.landingZoneService = landingZoneService;
     this.azureLandingZoneManagerProvider = azureLandingZoneManagerProvider;
   }
 
@@ -46,7 +46,7 @@ public class CreateAzureExternalLandingZoneStep implements Step {
 
     var requestedExternalLandingZoneResource =
         inputMap.get(
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, ExternalLandingZoneResource.class);
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, JobLandingZoneDefinition.class);
     var azureConfiguration =
         inputMap.get(
             LandingZoneFlightMapKeys.LANDING_ZONE_AZURE_CONFIGURATION,
@@ -61,7 +61,7 @@ public class CreateAzureExternalLandingZoneStep implements Step {
     try {
       var tokenCredential = buildTokenCredential(azureConfiguration);
       AzureLandingZone createdAzureLandingZone =
-          azureLandingZoneService.createLandingZone(
+          landingZoneService.createLandingZone(
               azureLandingZoneRequest,
               azureLandingZoneManagerProvider.createLandingZoneManager(
                   tokenCredential, requestedExternalLandingZoneResource.getAzureCloudContext()));

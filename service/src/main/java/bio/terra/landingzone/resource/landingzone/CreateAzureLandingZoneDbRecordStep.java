@@ -32,7 +32,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
     var requestedExternalLandingZoneResource =
         inputMap.get(
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, ExternalLandingZoneResource.class);
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, JobLandingZoneDefinition.class);
     var azureCloudContext = requestedExternalLandingZoneResource.getAzureCloudContext();
 
     if (!context
@@ -56,11 +56,11 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
     landingZoneDao.createLandingZone(
         LandingZone.builder()
-            .landingZoneId(UUID.fromString(landingZoneId))
+            .landingZoneId(UUID.fromString(landingZoneId)) // TODO: Check if we can validate that the lz id is UUID earlier
             .definition(requestedExternalLandingZoneResource.getDefinition())
             .version(requestedExternalLandingZoneResource.getVersion())
-            .description(requestedExternalLandingZoneResource.getDescription())
-            .displayName(requestedExternalLandingZoneResource.getName())
+            .description(String.format("Definition:%s Version:%s", requestedExternalLandingZoneResource.getDefinition(), requestedExternalLandingZoneResource.getVersion()))
+            .displayName(requestedExternalLandingZoneResource.getDefinition())
             .properties(requestedExternalLandingZoneResource.getProperties())
             .resourceGroupId(azureCloudContext.getAzureResourceGroupId())
             .build());

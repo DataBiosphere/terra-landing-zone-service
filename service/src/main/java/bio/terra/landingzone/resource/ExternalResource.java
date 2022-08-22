@@ -2,7 +2,7 @@ package bio.terra.landingzone.resource;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.model.AzureCloudContext;
-import bio.terra.landingzone.resource.flight.create.CreateExternalResourceFlight;
+import bio.terra.landingzone.resource.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.resource.model.StewardshipType;
 import java.util.UUID;
 
@@ -49,5 +49,5 @@ public abstract class ExternalResource {
    * @param flightBeanBag bean bag for finding Spring singletons
    */
   public abstract void addCreateSteps(
-      CreateExternalResourceFlight flight, LandingZoneFlightBeanBag flightBeanBag);
+      CreateLandingZoneFlight flight, LandingZoneFlightBeanBag flightBeanBag);
 }

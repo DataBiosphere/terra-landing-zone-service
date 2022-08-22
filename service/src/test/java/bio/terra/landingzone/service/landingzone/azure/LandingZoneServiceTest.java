@@ -3,6 +3,8 @@ package bio.terra.landingzone.service.landingzone.azure;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import bio.terra.landingzone.job.AzureLandingZoneJobService;
+import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
@@ -29,7 +31,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AzureLandingZoneServiceTest {
+public class LandingZoneServiceTest {
   private static final String VNET_1 = "vnet_1";
   private static final String VNET_SUBNET_1 = "vnet_subnet_1";
   private static final String VIRTUAL_NETWORK = "VirtualNetwork";
@@ -39,13 +41,17 @@ public class AzureLandingZoneServiceTest {
   private static final String TAG_VALUE = "VALUE";
   public static final Map<String, String> TAGS = Map.of(TAG_NAME, TAG_VALUE);
 
-  private AzureLandingZoneService azureLandingZoneService;
+  private LandingZoneService landingZoneService;
 
   @Mock private LandingZoneManager landingZoneManager;
 
+  @Mock private AzureLandingZoneJobService landingZoneJobService;
+  @Mock private LandingZoneAzureConfiguration landingZoneAzureConfiguration;
+
   @BeforeEach
   public void setup() {
-    azureLandingZoneService = new AzureLandingZoneService();
+    landingZoneService =
+        new LandingZoneService(landingZoneJobService, landingZoneAzureConfiguration);
   }
 
   @Test
@@ -82,10 +88,10 @@ public class AzureLandingZoneServiceTest {
       DefinitionVersion requestedVersion = DefinitionVersion.V1;
       var azureLandingZoneDefinition =
           new AzureLandingZoneRequest(
-              mockFactory1.getClass().getName(), requestedVersion.toString(), null);
+              mockFactory1.getClass().getName(), requestedVersion.toString(), null, azureCloudContext);
 
       var azureLandingZone =
-          azureLandingZoneService.createLandingZone(azureLandingZoneDefinition, landingZoneManager);
+          landingZoneService.createLandingZone(azureLandingZoneDefinition, landingZoneManager);
 
       assertNotNull(azureLandingZone);
       assertNotNull(azureLandingZone.getId());
@@ -120,12 +126,11 @@ public class AzureLandingZoneServiceTest {
       DefinitionVersion notImplementedVersion = DefinitionVersion.V5;
       var azureLandingZoneDefinition =
           new AzureLandingZoneRequest(
-              mockFactory1.getClass().getName(), notImplementedVersion.toString(), null);
+              mockFactory1.getClass().getName(), notImplementedVersion.toString(), null, azureCloudContext);
       Assertions.assertThrows(
           AzureLandingZoneDefinitionNotFound.class,
           () ->
-              azureLandingZoneService.createLandingZone(
-                  azureLandingZoneDefinition, landingZoneManager));
+              landingZoneService.createLandingZone(azureLandingZoneDefinition, landingZoneManager));
     }
   }
 
@@ -146,7 +151,7 @@ public class AzureLandingZoneServiceTest {
     Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     List<AzureLandingZoneResource> resources =
-        azureLandingZoneService.listResourcesByPurpose(
+        landingZoneService.listResourcesByPurpose(
             landingZoneManager, ResourcePurpose.SHARED_RESOURCE);
 
     assertNotNull(resources);
@@ -169,8 +174,7 @@ public class AzureLandingZoneServiceTest {
       staticMockLandingZoneManager
           .when(LandingZoneManager::listDefinitionFactories)
           .thenReturn(factories);
-      List<AzureLandingZoneDefinition> templates =
-          azureLandingZoneService.listLandingZoneDefinitions();
+      List<AzureLandingZoneDefinition> templates = landingZoneService.listLandingZoneDefinitions();
 
       assertEquals(
           1,
@@ -187,7 +191,7 @@ public class AzureLandingZoneServiceTest {
   public void deleteAzureLandingZoneThrowsException() {
     Assertions.assertThrows(
         AzureLandingZoneDeleteNotImplemented.class,
-        () -> azureLandingZoneService.deleteLandingZone("lz-1"),
+        () -> landingZoneService.deleteLandingZone("lz-1"),
         "Delete operation is not supported");
   }
 

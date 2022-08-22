@@ -9,8 +9,9 @@ import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.model.AuthenticatedUserRequest;
 import bio.terra.landingzone.resource.ExternalResourceType;
 import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.resource.landingzone.ExternalLandingZoneResource;
+import bio.terra.landingzone.resource.landingzone.JobLandingZoneDefinition;
 import bio.terra.landingzone.resource.model.StewardshipType;
+import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
@@ -28,10 +29,11 @@ public class AzureLandingZoneJobBuilder {
   @Nullable private String description;
   @Nullable private Object request;
   @Nullable private AuthenticatedUserRequest userRequest;
+
   // Well-known keys used for filtering workspace jobs
   // All applicable ones of these should be supplied on every flight
   //  private String workspaceId;
-  @Nullable private ExternalLandingZoneResource resource;
+  @Nullable private AzureLandingZoneRequest landingZoneRequest;
   @Nullable private ExternalResourceType resourceType;
   @Nullable private String resourceName;
   @Nullable private StewardshipType stewardshipType;
@@ -76,13 +78,8 @@ public class AzureLandingZoneJobBuilder {
     return this;
   }
 
-  //  public AzureLandingZoneJobBuilder workspaceId(@Nullable String workspaceId) {
-  //    this.workspaceId = workspaceId;
-  //    return this;
-  //  }
-
-  public AzureLandingZoneJobBuilder resource(@Nullable ExternalLandingZoneResource resource) {
-    this.resource = resource;
+  public AzureLandingZoneJobBuilder landingZoneRequest(@Nullable AzureLandingZoneRequest landingZoneRequest) {
+    this.landingZoneRequest = landingZoneRequest;
     return this;
   }
 
@@ -142,10 +139,6 @@ public class AzureLandingZoneJobBuilder {
     if (flightClass == null) {
       throw new MissingRequiredFieldException("Missing flight class: flightClass");
     }
-    //
-    //    if (workspaceId == null) {
-    //      throw new MissingRequiredFieldException("Missing workspace ID");
-    //    }
 
     if (operationType == null || operationType == OperationType.UNKNOWN) {
       throw new MissingRequiredFieldException("Missing or unspecified operation type");
@@ -173,11 +166,9 @@ public class AzureLandingZoneJobBuilder {
       addParameter(JobMapKeys.AUTH_USER_INFO.getKeyName(), userRequest);
       addParameter(JobMapKeys.SUBJECT_ID.getKeyName(), userRequest.getSubjectId());
     }
-    //    if (shouldInsert(WorkspaceFlightMapKeys.WORKSPACE_ID, workspaceId)) {
-    //      addParameter(WorkspaceFlightMapKeys.WORKSPACE_ID, workspaceId);
-    //    }
-    if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, resource)) {
-      addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, resource);
+
+    if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, landingZoneRequest)) {
+      addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, landingZoneRequest);
     }
     if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_TYPE, resourceType)) {
       addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_TYPE, resourceType);

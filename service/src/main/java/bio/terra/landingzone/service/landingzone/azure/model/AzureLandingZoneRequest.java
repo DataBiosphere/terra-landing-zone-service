@@ -2,57 +2,16 @@ package bio.terra.landingzone.service.landingzone.azure.model;
 
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
 import java.util.Map;
+
+import bio.terra.landingzone.model.AzureCloudContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class AzureLandingZoneRequest {
-  private final String definition;
-  private final String version;
-  private final Map<String, String> parameters;
+public record AzureLandingZoneRequest(String definition, String version, Map<String, String> parameters,
+                                      AzureCloudContext azureCloudContext) {
 
-  public AzureLandingZoneRequest(
-      String definition, String version, Map<String, String> parameters) {
-    this.definition = definition;
-    this.version = version;
-    this.parameters = parameters;
-  }
 
-  public String getDefinition() {
-    return definition;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public Map<String, String> getParameters() {
-    return parameters;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-
-    if (o == null || getClass() != o.getClass()) return false;
-
-    AzureLandingZoneRequest azureLandingZone = (AzureLandingZoneRequest) o;
-
-    return new EqualsBuilder()
-        .append(definition, azureLandingZone.definition)
-        .append(version, azureLandingZone.version)
-        .append(parameters, azureLandingZone.parameters)
-        .isEquals();
-  }
-
-  @Override
-  public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(definition)
-        .append(version)
-        .append(parameters)
-        .toHashCode();
-  }
 
   public static Builder builder() {
     return new Builder();
@@ -62,6 +21,8 @@ public class AzureLandingZoneRequest {
     private String definition;
     private String version;
     private Map<String, String> parameters;
+
+    private AzureCloudContext azureCloudContext;
 
     public Builder definition(String definition) {
       this.definition = definition;
@@ -78,12 +39,43 @@ public class AzureLandingZoneRequest {
       return this;
     }
 
+    public Builder azureCloudContext(AzureCloudContext azureCloudContext) {
+      this.azureCloudContext = azureCloudContext;
+      return this;
+    }
+
     public AzureLandingZoneRequest build() {
-      if (StringUtils.isEmpty(definition)) {
+      if (StringUtils.isBlank(definition)) {
         throw new MissingRequiredFieldsException(
-            "Azure landing zone definition requires definition");
+                "Azure landing zone definition requires definition");
       }
-      return new AzureLandingZoneRequest(definition, version, parameters);
+
+      validateCloudContext();
+
+      return new AzureLandingZoneRequest(definition, version, parameters, azureCloudContext);
+    }
+
+    private void validateCloudContext() {
+      if (azureCloudContext == null) {
+        throw new MissingRequiredFieldsException(
+                "Azure cloud context can't be null or is missing");
+      }
+
+      if (StringUtils.isBlank(azureCloudContext.getAzureResourceGroupId())){
+        throw new MissingRequiredFieldsException(
+                "Resource Group ID is missing from the cloud context");
+      }
+
+      if (StringUtils.isBlank(azureCloudContext.getAzureSubscriptionId())){
+        throw new MissingRequiredFieldsException(
+                "Subscription ID is missing from the cloud context");
+      }
+
+
+      if (StringUtils.isBlank(azureCloudContext.getAzureTenantId())){
+        throw new MissingRequiredFieldsException(
+                "Tenant ID is missing from the cloud context");
+      }
     }
   }
 }

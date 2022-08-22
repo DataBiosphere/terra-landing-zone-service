@@ -7,8 +7,8 @@ import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.model.AuthenticatedUserRequest;
 import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.resource.flight.create.CreateExternalResourceFlight;
-import bio.terra.landingzone.resource.landingzone.ExternalLandingZoneResource;
+import bio.terra.landingzone.resource.flight.create.CreateLandingZoneFlight;
+import bio.terra.landingzone.resource.landingzone.JobLandingZoneDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +23,7 @@ public class ExternalResourceService {
 
   public String createAzureLandingZone(
       String jobId,
-      ExternalLandingZoneResource externalLandingZoneResource,
+      JobLandingZoneDefinition jobLandingZoneDefinition,
       AuthenticatedUserRequest userRequest,
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
       String resultPath) {
@@ -35,19 +35,19 @@ public class ExternalResourceService {
             .description(
                 String.format(
                     jobDescription,
-                    externalLandingZoneResource.getDefinition(),
-                    externalLandingZoneResource.getVersion()))
-            .flightClass(CreateExternalResourceFlight.class)
-            .resource(externalLandingZoneResource)
+                    jobLandingZoneDefinition.getDefinition(),
+                    jobLandingZoneDefinition.getVersion()))
+            .flightClass(CreateLandingZoneFlight.class)
+            //.landingZoneRequest(jobLandingZoneDefinition)
             .operationType(OperationType.CREATE)
             .userRequest(userRequest)
-            .resourceType(externalLandingZoneResource.getResourceType())
-            .stewardshipType(externalLandingZoneResource.getStewardshipType())
+            .resourceType(jobLandingZoneDefinition.getResourceType())
+            .stewardshipType(jobLandingZoneDefinition.getStewardshipType())
             .addParameter(
                 LandingZoneFlightMapKeys.LANDING_ZONE_AZURE_CONFIGURATION,
                 landingZoneAzureConfiguration)
             .addParameter(
-                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, externalLandingZoneResource)
+                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, jobLandingZoneDefinition)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
     return jobBuilder.submit();
   }
