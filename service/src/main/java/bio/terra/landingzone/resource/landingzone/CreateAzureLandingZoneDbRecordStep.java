@@ -3,7 +3,7 @@ package bio.terra.landingzone.resource.landingzone;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.resource.flight.exception.AzureLandingZoneIdNotFound;
+import bio.terra.landingzone.resource.flight.exception.LandingZoneIdNotFound;
 import bio.terra.landingzone.resource.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
@@ -44,7 +44,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
           context.getFlightId());
       return new StepResult(
           StepStatus.STEP_RESULT_FAILURE_FATAL,
-          new AzureLandingZoneIdNotFound(
+          new LandingZoneIdNotFound(
               String.format(
                   "Azure landing zone id not found. " + "FlightId: %s", context.getFlightId())));
     }
@@ -82,7 +82,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
           context.getFlightId());
       return new StepResult(
           StepStatus.STEP_RESULT_FAILURE_FATAL,
-          new AzureLandingZoneIdNotFound(
+          new LandingZoneIdNotFound(
               String.format(
                   "Azure landing zone id not found. " + "FlightId: %s", context.getFlightId())));
     }
