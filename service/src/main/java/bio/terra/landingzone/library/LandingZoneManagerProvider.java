@@ -10,11 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AzureLandingZoneManagerProvider {
+public class LandingZoneManagerProvider {
   private final LandingZoneAzureConfiguration azureConfiguration;
 
   @Autowired
-  public AzureLandingZoneManagerProvider(LandingZoneAzureConfiguration azureConfiguration) {
+  public LandingZoneManagerProvider(LandingZoneAzureConfiguration azureConfiguration) {
     this.azureConfiguration = azureConfiguration;
   }
 

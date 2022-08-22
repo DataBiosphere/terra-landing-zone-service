@@ -2,8 +2,8 @@ package bio.terra.landingzone.service.landingzone.azure.exception;
 
 import bio.terra.common.exception.NotImplementedException;
 
-public class AzureLandingZoneDeleteNotImplemented extends NotImplementedException {
-  public AzureLandingZoneDeleteNotImplemented(String message) {
+public class LandingZoneDeleteNotImplemented extends NotImplementedException {
+  public LandingZoneDeleteNotImplemented(String message) {
     super(message);
   }
 }

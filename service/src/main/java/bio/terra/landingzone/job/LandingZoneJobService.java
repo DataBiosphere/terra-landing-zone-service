@@ -47,7 +47,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AzureLandingZoneJobService {
+public class LandingZoneJobService {
 
   private final LandingZoneJobConfiguration jobConfig;
   private final LandingZoneIngressConfiguration ingressConfig;
@@ -56,12 +56,12 @@ public class AzureLandingZoneJobService {
   private final LandingZoneMdcHook mdcHook;
   private final StairwayComponent stairwayComponent;
   private final LandingZoneFlightBeanBag flightBeanBag;
-  private final Logger logger = LoggerFactory.getLogger(AzureLandingZoneJobService.class);
+  private final Logger logger = LoggerFactory.getLogger(LandingZoneJobService.class);
   private final ObjectMapper objectMapper;
   private FlightDebugInfo flightDebugInfo;
 
   @Autowired
-  public AzureLandingZoneJobService(
+  public LandingZoneJobService(
       LandingZoneJobConfiguration jobConfig,
       LandingZoneIngressConfiguration ingressConfig,
       LandingZoneStairwayDatabaseConfiguration stairwayDatabaseConfiguration,
@@ -81,8 +81,8 @@ public class AzureLandingZoneJobService {
   }
 
   // Fully fluent style of JobBuilder
-  public AzureLandingZoneJobBuilder newJob() {
-    return new AzureLandingZoneJobBuilder(this, stairwayComponent, mdcHook);
+  public LandingZoneJobBuilder newJob() {
+    return new LandingZoneJobBuilder(this, stairwayComponent, mdcHook);
   }
 
   // submit a new job to stairway

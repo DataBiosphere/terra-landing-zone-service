@@ -1,7 +1,7 @@
 package bio.terra.landingzone.library;
 
 import bio.terra.common.migrate.LiquibaseMigrator;
-import bio.terra.landingzone.job.AzureLandingZoneJobService;
+import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
 import org.springframework.context.ApplicationContext;
 
@@ -23,8 +23,8 @@ public class LandingZoneMain {
       migrateService.upgrade(CHANGELOG_PATH, landingZoneDatabaseConfiguration.getDataSource());
     }
 
-    AzureLandingZoneJobService azureLandingZoneJobService =
-        applicationContext.getBean("azureLandingZoneJobService", AzureLandingZoneJobService.class);
-    azureLandingZoneJobService.initialize();
+    LandingZoneJobService landingZoneJobService =
+        applicationContext.getBean("landingZoneJobService", LandingZoneJobService.class);
+    landingZoneJobService.initialize();
   }
 }

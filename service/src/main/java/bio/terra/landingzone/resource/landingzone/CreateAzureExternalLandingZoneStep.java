@@ -1,14 +1,14 @@
 package bio.terra.landingzone.resource.landingzone;
 
 import bio.terra.landingzone.job.JobMapKeys;
-import bio.terra.landingzone.library.AzureLandingZoneManagerProvider;
+import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.resource.flight.utils.FlightUtils;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZone;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneResource;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZone;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
@@ -17,23 +17,24 @@ import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CreateAzureExternalLandingZoneStep implements Step {
   private static final Logger logger =
       LoggerFactory.getLogger(CreateAzureExternalLandingZoneStep.class);
 
   private final LandingZoneService landingZoneService;
-  private final AzureLandingZoneManagerProvider azureLandingZoneManagerProvider;
+  private final LandingZoneManagerProvider landingZoneManagerProvider;
 
   public CreateAzureExternalLandingZoneStep(
       LandingZoneService landingZoneService,
-      AzureLandingZoneManagerProvider azureLandingZoneManagerProvider) {
+      LandingZoneManagerProvider landingZoneManagerProvider) {
     this.landingZoneService = landingZoneService;
-    this.azureLandingZoneManagerProvider = azureLandingZoneManagerProvider;
+    this.landingZoneManagerProvider = landingZoneManagerProvider;
   }
 
   @Override
@@ -53,32 +54,30 @@ public class CreateAzureExternalLandingZoneStep implements Step {
             LandingZoneAzureConfiguration.class);
 
     var azureLandingZoneRequest =
-        AzureLandingZoneRequest.builder()
+        LandingZoneRequest.builder()
             .definition(requestedExternalLandingZoneResource.getDefinition())
             .version(requestedExternalLandingZoneResource.getVersion())
             .parameters(requestedExternalLandingZoneResource.getProperties())
             .build();
     try {
       var tokenCredential = buildTokenCredential(azureConfiguration);
-      AzureLandingZone createdAzureLandingZone =
+      LandingZone createdLandingZone =
           landingZoneService.createLandingZone(
               azureLandingZoneRequest,
-              azureLandingZoneManagerProvider.createLandingZoneManager(
+              landingZoneManagerProvider.createLandingZoneManager(
                   tokenCredential, requestedExternalLandingZoneResource.getAzureCloudContext()));
 
       // save for the next step
       context
           .getWorkingMap()
-          .put(
-              LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID,
-              createdAzureLandingZone.getId());
+          .put(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, createdLandingZone.getId());
 
-      persistResponse(context, createdAzureLandingZone);
+      persistResponse(context, createdLandingZone);
 
       logger.info(
           "Successfully created Azure landing zone. id='{}', deployed resources='{}'",
-          createdAzureLandingZone.getId(),
-          listDeployedResourcesAsCsv(createdAzureLandingZone.getDeployedResources()));
+          createdLandingZone.getId(),
+          listDeployedResourcesAsCsv(createdLandingZone.getDeployedResources()));
     } catch (Exception e) {
       // TODO SG: check if we can retry?
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
@@ -91,18 +90,18 @@ public class CreateAzureExternalLandingZoneStep implements Step {
     return null;
   }
 
-  private String listDeployedResourcesAsCsv(List<AzureLandingZoneResource> deployedResources) {
+  private String listDeployedResourcesAsCsv(List<LandingZoneResource> deployedResources) {
     if (deployedResources == null || deployedResources.isEmpty()) {
       return "No resource found!";
     }
     return deployedResources.stream()
-        .map(AzureLandingZoneResource::getResourceId)
+        .map(LandingZoneResource::getResourceId)
         .collect(Collectors.joining());
   }
 
-  private void persistResponse(FlightContext context, AzureLandingZone createdAzureLandingZone) {
+  private void persistResponse(FlightContext context, LandingZone createdLandingZone) {
     FlightMap workingMap = context.getWorkingMap();
-    workingMap.put(JobMapKeys.RESPONSE.getKeyName(), createdAzureLandingZone);
+    workingMap.put(JobMapKeys.RESPONSE.getKeyName(), createdLandingZone);
   }
 
   private TokenCredential buildTokenCredential(LandingZoneAzureConfiguration azureConfiguration) {

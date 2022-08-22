@@ -8,10 +8,49 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public record AzureLandingZoneRequest(String definition, String version, Map<String, String> parameters,
-                                      AzureCloudContext azureCloudContext) {
+public class LandingZoneRequest {
+  private final String definition;
+  private final String version;
+  private final Map<String, String> parameters;
+
+  public LandingZoneRequest(String definition, String version, Map<String, String> parameters) {
+    this.definition = definition;
+    this.version = version;
+    this.parameters = parameters;
+  }
+
+  public String getDefinition() {
+    return definition;
+  }
+
+  public String getVersion() {
+    return version;
+  }
 
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+
+    if (o == null || getClass() != o.getClass()) return false;
+
+    LandingZoneRequest azureLandingZone = (LandingZoneRequest) o;
+
+    return new EqualsBuilder()
+        .append(definition, azureLandingZone.definition)
+        .append(version, azureLandingZone.version)
+        .append(parameters, azureLandingZone.parameters)
+        .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+        .append(definition)
+        .append(version)
+        .append(parameters)
+        .toHashCode();
+  }
 
   public static Builder builder() {
     return new Builder();
@@ -44,7 +83,7 @@ public record AzureLandingZoneRequest(String definition, String version, Map<Str
       return this;
     }
 
-    public AzureLandingZoneRequest build() {
+    public LandingZoneRequest build() {
       if (StringUtils.isBlank(definition)) {
         throw new MissingRequiredFieldsException(
                 "Azure landing zone definition requires definition");
@@ -52,7 +91,7 @@ public record AzureLandingZoneRequest(String definition, String version, Map<Str
 
       validateCloudContext();
 
-      return new AzureLandingZoneRequest(definition, version, parameters, azureCloudContext);
+      return new LandingZoneRequest(definition, version, parameters, azureCloudContext);
     }
 
     private void validateCloudContext() {

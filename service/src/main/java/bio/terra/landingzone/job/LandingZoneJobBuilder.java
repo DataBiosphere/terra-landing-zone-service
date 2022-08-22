@@ -19,8 +19,8 @@ import io.opencensus.contrib.spring.aop.Traced;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
-public class AzureLandingZoneJobBuilder {
-  private final AzureLandingZoneJobService jobService;
+public class LandingZoneJobBuilder {
+  private final LandingZoneJobService jobService;
   private final StairwayComponent stairwayComponent;
   private final LandingZoneMdcHook mdcHook;
   private final FlightMap jobParameterMap;
@@ -39,8 +39,8 @@ public class AzureLandingZoneJobBuilder {
   @Nullable private StewardshipType stewardshipType;
   @Nullable private OperationType operationType;
 
-  public AzureLandingZoneJobBuilder(
-      AzureLandingZoneJobService jobService,
+  public LandingZoneJobBuilder(
+      LandingZoneJobService jobService,
       StairwayComponent stairwayComponent,
       LandingZoneMdcHook mdcHook) {
     this.jobService = jobService;
@@ -49,12 +49,12 @@ public class AzureLandingZoneJobBuilder {
     this.jobParameterMap = new FlightMap();
   }
 
-  public AzureLandingZoneJobBuilder flightClass(Class<? extends Flight> flightClass) {
+  public LandingZoneJobBuilder flightClass(Class<? extends Flight> flightClass) {
     this.flightClass = flightClass;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder jobId(@Nullable String jobId) {
+  public LandingZoneJobBuilder jobId(@Nullable String jobId) {
     // If clients provide a non-null job ID, it cannot be whitespace-only
     if (StringUtils.isWhitespace(jobId)) {
       throw new InvalidJobIdException("jobId cannot be whitespace-only.");
@@ -63,47 +63,43 @@ public class AzureLandingZoneJobBuilder {
     return this;
   }
 
-  public AzureLandingZoneJobBuilder description(@Nullable String description) {
+  public LandingZoneJobBuilder description(@Nullable String description) {
     this.description = description;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder request(@Nullable Object request) {
+  public LandingZoneJobBuilder request(@Nullable Object request) {
     this.request = request;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder userRequest(@Nullable AuthenticatedUserRequest userRequest) {
+  public LandingZoneJobBuilder userRequest(@Nullable AuthenticatedUserRequest userRequest) {
     this.userRequest = userRequest;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder landingZoneRequest(@Nullable AzureLandingZoneRequest landingZoneRequest) {
-    this.landingZoneRequest = landingZoneRequest;
-    return this;
-  }
 
-  public AzureLandingZoneJobBuilder resourceType(@Nullable ExternalResourceType resourceType) {
+  public LandingZoneJobBuilder resourceType(@Nullable ExternalResourceType resourceType) {
     this.resourceType = resourceType;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder resourceName(@Nullable String resourceName) {
+  public LandingZoneJobBuilder resourceName(@Nullable String resourceName) {
     this.resourceName = resourceName;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder stewardshipType(@Nullable StewardshipType stewardshipType) {
+  public LandingZoneJobBuilder stewardshipType(@Nullable StewardshipType stewardshipType) {
     this.stewardshipType = stewardshipType;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder operationType(@Nullable OperationType operationType) {
+  public LandingZoneJobBuilder operationType(@Nullable OperationType operationType) {
     this.operationType = operationType;
     return this;
   }
 
-  public AzureLandingZoneJobBuilder addParameter(String keyName, @Nullable Object val) {
+  public LandingZoneJobBuilder addParameter(String keyName, @Nullable Object val) {
     if (StringUtils.isBlank(keyName)) {
       throw new InvalidJobParameterException("Parameter name cannot be null or blanks.");
     }

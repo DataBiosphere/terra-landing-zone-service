@@ -3,14 +3,13 @@ package bio.terra.landingzone.service.landingzone.azure.model;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class AzureLandingZoneDefinition {
+public class LandingZoneDefinition {
   private final String definition;
   private final String name;
   private final String description;
   private final String version;
 
-  public AzureLandingZoneDefinition(
-      String definition, String name, String description, String version) {
+  public LandingZoneDefinition(String definition, String name, String description, String version) {
     this.definition = definition;
     this.name = name;
     this.description = description;
@@ -39,7 +38,7 @@ public class AzureLandingZoneDefinition {
 
     if (o == null || getClass() != o.getClass()) return false;
 
-    AzureLandingZoneDefinition template = (AzureLandingZoneDefinition) o;
+    LandingZoneDefinition template = (LandingZoneDefinition) o;
 
     return new EqualsBuilder()
         .append(definition, template.definition)
@@ -89,8 +88,8 @@ public class AzureLandingZoneDefinition {
       return this;
     }
 
-    public AzureLandingZoneDefinition build() {
-      return new AzureLandingZoneDefinition(definition, name, description, version);
+    public LandingZoneDefinition build() {
+      return new LandingZoneDefinition(definition, name, description, version);
     }
   }
 }

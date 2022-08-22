@@ -13,11 +13,11 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesReader;
-import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDefinitionNotFound;
-import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDeleteNotImplemented;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneDefinition;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneResource;
+import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
+import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
@@ -87,7 +87,7 @@ public class LandingZoneServiceTest {
           .thenReturn(deployedResources);
       DefinitionVersion requestedVersion = DefinitionVersion.V1;
       var azureLandingZoneDefinition =
-          new AzureLandingZoneRequest(
+          new LandingZoneRequest(
               mockFactory1.getClass().getName(), requestedVersion.toString(), null, azureCloudContext);
 
       var azureLandingZone =
@@ -125,10 +125,10 @@ public class LandingZoneServiceTest {
 
       DefinitionVersion notImplementedVersion = DefinitionVersion.V5;
       var azureLandingZoneDefinition =
-          new AzureLandingZoneRequest(
+          new LandingZoneRequest(
               mockFactory1.getClass().getName(), notImplementedVersion.toString(), null, azureCloudContext);
       Assertions.assertThrows(
-          AzureLandingZoneDefinitionNotFound.class,
+          LandingZoneDefinitionNotFound.class,
           () ->
               landingZoneService.createLandingZone(azureLandingZoneDefinition, landingZoneManager));
     }
@@ -150,7 +150,7 @@ public class LandingZoneServiceTest {
         .thenReturn(deployedResources);
     Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
 
-    List<AzureLandingZoneResource> resources =
+    List<LandingZoneResource> resources =
         landingZoneService.listResourcesByPurpose(
             landingZoneManager, ResourcePurpose.SHARED_RESOURCE);
 
@@ -174,7 +174,7 @@ public class LandingZoneServiceTest {
       staticMockLandingZoneManager
           .when(LandingZoneManager::listDefinitionFactories)
           .thenReturn(factories);
-      List<AzureLandingZoneDefinition> templates = landingZoneService.listLandingZoneDefinitions();
+      List<LandingZoneDefinition> templates = landingZoneService.listLandingZoneDefinitions();
 
       assertEquals(
           1,
@@ -190,13 +190,13 @@ public class LandingZoneServiceTest {
   @Test
   public void deleteAzureLandingZoneThrowsException() {
     Assertions.assertThrows(
-        AzureLandingZoneDeleteNotImplemented.class,
+        LandingZoneDeleteNotImplemented.class,
         () -> landingZoneService.deleteLandingZone("lz-1"),
         "Delete operation is not supported");
   }
 
   private long countAzureLandingZoneTemplateRecordsWithAttribute(
-      List<AzureLandingZoneDefinition> list,
+      List<LandingZoneDefinition> list,
       String name,
       String description,
       String className,
@@ -212,13 +212,13 @@ public class LandingZoneServiceTest {
   }
 
   private void validateDeployedResource(
-      List<AzureLandingZoneResource> list,
+      List<LandingZoneResource> list,
       long expectedCount,
       String expectedResourceId,
       String expectedResourceType,
       Map<String, String> expectedTags,
       String expectedRegion) {
-    List<AzureLandingZoneResource> deployedResources =
+    List<LandingZoneResource> deployedResources =
         list.stream()
             .filter(
                 r ->

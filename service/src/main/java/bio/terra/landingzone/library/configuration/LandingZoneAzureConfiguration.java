@@ -5,8 +5,6 @@ public class LandingZoneAzureConfiguration {
   private String managedAppClientId;
   private String managedAppClientSecret;
   private String managedAppTenantId;
-  private Long sasTokenStartTimeMinutesOffset;
-  private Long sasTokenExpiryTimeMinutesOffset;
 
   public String getManagedAppClientId() {
     return managedAppClientId;
@@ -30,21 +28,5 @@ public class LandingZoneAzureConfiguration {
 
   public void setManagedAppTenantId(String managedAppTenantId) {
     this.managedAppTenantId = managedAppTenantId;
-  }
-
-  public Long getSasTokenStartTimeMinutesOffset() {
-    return sasTokenStartTimeMinutesOffset;
-  }
-
-  public void setSasTokenStartTimeMinutesOffset(Long sasTokenStartTimeMinutesOffset) {
-    this.sasTokenStartTimeMinutesOffset = sasTokenStartTimeMinutesOffset;
-  }
-
-  public Long getSasTokenExpiryTimeMinutesOffset() {
-    return sasTokenExpiryTimeMinutesOffset;
-  }
-
-  public void setSasTokenExpiryTimeMinutesOffset(Long sasTokenExpiryTimeMinutesOffset) {
-    this.sasTokenExpiryTimeMinutesOffset = sasTokenExpiryTimeMinutesOffset;
   }
 }

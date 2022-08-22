@@ -1,8 +1,8 @@
 package bio.terra.landingzone.resource;
 
-import bio.terra.landingzone.job.AzureLandingZoneJobBuilder;
-import bio.terra.landingzone.job.AzureLandingZoneJobService;
 import bio.terra.landingzone.job.JobMapKeys;
+import bio.terra.landingzone.job.LandingZoneJobBuilder;
+import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.model.AuthenticatedUserRequest;
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ExternalResourceService {
-  private final AzureLandingZoneJobService azureLandingZoneJobService;
+  private final LandingZoneJobService landingZoneJobService;
 
   @Autowired
-  public ExternalResourceService(AzureLandingZoneJobService azureLandingZoneJobService) {
-    this.azureLandingZoneJobService = azureLandingZoneJobService;
+  public ExternalResourceService(LandingZoneJobService landingZoneJobService) {
+    this.landingZoneJobService = landingZoneJobService;
   }
 
   public String createAzureLandingZone(
@@ -28,8 +28,8 @@ public class ExternalResourceService {
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
       String resultPath) {
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
-    final AzureLandingZoneJobBuilder jobBuilder =
-        azureLandingZoneJobService
+    final LandingZoneJobBuilder jobBuilder =
+        landingZoneJobService
             .newJob()
             .jobId(jobId)
             .description(

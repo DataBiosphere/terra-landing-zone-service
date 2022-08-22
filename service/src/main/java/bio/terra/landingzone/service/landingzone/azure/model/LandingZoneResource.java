@@ -4,13 +4,13 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class AzureLandingZoneResource {
+public class LandingZoneResource {
   private final String resourceId;
   private final String resourceType;
   private final Map<String, String> tags;
   private final String region;
 
-  public AzureLandingZoneResource(
+  public LandingZoneResource(
       String resourceId, String resourceType, Map<String, String> tags, String region) {
     this.resourceId = resourceId;
     this.resourceType = resourceType;
@@ -40,7 +40,7 @@ public class AzureLandingZoneResource {
 
     if (o == null || getClass() != o.getClass()) return false;
 
-    AzureLandingZoneResource resource = (AzureLandingZoneResource) o;
+    LandingZoneResource resource = (LandingZoneResource) o;
 
     return new EqualsBuilder()
         .append(resourceId, resource.resourceId)
@@ -90,8 +90,8 @@ public class AzureLandingZoneResource {
       return this;
     }
 
-    public AzureLandingZoneResource build() {
-      return new AzureLandingZoneResource(resourceId, resourceType, tags, region);
+    public LandingZoneResource build() {
+      return new LandingZoneResource(resourceId, resourceType, tags, region);
     }
   }
 }

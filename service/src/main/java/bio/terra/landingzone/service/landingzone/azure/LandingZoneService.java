@@ -13,12 +13,12 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.resource.flight.create.CreateLandingZoneFlight;
-import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDefinitionNotFound;
-import bio.terra.landingzone.service.landingzone.azure.exception.AzureLandingZoneDeleteNotImplemented;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZone;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneDefinition;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneResource;
+import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
+import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZone;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import com.azure.core.util.ExpandableStringEnum;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +31,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @Component
+public class LandingZoneService {
+  private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
 public class LandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
   private final AzureLandingZoneJobService azureLandingZoneJobService;
@@ -77,9 +79,9 @@ public class LandingZoneService {
     return jobBuilder.submit();
   }
 
-  public AzureLandingZone createLandingZone(
-      AzureLandingZoneRequest azureLandingZone, LandingZoneManager landingZoneManager)
-      throws AzureLandingZoneDefinitionNotFound {
+  public LandingZone createLandingZone(
+      LandingZoneRequest azureLandingZone, LandingZoneManager landingZoneManager)
+      throws LandingZoneDefinitionNotFound {
 
     Predicate<FactoryDefinitionInfo> requiredDefinition =
         (FactoryDefinitionInfo f) ->
@@ -98,8 +100,7 @@ public class LandingZoneService {
           "Azure landing zone definition with name={} and version={} doesn't exist",
           azureLandingZone.definition(),
           azureLandingZone.version());
-      throw new AzureLandingZoneDefinitionNotFound(
-          "Requested landing zone definition doesn't exist");
+      throw new LandingZoneDefinitionNotFound("Requested landing zone definition doesn't exist");
     }
 
     UUID landingZoneId = UUID.randomUUID();
@@ -115,13 +116,13 @@ public class LandingZoneService {
             + "parameters: definition={}, version={} successfully created.",
         azureLandingZone.definition(),
         azureLandingZone.version());
-    return AzureLandingZone.builder()
+    return LandingZone.builder()
         .id(landingZoneId.toString())
         .deployedResources(
             deployedResources.stream()
                 .map(
                     dr ->
-                        AzureLandingZoneResource.builder()
+                        LandingZoneResource.builder()
                             .resourceId(dr.resourceId())
                             .resourceType(dr.resourceType())
                             .tags(dr.tags())
@@ -132,15 +133,15 @@ public class LandingZoneService {
   }
 
   @Cacheable("landingZoneDefinitions")
-  public List<AzureLandingZoneDefinition> listLandingZoneDefinitions() {
-    List<AzureLandingZoneDefinition> landingZoneTemplates = new ArrayList<>();
+  public List<LandingZoneDefinition> listLandingZoneDefinitions() {
+    List<LandingZoneDefinition> landingZoneTemplates = new ArrayList<>();
     for (var factoryInfo : LandingZoneManager.listDefinitionFactories()) {
       factoryInfo
           .versions()
           .forEach(
               version ->
                   landingZoneTemplates.add(
-                      AzureLandingZoneDefinition.builder()
+                      LandingZoneDefinition.builder()
                           .definition(factoryInfo.className())
                           .name(factoryInfo.name())
                           .description(factoryInfo.description())
@@ -150,7 +151,7 @@ public class LandingZoneService {
     return landingZoneTemplates;
   }
 
-  public List<AzureLandingZoneResource> listResourcesByPurpose(
+  public List<LandingZoneResource> listResourcesByPurpose(
       LandingZoneManager landingZoneManager, ResourcePurpose purpose) {
 
     var deployedResources = landingZoneManager.reader().listResourcesByPurpose(purpose);
@@ -158,7 +159,7 @@ public class LandingZoneService {
     return deployedResources.stream()
         .map(
             dp ->
-                AzureLandingZoneResource.builder()
+                LandingZoneResource.builder()
                     .resourceId(dp.resourceId())
                     .resourceType(dp.resourceType())
                     .tags(dp.tags())
@@ -168,6 +169,6 @@ public class LandingZoneService {
   }
 
   public void deleteLandingZone(String landingZoneId) {
-    throw new AzureLandingZoneDeleteNotImplemented("Delete operation is not implemented");
+    throw new LandingZoneDeleteNotImplemented("Delete operation is not implemented");
   }
 }

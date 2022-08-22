@@ -4,11 +4,11 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class AzureLandingZone {
+public class LandingZone {
   private final String id;
-  private final List<AzureLandingZoneResource> deployedResources;
+  private final List<LandingZoneResource> deployedResources;
 
-  public AzureLandingZone(String id, List<AzureLandingZoneResource> deployedResources) {
+  public LandingZone(String id, List<LandingZoneResource> deployedResources) {
     this.id = id;
     this.deployedResources = deployedResources;
   }
@@ -17,7 +17,7 @@ public class AzureLandingZone {
     return id;
   }
 
-  public List<AzureLandingZoneResource> getDeployedResources() {
+  public List<LandingZoneResource> getDeployedResources() {
     return deployedResources;
   }
 
@@ -27,11 +27,11 @@ public class AzureLandingZone {
 
     if (o == null || getClass() != o.getClass()) return false;
 
-    AzureLandingZone azureLandingZone = (AzureLandingZone) o;
+    LandingZone landingZone = (LandingZone) o;
 
     return new EqualsBuilder()
-        .append(id, azureLandingZone.id)
-        .append(deployedResources, azureLandingZone.deployedResources)
+        .append(id, landingZone.id)
+        .append(deployedResources, landingZone.deployedResources)
         .isEquals();
   }
 
@@ -46,20 +46,20 @@ public class AzureLandingZone {
 
   public static class Builder {
     private String id;
-    private List<AzureLandingZoneResource> deployedResources;
+    private List<LandingZoneResource> deployedResources;
 
     public Builder id(String id) {
       this.id = id;
       return this;
     }
 
-    public Builder deployedResources(List<AzureLandingZoneResource> deployedResources) {
+    public Builder deployedResources(List<LandingZoneResource> deployedResources) {
       this.deployedResources = deployedResources;
       return this;
     }
 
-    public AzureLandingZone build() {
-      return new AzureLandingZone(id, deployedResources);
+    public LandingZone build() {
+      return new LandingZone(id, deployedResources);
     }
   }
 }
