@@ -23,13 +23,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateAzureExternalLandingZoneStep implements Step {
-  private static final Logger logger =
-      LoggerFactory.getLogger(CreateAzureExternalLandingZoneStep.class);
+public class CreateAzureLandingZoneStep implements Step {
+  private static final Logger logger = LoggerFactory.getLogger(CreateAzureLandingZoneStep.class);
 
   private final LandingZoneManagerProvider landingZoneManagerProvider;
 
-  public CreateAzureExternalLandingZoneStep(LandingZoneManagerProvider landingZoneManagerProvider) {
+  public CreateAzureLandingZoneStep(LandingZoneManagerProvider landingZoneManagerProvider) {
     this.landingZoneManagerProvider = landingZoneManagerProvider;
   }
 
@@ -42,16 +41,10 @@ public class CreateAzureExternalLandingZoneStep implements Step {
     var requestedLandingZone =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
 
-    var azureLandingZoneRequest =
-        LandingZoneRequest.builder()
-            .definition(requestedLandingZone.definition())
-            .version(requestedLandingZone.version())
-            .parameters(requestedLandingZone.parameters())
-            .build();
     try {
       DeployedLandingZone deployedLandingZone =
           createLandingZone(
-              azureLandingZoneRequest,
+              requestedLandingZone,
               landingZoneManagerProvider.createLandingZoneManager(
                   requestedLandingZone.azureCloudContext()));
 

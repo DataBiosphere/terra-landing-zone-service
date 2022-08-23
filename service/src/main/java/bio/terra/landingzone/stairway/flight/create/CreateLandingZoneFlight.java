@@ -32,7 +32,7 @@ public class CreateLandingZoneFlight extends Flight {
   private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag) {
 
     addStep(
-        new CreateAzureExternalLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
+        new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
         RetryRules.cloud());
 
     addStep(

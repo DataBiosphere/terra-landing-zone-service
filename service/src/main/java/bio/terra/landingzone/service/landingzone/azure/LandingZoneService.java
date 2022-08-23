@@ -41,7 +41,7 @@ public class LandingZoneService {
     this.landingZoneManagerProvider = landingZoneManagerProvider;
   }
 
-  public AsyncJobResult<DeployedLandingZone> getJobResult(String jobId) {
+  public AsyncJobResult<DeployedLandingZone> getAsyncJobResult(String jobId) {
     return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeployedLandingZone.class);
   }
 

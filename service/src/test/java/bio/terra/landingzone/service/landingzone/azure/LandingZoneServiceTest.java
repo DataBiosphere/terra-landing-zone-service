@@ -62,9 +62,9 @@ public class LandingZoneServiceTest {
   }
 
   @Test
-  public void getJobResult_success() {
+  public void getAsyncJobResult_success() {
     String jobId = "newJobId";
-    landingZoneService.getJobResult(jobId);
+    landingZoneService.getAsyncJobResult(jobId);
 
     verify(landingZoneJobService, times(1))
         .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
