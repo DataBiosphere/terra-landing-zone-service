@@ -6,6 +6,7 @@ import bio.terra.landingzone.model.AzureCloudContext;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
+import com.azure.identity.ClientSecretCredentialBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +19,21 @@ public class LandingZoneManagerProvider {
     this.azureConfiguration = azureConfiguration;
   }
 
-  public LandingZoneManager createLandingZoneManager(
-      TokenCredential credential, AzureCloudContext azureCloudContext) {
+  public LandingZoneManager createLandingZoneManager(AzureCloudContext azureCloudContext) {
     var azureProfile =
         new AzureProfile(
             azureCloudContext.getAzureTenantId(),
             azureCloudContext.getAzureSubscriptionId(),
             AzureEnvironment.AZURE);
     return LandingZoneManager.createLandingZoneManager(
-        credential, azureProfile, azureCloudContext.getAzureResourceGroupId());
+        buildTokenCredential(), azureProfile, azureCloudContext.getAzureResourceGroupId());
+  }
+
+  private TokenCredential buildTokenCredential() {
+    return new ClientSecretCredentialBuilder()
+        .clientId(azureConfiguration.getManagedAppClientId())
+        .clientSecret(azureConfiguration.getManagedAppClientSecret())
+        .tenantId(azureConfiguration.getManagedAppTenantId())
+        .build();
   }
 }

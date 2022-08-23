@@ -60,12 +60,11 @@ public class CreateAzureExternalLandingZoneStep implements Step {
             .parameters(requestedExternalLandingZoneResource.getProperties())
             .build();
     try {
-      var tokenCredential = buildTokenCredential(azureConfiguration);
       LandingZone createdLandingZone =
           createLandingZone(
               azureLandingZoneRequest,
               landingZoneManagerProvider.createLandingZoneManager(
-                  tokenCredential, requestedExternalLandingZoneResource.getAzureCloudContext()));
+                  requestedExternalLandingZoneResource.getAzureCloudContext()));
 
       // save for the next step
       context
@@ -104,14 +103,6 @@ public class CreateAzureExternalLandingZoneStep implements Step {
   private void persistResponse(FlightContext context, LandingZone createdLandingZone) {
     FlightMap workingMap = context.getWorkingMap();
     workingMap.put(JobMapKeys.RESPONSE.getKeyName(), createdLandingZone);
-  }
-
-  private TokenCredential buildTokenCredential(LandingZoneAzureConfiguration azureConfiguration) {
-    return new ClientSecretCredentialBuilder()
-        .clientId(azureConfiguration.getManagedAppClientId())
-        .clientSecret(azureConfiguration.getManagedAppClientSecret())
-        .tenantId(azureConfiguration.getManagedAppTenantId())
-        .build();
   }
 
   private LandingZone createLandingZone(
