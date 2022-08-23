@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
+import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
@@ -53,9 +54,11 @@ public class LandingZoneServiceTest {
 
   @Mock private AzureCloudContext azureCloudContext;
 
+  @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
+
   @BeforeEach
   public void setup() {
-    landingZoneService = new LandingZoneService(landingZoneJobService);
+    landingZoneService = new LandingZoneService(landingZoneJobService, landingZoneManagerProvider);
   }
 
   @Test
@@ -163,6 +166,9 @@ public class LandingZoneServiceTest {
             new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTags, REGION),
             new DeployedResource(VNET_SUBNET_1, SUBNET, purposeTags, REGION));
 
+    when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
+        .thenReturn(landingZoneManager);
+
     ResourcesReader resourceReader = mock(ResourcesReader.class);
     when(resourceReader.listResourcesByPurpose(ArgumentMatchers.any()))
         .thenReturn(deployedResources);
@@ -170,7 +176,7 @@ public class LandingZoneServiceTest {
 
     List<LandingZoneResource> resources =
         landingZoneService.listResourcesByPurpose(
-            landingZoneManager, ResourcePurpose.SHARED_RESOURCE);
+            ResourcePurpose.SHARED_RESOURCE, azureCloudContext);
 
     assertNotNull(resources);
     assertEquals(2, resources.size());

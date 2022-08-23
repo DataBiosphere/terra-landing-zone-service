@@ -5,9 +5,12 @@ import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.job.LandingZoneJobService.AsyncJobResult;
 import bio.terra.landingzone.job.model.OperationType;
+import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
+import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
+import bio.terra.landingzone.model.AzureCloudContext;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -29,9 +32,13 @@ import org.springframework.stereotype.Component;
 public class LandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
   private final LandingZoneJobService azureLandingZoneJobService;
+  private final LandingZoneManagerProvider landingZoneManagerProvider;
 
-  public LandingZoneService(LandingZoneJobService azureLandingZoneJobService) {
+  public LandingZoneService(
+      LandingZoneJobService azureLandingZoneJobService,
+      LandingZoneManagerProvider landingZoneManagerProvider) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
+    this.landingZoneManagerProvider = landingZoneManagerProvider;
   }
 
   public AsyncJobResult<DeployedLandingZone> getJobResult(String jobId) {
@@ -80,9 +87,13 @@ public class LandingZoneService {
   }
 
   public List<LandingZoneResource> listResourcesByPurpose(
-      LandingZoneManager landingZoneManager, ResourcePurpose purpose) {
+      ResourcePurpose purpose, AzureCloudContext azureCloudContext) {
 
-    var deployedResources = landingZoneManager.reader().listResourcesByPurpose(purpose);
+    LandingZoneManager landingZoneManager =
+        landingZoneManagerProvider.createLandingZoneManager(azureCloudContext);
+
+    List<DeployedResource> deployedResources =
+        landingZoneManager.reader().listResourcesByPurpose(purpose);
 
     return deployedResources.stream()
         .map(
