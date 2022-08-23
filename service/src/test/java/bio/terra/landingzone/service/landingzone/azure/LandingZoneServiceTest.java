@@ -3,7 +3,10 @@ package bio.terra.landingzone.service.landingzone.azure;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.AzureLandingZoneJobService;
@@ -64,8 +67,8 @@ public class LandingZoneServiceTest {
   public void startLandingZoneCreationJob_JobIsSubmitted() {
     setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
 
-    var mockFactory1 = Mockito.mock(LandingZoneDefinitionFactory.class);
-    Mockito.when(mockFactory1.availableVersions())
+    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
+    when(mockFactory1.availableVersions())
         .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
 
     List<FactoryDefinitionInfo> factories =
@@ -110,8 +113,8 @@ public class LandingZoneServiceTest {
   public void startLandingZoneCreationJob_ThrowsErrorWhenDefinitionDoesntExist() {
     setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
 
-    var mockFactory1 = Mockito.mock(LandingZoneDefinitionFactory.class);
-    Mockito.when(mockFactory1.availableVersions())
+    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
+    when(mockFactory1.availableVersions())
         .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
 
     List<FactoryDefinitionInfo> factories =
@@ -154,10 +157,10 @@ public class LandingZoneServiceTest {
             new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTags, REGION),
             new DeployedResource(VNET_SUBNET_1, SUBNET, purposeTags, REGION));
 
-    ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    Mockito.when(resourceReader.listResourcesByPurpose(ArgumentMatchers.any()))
+    ResourcesReader resourceReader = mock(ResourcesReader.class);
+    when(resourceReader.listResourcesByPurpose(ArgumentMatchers.any()))
         .thenReturn(deployedResources);
-    Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
+    when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     List<LandingZoneResource> resources =
         landingZoneService.listResourcesByPurpose(
@@ -169,7 +172,7 @@ public class LandingZoneServiceTest {
 
   @Test
   public void listLandingZoneDefinitions_Success() {
-    var mockFactory1 = Mockito.mock(LandingZoneDefinitionFactory.class);
+    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
 
     List<FactoryDefinitionInfo> factories =
         List.of(

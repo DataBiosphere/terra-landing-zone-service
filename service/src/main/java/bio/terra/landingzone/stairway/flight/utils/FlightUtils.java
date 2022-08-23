@@ -4,7 +4,6 @@ import bio.terra.common.stairway.TracingHook;
 import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.model.ErrorReport;
-import bio.terra.landingzone.model.AuthenticatedUserRequest;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.stairway.FlightContext;
@@ -23,8 +22,6 @@ import org.springframework.http.HttpStatus;
 public class FlightUtils {
   public static final Map<String, Class<?>> COMMON_FLIGHT_INPUTS =
       Map.of(
-          JobMapKeys.AUTH_USER_INFO.getKeyName(),
-          AuthenticatedUserRequest.class,
           JobMapKeys.REQUEST.getKeyName(),
           LandingZone.class,
           JobMapKeys.SUBJECT_ID.getKeyName(),

@@ -14,7 +14,6 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.TestLandingZoneFactory;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
-import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.List;
@@ -30,10 +29,9 @@ import reactor.core.publisher.Flux;
 import reactor.util.retry.Retry;
 
 @Tag("integration")
-class DeployedLandingZoneManagerTest {
+class LandingZoneManagerTest {
 
   private static AzureResourceManager azureResourceManager;
-  private final ClientLogger logger = new ClientLogger(DeployedLandingZoneManagerTest.class);
   private ResourceGroup resourceGroup;
   private LandingZoneManager landingZoneManager;
 
@@ -62,7 +60,7 @@ class DeployedLandingZoneManagerTest {
     List<DeployedResource> resources =
         landingZoneManager.deployLandingZone(
             UUID.randomUUID().toString(),
-            TestLandingZoneFactory.class.getName(),
+            TestLandingZoneFactory.class.getSimpleName(),
             DefinitionVersion.V1,
             null);
 
@@ -73,8 +71,7 @@ class DeployedLandingZoneManagerTest {
   }
 
   @Test
-  void deployLandingZone_duplicateDeploymentWithRetry_deploysSuccessfullyOnlyOneInstance()
-      throws InterruptedException {
+  void deployLandingZone_duplicateDeploymentWithRetry_deploysSuccessfullyOnlyOneInstance() {
     String landingZone = UUID.randomUUID().toString();
     Flux<DeployedResource> first =
         landingZoneManager
@@ -102,8 +99,7 @@ class DeployedLandingZoneManagerTest {
     assertThatExpectedResourcesExistsInResourceGroup(distinct);
   }
 
-  private void assertThatExpectedResourcesExistsInResourceGroup(List<DeployedResource> result)
-      throws InterruptedException {
+  private void assertThatExpectedResourcesExistsInResourceGroup(List<DeployedResource> result) {
 
     var resourcesInGroup =
         azureResourceManager.genericResources().listByResourceGroup(resourceGroup.name()).stream()

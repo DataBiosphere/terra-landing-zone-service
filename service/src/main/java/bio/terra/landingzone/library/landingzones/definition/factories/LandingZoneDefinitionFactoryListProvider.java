@@ -4,7 +4,7 @@ import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionIn
 import java.util.List;
 
 public interface LandingZoneDefinitionFactoryListProvider {
-  public List<FactoryDefinitionInfo> listFactories();
+  List<FactoryDefinitionInfo> listFactories();
 
-  public List<Class<? extends LandingZoneDefinitionFactory>> listFactoriesClasses();
+  List<Class<? extends LandingZoneDefinitionFactory>> listFactoriesClasses();
 }

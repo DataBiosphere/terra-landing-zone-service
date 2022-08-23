@@ -6,23 +6,24 @@ import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.TracingHook;
 import bio.terra.landingzone.common.utils.ErrorReportUtils;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
-import bio.terra.landingzone.job.exception.*;
+import bio.terra.landingzone.job.exception.DuplicateJobIdException;
+import bio.terra.landingzone.job.exception.InternalStairwayException;
+import bio.terra.landingzone.job.exception.InvalidResultStateException;
+import bio.terra.landingzone.job.exception.JobNotCompleteException;
+import bio.terra.landingzone.job.exception.JobNotFoundException;
+import bio.terra.landingzone.job.exception.JobResponseException;
 import bio.terra.landingzone.job.model.ErrorReport;
 import bio.terra.landingzone.job.model.JobReport;
 import bio.terra.landingzone.library.configuration.LandingZoneIngressConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneJobConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
-import bio.terra.landingzone.model.AuthenticatedUserRequest;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightDebugInfo;
-import bio.terra.stairway.FlightFilter;
-import bio.terra.stairway.FlightFilterOp;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.FlightState;
 import bio.terra.stairway.FlightStatus;
 import bio.terra.stairway.Stairway;
-import bio.terra.stairway.exception.DatabaseOperationException;
 import bio.terra.stairway.exception.DuplicateFlightIdException;
 import bio.terra.stairway.exception.FlightNotFoundException;
 import bio.terra.stairway.exception.StairwayException;
@@ -31,15 +32,12 @@ import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.opencensus.contrib.spring.aop.Traced;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +72,6 @@ public class LandingZoneJobService {
     this.stairwayDatabaseConfiguration = stairwayDatabaseConfiguration;
     this.executor = Executors.newScheduledThreadPool(jobConfig.getMaxThreads());
     this.mdcHook = mdcHook;
-    // this.workspaceActivityLogHook = workspaceActivityLogHook;
     this.stairwayComponent = stairwayComponent;
     this.flightBeanBag = flightBeanBag;
     this.objectMapper = objectMapper;
@@ -116,8 +113,6 @@ public class LandingZoneJobService {
       String jobId) {
     submit(flightClass, parameterMap, jobId);
     waitForJob(jobId);
-    AuthenticatedUserRequest userRequest =
-        parameterMap.get(JobMapKeys.AUTH_USER_INFO.getKeyName(), AuthenticatedUserRequest.class);
 
     JobResultOrException<T> resultOrException = retrieveJobResult(jobId, resultClass);
     if (resultOrException.getException() != null) {
@@ -138,10 +133,8 @@ public class LandingZoneJobService {
         if (state != null) {
           // Indicates job has completed, though not necessarily successfully.
           return;
-        } else {
-          // Indicates job has not completed yet, continue polling
-          continue;
         }
+        // The job has not completed yet, continue polling
       }
     } catch (InterruptedException | ExecutionException stairwayEx) {
       throw new InternalStairwayException(stairwayEx);
@@ -153,7 +146,7 @@ public class LandingZoneJobService {
   /**
    * This method is called from StartupInitializer as part of the sequence of migrating databases
    * and recovering any jobs; i.e., Stairway flights. It is moved here so that JobService
-   * encapsulates all of the Stairway interaction.
+   * encapsulates all the Stairway interaction.
    */
   public void initialize() {
     stairwayComponent.initialize(
@@ -245,27 +238,6 @@ public class LandingZoneJobService {
       default:
         return JobReport.StatusEnum.FAILED;
     }
-  }
-
-  public List<JobReport> enumerateJobs(
-      int offset, int limit, AuthenticatedUserRequest userRequest) {
-
-    List<FlightState> flightStateList;
-    try {
-      FlightFilter filter = new FlightFilter();
-      filter.addFilterInputParameter(
-          JobMapKeys.SUBJECT_ID.getKeyName(), FlightFilterOp.EQUAL, userRequest.getSubjectId());
-      flightStateList = stairwayComponent.get().getFlights(offset, limit, filter);
-    } catch (StairwayException | InterruptedException stairwayEx) {
-      throw new InternalStairwayException(stairwayEx);
-    }
-
-    List<JobReport> jobReportList = new ArrayList<>();
-    for (FlightState flightState : flightStateList) {
-      JobReport jobReport = mapFlightStateToApiJobReport(flightState);
-      jobReportList.add(jobReport);
-    }
-    return jobReportList;
   }
 
   @Traced
@@ -360,7 +332,7 @@ public class LandingZoneJobService {
         // Dismal failures always require manual intervention, so developers should be notified
         // if they happen.
         logger.error(
-            "WSM Stairway flight {} encountered dismal failure",
+            "LZ Stairway flight {} encountered dismal failure. Alert: {}",
             flightState.getFlightId(),
             LoggingUtils.alertObject());
         return handleFailedFlight(flightState);
@@ -391,7 +363,7 @@ public class LandingZoneJobService {
       }
     }
     logger.error(
-        "WSM Stairway flight {} failed with no exception given",
+        "LZ Stairway flight {} failed with no exception given. Alert: {}",
         flightState.getFlightId(),
         LoggingUtils.alertObject());
     throw new InvalidResultStateException("Failed operation with no exception reported.");
@@ -403,26 +375,6 @@ public class LandingZoneJobService {
       throw new InvalidResultStateException("No result map returned from flight");
     }
     return resultMap;
-  }
-
-  /**
-   * Same assertion as {@link #verifyUserAccess(String, AuthenticatedUserRequest)} but with the
-   * additional constraint that the job must be associated with the provided workspace ID.
-   */
-  public void verifyUserAccess(String jobId, AuthenticatedUserRequest userRequest) {
-    try {
-      FlightState flightState = stairwayComponent.get().getFlightState(jobId);
-      FlightMap inputParameters = flightState.getInputParameters();
-      String flightSubjectId =
-          inputParameters.get(JobMapKeys.SUBJECT_ID.getKeyName(), String.class);
-      if (!StringUtils.equals(flightSubjectId, userRequest.getSubjectId())) {
-        throw new JobUnauthorizedException("Unauthorized");
-      }
-    } catch (DatabaseOperationException | InterruptedException ex) {
-      throw new InternalStairwayException("Stairway exception looking up the job", ex);
-    } catch (FlightNotFoundException ex) {
-      throw new JobNotFoundException("Job not found", ex);
-    }
   }
 
   @VisibleForTesting

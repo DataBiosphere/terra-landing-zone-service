@@ -26,16 +26,6 @@ public class CreateLandingZoneFlight extends Flight {
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
 
-    //    final ExternalResource resource =
-    //        inputParameters.get(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE,
-    // ExternalResource.class);
-    //    final AuthenticatedUserRequest userRequest =
-    //        inputParameters.get(JobMapKeys.AUTH_USER_INFO.getKeyName(),
-    // AuthenticatedUserRequest.class);
-
-    // seems we don't need any additional steps here only that which are available on resource level
-
-    // resource.addCreateSteps(this, flightBeanBag);
     addCreateSteps(flightBeanBag);
   }
 

@@ -6,7 +6,6 @@ import bio.terra.common.stairway.TracingHook;
 import bio.terra.landingzone.job.exception.InvalidJobIdException;
 import bio.terra.landingzone.job.exception.InvalidJobParameterException;
 import bio.terra.landingzone.job.model.OperationType;
-import bio.terra.landingzone.model.AuthenticatedUserRequest;
 import bio.terra.landingzone.resource.ExternalResourceType;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
@@ -26,14 +25,7 @@ public class LandingZoneJobBuilder {
   private Class<? extends Flight> flightClass;
   @Nullable private String jobId;
   @Nullable private String description;
-  @Nullable private Object request;
-  @Nullable private AuthenticatedUserRequest userRequest;
-
-  // Well-known keys used for filtering workspace jobs
-  // All applicable ones of these should be supplied on every flight
-  //  private String workspaceId;
   @Nullable private AzureLandingZoneRequest landingZoneRequest;
-  @Nullable private String resourceName;
   @Nullable private OperationType operationType;
 
   public LandingZoneJobBuilder(
@@ -67,22 +59,6 @@ public class LandingZoneJobBuilder {
 
   public LandingZoneJobBuilder request(@Nullable Object request) {
     this.request = request;
-    return this;
-  }
-
-  public LandingZoneJobBuilder userRequest(@Nullable AuthenticatedUserRequest userRequest) {
-    this.userRequest = userRequest;
-    return this;
-  }
-
-
-  public LandingZoneJobBuilder resourceType(@Nullable ExternalResourceType resourceType) {
-    this.resourceType = resourceType;
-    return this;
-  }
-
-  public LandingZoneJobBuilder resourceName(@Nullable String resourceName) {
-    this.resourceName = resourceName;
     return this;
   }
 
@@ -147,20 +123,7 @@ public class LandingZoneJobBuilder {
     if (shouldInsert(JobMapKeys.DESCRIPTION, description)) {
       addParameter(JobMapKeys.DESCRIPTION.getKeyName(), description);
     }
-    if (shouldInsert(JobMapKeys.REQUEST, request)) {
-      addParameter(JobMapKeys.REQUEST.getKeyName(), request);
-    }
-    if (shouldInsert(JobMapKeys.AUTH_USER_INFO, userRequest)) {
-      addParameter(JobMapKeys.AUTH_USER_INFO.getKeyName(), userRequest);
-      addParameter(JobMapKeys.SUBJECT_ID.getKeyName(), userRequest.getSubjectId());
-    }
 
-    if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, landingZoneRequest)) {
-      addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, landingZoneRequest);
-    }
-    if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_NAME, resourceName)) {
-      addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_NAME, resourceName);
-    }
     if (shouldInsert(LandingZoneFlightMapKeys.OPERATION_TYPE, operationType)) {
       addParameter(LandingZoneFlightMapKeys.OPERATION_TYPE, operationType);
     }

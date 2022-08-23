@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class LandingZoneFlightBeanBag {
   private final LandingZoneDao landingZoneDao;
-  private LandingZoneAzureConfiguration azureConfiguration;
-  private LandingZoneManagerProvider landingZoneManagerProvider;
+  private final LandingZoneAzureConfiguration azureConfiguration;
+  private final LandingZoneManagerProvider landingZoneManagerProvider;
 
   @Autowired
   public LandingZoneFlightBeanBag(
