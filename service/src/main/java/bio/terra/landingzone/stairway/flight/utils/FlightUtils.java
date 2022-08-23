@@ -1,12 +1,12 @@
-package bio.terra.landingzone.resource.flight.utils;
+package bio.terra.landingzone.stairway.flight.utils;
 
 import bio.terra.common.stairway.TracingHook;
 import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.model.ErrorReport;
 import bio.terra.landingzone.model.AuthenticatedUserRequest;
-import bio.terra.landingzone.resource.flight.exception.MissingRequiredFieldsException;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
+import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.FlightState;

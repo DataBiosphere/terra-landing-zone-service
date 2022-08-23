@@ -8,16 +8,15 @@ import bio.terra.landingzone.job.exception.InvalidJobParameterException;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.model.AuthenticatedUserRequest;
 import bio.terra.landingzone.resource.ExternalResourceType;
-import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.resource.landingzone.JobLandingZoneDefinition;
-import bio.terra.landingzone.resource.model.StewardshipType;
 import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import io.opencensus.contrib.spring.aop.Traced;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
+
+import javax.annotation.Nullable;
 
 public class LandingZoneJobBuilder {
   private final LandingZoneJobService jobService;
@@ -34,9 +33,7 @@ public class LandingZoneJobBuilder {
   // All applicable ones of these should be supplied on every flight
   //  private String workspaceId;
   @Nullable private AzureLandingZoneRequest landingZoneRequest;
-  @Nullable private ExternalResourceType resourceType;
   @Nullable private String resourceName;
-  @Nullable private StewardshipType stewardshipType;
   @Nullable private OperationType operationType;
 
   public LandingZoneJobBuilder(
@@ -86,11 +83,6 @@ public class LandingZoneJobBuilder {
 
   public LandingZoneJobBuilder resourceName(@Nullable String resourceName) {
     this.resourceName = resourceName;
-    return this;
-  }
-
-  public LandingZoneJobBuilder stewardshipType(@Nullable StewardshipType stewardshipType) {
-    this.stewardshipType = stewardshipType;
     return this;
   }
 
@@ -166,14 +158,8 @@ public class LandingZoneJobBuilder {
     if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, landingZoneRequest)) {
       addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE, landingZoneRequest);
     }
-    if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_TYPE, resourceType)) {
-      addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_TYPE, resourceType);
-    }
     if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_NAME, resourceName)) {
       addParameter(LandingZoneFlightMapKeys.ResourceKeys.RESOURCE_NAME, resourceName);
-    }
-    if (shouldInsert(LandingZoneFlightMapKeys.ResourceKeys.STEWARDSHIP_TYPE, stewardshipType)) {
-      addParameter(LandingZoneFlightMapKeys.ResourceKeys.STEWARDSHIP_TYPE, stewardshipType);
     }
     if (shouldInsert(LandingZoneFlightMapKeys.OPERATION_TYPE, operationType)) {
       addParameter(LandingZoneFlightMapKeys.OPERATION_TYPE, operationType);

@@ -1,4 +1,4 @@
-package bio.terra.landingzone.resource.flight.exception;
+package bio.terra.landingzone.stairway.flight.exception;
 
 import bio.terra.common.exception.BadRequestException;
 

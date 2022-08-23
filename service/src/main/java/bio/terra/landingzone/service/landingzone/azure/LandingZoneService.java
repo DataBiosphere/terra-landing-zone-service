@@ -6,24 +6,20 @@ import bio.terra.landingzone.job.AzureLandingZoneJobService.AsyncJobResult;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
-import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
-import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
-import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.resource.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -56,7 +52,7 @@ public class LandingZoneService {
       // AuthenticatedUserRequest userRequest,
       String resultPath) {
 
-
+    checkIfRequestedFactoryExists(azureLandingZoneRequest);
 
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
     final AzureLandingZoneJobBuilder jobBuilder =
@@ -81,65 +77,6 @@ public class LandingZoneService {
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
     return jobBuilder.submit();
-  }
-
-  //TODO: Remove this method...
-  public LandingZone createLandingZone(
-      LandingZoneRequest azureLandingZone, LandingZoneManager landingZoneManager)
-      throws LandingZoneDefinitionNotFound {
-
-    FactoryDefinitionInfo requestedFactory = createFactoryDefinitionInfo(azureLandingZone);
-
-    UUID landingZoneId = UUID.randomUUID();
-    List<DeployedResource> deployedResources =
-        landingZoneManager.deployLandingZone(
-            landingZoneId.toString(),
-            requestedFactory.className(),
-            DefinitionVersion.fromString(azureLandingZone.version()),
-            azureLandingZone.parameters());
-
-    logger.info(
-        "Azure Landing Zone definition with the following "
-            + "parameters: definition={}, version={} successfully created.",
-        azureLandingZone.definition(),
-        azureLandingZone.version());
-    return LandingZone.builder()
-        .id(landingZoneId.toString())
-        .deployedResources(
-            deployedResources.stream()
-                .map(
-                    dr ->
-                        LandingZoneResource.builder()
-                            .resourceId(dr.resourceId())
-                            .resourceType(dr.resourceType())
-                            .tags(dr.tags())
-                            .region(dr.region())
-                            .build())
-                .collect(Collectors.toList()))
-        .build();
-  }
-
-  private FactoryDefinitionInfo createFactoryDefinitionInfo(LandingZoneRequest azureLandingZone) {
-    Predicate<FactoryDefinitionInfo> requiredDefinition =
-        (FactoryDefinitionInfo f) ->
-            f.className().equals(azureLandingZone.definition())
-                && f.versions().stream()
-                    .map(ExpandableStringEnum::toString)
-                    .toList()
-                    .contains(azureLandingZone.version());
-    var requestedFactory =
-        LandingZoneManager.listDefinitionFactories().stream()
-            .filter(requiredDefinition)
-            .findFirst();
-
-    if (requestedFactory.isEmpty()) {
-      logger.warn(
-          "Azure landing zone definition with name={} and version={} doesn't exist",
-          azureLandingZone.definition(),
-          azureLandingZone.version());
-      throw new LandingZoneDefinitionNotFound("Requested landing zone definition doesn't exist");
-    }
-    return requestedFactory.get();
   }
 
   @Cacheable("landingZoneDefinitions")
@@ -180,5 +117,27 @@ public class LandingZoneService {
 
   public void deleteLandingZone(String landingZoneId) {
     throw new LandingZoneDeleteNotImplemented("Delete operation is not implemented");
+  }
+
+  private void checkIfRequestedFactoryExists(LandingZoneRequest azureLandingZone) {
+    Predicate<FactoryDefinitionInfo> requiredDefinition =
+        (FactoryDefinitionInfo f) ->
+            f.className().equals(azureLandingZone.definition())
+                && f.versions().stream()
+                    .map(ExpandableStringEnum::toString)
+                    .toList()
+                    .contains(azureLandingZone.version());
+    var requestedFactory =
+        LandingZoneManager.listDefinitionFactories().stream()
+            .filter(requiredDefinition)
+            .findFirst();
+
+    if (requestedFactory.isEmpty()) {
+      logger.warn(
+          "Azure landing zone definition with name={} and version={} doesn't exist",
+          azureLandingZone.definition(),
+          azureLandingZone.version());
+      throw new LandingZoneDefinitionNotFound("Requested landing zone definition doesn't exist");
+    }
   }
 }

@@ -7,7 +7,6 @@ import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.StairwayProperties;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
-import bio.terra.landingzone.library.stairway.StairwayService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -43,13 +42,5 @@ public class LandingZoneStairwayConfiguration {
       KubeProperties kubeProperties,
       @Qualifier("landingZoneStairwayProperties") StairwayProperties stairwayProperties) {
     return new StairwayComponent(kubeService, kubeProperties, stairwayProperties);
-  }
-
-  @Bean("landingZoneStairwayService")
-  public StairwayService getStairwayService(
-      @Qualifier("landingZoneStairwayComponent") StairwayComponent stairwayComponent,
-      @Qualifier("landingZoneStairwayOptionsBuilder")
-          StairwayComponent.StairwayOptionsBuilder stairwayOptionsBuilder) {
-    return new StairwayService(stairwayComponent, stairwayOptionsBuilder);
   }
 }

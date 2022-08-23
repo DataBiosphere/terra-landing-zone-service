@@ -1,10 +1,11 @@
-package bio.terra.landingzone.resource.landingzone;
+package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
-import bio.terra.landingzone.resource.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.resource.flight.exception.LandingZoneIdNotFound;
-import bio.terra.landingzone.resource.flight.utils.FlightUtils;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.exception.LandingZoneIdNotFound;
+import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
@@ -31,9 +32,8 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
         inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
 
     var requestedExternalLandingZoneResource =
-        inputMap.get(
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, JobLandingZoneDefinition.class);
-    var azureCloudContext = requestedExternalLandingZoneResource.getAzureCloudContext();
+        inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
+    var azureCloudContext = requestedExternalLandingZoneResource.azureCloudContext();
 
     if (!context
         .getWorkingMap()
@@ -57,11 +57,11 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
     landingZoneDao.createLandingZone(
         LandingZone.builder()
             .landingZoneId(UUID.fromString(landingZoneId)) // TODO: Check if we can validate that the lz id is UUID earlier
-            .definition(requestedExternalLandingZoneResource.getDefinition())
-            .version(requestedExternalLandingZoneResource.getVersion())
-            .description(String.format("Definition:%s Version:%s", requestedExternalLandingZoneResource.getDefinition(), requestedExternalLandingZoneResource.getVersion()))
-            .displayName(requestedExternalLandingZoneResource.getDefinition())
-            .properties(requestedExternalLandingZoneResource.getProperties())
+            .definition(requestedExternalLandingZoneResource.definition())
+            .version(requestedExternalLandingZoneResource.version())
+            .description(String.format("Definition:%s Version:%s", requestedExternalLandingZoneResource.definition(), requestedExternalLandingZoneResource.version()))
+            .displayName(requestedExternalLandingZoneResource.definition())
+            .properties(requestedExternalLandingZoneResource.parameters())
             .resourceGroupId(azureCloudContext.getAzureResourceGroupId())
             .build());
     return StepResult.getStepResultSuccess();

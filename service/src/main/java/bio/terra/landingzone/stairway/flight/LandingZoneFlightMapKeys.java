@@ -1,4 +1,4 @@
-package bio.terra.landingzone.resource.flight;
+package bio.terra.landingzone.stairway.flight;
 
 public class LandingZoneFlightMapKeys {
   public static final String OPERATION_TYPE = "operationType";

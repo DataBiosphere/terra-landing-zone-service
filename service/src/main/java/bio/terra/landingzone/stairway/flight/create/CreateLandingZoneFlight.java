@@ -1,9 +1,7 @@
-package bio.terra.landingzone.resource.flight.create;
+package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
-import bio.terra.landingzone.resource.landingzone.CreateAzureExternalLandingZoneStep;
-import bio.terra.landingzone.resource.landingzone.CreateAzureLandingZoneDbRecordStep;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.RetryRule;
@@ -44,9 +42,7 @@ public class CreateLandingZoneFlight extends Flight {
   private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag) {
 
     addStep(
-        new CreateAzureExternalLandingZoneStep(
-            flightBeanBag.getAzureLandingZoneService(),
-            flightBeanBag.getAzureLandingZoneManagerProvider()),
+        new CreateAzureExternalLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
         RetryRules.cloud());
 
     addStep(
