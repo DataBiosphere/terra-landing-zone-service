@@ -11,7 +11,7 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZone;
+import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
@@ -42,15 +42,12 @@ public class LandingZoneService {
     this.landingZoneAzureConfiguration = landingZoneAzureConfiguration;
   }
 
-  public AsyncJobResult<AzureLandingZone> getJobResult(String jobId) {
-    return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, AzureLandingZone.class);
+  public AsyncJobResult<DeployedLandingZone> getJobResult(String jobId) {
+    return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeployedLandingZone.class);
   }
 
   public String startLandingZoneCreationJob(
-      String jobId,
-      AzureLandingZoneRequest azureLandingZoneRequest,
-      // AuthenticatedUserRequest userRequest,
-      String resultPath) {
+      String jobId, AzureLandingZoneRequest azureLandingZoneRequest, String resultPath) {
 
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
 

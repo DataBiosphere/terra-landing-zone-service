@@ -21,7 +21,7 @@ import reactor.core.publisher.Flux;
 import reactor.util.retry.Retry;
 
 @Tag("integration")
-class LandingZoneDeploymentImplTest {
+class DeployedLandingZoneDeploymentImplTest {
 
   private static AzureResourceManager azureResourceManager;
   private static ResourceGroup resourceGroup;

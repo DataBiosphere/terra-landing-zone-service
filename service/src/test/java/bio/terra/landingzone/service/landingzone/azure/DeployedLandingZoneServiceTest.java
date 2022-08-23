@@ -18,7 +18,7 @@ import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesReader;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZone;
+import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
@@ -32,7 +32,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class LandingZoneServiceTest {
+public class DeployedLandingZoneServiceTest {
   private static final String VNET_1 = "vnet_1";
   private static final String VNET_SUBNET_1 = "vnet_subnet_1";
   private static final String VIRTUAL_NETWORK = "VirtualNetwork";
@@ -63,7 +63,7 @@ public class LandingZoneServiceTest {
     verify(landingZoneJobService, times(1))
         .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
     assertEquals(jobId, jobIdCaptor.getValue());
-    assertEquals(LandingZone.class, classCaptor.getValue());
+    assertEquals(DeployedLandingZone.class, classCaptor.getValue());
   }
 
   @Test
@@ -275,10 +275,10 @@ public class LandingZoneServiceTest {
     return list.stream()
         .filter(
             t ->
-                t.getName().equals(name)
-                    && t.getDescription().equals(description)
-                    && t.getDefinition().equals(className)
-                    && t.getVersion().equals(version))
+                t.name().equals(name)
+                    && t.description().equals(description)
+                    && t.definition().equals(className)
+                    && t.version().equals(version))
         .count();
   }
 
@@ -293,14 +293,14 @@ public class LandingZoneServiceTest {
         list.stream()
             .filter(
                 r ->
-                    r.getResourceId().equals(expectedResourceId)
-                        && r.getResourceType().equals(expectedResourceType)
-                        && r.getRegion().equals(expectedRegion))
+                    r.resourceId().equals(expectedResourceId)
+                        && r.resourceType().equals(expectedResourceType)
+                        && r.region().equals(expectedRegion))
             .toList();
     assertEquals(expectedCount, deployedResources.size());
-    Assertions.assertEquals(expectedResourceId, deployedResources.get(0).getResourceId());
-    Assertions.assertEquals(expectedResourceType, deployedResources.get(0).getResourceType());
-    Assertions.assertEquals(expectedTags.size(), deployedResources.get(0).getTags().size());
-    Assertions.assertEquals(expectedRegion, deployedResources.get(0).getRegion());
+    Assertions.assertEquals(expectedResourceId, deployedResources.get(0).resourceId());
+    Assertions.assertEquals(expectedResourceType, deployedResources.get(0).resourceType());
+    Assertions.assertEquals(expectedTags.size(), deployedResources.get(0).tags().size());
+    Assertions.assertEquals(expectedRegion, deployedResources.get(0).region());
   }
 }

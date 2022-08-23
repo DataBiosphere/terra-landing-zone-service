@@ -2,12 +2,11 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZone;
+import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -38,45 +37,41 @@ public class CreateAzureExternalLandingZoneStep implements Step {
   }
 
   @Override
-  public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+  public StepResult doStep(FlightContext context) throws RetryException {
     FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
         inputMap,
         LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
         LandingZoneFlightMapKeys.LANDING_ZONE_AZURE_CONFIGURATION);
 
-    var requestedExternalLandingZoneResource =
+    var requestedLandingZone =
         inputMap.get(
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, JobLandingZoneDefinition.class);
-    var azureConfiguration =
-        inputMap.get(
-            LandingZoneFlightMapKeys.LANDING_ZONE_AZURE_CONFIGURATION,
-            LandingZoneAzureConfiguration.class);
 
     var azureLandingZoneRequest =
         LandingZoneRequest.builder()
-            .definition(requestedExternalLandingZoneResource.getDefinition())
-            .version(requestedExternalLandingZoneResource.getVersion())
-            .parameters(requestedExternalLandingZoneResource.getProperties())
+            .definition(requestedLandingZone.getDefinition())
+            .version(requestedLandingZone.getVersion())
+            .parameters(requestedLandingZone.getProperties())
             .build();
     try {
-      LandingZone createdLandingZone =
+      DeployedLandingZone deployedLandingZone =
           createLandingZone(
               azureLandingZoneRequest,
               landingZoneManagerProvider.createLandingZoneManager(
-                  requestedExternalLandingZoneResource.getAzureCloudContext()));
+                  requestedLandingZone.getAzureCloudContext()));
 
       // save for the next step
       context
           .getWorkingMap()
-          .put(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, createdLandingZone.getId());
+          .put(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, deployedLandingZone.id());
 
-      persistResponse(context, createdLandingZone);
+      persistResponse(context, deployedLandingZone);
 
       logger.info(
           "Successfully created Azure landing zone. id='{}', deployed resources='{}'",
-          createdLandingZone.getId(),
-          listDeployedResourcesAsCsv(createdLandingZone.getDeployedResources()));
+          deployedLandingZone.id(),
+          listDeployedResourcesAsCsv(deployedLandingZone.deployedResources()));
     } catch (LandingZoneDefinitionNotFound e) {
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     } catch (Exception e) {
@@ -87,7 +82,7 @@ public class CreateAzureExternalLandingZoneStep implements Step {
   }
 
   @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
+  public StepResult undoStep(FlightContext context) {
     return null;
   }
 
@@ -96,16 +91,16 @@ public class CreateAzureExternalLandingZoneStep implements Step {
       return "No resource found!";
     }
     return deployedResources.stream()
-        .map(LandingZoneResource::getResourceId)
+        .map(LandingZoneResource::resourceId)
         .collect(Collectors.joining());
   }
 
-  private void persistResponse(FlightContext context, LandingZone createdLandingZone) {
+  private void persistResponse(FlightContext context, DeployedLandingZone deployedLandingZone) {
     FlightMap workingMap = context.getWorkingMap();
-    workingMap.put(JobMapKeys.RESPONSE.getKeyName(), createdLandingZone);
+    workingMap.put(JobMapKeys.RESPONSE.getKeyName(), deployedLandingZone);
   }
 
-  private LandingZone createLandingZone(
+  private DeployedLandingZone createLandingZone(
       LandingZoneRequest landingZoneRequest, LandingZoneManager landingZoneManager) {
     UUID landingZoneId = UUID.randomUUID();
     List<DeployedResource> deployedResources =
@@ -120,7 +115,7 @@ public class CreateAzureExternalLandingZoneStep implements Step {
             + "parameters: definition={}, version={} successfully created.",
         landingZoneRequest.definition(),
         landingZoneRequest.version());
-    return LandingZone.builder()
+    return DeployedLandingZone.builder()
         .id(landingZoneId.toString())
         .deployedResources(
             deployedResources.stream()

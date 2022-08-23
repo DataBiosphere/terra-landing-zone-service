@@ -30,10 +30,10 @@ import reactor.core.publisher.Flux;
 import reactor.util.retry.Retry;
 
 @Tag("integration")
-class LandingZoneManagerTest {
+class DeployedLandingZoneManagerTest {
 
   private static AzureResourceManager azureResourceManager;
-  private final ClientLogger logger = new ClientLogger(LandingZoneManagerTest.class);
+  private final ClientLogger logger = new ClientLogger(DeployedLandingZoneManagerTest.class);
   private ResourceGroup resourceGroup;
   private LandingZoneManager landingZoneManager;
 
