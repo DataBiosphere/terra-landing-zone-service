@@ -7,7 +7,6 @@ import static org.mockito.Mockito.*;
 
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.AzureLandingZoneJobService;
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
@@ -32,31 +31,26 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class DeployedLandingZoneServiceTest {
+public class LandingZoneServiceTest {
   private static final String VNET_1 = "vnet_1";
   private static final String VNET_SUBNET_1 = "vnet_subnet_1";
   private static final String VIRTUAL_NETWORK = "VirtualNetwork";
   private static final String SUBNET = "Subnet";
   private static final String REGION = "westus";
-  private static final String TAG_NAME = "TAG";
-  private static final String TAG_VALUE = "VALUE";
-  public static final Map<String, String> TAGS = Map.of(TAG_NAME, TAG_VALUE);
 
   private LandingZoneService landingZoneService;
 
   @Mock private LandingZoneManager landingZoneManager;
 
   @Mock private AzureLandingZoneJobService landingZoneJobService;
-  @Mock private LandingZoneAzureConfiguration landingZoneAzureConfiguration;
 
   @BeforeEach
   public void setup() {
-    landingZoneService =
-        new LandingZoneService(landingZoneJobService, landingZoneAzureConfiguration);
+    landingZoneService = new LandingZoneService(landingZoneJobService);
   }
 
   @Test
-  public void getJobResultSuccess() {
+  public void getJobResult_success() {
     String jobId = "newJobId";
     landingZoneService.getJobResult(jobId);
 
@@ -67,7 +61,7 @@ public class DeployedLandingZoneServiceTest {
   }
 
   @Test
-  public void createLandingZoneSuccess() {
+  public void startLandingZoneCreationJob_JobIsSubmitted() {
     setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
 
     var mockFactory1 = Mockito.mock(LandingZoneDefinitionFactory.class);
@@ -110,59 +104,10 @@ public class DeployedLandingZoneServiceTest {
 
     verify(landingZoneJobService, times(1)).newJob();
     verify(mockJobBuilder, times(1)).submit();
-    //    var mockFactory1 = Mockito.mock(LandingZoneDefinitionFactory.class);
-    //    Mockito.when(mockFactory1.availableVersions())
-    //        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
-    //
-    //    List<FactoryDefinitionInfo> factories =
-    //        List.of(
-    //            new FactoryDefinitionInfo(
-    //                mockFactory1.getClass().getName(),
-    //                "mockFactory",
-    //                mockFactory1.getClass().getName(),
-    //                mockFactory1.availableVersions()));
-    //
-    //    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
-    //        Mockito.mockStatic(LandingZoneManager.class)) {
-    //      staticMockLandingZoneManager
-    //          .when(LandingZoneManager::listDefinitionFactories)
-    //          .thenReturn(factories);
-    //
-    //      List<DeployedResource> deployedResources =
-    //          List.of(
-    //              new DeployedResource(VNET_1, VIRTUAL_NETWORK, TAGS, REGION),
-    //              new DeployedResource(VNET_SUBNET_1, SUBNET, TAGS, REGION));
-    //      Mockito.when(
-    //              landingZoneManager.deployLandingZone(
-    //                  ArgumentMatchers.any(),
-    //                  ArgumentMatchers.any(),
-    //                  ArgumentMatchers.any(),
-    //                  ArgumentMatchers.any()))
-    //          .thenReturn(deployedResources);
-    //      DefinitionVersion requestedVersion = DefinitionVersion.V1;
-    //      var azureLandingZoneDefinition =
-    //          new LandingZoneRequest(
-    //              mockFactory1.getClass().getName(),
-    //              requestedVersion.toString(),
-    //              null,
-    //              azureCloudContext);
-    //
-    //      var azureLandingZone =
-    //          landingZoneService.createLandingZone(azureLandingZoneDefinition,
-    // landingZoneManager);
-    //
-    //      assertNotNull(azureLandingZone);
-    //      assertNotNull(azureLandingZone.getId());
-    //      Assertions.assertEquals(2, azureLandingZone.getDeployedResources().size());
-    //      validateDeployedResource(
-    //          azureLandingZone.getDeployedResources(), 1, VNET_1, VIRTUAL_NETWORK, TAGS, REGION);
-    //      validateDeployedResource(
-    //          azureLandingZone.getDeployedResources(), 1, VNET_SUBNET_1, SUBNET, TAGS, REGION);
-    //    }
   }
 
   @Test
-  public void createLandingZoneThrowErrorWhenDefinitionDoesntExist() {
+  public void startLandingZoneCreationJob_ThrowsErrorWhenDefinitionDoesntExist() {
     setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
 
     var mockFactory1 = Mockito.mock(LandingZoneDefinitionFactory.class);
@@ -199,7 +144,7 @@ public class DeployedLandingZoneServiceTest {
   }
 
   @Test
-  public void listResourcesByPurposeSuccess() {
+  public void listResourcesByPurpose_Success() {
     var purposeTags =
         Map.of(
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
@@ -223,7 +168,7 @@ public class DeployedLandingZoneServiceTest {
   }
 
   @Test
-  public void listLandingZoneTemplatesSuccess() {
+  public void listLandingZoneDefinitions_Success() {
     var mockFactory1 = Mockito.mock(LandingZoneDefinitionFactory.class);
 
     List<FactoryDefinitionInfo> factories =
@@ -252,7 +197,7 @@ public class DeployedLandingZoneServiceTest {
   }
 
   @Test
-  public void deleteAzureLandingZoneThrowsException() {
+  public void deleteAzureLandingZone_ThrowsException() {
     Assertions.assertThrows(
         LandingZoneDeleteNotImplemented.class,
         () -> landingZoneService.deleteLandingZone("lz-1"),
@@ -280,27 +225,5 @@ public class DeployedLandingZoneServiceTest {
                     && t.definition().equals(className)
                     && t.version().equals(version))
         .count();
-  }
-
-  private void validateDeployedResource(
-      List<LandingZoneResource> list,
-      long expectedCount,
-      String expectedResourceId,
-      String expectedResourceType,
-      Map<String, String> expectedTags,
-      String expectedRegion) {
-    List<LandingZoneResource> deployedResources =
-        list.stream()
-            .filter(
-                r ->
-                    r.resourceId().equals(expectedResourceId)
-                        && r.resourceType().equals(expectedResourceType)
-                        && r.region().equals(expectedRegion))
-            .toList();
-    assertEquals(expectedCount, deployedResources.size());
-    Assertions.assertEquals(expectedResourceId, deployedResources.get(0).resourceId());
-    Assertions.assertEquals(expectedResourceType, deployedResources.get(0).resourceType());
-    Assertions.assertEquals(expectedTags.size(), deployedResources.get(0).tags().size());
-    Assertions.assertEquals(expectedRegion, deployedResources.get(0).region());
   }
 }

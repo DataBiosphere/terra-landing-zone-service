@@ -5,7 +5,6 @@ import bio.terra.landingzone.job.AzureLandingZoneJobService;
 import bio.terra.landingzone.job.AzureLandingZoneJobService.AsyncJobResult;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.model.OperationType;
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
@@ -18,7 +17,6 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -33,13 +31,9 @@ public class LandingZoneService {
 public class LandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
   private final AzureLandingZoneJobService azureLandingZoneJobService;
-  private final LandingZoneAzureConfiguration landingZoneAzureConfiguration;
 
-  public LandingZoneService(
-      AzureLandingZoneJobService azureLandingZoneJobService,
-      LandingZoneAzureConfiguration landingZoneAzureConfiguration) {
+  public LandingZoneService(AzureLandingZoneJobService azureLandingZoneJobService) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
-    this.landingZoneAzureConfiguration = landingZoneAzureConfiguration;
   }
 
   public AsyncJobResult<DeployedLandingZone> getJobResult(String jobId) {
@@ -68,9 +62,6 @@ public class LandingZoneService {
             // .resourceType(jobLandingZoneDefinition.getResourceType())
             //.stewardshipType(jobLandingZoneDefinition.getStewardshipType())
             .addParameter(
-                LandingZoneFlightMapKeys.LANDING_ZONE_AZURE_CONFIGURATION,
-                landingZoneAzureConfiguration)
-            .addParameter(
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
     return jobBuilder.submit();
@@ -78,21 +69,19 @@ public class LandingZoneService {
 
   @Cacheable("landingZoneDefinitions")
   public List<LandingZoneDefinition> listLandingZoneDefinitions() {
-    List<LandingZoneDefinition> landingZoneTemplates = new ArrayList<>();
-    for (var factoryInfo : LandingZoneManager.listDefinitionFactories()) {
-      factoryInfo
-          .versions()
-          .forEach(
-              version ->
-                  landingZoneTemplates.add(
-                      LandingZoneDefinition.builder()
-                          .definition(factoryInfo.className())
-                          .name(factoryInfo.name())
-                          .description(factoryInfo.description())
-                          .version(version.toString())
-                          .build()));
-    }
-    return landingZoneTemplates;
+    return LandingZoneManager.listDefinitionFactories().stream()
+        .flatMap(
+            d ->
+                d.versions().stream()
+                    .map(
+                        v ->
+                            LandingZoneDefinition.builder()
+                                .definition(d.className())
+                                .name(d.name())
+                                .description(d.description())
+                                .version(v.toString())
+                                .build()))
+        .collect(Collectors.toList());
   }
 
   public List<LandingZoneResource> listResourcesByPurpose(

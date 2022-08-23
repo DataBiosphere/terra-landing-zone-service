@@ -40,9 +40,7 @@ public class CreateAzureExternalLandingZoneStep implements Step {
   public StepResult doStep(FlightContext context) throws RetryException {
     FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
-        inputMap,
-        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-        LandingZoneFlightMapKeys.LANDING_ZONE_AZURE_CONFIGURATION);
+        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
 
     var requestedLandingZone =
         inputMap.get(
