@@ -56,10 +56,16 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
     landingZoneDao.createLandingZone(
         LandingZone.builder()
-            .landingZoneId(UUID.fromString(landingZoneId)) // TODO: Check if we can validate that the lz id is UUID earlier
+            .landingZoneId(
+                UUID.fromString(
+                    landingZoneId)) // TODO: Check if we can validate that the lz id is UUID earlier
             .definition(requestedExternalLandingZoneResource.definition())
             .version(requestedExternalLandingZoneResource.version())
-            .description(String.format("Definition:%s Version:%s", requestedExternalLandingZoneResource.definition(), requestedExternalLandingZoneResource.version()))
+            .description(
+                String.format(
+                    "Definition:%s Version:%s",
+                    requestedExternalLandingZoneResource.definition(),
+                    requestedExternalLandingZoneResource.version()))
             .displayName(requestedExternalLandingZoneResource.definition())
             .properties(requestedExternalLandingZoneResource.parameters())
             .resourceGroupId(azureCloudContext.getAzureResourceGroupId())

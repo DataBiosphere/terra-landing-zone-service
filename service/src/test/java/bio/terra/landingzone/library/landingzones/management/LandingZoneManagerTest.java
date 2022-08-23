@@ -76,13 +76,19 @@ class LandingZoneManagerTest {
     Flux<DeployedResource> first =
         landingZoneManager
             .deployLandingZoneAsync(
-                landingZone, TestLandingZoneFactory.class.getSimpleName(), DefinitionVersion.V1, null)
+                landingZone,
+                TestLandingZoneFactory.class.getSimpleName(),
+                DefinitionVersion.V1,
+                null)
             .retryWhen(Retry.max(1));
 
     Flux<DeployedResource> second =
         landingZoneManager
             .deployLandingZoneAsync(
-                landingZone, TestLandingZoneFactory.class.getSimpleName(), DefinitionVersion.V1, null)
+                landingZone,
+                TestLandingZoneFactory.class.getSimpleName(),
+                DefinitionVersion.V1,
+                null)
             .retryWhen(Retry.max(1));
 
     var results = Flux.merge(first, second).collectList().block();

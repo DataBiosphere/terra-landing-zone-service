@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
-import bio.terra.landingzone.job.AzureLandingZoneJobService;
+import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
@@ -18,6 +18,7 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesReader;
+import bio.terra.landingzone.model.AzureCloudContext;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -45,7 +46,12 @@ public class LandingZoneServiceTest {
 
   @Mock private LandingZoneManager landingZoneManager;
 
-  @Mock private AzureLandingZoneJobService landingZoneJobService;
+  @Mock private LandingZoneJobService landingZoneJobService;
+
+  @Captor ArgumentCaptor<String> jobIdCaptor;
+  @Captor ArgumentCaptor<Class<?>> classCaptor;
+
+  @Mock private AzureCloudContext azureCloudContext;
 
   @BeforeEach
   public void setup() {

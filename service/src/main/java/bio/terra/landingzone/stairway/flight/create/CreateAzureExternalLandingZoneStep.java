@@ -17,14 +17,11 @@ import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
-import com.azure.core.credential.TokenCredential;
-import com.azure.identity.ClientSecretCredentialBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CreateAzureExternalLandingZoneStep implements Step {
   private static final Logger logger =
@@ -43,21 +40,20 @@ public class CreateAzureExternalLandingZoneStep implements Step {
         inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
 
     var requestedLandingZone =
-        inputMap.get(
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, JobLandingZoneDefinition.class);
+        inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
 
     var azureLandingZoneRequest =
         LandingZoneRequest.builder()
-            .definition(requestedLandingZone.getDefinition())
-            .version(requestedLandingZone.getVersion())
-            .parameters(requestedLandingZone.getProperties())
+            .definition(requestedLandingZone.definition())
+            .version(requestedLandingZone.version())
+            .parameters(requestedLandingZone.parameters())
             .build();
     try {
       DeployedLandingZone deployedLandingZone =
           createLandingZone(
               azureLandingZoneRequest,
               landingZoneManagerProvider.createLandingZoneManager(
-                  requestedLandingZone.getAzureCloudContext()));
+                  requestedLandingZone.azureCloudContext()));
 
       // save for the next step
       context

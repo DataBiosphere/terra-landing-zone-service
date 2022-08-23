@@ -6,16 +6,14 @@ import bio.terra.common.stairway.TracingHook;
 import bio.terra.landingzone.job.exception.InvalidJobIdException;
 import bio.terra.landingzone.job.exception.InvalidJobParameterException;
 import bio.terra.landingzone.job.model.OperationType;
-import bio.terra.landingzone.resource.ExternalResourceType;
-import bio.terra.landingzone.service.landingzone.azure.model.AzureLandingZoneRequest;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import io.opencensus.contrib.spring.aop.Traced;
-import org.apache.commons.lang3.StringUtils;
-
 import javax.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
 
 public class LandingZoneJobBuilder {
   private final LandingZoneJobService jobService;
@@ -25,7 +23,7 @@ public class LandingZoneJobBuilder {
   private Class<? extends Flight> flightClass;
   @Nullable private String jobId;
   @Nullable private String description;
-  @Nullable private AzureLandingZoneRequest landingZoneRequest;
+  @Nullable private LandingZoneRequest landingZoneRequest;
   @Nullable private OperationType operationType;
 
   public LandingZoneJobBuilder(
@@ -57,8 +55,8 @@ public class LandingZoneJobBuilder {
     return this;
   }
 
-  public LandingZoneJobBuilder request(@Nullable Object request) {
-    this.request = request;
+  public LandingZoneJobBuilder landingZoneRequest(@Nullable LandingZoneRequest landingZoneRequest) {
+    this.landingZoneRequest = landingZoneRequest;
     return this;
   }
 

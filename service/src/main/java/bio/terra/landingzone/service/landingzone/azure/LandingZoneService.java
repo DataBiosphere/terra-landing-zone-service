@@ -1,9 +1,9 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
-import bio.terra.landingzone.job.AzureLandingZoneJobBuilder;
-import bio.terra.landingzone.job.AzureLandingZoneJobService;
-import bio.terra.landingzone.job.AzureLandingZoneJobService.AsyncJobResult;
 import bio.terra.landingzone.job.JobMapKeys;
+import bio.terra.landingzone.job.LandingZoneJobBuilder;
+import bio.terra.landingzone.job.LandingZoneJobService;
+import bio.terra.landingzone.job.LandingZoneJobService.AsyncJobResult;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
@@ -28,11 +28,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class LandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
-public class LandingZoneService {
-  private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
-  private final AzureLandingZoneJobService azureLandingZoneJobService;
+  private final LandingZoneJobService azureLandingZoneJobService;
 
-  public LandingZoneService(AzureLandingZoneJobService azureLandingZoneJobService) {
+  public LandingZoneService(LandingZoneJobService azureLandingZoneJobService) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
   }
 
@@ -41,26 +39,23 @@ public class LandingZoneService {
   }
 
   public String startLandingZoneCreationJob(
-      String jobId, AzureLandingZoneRequest azureLandingZoneRequest, String resultPath) {
+      String jobId, LandingZoneRequest azureLandingZoneRequest, String resultPath) {
 
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
 
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
-    final AzureLandingZoneJobBuilder jobBuilder =
+    final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
             .newJob()
             .jobId(jobId)
             .description(
                 String.format(
                     jobDescription,
-                        azureLandingZoneRequest.definition(),
+                    azureLandingZoneRequest.definition(),
                     azureLandingZoneRequest.version()))
             .flightClass(CreateLandingZoneFlight.class)
             .landingZoneRequest(azureLandingZoneRequest)
             .operationType(OperationType.CREATE)
-            // .userRequest(userRequest)
-            // .resourceType(jobLandingZoneDefinition.getResourceType())
-            //.stewardshipType(jobLandingZoneDefinition.getStewardshipType())
             .addParameter(
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
