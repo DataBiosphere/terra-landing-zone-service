@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-class LandingZoneDefinitionFactoryListProviderImplTest {
+class DeployedLandingZoneDefinitionFactoryListProviderImplTest {
 
   @Test
   void listFactories_listContainsTestLandingZoneDefinitionFactory() {

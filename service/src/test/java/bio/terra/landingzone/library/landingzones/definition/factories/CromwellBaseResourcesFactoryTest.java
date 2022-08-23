@@ -31,7 +31,7 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
         landingZoneManager
             .deployLandingZoneAsync(
                 UUID.randomUUID().toString(),
-                CromwellBaseResourcesFactory.class.getName(),
+                CromwellBaseResourcesFactory.class.getSimpleName(),
                 DefinitionVersion.V1,
                 null)
             .collectList()

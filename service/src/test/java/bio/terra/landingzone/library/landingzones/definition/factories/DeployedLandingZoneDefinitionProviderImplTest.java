@@ -9,14 +9,12 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-class LandingZoneDefinitionProviderImplTest {
+class DeployedLandingZoneDefinitionProviderImplTest {
   private LandingZoneDefinitionProviderImpl provider;
-
-  private ArmManagers armManagers;
 
   @BeforeEach
   void setUp() {
-    armManagers = new ArmManagers(null, null, null, null);
+    ArmManagers armManagers = new ArmManagers(null, null, null, null);
     provider = new LandingZoneDefinitionProviderImpl(armManagers);
   }
 

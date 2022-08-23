@@ -12,7 +12,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class LandingZoneDaoTest extends LibraryTestBase {
+public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   private static final String RESOURCE_GROUP = "test-resource-group";
   private static final String DEFINITION = "lzDefinition";
   private static final String VERSION = "v1";
