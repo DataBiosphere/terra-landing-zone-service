@@ -2,6 +2,7 @@ package bio.terra.landingzone.service.landingzone.azure;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -38,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class LandingZoneServiceTest {
   private static final String VNET_1 = "vnet_1";
+  private static final String VNET_2 = "vnet_2";
   private static final String VNET_SUBNET_1 = "vnet_subnet_1";
   private static final String VIRTUAL_NETWORK = "VirtualNetwork";
   private static final String SUBNET = "Subnet";
@@ -217,6 +219,37 @@ public class LandingZoneServiceTest {
         LandingZoneDeleteNotImplemented.class,
         () -> landingZoneService.deleteLandingZone("lz-1"),
         "Delete operation is not supported");
+  }
+
+  @Test
+  public void listResourcesWithPurposeSuccess() {
+    var purposeTagSet1 =
+        Map.of(
+            LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+            ResourcePurpose.SHARED_RESOURCE.toString());
+    var purposeTagSet2 =
+        Map.of(
+            LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+            ResourcePurpose.WLZ_RESOURCE.toString());
+    var deployedResources =
+        List.of(
+            new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTagSet1, REGION),
+            new DeployedResource(VNET_2, VIRTUAL_NETWORK, purposeTagSet2, REGION),
+            new DeployedResource(VNET_SUBNET_1, SUBNET, purposeTagSet1, REGION));
+
+    ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
+    Mockito.when(resourceReader.listResourcesWithPurpose()).thenReturn(deployedResources);
+    Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
+
+    Map<String, List<LandingZoneResource>> resourcesGrouped =
+        landingZoneService.listGeneralResourcesWithPurposes(landingZoneManager);
+
+    assertNotNull(resourcesGrouped);
+    assertEquals(2, resourcesGrouped.size()); // two groups expected
+    assertTrue(resourcesGrouped.containsKey(ResourcePurpose.SHARED_RESOURCE.toString()));
+    assertTrue(resourcesGrouped.containsKey(ResourcePurpose.WLZ_RESOURCE.toString()));
+    assertEquals(2, resourcesGrouped.get(ResourcePurpose.SHARED_RESOURCE.toString()).size());
+    assertEquals(1, resourcesGrouped.get(ResourcePurpose.WLZ_RESOURCE.toString()).size());
   }
 
   private void setupAzureCloudContextMock(

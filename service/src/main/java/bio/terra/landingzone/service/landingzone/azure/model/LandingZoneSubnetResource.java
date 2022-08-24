@@ -3,7 +3,7 @@ package bio.terra.landingzone.service.landingzone.azure.model;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class AzureLandingZoneSubnetResource {
+public class LandingZoneSubnetResource {
   private final String name;
   private final String subnetPurpose;
 
@@ -11,7 +11,7 @@ public class AzureLandingZoneSubnetResource {
   private final String vNetId;
   private final String region;
 
-  public AzureLandingZoneSubnetResource(
+  public LandingZoneSubnetResource(
       String name, String subnetPurpose, String vNetId, String region) {
     this.name = name;
     this.subnetPurpose = subnetPurpose;
@@ -41,7 +41,7 @@ public class AzureLandingZoneSubnetResource {
 
     if (o == null || getClass() != o.getClass()) return false;
 
-    AzureLandingZoneSubnetResource subnetResource = (AzureLandingZoneSubnetResource) o;
+    LandingZoneSubnetResource subnetResource = (LandingZoneSubnetResource) o;
 
     return new EqualsBuilder()
         .append(name, subnetResource.name)
@@ -91,8 +91,8 @@ public class AzureLandingZoneSubnetResource {
       return this;
     }
 
-    public AzureLandingZoneSubnetResource build() {
-      return new AzureLandingZoneSubnetResource(name, subnetPurpose, vNetId, region);
+    public LandingZoneSubnetResource build() {
+      return new LandingZoneSubnetResource(name, subnetPurpose, vNetId, region);
     }
   }
 }

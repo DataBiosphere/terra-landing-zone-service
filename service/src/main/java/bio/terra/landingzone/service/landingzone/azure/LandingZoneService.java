@@ -8,6 +8,7 @@ import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.AzureCloudContext;
@@ -17,10 +18,13 @@ import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneSubnetResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -109,6 +113,44 @@ public class LandingZoneService {
 
   public void deleteLandingZone(String landingZoneId) {
     throw new LandingZoneDeleteNotImplemented("Delete operation is not implemented");
+  }
+
+  public Map<String, List<LandingZoneResource>> listGeneralResourcesWithPurposes(
+      LandingZoneManager landingZoneManager) {
+    var deployedResources = landingZoneManager.reader().listResourcesWithPurpose();
+
+    return deployedResources.stream()
+        .map(
+            dp ->
+                LandingZoneResource.builder()
+                    .resourceId(dp.resourceId())
+                    .resourceType(dp.resourceType())
+                    .tags(dp.tags())
+                    .region(dp.region())
+                    .build())
+        .collect(
+            Collectors.groupingBy(
+                r -> r.tags().get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString())));
+  }
+
+  public Map<String, List<LandingZoneSubnetResource>> listVNetResourcesWithPurposes(
+      LandingZoneManager landingZoneManager) {
+    var deployedVNetResources = landingZoneManager.reader().listVNetResourcesWithPurpose();
+    List<LandingZoneSubnetResource> deployedSubnetList = new ArrayList<>();
+    deployedVNetResources.stream()
+        .forEach(
+            dp ->
+                dp.subnetIdPurposeMap()
+                    .forEach(
+                        (purpose, subnet) ->
+                            deployedSubnetList.add(
+                                LandingZoneSubnetResource.builder()
+                                    .name(subnet.name())
+                                    .subnetPurpose(purpose.toString())
+                                    .vNetId(dp.Id())
+                                    .region(dp.region())
+                                    .build())));
+    return deployedSubnetList.stream().collect(Collectors.groupingBy(sn -> sn.getSubnetPurpose()));
   }
 
   private void checkIfRequestedFactoryExists(LandingZoneRequest azureLandingZone) {
