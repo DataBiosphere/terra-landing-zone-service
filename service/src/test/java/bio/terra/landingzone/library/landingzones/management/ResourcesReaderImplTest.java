@@ -17,6 +17,7 @@ import bio.terra.landingzone.library.landingzones.deployment.DeployedVNet;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeploymentsImpl;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 @Tag("integration")
 class ResourcesReaderImplTest {
 
+  private static String landingZoneId;
   private static AzureResourceManager azureResourceManager;
   private static ResourceGroup resourceGroup;
   private static LandingZoneDefinitionFactory landingZoneFactory;
@@ -56,8 +58,8 @@ class ResourcesReaderImplTest {
     azureResourceManager = TestArmResourcesFactory.createArmClient();
     resourceGroup = TestArmResourcesFactory.createTestResourceGroup(azureResourceManager);
     landingZoneDeployments = new LandingZoneDeploymentsImpl();
-    String landingZoneId = UUID.randomUUID().toString();
-    landingZoneResourceDeployment = landingZoneDeployments.define(UUID.randomUUID().toString());
+    landingZoneId = UUID.randomUUID().toString();
+    landingZoneResourceDeployment = landingZoneDeployments.define(landingZoneId);
 
     landingZoneDefinitionProvider =
         new LandingZoneDefinitionProviderImpl(TestArmResourcesFactory.createArmManagers());
@@ -149,6 +151,39 @@ class ResourcesReaderImplTest {
                   && deployedStorage
                       .resourceId()
                       .equalsIgnoreCase(TestUtils.findFirstStorageAccountId(resources));
+            });
+  }
+
+  @Test
+  void listResourcesWithPurpose() throws InterruptedException {
+    await()
+        .atMost(Duration.ofSeconds(20))
+        .until(
+            () -> {
+              var resources = resourcesReader.listResourcesWithPurpose();
+              return resources.size() == 1
+                  && resources
+                      .get(0)
+                      .tags()
+                      .containsKey(String.valueOf(LandingZoneTagKeys.LANDING_ZONE_PURPOSE))
+                  && resources
+                          .get(0)
+                          .tags()
+                          .get(String.valueOf(LandingZoneTagKeys.LANDING_ZONE_PURPOSE))
+                      != null;
+            });
+  }
+
+  @Test
+  void listVNetResourcesWithPurpose() throws InterruptedException {
+    await()
+        .atMost(Duration.ofSeconds(20))
+        .until(
+            () -> {
+              var resources = resourcesReader.listVNetResourcesWithPurpose();
+              return resources.size() == 1
+                  && !resources.get(0).subnetIdPurposeMap().isEmpty()
+                  && deployedVNet.Id().equals(resources.get(0).Id());
             });
   }
 

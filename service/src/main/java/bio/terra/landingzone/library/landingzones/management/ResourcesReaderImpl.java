@@ -45,12 +45,6 @@ public class ResourcesReaderImpl implements ResourcesReader {
         .collect(Collectors.toList());
   }
 
-  private DeployedResource toLandingZoneDeployedResource(GenericResource r) {
-    logger.info(
-        "To landing zone deployed resource: {} type: {} tags: {}", r.id(), r.type(), r.tags());
-    return new DeployedResource(r.id(), r.type(), r.tags(), r.region().name());
-  }
-
   @Override
   public List<DeployedResource> listResourcesByPurpose(ResourcePurpose purpose) {
     return listResourceByTag(
@@ -60,10 +54,41 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   @Override
+  public List<DeployedResource> listResourcesWithPurpose() {
+    List<ResourcePurpose> supportedPurposes =
+        ResourcePurpose.values().stream().collect(Collectors.toList());
+    return listResourceByTag(
+            resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), null)
+        .stream()
+        .filter(
+            deployedResource ->
+                supportedPurposes.contains(
+                    ResourcePurpose.fromString(
+                        deployedResource
+                            .tags()
+                            .get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))))
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<DeployedVNet> listVNetWithSubnetPurpose(SubnetResourcePurpose purpose) {
     return listResourceByTag(resourceGroup.name(), purpose.toString(), null).stream()
         .map(this::toDeployedVNet)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<DeployedVNet> listVNetResourcesWithPurpose() {
+    logger.info("Listing network resources with purpose by group:{} ", resourceGroup.name());
+    return this.azureResourceManager.networks().listByResourceGroup(resourceGroup.name()).stream()
+        .map(this::toDeployedVNet)
+        .collect(Collectors.toList());
+  }
+
+  private DeployedResource toLandingZoneDeployedResource(GenericResource r) {
+    logger.info(
+        "To landing zone deployed resource: {} type: {} tags: {}", r.id(), r.type(), r.tags());
+    return new DeployedResource(r.id(), r.type(), r.tags(), r.region().name());
   }
 
   private DeployedVNet toDeployedVNet(DeployedResource resource) {
