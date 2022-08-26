@@ -68,7 +68,7 @@ test {
 sonarqube {
     properties {
         property 'sonar.projectName', 'terra-landing-zone-service' 
-        property 'sonar.projectKey', 'terra-landing-zone-service'
+        property 'sonar.projectKey', 'DataBiosphere_terra-landing-zone-service'
         property 'sonar.organization', 'broad-databiosphere'
         property 'sonar.host.url', 'https://sonarcloud.io'
     }
