@@ -250,11 +250,13 @@ public class LandingZoneServiceTest {
             new DeployedResource(VNET_2, VIRTUAL_NETWORK, purposeTagSet2, REGION),
             new DeployedResource(STORAGE_ACCOUNT_2, STORAGE_ACCOUNT, purposeTagSet1, REGION));
 
+    when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
+        .thenReturn(landingZoneManager);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    Mockito.when(resourceReader.listResourcesWithPurpose()).thenReturn(deployedResources);
-    Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
+    when(resourceReader.listResourcesWithPurpose()).thenReturn(deployedResources);
+    when(landingZoneManager.reader()).thenReturn(resourceReader);
 
-    var result = landingZoneService.listResourcesWithPurposes(landingZoneManager);
+    var result = landingZoneService.listResourcesWithPurposes(azureCloudContext);
     assertNotNull(result);
 
     Map<String, List<LandingZoneResource>> resourcesGrouped = result.getGeneralResources();
@@ -293,12 +295,13 @@ public class LandingZoneServiceTest {
             new DeployedVNet(VNET_3, subnetHashMap2, REGION),
             new DeployedVNet(VNET_1, subnetHashMap1, REGION));
 
+    when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
+        .thenReturn(landingZoneManager);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    Mockito.when(resourceReader.listVNetResourcesWithSubnetPurpose())
-        .thenReturn(deployedVNetResources);
-    Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
+    when(resourceReader.listVNetResourcesWithSubnetPurpose()).thenReturn(deployedVNetResources);
+    when(landingZoneManager.reader()).thenReturn(resourceReader);
 
-    var result = landingZoneService.listResourcesWithPurposes(landingZoneManager);
+    var result = landingZoneService.listResourcesWithPurposes(azureCloudContext);
     assertNotNull(result);
 
     Map<String, List<LandingZoneResource>> resourcesGrouped = result.getGeneralResources();
@@ -356,6 +359,9 @@ public class LandingZoneServiceTest {
         SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET,
         new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_3));
 
+    when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
+        .thenReturn(landingZoneManager);
+
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     Mockito.when(resourceReader.listResourcesWithPurpose()).thenReturn(deployedResources);
     var deployedVNetResources =
@@ -368,7 +374,7 @@ public class LandingZoneServiceTest {
     Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     LandingZoneResourcesByPurpose result =
-        landingZoneService.listResourcesWithPurposes(landingZoneManager);
+        landingZoneService.listResourcesWithPurposes(azureCloudContext);
 
     assertNotNull(result.getGeneralResources());
     assertNotNull(result.getSubnetResources());

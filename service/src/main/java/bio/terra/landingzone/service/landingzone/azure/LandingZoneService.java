@@ -117,7 +117,10 @@ public class LandingZoneService {
   }
 
   public LandingZoneResourcesByPurpose listResourcesWithPurposes(
-      LandingZoneManager landingZoneManager) {
+      AzureCloudContext azureCloudContext) {
+    LandingZoneManager landingZoneManager =
+        landingZoneManagerProvider.createLandingZoneManager(azureCloudContext);
+
     return LandingZoneResourcesByPurpose.builder()
         .generalResources(listGeneralResourcesWithPurposes(landingZoneManager))
         .subnetResources(listVNetResourcesWithPurposes(landingZoneManager))
