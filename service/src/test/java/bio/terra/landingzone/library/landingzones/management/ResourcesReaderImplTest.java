@@ -175,15 +175,24 @@ class ResourcesReaderImplTest {
   }
 
   @Test
-  void listVNetResourcesWithPurpose() throws InterruptedException {
+  void listVNetResourcesWithSubnetPurpose() throws InterruptedException {
     await()
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listVNetResourcesWithPurpose();
+              var resources = resourcesReader.listVNetResourcesWithSubnetPurpose();
               return resources.size() == 1
                   && !resources.get(0).subnetIdPurposeMap().isEmpty()
-                  && deployedVNet.Id().equals(resources.get(0).Id());
+                  && deployedVNet.Id().equals(resources.get(0).Id())
+                  && resources.get(0).subnetIdPurposeMap().size() == 2
+                  && resources
+                      .get(0)
+                      .subnetIdPurposeMap()
+                      .containsKey(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
+                  && resources
+                      .get(0)
+                      .subnetIdPurposeMap()
+                      .containsKey(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET);
             });
   }
 

@@ -55,8 +55,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
 
   @Override
   public List<DeployedResource> listResourcesWithPurpose() {
-    List<ResourcePurpose> supportedPurposes =
-        ResourcePurpose.values().stream().collect(Collectors.toList());
+    List<ResourcePurpose> supportedPurposes = ResourcePurpose.values().stream().toList();
     return listResourceByTag(
             resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), null)
         .stream()
@@ -67,7 +66,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
                         deployedResource
                             .tags()
                             .get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override
@@ -78,11 +77,11 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   @Override
-  public List<DeployedVNet> listVNetResourcesWithPurpose() {
-    logger.info("Listing network resources with purpose by group:{} ", resourceGroup.name());
+  public List<DeployedVNet> listVNetResourcesWithSubnetPurpose() {
+    logger.info("Listing network resources with subnet purpose:{} ", resourceGroup.name());
     return this.azureResourceManager.networks().listByResourceGroup(resourceGroup.name()).stream()
         .map(this::toDeployedVNet)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private DeployedResource toLandingZoneDeployedResource(GenericResource r) {

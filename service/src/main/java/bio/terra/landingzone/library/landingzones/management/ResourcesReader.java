@@ -15,5 +15,5 @@ public interface ResourcesReader {
 
   List<DeployedVNet> listVNetWithSubnetPurpose(SubnetResourcePurpose purpose);
 
-  List<DeployedVNet> listVNetResourcesWithPurpose();
+  List<DeployedVNet> listVNetResourcesWithSubnetPurpose();
 }
