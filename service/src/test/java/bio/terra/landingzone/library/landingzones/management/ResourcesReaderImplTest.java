@@ -160,7 +160,7 @@ class ResourcesReaderImplTest {
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listResourcesWithPurpose();
+              var resources = resourcesReader.listResources();
               return resources.size() == 1
                   && resources
                       .get(0)
@@ -180,7 +180,7 @@ class ResourcesReaderImplTest {
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listVNetResourcesWithSubnetPurpose();
+              var resources = resourcesReader.listVNets();
               return resources.size() == 1
                   && !resources.get(0).subnetIdPurposeMap().isEmpty()
                   && deployedVNet.Id().equals(resources.get(0).Id())

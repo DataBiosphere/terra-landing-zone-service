@@ -253,17 +253,16 @@ public class LandingZoneServiceTest {
     when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
         .thenReturn(landingZoneManager);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    when(resourceReader.listResourcesWithPurpose()).thenReturn(deployedResources);
+    when(resourceReader.listResources()).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     var result = landingZoneService.listResourcesWithPurposes(azureCloudContext);
     assertNotNull(result);
 
-    Map<String, List<LandingZoneResource>> resourcesGrouped = result.getGeneralResources();
+    Map<String, List<LandingZoneResource>> resourcesGrouped = result.generalResources();
     assertNotNull(resourcesGrouped);
 
-    Map<String, List<LandingZoneSubnetResource>> subnetResourcesGrouped =
-        result.getSubnetResources();
+    Map<String, List<LandingZoneSubnetResource>> subnetResourcesGrouped = result.subnetResources();
     assertNotNull(subnetResourcesGrouped);
 
     // Validate number of purpose groups returned: two groups expected
@@ -298,17 +297,16 @@ public class LandingZoneServiceTest {
     when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
         .thenReturn(landingZoneManager);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    when(resourceReader.listVNetResourcesWithSubnetPurpose()).thenReturn(deployedVNetResources);
+    when(resourceReader.listVNets()).thenReturn(deployedVNetResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     var result = landingZoneService.listResourcesWithPurposes(azureCloudContext);
     assertNotNull(result);
 
-    Map<String, List<LandingZoneResource>> resourcesGrouped = result.getGeneralResources();
+    Map<String, List<LandingZoneResource>> resourcesGrouped = result.generalResources();
     assertNotNull(resourcesGrouped);
 
-    Map<String, List<LandingZoneSubnetResource>> subnetResourcesGrouped =
-        result.getSubnetResources();
+    Map<String, List<LandingZoneSubnetResource>> subnetResourcesGrouped = result.subnetResources();
     assertNotNull(subnetResourcesGrouped);
 
     assertEquals(0, resourcesGrouped.size(), "No general resources groups expected");
@@ -363,50 +361,46 @@ public class LandingZoneServiceTest {
         .thenReturn(landingZoneManager);
 
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    Mockito.when(resourceReader.listResourcesWithPurpose()).thenReturn(deployedResources);
+    Mockito.when(resourceReader.listResources()).thenReturn(deployedResources);
     var deployedVNetResources =
         List.of(
             new DeployedVNet(VNET_3, subnetHashMap2, REGION),
             new DeployedVNet(VNET_1, subnetHashMap1, REGION));
 
-    Mockito.when(resourceReader.listVNetResourcesWithSubnetPurpose())
-        .thenReturn(deployedVNetResources);
+    Mockito.when(resourceReader.listVNets()).thenReturn(deployedVNetResources);
     Mockito.when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     LandingZoneResourcesByPurpose result =
         landingZoneService.listResourcesWithPurposes(azureCloudContext);
 
-    assertNotNull(result.getGeneralResources());
-    assertNotNull(result.getSubnetResources());
-    assertEquals(2, result.getSubnetResources().size(), "Two groups of subnet resources expected");
-    assertEquals(
-        2, result.getGeneralResources().size(), "Two groups of general resources expected");
+    assertNotNull(result.generalResources());
+    assertNotNull(result.subnetResources());
+    assertEquals(2, result.subnetResources().size(), "Two groups of subnet resources expected");
+    assertEquals(2, result.generalResources().size(), "Two groups of general resources expected");
     assertTrue(
         result
-            .getSubnetResources()
+            .subnetResources()
             .containsKey(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET.toString()));
     assertTrue(
         result
-            .getSubnetResources()
+            .subnetResources()
             .containsKey(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET.toString()));
-    assertTrue(
-        result.getGeneralResources().containsKey(ResourcePurpose.SHARED_RESOURCE.toString()));
-    assertTrue(result.getGeneralResources().containsKey(ResourcePurpose.WLZ_RESOURCE.toString()));
+    assertTrue(result.generalResources().containsKey(ResourcePurpose.SHARED_RESOURCE.toString()));
+    assertTrue(result.generalResources().containsKey(ResourcePurpose.WLZ_RESOURCE.toString()));
     // Validate number of members in each group
     assertEquals(
-        2, result.getGeneralResources().get(ResourcePurpose.SHARED_RESOURCE.toString()).size());
-    assertEquals(
-        1, result.getGeneralResources().get(ResourcePurpose.WLZ_RESOURCE.toString()).size());
+        2, result.generalResources().get(ResourcePurpose.SHARED_RESOURCE.toString()).size());
+    assertEquals(1, result.generalResources().get(ResourcePurpose.WLZ_RESOURCE.toString()).size());
     assertEquals(
         2,
         result
-            .getSubnetResources()
+            .subnetResources()
             .get(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET.toString())
             .size());
     assertEquals(
         1,
         result
-            .getSubnetResources()
+            .subnetResources()
             .get(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET.toString())
             .size());
   }

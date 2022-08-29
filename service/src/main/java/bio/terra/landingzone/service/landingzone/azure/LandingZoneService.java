@@ -23,7 +23,6 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneSubnetRe
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -121,15 +120,14 @@ public class LandingZoneService {
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(azureCloudContext);
 
-    return LandingZoneResourcesByPurpose.builder()
-        .generalResources(listGeneralResourcesWithPurposes(landingZoneManager))
-        .subnetResources(listVNetResourcesWithPurposes(landingZoneManager))
-        .build();
+    return new LandingZoneResourcesByPurpose(
+        listGeneralResourcesWithPurposes(landingZoneManager),
+        listVNetResourcesWithPurposes(landingZoneManager));
   }
 
   private Map<String, List<LandingZoneResource>> listGeneralResourcesWithPurposes(
       LandingZoneManager landingZoneManager) {
-    var deployedResources = landingZoneManager.reader().listResourcesWithPurpose();
+    var deployedResources = landingZoneManager.reader().listResources();
 
     return deployedResources.stream()
         .map(
@@ -147,23 +145,20 @@ public class LandingZoneService {
 
   private Map<String, List<LandingZoneSubnetResource>> listVNetResourcesWithPurposes(
       LandingZoneManager landingZoneManager) {
-    var deployedVNetResources = landingZoneManager.reader().listVNetResourcesWithSubnetPurpose();
-    List<LandingZoneSubnetResource> deployedSubnetList = new ArrayList<>();
-    deployedVNetResources.stream()
-        .forEach(
+    var deployedVNetResources = landingZoneManager.reader().listVNets();
+    return deployedVNetResources.stream()
+        .flatMap(
             dp ->
-                dp.subnetIdPurposeMap()
-                    .forEach(
-                        (purpose, subnet) ->
-                            deployedSubnetList.add(
-                                LandingZoneSubnetResource.builder()
-                                    .name(subnet.name())
-                                    .subnetPurpose(purpose.toString())
-                                    .vNetId(dp.Id())
-                                    .region(dp.region())
-                                    .build())));
-    return deployedSubnetList.stream()
-        .collect(Collectors.groupingBy(LandingZoneSubnetResource::getSubnetPurpose));
+                dp.subnetIdPurposeMap().entrySet().stream()
+                    .map(
+                        e ->
+                            LandingZoneSubnetResource.builder()
+                                .name(e.getValue().name())
+                                .subnetPurpose(e.getKey().toString())
+                                .vNetId(dp.Id())
+                                .region(dp.region())
+                                .build()))
+        .collect(Collectors.groupingBy(LandingZoneSubnetResource::subnetPurpose));
   }
 
   private void checkIfRequestedFactoryExists(LandingZoneRequest azureLandingZone) {
