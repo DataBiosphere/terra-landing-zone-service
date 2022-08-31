@@ -40,6 +40,10 @@ public class LandingZoneStairwayConfiguration {
         landingZoneStairwayProperties.getRetentionCheckInterval());
     stairwayProperties.setCompletedFlightRetention(
         landingZoneStairwayProperties.getCompletedFlightRetention());
+    stairwayProperties.setClusterNameSuffix(landingZoneStairwayProperties.getClusterNameSuffix());
+    stairwayProperties.setGcpPubSubTopicId(landingZoneStairwayProperties.getGcpPubSubTopicId());
+    stairwayProperties.setGcpPubSubSubscriptionId(
+        landingZoneStairwayProperties.getGcpPubSubSubscriptionId());
     return new StairwayComponent(kubeService, kubeProperties, stairwayProperties);
   }
 }
