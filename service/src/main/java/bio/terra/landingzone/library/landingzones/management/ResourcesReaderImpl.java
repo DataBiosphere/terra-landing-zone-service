@@ -76,11 +76,9 @@ public class ResourcesReaderImpl implements ResourcesReader {
         .collect(Collectors.toList());
   }
 
-  @Override
-  public List<DeployedVNet> listVNets() {
-    logger.info("Listing network resources with subnet purpose:{} ", resourceGroup.name());
-    return this.azureResourceManager.networks().listByResourceGroup(resourceGroup.name()).stream()
-        .map(this::toDeployedVNet)
+  public List<DeployedSubnet> listSubnetsWithSubnetPurpose(SubnetResourcePurpose purpose) {
+    return listResourceByTag(resourceGroup.name(), purpose.toString(), null).stream()
+        .map(r -> toDeployedSubnet(r, purpose))
         .toList();
   }
 
@@ -102,6 +100,22 @@ public class ResourcesReaderImpl implements ResourcesReader {
     return toDeployedVNet(vNet);
   }
 
+  private DeployedSubnet toDeployedSubnet(
+      DeployedResource resource, SubnetResourcePurpose purpose) {
+    Network vNet = azureResourceManager.networks().getById(resource.resourceId());
+
+    if (vNet == null) {
+      throw logger.logExceptionAsError(
+          new RuntimeException(
+              "The resource provided is not VNet or the resource is no longer available"));
+    }
+
+    var subnetName = vNet.tags().get(purpose.toString());
+    var subnet = vNet.subnets().get(subnetName);
+
+    return new DeployedSubnet(subnet.id(), subnetName, vNet.id(), vNet.regionName());
+  }
+
   private DeployedVNet toDeployedVNet(Network network) {
     HashMap<SubnetResourcePurpose, DeployedSubnet> subnetHashMap = new HashMap<>();
 
@@ -111,7 +125,10 @@ public class ResourcesReaderImpl implements ResourcesReader {
               var subnetName = network.tags().get(p.toString());
               if (subnetName != null) {
                 var subnet = network.subnets().get(subnetName);
-                subnetHashMap.put(p, new DeployedSubnet(subnet.id(), subnet.name()));
+                subnetHashMap.put(
+                    p,
+                    new DeployedSubnet(
+                        subnet.id(), subnet.name(), network.id(), network.regionName()));
               }
             });
 

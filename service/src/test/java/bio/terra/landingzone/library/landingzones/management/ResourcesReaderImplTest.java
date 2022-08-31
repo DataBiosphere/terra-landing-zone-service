@@ -111,7 +111,9 @@ class ResourcesReaderImplTest {
               var subnetName = vNet.tags().get(p.toString());
               if (subnetName != null) {
                 var subnet = vNet.subnets().get(subnetName);
-                subnetHashMap.put(p, new DeployedSubnet(subnet.id(), subnet.name()));
+                subnetHashMap.put(
+                    p,
+                    new DeployedSubnet(subnet.id(), subnet.name(), vNet.id(), vNet.regionName()));
               }
             });
 
@@ -175,24 +177,15 @@ class ResourcesReaderImplTest {
   }
 
   @Test
-  void listVNetResourcesWithSubnetPurpose() throws InterruptedException {
+  void listSubnetsWithSubnetPurpose() throws InterruptedException {
     await()
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listVNets();
-              return resources.size() == 1
-                  && !resources.get(0).subnetIdPurposeMap().isEmpty()
-                  && deployedVNet.Id().equals(resources.get(0).Id())
-                  && resources.get(0).subnetIdPurposeMap().size() == 2
-                  && resources
-                      .get(0)
-                      .subnetIdPurposeMap()
-                      .containsKey(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
-                  && resources
-                      .get(0)
-                      .subnetIdPurposeMap()
-                      .containsKey(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET);
+              var resources =
+                  resourcesReader.listSubnetsWithSubnetPurpose(
+                      SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+              return resources.size() == 1 && deployedVNet.Id().equals(resources.get(0).vNetId());
             });
   }
 

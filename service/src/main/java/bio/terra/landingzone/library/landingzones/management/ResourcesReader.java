@@ -1,6 +1,7 @@
 package bio.terra.landingzone.library.landingzones.management;
 
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
+import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedVNet;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
@@ -15,5 +16,5 @@ public interface ResourcesReader {
 
   List<DeployedVNet> listVNetWithSubnetPurpose(SubnetResourcePurpose purpose);
 
-  List<DeployedVNet> listVNets();
+  List<DeployedSubnet> listSubnetsWithSubnetPurpose(SubnetResourcePurpose purpose);
 }

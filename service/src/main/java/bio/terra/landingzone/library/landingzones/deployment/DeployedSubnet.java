@@ -5,5 +5,7 @@ package bio.terra.landingzone.library.landingzones.deployment;
  *
  * @param id subnet id.
  * @param name subnet name.
+ * @param vNetId VNet id.
+ * @param vNetRegion VNet region.
  */
-public record DeployedSubnet(String id, String name) {}
+public record DeployedSubnet(String id, String name, String vNetId, String vNetRegion) {}
