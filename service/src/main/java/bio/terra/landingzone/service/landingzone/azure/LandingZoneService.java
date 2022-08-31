@@ -163,7 +163,7 @@ public class LandingZoneService {
                             s ->
                                 LandingZoneResource.builder()
                                     .resourceId(s.id())
-                                    .resourceType(s.getClass().toString())
+                                    .resourceType(s.getClass().getSimpleName())
                                     .resourceName(s.name())
                                     .resourceParentId(s.vNetId())
                                     .region(s.vNetRegion())

@@ -235,26 +235,14 @@ public class LandingZoneServiceTest {
 
   @Test
   public void listGeneralResourcesWithPurposes_Success() {
-    var purposeTagSet1 =
-        Map.of(
-            LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-            ResourcePurpose.SHARED_RESOURCE.toString());
-    var purposeTagSet2 =
-        Map.of(
-            LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-            ResourcePurpose.WLZ_RESOURCE.toString());
-    var deployedResources =
-        List.of(
-            new DeployedResource(STORAGE_ACCOUNT_1, STORAGE_ACCOUNT, purposeTagSet1, REGION),
-            new DeployedResource(VNET_2, VIRTUAL_NETWORK, purposeTagSet2, REGION),
-            new DeployedResource(STORAGE_ACCOUNT_2, STORAGE_ACCOUNT, purposeTagSet1, REGION));
-
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
     when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
         .thenReturn(landingZoneManager);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResources()).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
-
+    // Test
     var result = landingZoneService.listResourcesWithPurposes(azureCloudContext);
     assertNotNull(result);
 
@@ -322,6 +310,18 @@ public class LandingZoneServiceTest {
         2, result.deployedResources().get(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET).size());
     assertEquals(
         1, result.deployedResources().get(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET).size());
+    var subnetResource =
+        result.deployedResources().get(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET).get(0);
+    assertEquals(subnetList2.get(0).id(), subnetResource.resourceId());
+    assertTrue(subnetResource.resourceName().isPresent());
+    assertTrue(subnetResource.resourceParentId().isPresent());
+    assertEquals(subnetList2.get(0).name(), subnetResource.resourceName().get());
+    assertEquals(subnetList2.get(0).vNetId(), subnetResource.resourceParentId().get());
+    assertEquals(subnetList2.get(0).vNetRegion(), subnetResource.region());
+    assertEquals(
+        subnetList2.get(0).getClass().getSimpleName(),
+        subnetResource.resourceType(),
+        "Resource type doesn't match.");
   }
 
   private void setupAzureCloudContextMock(
