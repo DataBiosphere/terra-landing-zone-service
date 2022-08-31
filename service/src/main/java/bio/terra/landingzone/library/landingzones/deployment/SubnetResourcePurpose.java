@@ -4,7 +4,8 @@ import com.azure.core.util.ExpandableStringEnum;
 import java.util.Collection;
 
 /** Enum of the subnet purposes */
-public final class SubnetResourcePurpose extends ExpandableStringEnum<SubnetResourcePurpose> {
+public final class SubnetResourcePurpose extends ExpandableStringEnum<SubnetResourcePurpose>
+    implements LandingZonePurpose {
   public static final SubnetResourcePurpose WORKSPACE_COMPUTE_SUBNET =
       fromString("WORKSPACE_COMPUTE_SUBNET");
   public static final SubnetResourcePurpose WORKSPACE_STORAGE_SUBNET =
