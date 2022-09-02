@@ -1,0 +1,19 @@
+# The schema for a landing zone
+databaseChangeLog:
+- changeSet:
+    id: add subscription id and tenant id fields.
+    author: myazykov
+    changes:
+    - createTable:
+        tableName: landingzone
+          - column:
+              name: subscription_id
+              type: text
+              remarks: |
+                Subscription Id for the resource group.
+
+          - column:
+              name: tenant_id
+              type: text
+              remarks: |
+                Tenant Id for the resource group.

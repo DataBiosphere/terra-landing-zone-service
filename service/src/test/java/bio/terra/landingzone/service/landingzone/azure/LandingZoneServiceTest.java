@@ -10,6 +10,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.db.LandingZoneDao;
+import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
@@ -32,6 +34,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefiniti
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,7 +59,7 @@ public class LandingZoneServiceTest {
   private static final String STORAGE_ACCOUNT = "StorageAccount";
   private static final String SUBNET = "Subnet";
   private static final String REGION = "westus";
-
+  private static final UUID landingZoneId = UUID.randomUUID();
   private LandingZoneService landingZoneService;
 
   @Mock private LandingZoneManager landingZoneManager;
@@ -69,10 +72,12 @@ public class LandingZoneServiceTest {
   @Mock private AzureCloudContext azureCloudContext;
 
   @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
+  @Mock private LandingZoneDao landingZoneDao;
 
   @BeforeEach
   public void setup() {
-    landingZoneService = new LandingZoneService(landingZoneJobService, landingZoneManagerProvider);
+    landingZoneService =
+        new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
   }
 
   @Test
@@ -237,13 +242,26 @@ public class LandingZoneServiceTest {
   public void listGeneralResourcesWithPurposes_Success() {
     var deployedResources = setupDeployedResources();
     // Setup mocks
+    LandingZone landingZone =
+        new LandingZone(
+            landingZoneId,
+            "resourceGroupId",
+            "definition",
+            "version",
+            "displayName",
+            "description",
+            Collections.emptyMap(),
+            "subscriptionId",
+            "tenantId");
     when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
         .thenReturn(landingZoneManager);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResources()).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+
     // Test
-    var result = landingZoneService.listResourcesWithPurposes(azureCloudContext);
+    var result = landingZoneService.listResourcesWithPurposes(landingZoneId.toString());
     assertNotNull(result);
 
     Map<LandingZonePurpose, List<LandingZoneResource>> resourcesGrouped =
@@ -290,7 +308,7 @@ public class LandingZoneServiceTest {
 
     // Test and validate
     LandingZoneResourcesByPurpose result =
-        landingZoneService.listResourcesWithPurposes(azureCloudContext);
+        landingZoneService.listResourcesWithPurposes(landingZoneId.toString());
 
     Map<LandingZonePurpose, List<LandingZoneResource>> resourcesGrouped =
         result.deployedResources();

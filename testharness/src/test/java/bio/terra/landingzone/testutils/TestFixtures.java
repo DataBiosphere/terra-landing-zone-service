@@ -12,8 +12,18 @@ public class TestFixtures {
       String version,
       String displayName,
       String description,
-      Map<String, String> properties) {
+      Map<String, String> properties,
+      String subscription,
+      String tenant) {
     return new LandingZone(
-        landingZoneId, resourceGroupId, definition, version, displayName, description, properties);
+        landingZoneId,
+        resourceGroupId,
+        definition,
+        version,
+        displayName,
+        description,
+        properties,
+        subscription,
+        tenant);
   }
 }

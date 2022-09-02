@@ -4,4 +4,6 @@
   <property name="uuid_function" value="gen_random_uuid()" dbms="postgresql"/>
 
   <include file="changesets/20220722_landing_zone_initial_schema.yaml" relativeToChangelogFile="true"/>
+  <include file="changesets/20220902_subscriptionId_tenantId.yaml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

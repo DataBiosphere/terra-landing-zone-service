@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LandingZoneDao {
   /** SQL query for reading landing zone records. */
   private static final String LANDINGZONE_SELECT_SQL =
-      "SELECT landingzone_id, resource_group, definition_id, definition_version_id, display_name, description, properties"
+      "SELECT landingzone_id, resource_group, subscription_id, tenant_id, definition_id, definition_version_id, display_name, description, properties"
           + " FROM landingzone";
 
   private final Logger logger = LoggerFactory.getLogger(LandingZoneDao.class);
@@ -51,8 +51,8 @@ public class LandingZoneDao {
       transactionManager = "tlzTransactionManager")
   public UUID createLandingZone(LandingZone landingzone) {
     final String sql =
-        "INSERT INTO landingzone (landingzone_id, resource_group, definition_id, definition_version_id, display_name, description, properties) "
-            + "values (:landingzone_id, :resource_group, :definition_id, :definition_version_id, :display_name, :description,"
+        "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, definition_id, definition_version_id, display_name, description, properties) "
+            + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :definition_id, :definition_version_id, :display_name, :description,"
             + " cast(:properties AS jsonb))";
 
     final String landingZoneUuid = landingzone.getLandingZoneId().toString();
@@ -61,6 +61,8 @@ public class LandingZoneDao {
         new MapSqlParameterSource()
             .addValue("landingzone_id", landingZoneUuid)
             .addValue("resource_group", landingzone.getResourceGroupId())
+            .addValue(":subscription_id", landingzone.getSubscriptionId())
+            .addValue(":tenant_id", landingzone.getTenantId())
             .addValue("definition_id", landingzone.getDefinition())
             .addValue("definition_version_id", landingzone.getVersion())
             .addValue("display_name", landingzone.getDisplayName().orElse(null))
@@ -153,6 +155,8 @@ public class LandingZoneDao {
           LandingZone.builder()
               .landingZoneId(UUID.fromString(rs.getString("landingzone_id")))
               .resourceGroupId(rs.getString("resource_group"))
+              .subscriptionId(rs.getString("subscription_id"))
+              .tenantId(rs.getString("tenant_id"))
               .definition(rs.getString("definition_id"))
               .version(rs.getString("definition_version_id"))
               .displayName(rs.getString("display_name"))

@@ -21,6 +21,8 @@ public class LandingZone {
   private final String definition;
   private final String version;
   private final Map<String, String> properties;
+  private final String subscriptionId;
+  private final String tenantId;
 
   public LandingZone(
       UUID landingZoneId,
@@ -29,13 +31,17 @@ public class LandingZone {
       String version,
       String displayName,
       String description,
-      Map<String, String> properties) {
+      Map<String, String> properties,
+      String subscriptionId,
+      String tenantId) {
     this.landingZoneId = landingZoneId;
     this.resourceGroupId = resourceGroupId;
     this.definition = definition;
     this.version = version;
     this.displayName = displayName;
     this.description = description;
+    this.tenantId = tenantId;
+    this.subscriptionId = subscriptionId;
     this.properties = properties;
   }
 
@@ -46,6 +52,14 @@ public class LandingZone {
 
   public String getResourceGroupId() {
     return resourceGroupId;
+  }
+
+  public String getSubscriptionId() {
+    return subscriptionId;
+  }
+
+  public String getTenantId() {
+    return tenantId;
   }
 
   public String getDefinition() {
@@ -85,6 +99,8 @@ public class LandingZone {
         .append(definition, landingZone.definition)
         .append(version, landingZone.version)
         .append(displayName, landingZone.displayName)
+        .append(subscriptionId, landingZone.subscriptionId)
+        .append(tenantId, landingZone.tenantId)
         .append(description, landingZone.description)
         .append(properties, landingZone.properties)
         .isEquals();
@@ -97,6 +113,8 @@ public class LandingZone {
         .append(resourceGroupId)
         .append(definition)
         .append(version)
+        .append(subscriptionId)
+        .append(tenantId)
         .append(displayName)
         .append(description)
         .append(properties)
@@ -114,6 +132,8 @@ public class LandingZone {
     private String definition;
     private String version;
     private String displayName;
+    private String subscriptionId;
+    private String tenantId;
     private @Nullable String description;
     private Map<String, String> properties;
 
@@ -152,6 +172,16 @@ public class LandingZone {
       return this;
     }
 
+    public Builder tenantId(String tenantId) {
+      this.tenantId = tenantId;
+      return this;
+    }
+
+    public Builder subscriptionId(String subscriptionId) {
+      this.subscriptionId = subscriptionId;
+      return this;
+    }
+
     public LandingZone build() {
       // Always have a map, even if it is empty
       if (properties == null) {
@@ -173,7 +203,9 @@ public class LandingZone {
           version,
           displayName,
           description,
-          properties);
+          properties,
+          subscriptionId,
+          tenantId);
     }
   }
 }

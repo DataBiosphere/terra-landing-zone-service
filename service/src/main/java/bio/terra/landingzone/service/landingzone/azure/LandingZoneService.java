@@ -1,5 +1,7 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
+import bio.terra.landingzone.db.LandingZoneDao;
+import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
@@ -27,6 +29,7 @@ import com.azure.core.util.ExpandableStringEnum;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -39,12 +42,15 @@ public class LandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
   private final LandingZoneJobService azureLandingZoneJobService;
   private final LandingZoneManagerProvider landingZoneManagerProvider;
+  private final LandingZoneDao landingZoneDao;
 
   public LandingZoneService(
       LandingZoneJobService azureLandingZoneJobService,
-      LandingZoneManagerProvider landingZoneManagerProvider) {
+      LandingZoneManagerProvider landingZoneManagerProvider,
+      LandingZoneDao landingZoneDao) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
+    this.landingZoneDao = landingZoneDao;
   }
 
   public AsyncJobResult<DeployedLandingZone> getAsyncJobResult(String jobId) {
@@ -117,14 +123,19 @@ public class LandingZoneService {
     throw new LandingZoneDeleteNotImplemented("Delete operation is not implemented");
   }
 
-  public LandingZoneResourcesByPurpose listResourcesWithPurposes(
-      AzureCloudContext azureCloudContext) {
+  public LandingZoneResourcesByPurpose listResourcesWithPurposes(String landingZoneId) {
+    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(UUID.fromString(landingZoneId));
+
+    AzureCloudContext azureCloudContext = new AzureCloudContext();
+    azureCloudContext.setAzureResourceGroupId(landingZoneRecord.getResourceGroupId());
+    azureCloudContext.setAzureSubscriptionId(landingZoneRecord.getSubscriptionId());
+    azureCloudContext.setAzureTenantId(landingZoneRecord.getTenantId());
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(azureCloudContext);
 
     var listGeneralResources = listGeneralResourcesWithPurposes(landingZoneManager);
     var listSubnetResources = listSubnetResourcesWithPurposes(landingZoneManager);
-    // Merge lists, no key collision expected since the purpose sets are different.
+    // Merge lists, no key collision is expected since the purpose sets are different.
     listGeneralResources.putAll(listSubnetResources);
 
     return new LandingZoneResourcesByPurpose(listGeneralResources);
