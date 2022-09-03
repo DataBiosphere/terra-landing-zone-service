@@ -282,7 +282,7 @@ The table below describes the current Landing Zone Definitions available in the 
     </thead>
     <tbody>
     <tr>
-      <td valign="top">CromwellBaseResourcesFactory</td>
+      <td valign="top"><small>CromwellBaseResourcesFactory</small></td>
       <td valign="top">Deploys required resources to run Cromwell on Azure.</td>
       <td valign="top">V1</td>
       <td valign="top">
@@ -307,7 +307,7 @@ The table below describes the current Landing Zone Definitions available in the 
         </td>
     </tr>
 <tr>
-      <td valign="top">ManagedNetworkWithSharedResourcesFactory</td>
+      <td valign="top"><small>ManagedNetworkWithSharedResourcesFactory</small></td>
       <td valign="top">Deploys a virtual network, shared storage and Azure Relay namespace.</td>
       <td valign="top">V1</td>
       <td valign="top">
