@@ -265,3 +265,61 @@ List<FactoryInfo> factories=LandingZoneManager.listDefinitionFactories();
 ## Landing Zone Service
 
 The Landing Zone Service is a Spring service component that wraps the Landing Zone Manager, provides a job based/async API to deploy Landing Zones, and persists Landing Zone deployments state in a DB. 
+
+
+## Landing Zone Definitions
+
+The table below describes the current Landing Zone Definitions available in the library.
+
+<table>
+    <thead><tr>
+      <th>Factory</th>
+      <th>Description</th>
+      <th>Versions</th>
+      <th>Shared Resources</th>
+      <th>Parameters</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td valign="top">CromwellBaseResourcesFactory</td>
+      <td valign="top">Deploys required resources to run Cromwell on Azure.</td>
+      <td valign="top">V1</td>
+      <td valign="top">
+            <ul>
+                <li>AKS Cluster</li>
+                <li>Batch Account</li>
+                <li>Storage Account</li>
+                <li>PostgreSQL</li>
+                <li>Azure Relay Namespace</li>
+                <li>VNet with subnets for PostgreSQL, AKS Node pool, PostgreSQL databases and Compute resources</li>
+            </ul>
+       </td>
+        <td valign="top">
+            <strong>POSTGRES_DB_ADMIN:</strong> Username of the DB admin<br/>Default value: <i>db_admin</i><br/><br/>
+            <strong>POSTGRES_DB_PASSWORD:</strong> DB admin password <br/>Default value: <i>UUID.randomUUID().toString()</i><br/><br/>
+            <strong>POSTGRES_SERVER_SKU:</strong> PostgreSQL Server SKU <br/>Default value: <i>GP_Gen5_2</i><br/><br/>
+            <strong>VNET_ADDRESS_SPACE:</strong> Virtual network address space <br/>Default value: <i>10.1.0.0/27</i><br/><br/>
+            <strong>AKS_SUBNET:</strong> AKS subnet address space <br/>Default value: <i>10.1.0.0/29</i><br/><br/>
+            <strong>BATCH_SUBNET:</strong> Batch subnet address space <br/>Default value: <i>10.1.0.8/29</i><br/><br/>
+            <strong>POSTGRESQL_SUBNET:</strong> PostgreSQL subnet address space <br/>Default value: <i>10.1.0.16/29</i><br/><br/>
+            <strong>COMPUTE_SUBNET:</strong> Compute resources subnet address space <br/>Default value: <i>10.1.0.24/29</i><br/><br/>
+        </td>
+    </tr>
+<tr>
+      <td valign="top">ManagedNetworkWithSharedResourcesFactory</td>
+      <td valign="top">Deploys a virtual network, shared storage and Azure Relay namespace.</td>
+      <td valign="top">V1</td>
+      <td valign="top">
+            <ul>
+                <li>Storage Account</li>
+                <li>Azure Relay Namespace</li>
+                <li>VNet</li>
+            </ul>
+       </td>
+        <td valign="top">
+            <strong>NA</strong>
+        </td>
+    </tr>
+  </tbody>
+</table>
