@@ -33,7 +33,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var azureCloudContext = requestedExternalLandingZoneResource.azureCloudContext();
+    var azureCloudContext = requestedExternalLandingZoneResource.landingZoneTarget();
 
     if (!context
         .getWorkingMap()

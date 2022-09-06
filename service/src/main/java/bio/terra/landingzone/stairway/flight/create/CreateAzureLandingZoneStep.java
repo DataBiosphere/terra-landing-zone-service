@@ -46,7 +46,7 @@ public class CreateAzureLandingZoneStep implements Step {
           createLandingZone(
               requestedLandingZone,
               landingZoneManagerProvider.createLandingZoneManager(
-                  requestedLandingZone.azureCloudContext()));
+                  requestedLandingZone.landingZoneTarget()));
 
       // save for the next step
       context

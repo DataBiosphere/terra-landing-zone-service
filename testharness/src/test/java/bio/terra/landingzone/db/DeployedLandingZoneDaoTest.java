@@ -7,7 +7,10 @@ import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.testutils.LibraryTestBase;
 import bio.terra.landingzone.testutils.TestFixtures;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +37,11 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               RESOURCE_GROUP,
               DEFINITION,
               VERSION,
-              DISPLAY_NAME,
-              DESCRIPTION,
-              properties,
               SUBSCRIPTION,
-              TENANT);
+              TENANT,
+              Optional.of(DISPLAY_NAME),
+              Optional.of(DESCRIPTION),
+              properties);
       UUID actualLzId = landingZoneDao.createLandingZone(lz);
       assertEquals(expectedLzId, actualLzId);
     } finally {
@@ -60,24 +63,24 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               RESOURCE_GROUP,
               DEFINITION,
               VERSION,
-              DISPLAY_NAME,
-              DESCRIPTION,
-              properties,
               SUBSCRIPTION,
-              TENANT);
+              TENANT,
+              Optional.of(DISPLAY_NAME),
+              Optional.of(DESCRIPTION),
+              properties);
       UUID actualLzId = landingZoneDao.createLandingZone(lz);
       assertEquals(expectedLzId, actualLzId);
 
       LandingZone lzRecord = landingZoneDao.getLandingZone(expectedLzId);
-      assertEquals(expectedLzId, lz.getLandingZoneId());
-      assertEquals(RESOURCE_GROUP, lz.getResourceGroupId());
-      assertEquals(DEFINITION, lz.getDefinition());
-      assertEquals(VERSION, lz.getVersion());
-      assertEquals(SUBSCRIPTION, lz.getSubscriptionId());
-      assertEquals(TENANT, lz.getTenantId());
-      assertEquals(DISPLAY_NAME, lz.getDisplayName().get());
-      assertEquals(DESCRIPTION, lz.getDescription().get());
-      assertEquals(properties, lz.getProperties());
+      assertEquals(expectedLzId, lz.landingZoneId());
+      assertEquals(RESOURCE_GROUP, lz.resourceGroupId());
+      assertEquals(DEFINITION, lz.definition());
+      assertEquals(VERSION, lz.version());
+      assertEquals(SUBSCRIPTION, lz.subscriptionId());
+      assertEquals(TENANT, lz.tenantId());
+      assertEquals(DISPLAY_NAME, lz.displayName().get());
+      assertEquals(DESCRIPTION, lz.description().get());
+      assertEquals(properties, lz.properties());
     } finally {
       try {
         landingZoneDao.deleteLandingZone(expectedLzId);
@@ -130,6 +133,55 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
     landingZoneDao.createLandingZone(lz);
 
     assertTrue(landingZoneDao.deleteLandingZone(expectedLzId));
+  }
+
+  @Test
+  public void getLandingZoneList_Success() {
+    UUID expectedLzId = UUID.randomUUID();
+    try {
+      LandingZone lz =
+          new LandingZone(
+              expectedLzId,
+              RESOURCE_GROUP,
+              DEFINITION,
+              VERSION,
+              SUBSCRIPTION,
+              TENANT,
+              Optional.of(DISPLAY_NAME),
+              Optional.of(DESCRIPTION),
+              properties);
+
+      List<LandingZone> noRecords =
+          landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, "res_group");
+      assertEquals(Collections.EMPTY_LIST, noRecords);
+      List<LandingZone> noRecords1 = landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, "");
+      assertEquals(Collections.EMPTY_LIST, noRecords1);
+      List<LandingZone> noRecords2 = landingZoneDao.getLandingZoneList("", "", "res_group");
+      assertEquals(Collections.EMPTY_LIST, noRecords2);
+      List<LandingZone> noRecords3 =
+          landingZoneDao.getLandingZoneList("sub", TENANT, RESOURCE_GROUP);
+      assertEquals(Collections.EMPTY_LIST, noRecords3);
+
+      List<LandingZone> lzRecords =
+          landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, RESOURCE_GROUP);
+
+      assertEquals(1, lzRecords.size());
+      assertEquals(expectedLzId, lz.landingZoneId());
+      assertEquals(RESOURCE_GROUP, lz.resourceGroupId());
+      assertEquals(DEFINITION, lz.definition());
+      assertEquals(VERSION, lz.version());
+      assertEquals(SUBSCRIPTION, lz.subscriptionId());
+      assertEquals(TENANT, lz.tenantId());
+      assertEquals(DISPLAY_NAME, lz.displayName().get());
+      assertEquals(DESCRIPTION, lz.description().get());
+      assertEquals(properties, lz.properties());
+    } finally {
+      try {
+        landingZoneDao.deleteLandingZone(expectedLzId);
+      } catch (Exception ex) {
+        fail("Failure during removing landing zone from database", ex);
+      }
+    }
   }
 
   @Test

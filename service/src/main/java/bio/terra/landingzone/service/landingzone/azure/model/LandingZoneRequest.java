@@ -1,7 +1,7 @@
 package bio.terra.landingzone.service.landingzone.azure.model;
 
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
-import bio.terra.landingzone.model.AzureCloudContext;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
@@ -9,7 +9,7 @@ public record LandingZoneRequest(
     String definition,
     String version,
     Map<String, String> parameters,
-    AzureCloudContext azureCloudContext) {
+    LandingZoneTarget landingZoneTarget) {
 
   public static Builder builder() {
     return new Builder();
@@ -20,7 +20,7 @@ public record LandingZoneRequest(
     private String version;
     private Map<String, String> parameters;
 
-    private AzureCloudContext azureCloudContext;
+    private LandingZoneTarget landingZoneTarget;
 
     public Builder definition(String definition) {
       this.definition = definition;
@@ -37,8 +37,8 @@ public record LandingZoneRequest(
       return this;
     }
 
-    public Builder azureCloudContext(AzureCloudContext azureCloudContext) {
-      this.azureCloudContext = azureCloudContext;
+    public Builder azureCloudContext(LandingZoneTarget landingZoneTarget) {
+      this.landingZoneTarget = landingZoneTarget;
       return this;
     }
 
@@ -50,25 +50,25 @@ public record LandingZoneRequest(
 
       validateCloudContext();
 
-      return new LandingZoneRequest(definition, version, parameters, azureCloudContext);
+      return new LandingZoneRequest(definition, version, parameters, landingZoneTarget);
     }
 
     private void validateCloudContext() {
-      if (azureCloudContext == null) {
+      if (landingZoneTarget == null) {
         throw new MissingRequiredFieldsException("Azure cloud context can't be null or is missing");
       }
 
-      if (StringUtils.isBlank(azureCloudContext.getAzureResourceGroupId())) {
+      if (StringUtils.isBlank(landingZoneTarget.getAzureResourceGroupId())) {
         throw new MissingRequiredFieldsException(
             "Resource Group ID is missing from the cloud context");
       }
 
-      if (StringUtils.isBlank(azureCloudContext.getAzureSubscriptionId())) {
+      if (StringUtils.isBlank(landingZoneTarget.getAzureSubscriptionId())) {
         throw new MissingRequiredFieldsException(
             "Subscription ID is missing from the cloud context");
       }
 
-      if (StringUtils.isBlank(azureCloudContext.getAzureTenantId())) {
+      if (StringUtils.isBlank(landingZoneTarget.getAzureTenantId())) {
         throw new MissingRequiredFieldsException("Tenant ID is missing from the cloud context");
       }
     }

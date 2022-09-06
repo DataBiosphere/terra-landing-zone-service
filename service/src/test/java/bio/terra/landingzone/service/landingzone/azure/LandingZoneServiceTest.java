@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,7 +27,7 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesReader;
-import bio.terra.landingzone.model.AzureCloudContext;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -37,6 +38,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +71,7 @@ public class LandingZoneServiceTest {
   @Captor ArgumentCaptor<String> jobIdCaptor;
   @Captor ArgumentCaptor<Class<?>> classCaptor;
 
-  @Mock private AzureCloudContext azureCloudContext;
+  @Mock private LandingZoneTarget landingZoneTarget;
 
   @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
   @Mock private LandingZoneDao landingZoneDao;
@@ -127,7 +129,7 @@ public class LandingZoneServiceTest {
               .definition(mockFactory1.getClass().getName())
               .version(DefinitionVersion.V1.toString())
               .parameters(null)
-              .azureCloudContext(azureCloudContext)
+              .azureCloudContext(landingZoneTarget)
               .build();
       landingZoneService.startLandingZoneCreationJob(
           "newJobId", landingZoneRequest, "create-result");
@@ -164,7 +166,7 @@ public class LandingZoneServiceTest {
               .definition("NotExistingDefinition")
               .version(DefinitionVersion.V5.toString())
               .parameters(null)
-              .azureCloudContext(azureCloudContext)
+              .azureCloudContext(landingZoneTarget)
               .build();
       Assertions.assertThrows(
           LandingZoneDefinitionNotFound.class,
@@ -185,7 +187,7 @@ public class LandingZoneServiceTest {
             new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTags, REGION),
             new DeployedResource(VNET_SUBNET_1, SUBNET, purposeTags, REGION));
 
-    when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
+    when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget))
         .thenReturn(landingZoneManager);
 
     ResourcesReader resourceReader = mock(ResourcesReader.class);
@@ -195,7 +197,7 @@ public class LandingZoneServiceTest {
 
     List<LandingZoneResource> resources =
         landingZoneService.listResourcesByPurpose(
-            ResourcePurpose.SHARED_RESOURCE, azureCloudContext);
+            ResourcePurpose.SHARED_RESOURCE, landingZoneTarget);
 
     assertNotNull(resources);
     assertEquals(2, resources.size());
@@ -248,14 +250,14 @@ public class LandingZoneServiceTest {
             "resourceGroupId",
             "definition",
             "version",
-            "displayName",
-            "description",
-            Collections.emptyMap(),
             "subscriptionId",
-            "tenantId");
+            "tenantId",
+            Optional.of("displayName"),
+            Optional.of("description"),
+            Collections.emptyMap());
 
     when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
-    when(landingZoneManagerProvider.createLandingZoneManager(any(AzureCloudContext.class)))
+    when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
     landingZoneService =
         new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
@@ -300,13 +302,13 @@ public class LandingZoneServiceTest {
             "resourceGroupId",
             "definition",
             "version",
-            "displayName",
-            "description",
-            Collections.emptyMap(),
             "subscriptionId",
-            "tenantId");
+            "tenantId",
+            Optional.of("displayName"),
+            Optional.of("description"),
+            Collections.emptyMap());
     when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
-    when(landingZoneManagerProvider.createLandingZoneManager(any(AzureCloudContext.class)))
+    when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
 
     landingZoneService =
@@ -360,11 +362,39 @@ public class LandingZoneServiceTest {
         "Resource type doesn't match.");
   }
 
+  @Test
+  public void listLandingZoneIds_Success() {
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
+    LandingZone landingZone =
+        new LandingZone(
+            landingZoneId,
+            "resourceGroupId",
+            "definition",
+            "version",
+            "subscriptionId",
+            "tenantId",
+            null,
+            null,
+            Collections.emptyMap());
+    when(landingZoneDao.getLandingZoneList(anyString(), anyString(), anyString()))
+        .thenReturn(List.of(landingZone));
+    landingZoneService =
+        new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
+    setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
+    // Test
+    var result = landingZoneService.listLandingZoneIds(landingZoneTarget);
+    // Validate number of members in each group
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(landingZoneId, UUID.fromString(result.get(0)));
+  }
+
   private void setupAzureCloudContextMock(
       String tenantId, String subscriptionId, String resourceGroupId) {
-    when(azureCloudContext.getAzureTenantId()).thenReturn(tenantId);
-    when(azureCloudContext.getAzureSubscriptionId()).thenReturn(subscriptionId);
-    when(azureCloudContext.getAzureResourceGroupId()).thenReturn(resourceGroupId);
+    when(landingZoneTarget.getAzureTenantId()).thenReturn(tenantId);
+    when(landingZoneTarget.getAzureSubscriptionId()).thenReturn(subscriptionId);
+    when(landingZoneTarget.getAzureResourceGroupId()).thenReturn(resourceGroupId);
   }
 
   private List<DeployedResource> setupDeployedResources() {

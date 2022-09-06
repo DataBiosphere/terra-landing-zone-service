@@ -15,7 +15,7 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
-import bio.terra.landingzone.model.AzureCloudContext;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -99,10 +99,10 @@ public class LandingZoneService {
   }
 
   public List<LandingZoneResource> listResourcesByPurpose(
-      ResourcePurpose purpose, AzureCloudContext azureCloudContext) {
+      ResourcePurpose purpose, LandingZoneTarget landingZoneTarget) {
 
     LandingZoneManager landingZoneManager =
-        landingZoneManagerProvider.createLandingZoneManager(azureCloudContext);
+        landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
 
     List<DeployedResource> deployedResources =
         landingZoneManager.reader().listResourcesByPurpose(purpose);
@@ -119,6 +119,17 @@ public class LandingZoneService {
         .collect(Collectors.toList());
   }
 
+  public List<String> listLandingZoneIds(LandingZoneTarget landingZoneTarget) {
+    return landingZoneDao
+        .getLandingZoneList(
+            landingZoneTarget.getAzureSubscriptionId(),
+            landingZoneTarget.getAzureTenantId(),
+            landingZoneTarget.getAzureResourceGroupId())
+        .stream()
+        .map(dlz -> dlz.landingZoneId().toString())
+        .toList();
+  }
+
   public void deleteLandingZone(String landingZoneId) {
     throw new LandingZoneDeleteNotImplemented("Delete operation is not implemented");
   }
@@ -126,12 +137,13 @@ public class LandingZoneService {
   public LandingZoneResourcesByPurpose listResourcesWithPurposes(String landingZoneId) {
     LandingZone landingZoneRecord = landingZoneDao.getLandingZone(UUID.fromString(landingZoneId));
 
-    AzureCloudContext azureCloudContext = new AzureCloudContext();
-    azureCloudContext.setAzureResourceGroupId(landingZoneRecord.getResourceGroupId());
-    azureCloudContext.setAzureSubscriptionId(landingZoneRecord.getSubscriptionId());
-    azureCloudContext.setAzureTenantId(landingZoneRecord.getTenantId());
+    LandingZoneTarget landingZoneTarget = new LandingZoneTarget();
+    landingZoneTarget.setAzureResourceGroupId(landingZoneRecord.resourceGroupId());
+    landingZoneTarget.setAzureSubscriptionId(landingZoneRecord.subscriptionId());
+    landingZoneTarget.setAzureTenantId(landingZoneRecord.tenantId());
+
     LandingZoneManager landingZoneManager =
-        landingZoneManagerProvider.createLandingZoneManager(azureCloudContext);
+        landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
 
     var listGeneralResources = listGeneralResourcesWithPurposes(landingZoneManager);
     var listSubnetResources = listSubnetResourcesWithPurposes(landingZoneManager);

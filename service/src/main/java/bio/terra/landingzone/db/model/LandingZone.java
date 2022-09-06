@@ -8,118 +8,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Nullable;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /** Internal representation of a Landing Zone. */
 @JsonDeserialize(builder = LandingZone.Builder.class)
-public class LandingZone {
-  private final UUID landingZoneId;
-  private final String resourceGroupId;
-  private final String description;
-  private final String displayName;
-  private final String definition;
-  private final String version;
-  private final Map<String, String> properties;
-  private final String subscriptionId;
-  private final String tenantId;
-
-  public LandingZone(
-      UUID landingZoneId,
-      String resourceGroupId,
-      String definition,
-      String version,
-      String displayName,
-      String description,
-      Map<String, String> properties,
-      String subscriptionId,
-      String tenantId) {
-    this.landingZoneId = landingZoneId;
-    this.resourceGroupId = resourceGroupId;
-    this.definition = definition;
-    this.version = version;
-    this.displayName = displayName;
-    this.description = description;
-    this.tenantId = tenantId;
-    this.subscriptionId = subscriptionId;
-    this.properties = properties;
-  }
-
-  /** The globally unique identifier of this landing zone. */
-  public UUID getLandingZoneId() {
-    return landingZoneId;
-  }
-
-  public String getResourceGroupId() {
-    return resourceGroupId;
-  }
-
-  public String getSubscriptionId() {
-    return subscriptionId;
-  }
-
-  public String getTenantId() {
-    return tenantId;
-  }
-
-  public String getDefinition() {
-    return definition;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  /** Optional display name for the landing zone. */
-  public Optional<String> getDisplayName() {
-    return Optional.ofNullable(displayName);
-  }
-
-  /** Optional description of the landing zone. */
-  public Optional<String> getDescription() {
-    return Optional.ofNullable(description);
-  }
-
-  /** Caller-specified set of key-value pairs */
-  public Map<String, String> getProperties() {
-    return properties;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-
-    if (o == null || getClass() != o.getClass()) return false;
-
-    LandingZone landingZone = (LandingZone) o;
-
-    return new EqualsBuilder()
-        .append(landingZoneId, landingZone.landingZoneId)
-        .append(resourceGroupId, landingZone.resourceGroupId)
-        .append(definition, landingZone.definition)
-        .append(version, landingZone.version)
-        .append(displayName, landingZone.displayName)
-        .append(subscriptionId, landingZone.subscriptionId)
-        .append(tenantId, landingZone.tenantId)
-        .append(description, landingZone.description)
-        .append(properties, landingZone.properties)
-        .isEquals();
-  }
-
-  @Override
-  public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(landingZoneId)
-        .append(resourceGroupId)
-        .append(definition)
-        .append(version)
-        .append(subscriptionId)
-        .append(tenantId)
-        .append(displayName)
-        .append(description)
-        .append(properties)
-        .toHashCode();
-  }
+public record LandingZone(
+    UUID landingZoneId,
+    String resourceGroupId,
+    String definition,
+    String version,
+    String subscriptionId,
+    String tenantId,
+    Optional<String> displayName,
+    Optional<String> description,
+    Map<String, String> properties) {
 
   public static Builder builder() {
     return new Builder();
@@ -131,9 +32,9 @@ public class LandingZone {
     private String resourceGroupId;
     private String definition;
     private String version;
-    private String displayName;
     private String subscriptionId;
     private String tenantId;
+    private @Nullable String displayName;
     private @Nullable String description;
     private Map<String, String> properties;
 
@@ -201,11 +102,11 @@ public class LandingZone {
           resourceGroupId,
           definition,
           version,
-          displayName,
-          description,
-          properties,
           subscriptionId,
-          tenantId);
+          tenantId,
+          Optional.of(displayName),
+          Optional.of(description),
+          properties);
     }
   }
 }

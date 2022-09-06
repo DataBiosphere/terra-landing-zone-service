@@ -3,16 +3,16 @@ package bio.terra.landingzone.model;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class AzureCloudContext {
+public class LandingZoneTarget {
   private String azureTenantId;
   private String azureSubscriptionId;
   private String azureResourceGroupId;
 
   // Constructor for Jackson
-  public AzureCloudContext() {}
+  public LandingZoneTarget() {}
 
   // Constructor for deserializer
-  public AzureCloudContext(
+  public LandingZoneTarget(
       String azureTenantId, String azureSubscriptionId, String azureResourceGroupId) {
     this.azureTenantId = azureTenantId;
     this.azureSubscriptionId = azureSubscriptionId;
@@ -53,7 +53,7 @@ public class AzureCloudContext {
       return false;
     }
 
-    AzureCloudContext that = (AzureCloudContext) o;
+    LandingZoneTarget that = (LandingZoneTarget) o;
 
     return new EqualsBuilder()
         .append(azureTenantId, that.azureTenantId)

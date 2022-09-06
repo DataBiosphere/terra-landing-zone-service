@@ -1,5 +1,6 @@
 package bio.terra.landingzone.db;
 
+import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.exception.MissingRequiredFieldException;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
@@ -55,19 +56,19 @@ public class LandingZoneDao {
             + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :definition_id, :definition_version_id, :display_name, :description,"
             + " cast(:properties AS jsonb))";
 
-    final String landingZoneUuid = landingzone.getLandingZoneId().toString();
+    final String landingZoneUuid = landingzone.landingZoneId().toString();
 
     MapSqlParameterSource params =
         new MapSqlParameterSource()
             .addValue("landingzone_id", landingZoneUuid)
-            .addValue("resource_group", landingzone.getResourceGroupId())
-            .addValue("subscription_id", landingzone.getSubscriptionId())
-            .addValue("tenant_id", landingzone.getTenantId())
-            .addValue("definition_id", landingzone.getDefinition())
-            .addValue("definition_version_id", landingzone.getVersion())
-            .addValue("display_name", landingzone.getDisplayName().orElse(null))
-            .addValue("description", landingzone.getDescription().orElse(null))
-            .addValue("properties", DbSerDes.propertiesToJson(landingzone.getProperties()));
+            .addValue("resource_group", landingzone.resourceGroupId())
+            .addValue("subscription_id", landingzone.subscriptionId())
+            .addValue("tenant_id", landingzone.tenantId())
+            .addValue("definition_id", landingzone.definition())
+            .addValue("definition_version_id", landingzone.version())
+            .addValue("display_name", landingzone.displayName().orElse(null))
+            .addValue("description", landingzone.description().orElse(null))
+            .addValue("properties", DbSerDes.propertiesToJson(landingzone.properties()));
     try {
       jdbcLandingZoneTemplate.update(sql, params);
       logger.info("Inserted record for landing zone {}", landingZoneUuid);
@@ -79,15 +80,15 @@ public class LandingZoneDao {
             String.format(
                 "Landing Zone with id %s already exists - display name %s definition %s version %s",
                 landingZoneUuid,
-                landingzone.getDisplayName().toString(),
-                landingzone.getDefinition(),
-                landingzone.getVersion()),
+                landingzone.displayName().toString(),
+                landingzone.definition(),
+                landingzone.version()),
             e);
       } else {
         throw e;
       }
     }
-    return landingzone.getLandingZoneId();
+    return landingzone.landingZoneId();
   }
 
   /**
@@ -127,6 +128,36 @@ public class LandingZoneDao {
             () ->
                 new LandingZoneNotFoundException(
                     String.format("Landing Zone %s not found.", uuid.toString())));
+  }
+
+  /**
+   * Retrieves landing zones from database by subscription ID, tenant ID, and resource group ID .
+   *
+   * @param subscriptionId unique identifier of the Azure subscription.
+   * @param tenantId unique identifier of the Azure tenant.
+   * @param resourceGroupId unique identifier of the Azure resource group.
+   * @return List of landing zone objects.
+   */
+  @ReadTransaction
+  public List<LandingZone> getLandingZoneList(
+      String subscriptionId, String tenantId, String resourceGroupId) {
+    if (subscriptionId.isEmpty() || tenantId.isEmpty() || resourceGroupId.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    String sql =
+        LANDINGZONE_SELECT_SQL
+            + " WHERE subscription_id = :subscription_id"
+            + " AND tenant_id = :tenant_id"
+            + " AND resource_group = :resource_group_id";
+
+    MapSqlParameterSource params =
+        new MapSqlParameterSource()
+            .addValue("subscription_id", subscriptionId)
+            .addValue("tenant_id", tenantId)
+            .addValue("resource_group_id", resourceGroupId);
+
+    return jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER);
   }
 
   @Transactional(
