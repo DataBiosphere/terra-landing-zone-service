@@ -253,12 +253,15 @@ public class LandingZoneServiceTest {
             Collections.emptyMap(),
             "subscriptionId",
             "tenantId");
-    when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
+
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    when(landingZoneManagerProvider.createLandingZoneManager(any(AzureCloudContext.class)))
         .thenReturn(landingZoneManager);
+    landingZoneService =
+        new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResources()).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
 
     // Test
     var result = landingZoneService.listResourcesWithPurposes(landingZoneId.toString());
@@ -291,8 +294,23 @@ public class LandingZoneServiceTest {
         List.of(new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_3, VNET_3, REGION));
 
     // Setup Mocks
-    when(landingZoneManagerProvider.createLandingZoneManager(azureCloudContext))
+    LandingZone landingZone =
+        new LandingZone(
+            landingZoneId,
+            "resourceGroupId",
+            "definition",
+            "version",
+            "displayName",
+            "description",
+            Collections.emptyMap(),
+            "subscriptionId",
+            "tenantId");
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    when(landingZoneManagerProvider.createLandingZoneManager(any(AzureCloudContext.class)))
         .thenReturn(landingZoneManager);
+
+    landingZoneService =
+        new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
 
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResources()).thenReturn(deployedResources);

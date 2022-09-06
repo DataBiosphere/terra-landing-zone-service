@@ -4,7 +4,7 @@ databaseChangeLog:
     id: add subscription id and tenant id fields.
     author: myazykov
     changes:
-    - addColumn::
+    - addColumn:
         tableName: landingzone
         columns:
           - column:
