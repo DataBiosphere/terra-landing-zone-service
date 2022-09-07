@@ -1,6 +1,5 @@
 package bio.terra.landingzone.db;
 
-import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.exception.MissingRequiredFieldException;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
@@ -138,11 +137,23 @@ public class LandingZoneDao {
    * @param resourceGroupId unique identifier of the Azure resource group.
    * @return List of landing zone objects.
    */
-  @ReadTransaction
+  @Transactional(
+      isolation = Isolation.SERIALIZABLE,
+      propagation = Propagation.REQUIRED,
+      transactionManager = "tlzTransactionManager")
   public List<LandingZone> getLandingZoneList(
       String subscriptionId, String tenantId, String resourceGroupId) {
-    if (subscriptionId.isEmpty() || tenantId.isEmpty() || resourceGroupId.isEmpty()) {
-      return Collections.emptyList();
+    if (subscriptionId == null || subscriptionId.isEmpty()) {
+      throw new IllegalArgumentException(
+          String.format("Subscription ID cannot be null or empty.", subscriptionId));
+    }
+    if (tenantId == null || tenantId.isEmpty()) {
+      throw new IllegalArgumentException(
+          String.format("Tenant ID cannot be null or empty.", tenantId));
+    }
+    if (resourceGroupId == null || resourceGroupId.isEmpty()) {
+      throw new IllegalArgumentException(
+          String.format("Resource Group ID cannot be null or empty.", resourceGroupId));
     }
 
     String sql =

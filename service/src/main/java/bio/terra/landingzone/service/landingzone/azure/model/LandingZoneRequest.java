@@ -37,7 +37,7 @@ public record LandingZoneRequest(
       return this;
     }
 
-    public Builder azureCloudContext(LandingZoneTarget landingZoneTarget) {
+    public Builder landingZoneTarget(LandingZoneTarget landingZoneTarget) {
       this.landingZoneTarget = landingZoneTarget;
       return this;
     }
@@ -58,17 +58,17 @@ public record LandingZoneRequest(
         throw new MissingRequiredFieldsException("Azure cloud context can't be null or is missing");
       }
 
-      if (StringUtils.isBlank(landingZoneTarget.getAzureResourceGroupId())) {
+      if (StringUtils.isBlank(landingZoneTarget.azureResourceGroupId())) {
         throw new MissingRequiredFieldsException(
             "Resource Group ID is missing from the cloud context");
       }
 
-      if (StringUtils.isBlank(landingZoneTarget.getAzureSubscriptionId())) {
+      if (StringUtils.isBlank(landingZoneTarget.azureSubscriptionId())) {
         throw new MissingRequiredFieldsException(
             "Subscription ID is missing from the cloud context");
       }
 
-      if (StringUtils.isBlank(landingZoneTarget.getAzureTenantId())) {
+      if (StringUtils.isBlank(landingZoneTarget.azureTenantId())) {
         throw new MissingRequiredFieldsException("Tenant ID is missing from the cloud context");
       }
     }

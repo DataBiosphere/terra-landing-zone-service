@@ -151,16 +151,14 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               Optional.of(DESCRIPTION),
               properties);
 
+      landingZoneDao.createLandingZone(lz);
+
       List<LandingZone> noRecords =
           landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, "res_group");
       assertEquals(Collections.EMPTY_LIST, noRecords);
-      List<LandingZone> noRecords1 = landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, "");
-      assertEquals(Collections.EMPTY_LIST, noRecords1);
-      List<LandingZone> noRecords2 = landingZoneDao.getLandingZoneList("", "", "res_group");
-      assertEquals(Collections.EMPTY_LIST, noRecords2);
-      List<LandingZone> noRecords3 =
+      List<LandingZone> noRecords1 =
           landingZoneDao.getLandingZoneList("sub", TENANT, RESOURCE_GROUP);
-      assertEquals(Collections.EMPTY_LIST, noRecords3);
+      assertEquals(Collections.EMPTY_LIST, noRecords1);
 
       List<LandingZone> lzRecords =
           landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, RESOURCE_GROUP);

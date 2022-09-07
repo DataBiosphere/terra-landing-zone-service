@@ -95,7 +95,7 @@ public class LandingZoneServiceTest {
 
   @Test
   public void startLandingZoneCreationJob_JobIsSubmitted() {
-    setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
+    setupLandingZoneTargetMock("tenantId", "subscriptionId", "resourceGroupId");
 
     var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
     when(mockFactory1.availableVersions())
@@ -129,7 +129,7 @@ public class LandingZoneServiceTest {
               .definition(mockFactory1.getClass().getName())
               .version(DefinitionVersion.V1.toString())
               .parameters(null)
-              .azureCloudContext(landingZoneTarget)
+              .landingZoneTarget(landingZoneTarget)
               .build();
       landingZoneService.startLandingZoneCreationJob(
           "newJobId", landingZoneRequest, "create-result");
@@ -141,7 +141,7 @@ public class LandingZoneServiceTest {
 
   @Test
   public void startLandingZoneCreationJob_ThrowsErrorWhenDefinitionDoesntExist() {
-    setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
+    setupLandingZoneTargetMock("tenantId", "subscriptionId", "resourceGroupId");
 
     var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
     when(mockFactory1.availableVersions())
@@ -166,7 +166,7 @@ public class LandingZoneServiceTest {
               .definition("NotExistingDefinition")
               .version(DefinitionVersion.V5.toString())
               .parameters(null)
-              .azureCloudContext(landingZoneTarget)
+              .landingZoneTarget(landingZoneTarget)
               .build();
       Assertions.assertThrows(
           LandingZoneDefinitionNotFound.class,
@@ -381,7 +381,7 @@ public class LandingZoneServiceTest {
         .thenReturn(List.of(landingZone));
     landingZoneService =
         new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
-    setupAzureCloudContextMock("tenantId", "subscriptionId", "resourceGroupId");
+    setupLandingZoneTargetMock("tenantId", "subscriptionId", "resourceGroupId");
     // Test
     var result = landingZoneService.listLandingZoneIds(landingZoneTarget);
     // Validate number of members in each group
@@ -390,11 +390,11 @@ public class LandingZoneServiceTest {
     assertEquals(landingZoneId, UUID.fromString(result.get(0)));
   }
 
-  private void setupAzureCloudContextMock(
+  private void setupLandingZoneTargetMock(
       String tenantId, String subscriptionId, String resourceGroupId) {
-    when(landingZoneTarget.getAzureTenantId()).thenReturn(tenantId);
-    when(landingZoneTarget.getAzureSubscriptionId()).thenReturn(subscriptionId);
-    when(landingZoneTarget.getAzureResourceGroupId()).thenReturn(resourceGroupId);
+    when(landingZoneTarget.azureTenantId()).thenReturn(tenantId);
+    when(landingZoneTarget.azureSubscriptionId()).thenReturn(subscriptionId);
+    when(landingZoneTarget.azureResourceGroupId()).thenReturn(resourceGroupId);
   }
 
   private List<DeployedResource> setupDeployedResources() {

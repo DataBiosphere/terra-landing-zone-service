@@ -122,9 +122,9 @@ public class LandingZoneService {
   public List<String> listLandingZoneIds(LandingZoneTarget landingZoneTarget) {
     return landingZoneDao
         .getLandingZoneList(
-            landingZoneTarget.getAzureSubscriptionId(),
-            landingZoneTarget.getAzureTenantId(),
-            landingZoneTarget.getAzureResourceGroupId())
+            landingZoneTarget.azureSubscriptionId(),
+            landingZoneTarget.azureTenantId(),
+            landingZoneTarget.azureResourceGroupId())
         .stream()
         .map(dlz -> dlz.landingZoneId().toString())
         .toList();
@@ -137,10 +137,11 @@ public class LandingZoneService {
   public LandingZoneResourcesByPurpose listResourcesWithPurposes(String landingZoneId) {
     LandingZone landingZoneRecord = landingZoneDao.getLandingZone(UUID.fromString(landingZoneId));
 
-    LandingZoneTarget landingZoneTarget = new LandingZoneTarget();
-    landingZoneTarget.setAzureResourceGroupId(landingZoneRecord.resourceGroupId());
-    landingZoneTarget.setAzureSubscriptionId(landingZoneRecord.subscriptionId());
-    landingZoneTarget.setAzureTenantId(landingZoneRecord.tenantId());
+    LandingZoneTarget landingZoneTarget =
+        new LandingZoneTarget(
+            landingZoneRecord.resourceGroupId(),
+            landingZoneRecord.subscriptionId(),
+            landingZoneRecord.tenantId());
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);

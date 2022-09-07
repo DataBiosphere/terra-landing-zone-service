@@ -22,11 +22,11 @@ public class LandingZoneManagerProvider {
   public LandingZoneManager createLandingZoneManager(LandingZoneTarget landingZoneTarget) {
     var azureProfile =
         new AzureProfile(
-            landingZoneTarget.getAzureTenantId(),
-            landingZoneTarget.getAzureSubscriptionId(),
+            landingZoneTarget.azureTenantId(),
+            landingZoneTarget.azureSubscriptionId(),
             AzureEnvironment.AZURE);
     return LandingZoneManager.createLandingZoneManager(
-        buildTokenCredential(), azureProfile, landingZoneTarget.getAzureResourceGroupId());
+        buildTokenCredential(), azureProfile, landingZoneTarget.azureResourceGroupId());
   }
 
   private TokenCredential buildTokenCredential() {
