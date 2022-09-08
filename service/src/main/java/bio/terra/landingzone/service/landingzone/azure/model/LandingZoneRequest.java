@@ -48,14 +48,14 @@ public record LandingZoneRequest(
             "Azure landing zone definition requires definition");
       }
 
-      validateCloudContext();
+      validateLandingZoneTarget();
 
       return new LandingZoneRequest(definition, version, parameters, landingZoneTarget);
     }
 
-    private void validateCloudContext() {
+    private void validateLandingZoneTarget() {
       if (landingZoneTarget == null) {
-        throw new MissingRequiredFieldsException("Azure cloud context can't be null or is missing");
+        throw new MissingRequiredFieldsException("Landing zone target can't be null or is missing");
       }
 
       if (StringUtils.isBlank(landingZoneTarget.azureResourceGroupId())) {
