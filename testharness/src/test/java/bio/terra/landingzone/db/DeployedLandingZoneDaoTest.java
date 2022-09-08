@@ -136,6 +136,24 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   }
 
   @Test
+  public void getLandingZoneListThrowsException() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, ""));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, null));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> landingZoneDao.getLandingZoneList(SUBSCRIPTION, null, null));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> landingZoneDao.getLandingZoneList(null, TENANT, RESOURCE_GROUP));
+    assertThrows(
+        IllegalArgumentException.class, () -> landingZoneDao.getLandingZoneList("", "", ""));
+  }
+
+  @Test
   public void getLandingZoneList_Success() {
     UUID expectedLzId = UUID.randomUUID();
     try {
@@ -163,16 +181,22 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       List<LandingZone> lzRecords =
           landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, RESOURCE_GROUP);
 
-      assertEquals(1, lzRecords.size());
-      assertEquals(expectedLzId, lz.landingZoneId());
-      assertEquals(RESOURCE_GROUP, lz.resourceGroupId());
-      assertEquals(DEFINITION, lz.definition());
-      assertEquals(VERSION, lz.version());
-      assertEquals(SUBSCRIPTION, lz.subscriptionId());
-      assertEquals(TENANT, lz.tenantId());
-      assertEquals(DISPLAY_NAME, lz.displayName().get());
-      assertEquals(DESCRIPTION, lz.description().get());
-      assertEquals(properties, lz.properties());
+      // There can be more records created for the same Landing Zone target.
+      // Checking that above record has been returned.
+      assertTrue(lzRecords.size() >= 1);
+      var records = lzRecords.stream().filter(r -> r.landingZoneId().equals(expectedLzId)).toList();
+
+      assertNotNull(records);
+      assertEquals(1, records.size());
+      assertEquals(expectedLzId, records.get(0).landingZoneId());
+      assertEquals(RESOURCE_GROUP, records.get(0).resourceGroupId());
+      assertEquals(DEFINITION, records.get(0).definition());
+      assertEquals(VERSION, records.get(0).version());
+      assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
+      assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
+      assertEquals(DESCRIPTION, records.get(0).description().get());
+      assertEquals(properties, records.get(0).properties());
     } finally {
       try {
         landingZoneDao.deleteLandingZone(expectedLzId);

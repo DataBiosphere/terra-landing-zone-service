@@ -79,7 +79,7 @@ public class LandingZoneDao {
             String.format(
                 "Landing Zone with id %s already exists - display name %s definition %s version %s",
                 landingZoneUuid,
-                landingzone.displayName().toString(),
+                landingzone.displayName(),
                 landingzone.definition(),
                 landingzone.version()),
             e);
