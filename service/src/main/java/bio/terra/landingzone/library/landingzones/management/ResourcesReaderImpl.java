@@ -11,15 +11,19 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ResourcesReaderImpl implements ResourcesReader {
+  private static final ClientLogger logger = new ClientLogger(ResourcesReaderImpl.class);
+
   private final AzureResourceManager azureResourceManager;
   private final ResourceGroup resourceGroup;
-
-  private final ClientLogger logger = new ClientLogger(ResourcesReaderImpl.class);
 
   public ResourcesReaderImpl(
       AzureResourceManager azureResourceManager, ResourceGroup resourceGroup) {
@@ -28,21 +32,31 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   @Override
-  public List<DeployedResource> listSharedResources() {
-    return listResourceByTag(
-        resourceGroup.name(),
-        LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-        ResourcePurpose.SHARED_RESOURCE.toString());
-  }
+  public List<DeployedResource> listSharedResources(String landingZoneId) {
+    Stream<Supplier<List<DeployedResource>>> supplierStream =
+        Stream.of(
+            () ->
+                listResourceByTag(
+                    resourceGroup.name(),
+                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                    ResourcePurpose.SHARED_RESOURCE.toString()),
+            () ->
+                listResourceByTag(
+                    resourceGroup.name(),
+                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                    landingZoneId));
 
-  private List<DeployedResource> listResourceByTag(String resourceGroup, String key, String value) {
-    logger.info("Listing resources by tag. group:{} key:{} value:{} ", resourceGroup, key, value);
-    return this.azureResourceManager
-        .genericResources()
-        .listByTag(resourceGroup, key, value)
+    return supplierStream.map(CompletableFuture::supplyAsync).toList().stream()
+        .map(CompletableFuture::join)
+        .flatMap(Collection::stream)
+        .distinct()
+        .filter(
+            r ->
+                r.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
+                    && r.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))
+        .collect(Collectors.toSet())
         .stream()
-        .map(this::toLandingZoneDeployedResource)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override
@@ -76,10 +90,21 @@ public class ResourcesReaderImpl implements ResourcesReader {
         .collect(Collectors.toList());
   }
 
+  @Override
   public List<DeployedSubnet> listSubnetsWithSubnetPurpose(SubnetResourcePurpose purpose) {
     return listResourceByTag(resourceGroup.name(), purpose.toString(), null).stream()
         .map(r -> toDeployedSubnet(r, purpose))
         .toList();
+  }
+
+  private List<DeployedResource> listResourceByTag(String resourceGroup, String key, String value) {
+    logger.info("Listing resources by tag. group:{} key:{} value:{} ", resourceGroup, key, value);
+    return this.azureResourceManager
+        .genericResources()
+        .listByTag(resourceGroup, key, value)
+        .stream()
+        .map(this::toLandingZoneDeployedResource)
+        .collect(Collectors.toList());
   }
 
   private DeployedResource toLandingZoneDeployedResource(GenericResource r) {

@@ -132,7 +132,7 @@ class ResourcesReaderImplTest {
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listSharedResources();
+              var resources = resourcesReader.listSharedResources(landingZoneId);
               return resources.size() == 1
                   && deployedStorage
                       .resourceId()

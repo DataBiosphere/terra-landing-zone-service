@@ -28,10 +28,11 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
 
   @Test
   void deploysLandingZoneV1_resourcesAreCreated() {
+    String landingZoneId = UUID.randomUUID().toString();
     var resources =
         landingZoneManager
             .deployLandingZoneAsync(
-                UUID.randomUUID().toString(),
+                landingZoneId,
                 ManagedNetworkWithSharedResourcesFactory.class.getSimpleName(),
                 DefinitionVersion.V1,
                 null)
@@ -46,7 +47,7 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var sharedResources = landingZoneManager.reader().listSharedResources();
+              var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
               return sharedResources.size()
                   == 2; // there should be two resources, relay and storage
             });

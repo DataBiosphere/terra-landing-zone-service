@@ -27,10 +27,11 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
 
   @Test
   void deploysLandingZoneV1_resourcesAreCreated() throws InterruptedException {
+    String landingZoneId = UUID.randomUUID().toString();
     var resources =
         landingZoneManager
             .deployLandingZoneAsync(
-                UUID.randomUUID().toString(),
+                landingZoneId,
                 CromwellBaseResourcesFactory.class.getSimpleName(),
                 DefinitionVersion.V1,
                 null)
@@ -42,7 +43,7 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
 
     // check if you can read lz resources
     TimeUnit.SECONDS.sleep(3); // wait for tag propagation...
-    var sharedResources = landingZoneManager.reader().listSharedResources();
+    var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
     assertThat(sharedResources, hasSize(5));
 
     assertHasVnetWithPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
