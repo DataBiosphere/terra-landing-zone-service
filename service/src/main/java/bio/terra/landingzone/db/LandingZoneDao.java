@@ -29,13 +29,13 @@ public class LandingZoneDao {
           + " FROM landingzone";
 
   // Landing Zones table fields
-  private static final String LANDINGZONEID = "landingzone_id";
-  private static final String SUBSCRIPTIONID = "subscription_id";
-  private static final String RESOURCEGROUP = "resource_group";
-  private static final String TENANTID = "tenant_id";
-  private static final String DEFINITIONID = "definition_id";
-  private static final String DEFINITIONVERSIONID = "definition_version_id";
-  private static final String DISPLAYNAME = "display_name";
+  private static final String LANDING_ZONE_ID = "landingzone_id";
+  private static final String SUBSCRIPTION_ID = "subscription_id";
+  private static final String RESOURCE_GROUP = "resource_group";
+  private static final String TENANT_ID = "tenant_id";
+  private static final String DEFINITION_ID = "definition_id";
+  private static final String DEFINITION_VERSION_ID = "definition_version_id";
+  private static final String DISPLAY_NAME = "display_name";
   private static final String DESCRIPTION = "description";
   private static final String PROPERTIES = "properties";
 
@@ -70,13 +70,13 @@ public class LandingZoneDao {
 
     MapSqlParameterSource params =
         new MapSqlParameterSource()
-            .addValue(LANDINGZONEID, landingZoneUuid)
-            .addValue(RESOURCEGROUP, landingzone.resourceGroupId())
-            .addValue(SUBSCRIPTIONID, landingzone.subscriptionId())
-            .addValue(TENANTID, landingzone.tenantId())
-            .addValue(DEFINITIONID, landingzone.definition())
-            .addValue(DEFINITIONVERSIONID, landingzone.version())
-            .addValue(DISPLAYNAME, landingzone.displayName().orElse(null))
+            .addValue(LANDING_ZONE_ID, landingZoneUuid)
+            .addValue(RESOURCE_GROUP, landingzone.resourceGroupId())
+            .addValue(SUBSCRIPTION_ID, landingzone.subscriptionId())
+            .addValue(TENANT_ID, landingzone.tenantId())
+            .addValue(DEFINITION_ID, landingzone.definition())
+            .addValue(DEFINITION_VERSION_ID, landingzone.version())
+            .addValue(DISPLAY_NAME, landingzone.displayName().orElse(null))
             .addValue(DESCRIPTION, landingzone.description().orElse(null))
             .addValue(PROPERTIES, DbSerDes.propertiesToJson(landingzone.properties()));
     try {
@@ -172,8 +172,8 @@ public class LandingZoneDao {
 
     MapSqlParameterSource params =
         new MapSqlParameterSource()
-            .addValue(SUBSCRIPTIONID, subscriptionId)
-            .addValue(TENANTID, tenantId)
+            .addValue(SUBSCRIPTION_ID, subscriptionId)
+            .addValue(TENANT_ID, tenantId)
             .addValue("resource_group_id", resourceGroupId);
 
     return jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER);
@@ -203,13 +203,13 @@ public class LandingZoneDao {
   private static final RowMapper<LandingZone> LANDINGZONE_ROW_MAPPER =
       (rs, rowNum) ->
           LandingZone.builder()
-              .landingZoneId(UUID.fromString(rs.getString(LANDINGZONEID)))
-              .resourceGroupId(rs.getString(RESOURCEGROUP))
-              .subscriptionId(rs.getString(SUBSCRIPTIONID))
-              .tenantId(rs.getString(TENANTID))
-              .definition(rs.getString(DEFINITIONID))
-              .version(rs.getString(DEFINITIONVERSIONID))
-              .displayName(rs.getString(DISPLAYNAME))
+              .landingZoneId(UUID.fromString(rs.getString(LANDING_ZONE_ID)))
+              .resourceGroupId(rs.getString(RESOURCE_GROUP))
+              .subscriptionId(rs.getString(SUBSCRIPTION_ID))
+              .tenantId(rs.getString(TENANT_ID))
+              .definition(rs.getString(DEFINITION_ID))
+              .version(rs.getString(DEFINITION_VERSION_ID))
+              .displayName(rs.getString(DISPLAY_NAME))
               .description(rs.getString(DESCRIPTION))
               .properties(
                   Optional.ofNullable(rs.getString(PROPERTIES))
