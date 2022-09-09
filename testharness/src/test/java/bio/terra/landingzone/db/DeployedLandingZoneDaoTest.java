@@ -41,7 +41,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       try {
         landingZoneDao.deleteLandingZone(expectedLzId);
       } catch (Exception ex) {
-        fail("Failure during removing landing zone from database", ex);
+        fail("Failure while removing landing zone from database", ex);
       }
     }
   }
@@ -49,18 +49,26 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   @Test
   public void createDuplicateLandingZoneThrowsException() {
     UUID expectedLzId = UUID.randomUUID();
-    LandingZone lz =
-        TestFixtures.createLandingZone(
-            expectedLzId,
-            RESOURCE_GROUP,
-            DEFINITION,
-            VERSION,
-            DISPLAY_NAME,
-            DESCRIPTION,
-            properties);
-    landingZoneDao.createLandingZone(lz);
+    try {
+      LandingZone lz =
+          TestFixtures.createLandingZone(
+              expectedLzId,
+              RESOURCE_GROUP,
+              DEFINITION,
+              VERSION,
+              DISPLAY_NAME,
+              DESCRIPTION,
+              properties);
+      landingZoneDao.createLandingZone(lz);
 
-    assertThrows(DuplicateLandingZoneException.class, () -> landingZoneDao.createLandingZone(lz));
+      assertThrows(DuplicateLandingZoneException.class, () -> landingZoneDao.createLandingZone(lz));
+    } finally {
+      try {
+        landingZoneDao.deleteLandingZone(expectedLzId);
+      } catch (Exception ex) {
+        fail("Failure while removing landing zone from database", ex);
+      }
+    }
   }
 
   @Test
