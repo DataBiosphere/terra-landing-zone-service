@@ -2,6 +2,7 @@ package bio.terra.landingzone.testutils;
 
 import bio.terra.landingzone.db.model.LandingZone;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TestFixtures {
@@ -12,8 +13,18 @@ public class TestFixtures {
       String version,
       String displayName,
       String description,
-      Map<String, String> properties) {
+      Map<String, String> properties,
+      String subscription,
+      String tenant) {
     return new LandingZone(
-        landingZoneId, resourceGroupId, definition, version, displayName, description, properties);
+        landingZoneId,
+        resourceGroupId,
+        definition,
+        version,
+        subscription,
+        tenant,
+        Optional.of(displayName),
+        Optional.of(description),
+        properties);
   }
 }

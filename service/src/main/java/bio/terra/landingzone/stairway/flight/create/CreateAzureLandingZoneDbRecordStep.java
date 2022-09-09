@@ -33,7 +33,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var azureCloudContext = requestedExternalLandingZoneResource.azureCloudContext();
+    var landingZoneTarget = requestedExternalLandingZoneResource.landingZoneTarget();
 
     if (!context
         .getWorkingMap()
@@ -68,7 +68,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
                     requestedExternalLandingZoneResource.version()))
             .displayName(requestedExternalLandingZoneResource.definition())
             .properties(requestedExternalLandingZoneResource.parameters())
-            .resourceGroupId(azureCloudContext.getAzureResourceGroupId())
+            .resourceGroupId(landingZoneTarget.azureResourceGroupId())
             .build());
     return StepResult.getStepResultSuccess();
   }

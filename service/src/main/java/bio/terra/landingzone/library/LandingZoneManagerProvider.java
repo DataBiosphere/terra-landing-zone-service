@@ -2,7 +2,7 @@ package bio.terra.landingzone.library;
 
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
-import bio.terra.landingzone.model.AzureCloudContext;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
@@ -19,14 +19,14 @@ public class LandingZoneManagerProvider {
     this.azureConfiguration = azureConfiguration;
   }
 
-  public LandingZoneManager createLandingZoneManager(AzureCloudContext azureCloudContext) {
+  public LandingZoneManager createLandingZoneManager(LandingZoneTarget landingZoneTarget) {
     var azureProfile =
         new AzureProfile(
-            azureCloudContext.getAzureTenantId(),
-            azureCloudContext.getAzureSubscriptionId(),
+            landingZoneTarget.azureTenantId(),
+            landingZoneTarget.azureSubscriptionId(),
             AzureEnvironment.AZURE);
     return LandingZoneManager.createLandingZoneManager(
-        buildTokenCredential(), azureProfile, azureCloudContext.getAzureResourceGroupId());
+        buildTokenCredential(), azureProfile, landingZoneTarget.azureResourceGroupId());
   }
 
   private TokenCredential buildTokenCredential() {
