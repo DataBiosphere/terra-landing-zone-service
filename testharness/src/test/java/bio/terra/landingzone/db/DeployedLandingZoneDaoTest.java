@@ -102,7 +102,9 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               VERSION,
               DISPLAY_NAME,
               DESCRIPTION,
-              properties);
+              properties,
+              SUBSCRIPTION,
+              TENANT);
       landingZoneDao.createLandingZone(lz);
 
       assertThrows(DuplicateLandingZoneException.class, () -> landingZoneDao.createLandingZone(lz));
