@@ -33,35 +33,18 @@ public class ResourcesReaderImpl implements ResourcesReader {
 
   @Override
   public List<DeployedResource> listSharedResources(String landingZoneId) {
-    Stream<Supplier<List<DeployedResource>>> supplierStream =
-        Stream.of(
-            () ->
-                listResourceByTag(
-                    resourceGroup.name(),
-                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                    ResourcePurpose.SHARED_RESOURCE.toString()),
-            () ->
-                listResourceByTag(
-                    resourceGroup.name(),
-                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-                    landingZoneId));
-
-    return supplierStream.map(CompletableFuture::supplyAsync).toList().stream()
-        .map(CompletableFuture::join)
-        .flatMap(Collection::stream)
-        .distinct()
-        .filter(
-            r ->
-                r.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
-                    && r.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))
-        .collect(Collectors.toSet())
-        .stream()
-        .toList();
+    return listResourceByTag(
+        landingZoneId,
+        resourceGroup.name(),
+        LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+        ResourcePurpose.SHARED_RESOURCE.toString());
   }
 
   @Override
-  public List<DeployedResource> listResourcesByPurpose(ResourcePurpose purpose) {
+  public List<DeployedResource> listResourcesByPurpose(
+      String landingZoneId, ResourcePurpose purpose) {
     return listResourceByTag(
+        landingZoneId,
         resourceGroup.name(),
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
         purpose.toString());
@@ -94,6 +77,32 @@ public class ResourcesReaderImpl implements ResourcesReader {
   public List<DeployedSubnet> listSubnetsWithSubnetPurpose(SubnetResourcePurpose purpose) {
     return listResourceByTag(resourceGroup.name(), purpose.toString(), null).stream()
         .map(r -> toDeployedSubnet(r, purpose))
+        .toList();
+  }
+
+  private List<DeployedResource> listResourceByTag(
+      String landingZoneId, String resourceGroup, String key, String value) {
+    Stream<Supplier<List<DeployedResource>>> suppliersStream =
+        Stream.of(
+            () -> listResourceByTag(resourceGroup, key, value),
+            () ->
+                listResourceByTag(
+                    resourceGroup, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId));
+
+    return suppliersStream.map(CompletableFuture::supplyAsync).toList().stream()
+        .map(CompletableFuture::join)
+        .flatMap(Collection::stream)
+        .distinct()
+        .filter(
+            r ->
+                r.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
+                    && r.tags()
+                        .get(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
+                        .equals(landingZoneId)
+                    && r.tags().containsKey(key)
+                    && r.tags().get(key).equals(value))
+        .collect(Collectors.toSet())
+        .stream()
         .toList();
   }
 

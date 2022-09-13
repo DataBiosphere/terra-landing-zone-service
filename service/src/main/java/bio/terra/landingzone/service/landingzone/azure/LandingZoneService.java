@@ -99,13 +99,13 @@ public class LandingZoneService {
   }
 
   public List<LandingZoneResource> listResourcesByPurpose(
-      ResourcePurpose purpose, LandingZoneTarget landingZoneTarget) {
+      String landingZoneId, ResourcePurpose purpose, LandingZoneTarget landingZoneTarget) {
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
 
     List<DeployedResource> deployedResources =
-        landingZoneManager.reader().listResourcesByPurpose(purpose);
+        landingZoneManager.reader().listResourcesByPurpose(landingZoneId, purpose);
 
     return deployedResources.stream()
         .map(

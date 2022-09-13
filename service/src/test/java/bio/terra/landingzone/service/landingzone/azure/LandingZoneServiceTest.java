@@ -181,7 +181,9 @@ public class LandingZoneServiceTest {
     var purposeTags =
         Map.of(
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-            ResourcePurpose.SHARED_RESOURCE.toString());
+            ResourcePurpose.SHARED_RESOURCE.toString(),
+            LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+            landingZoneId.toString());
     var deployedResources =
         List.of(
             new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTags, REGION),
@@ -191,13 +193,13 @@ public class LandingZoneServiceTest {
         .thenReturn(landingZoneManager);
 
     ResourcesReader resourceReader = mock(ResourcesReader.class);
-    when(resourceReader.listResourcesByPurpose(ArgumentMatchers.any()))
+    when(resourceReader.listResourcesByPurpose(ArgumentMatchers.any(), ArgumentMatchers.any()))
         .thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     List<LandingZoneResource> resources =
         landingZoneService.listResourcesByPurpose(
-            ResourcePurpose.SHARED_RESOURCE, landingZoneTarget);
+            landingZoneId.toString(), ResourcePurpose.SHARED_RESOURCE, landingZoneTarget);
 
     assertNotNull(resources);
     assertEquals(2, resources.size());

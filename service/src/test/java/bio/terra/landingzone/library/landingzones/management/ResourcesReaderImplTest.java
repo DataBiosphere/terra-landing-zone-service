@@ -148,7 +148,8 @@ class ResourcesReaderImplTest {
         .until(
             () -> {
               var resources =
-                  resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
+                  resourcesReader.listResourcesByPurpose(
+                      landingZoneId, ResourcePurpose.SHARED_RESOURCE);
               return resources.size() == 1
                   && deployedStorage
                       .resourceId()
