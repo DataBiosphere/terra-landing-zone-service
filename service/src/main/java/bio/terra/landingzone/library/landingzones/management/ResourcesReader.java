@@ -8,27 +8,58 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import java.util.List;
 
 /**
- * Provides different search operations for a resources in specific landing zone. All resources in
- * landing zone have different set of tags assigned. Each tag has its own purpose. All the search
- * operation are based on tags.
+ * Provides search operations for a resources in specific landing zone. All resources in landing
+ * zone have different set of tags assigned. Each tag has its own purpose. All the search operation
+ * are based on tags.
  *
- * <p>Tag examples: WLZ-PURPOSE - defines purpose for a specific resource WLZ-ID - defines landing
- * zone identifier
+ * <p>Tag examples:
+ *
+ * <p>WLZ-PURPOSE - defines purpose for a specific resource;
+ *
+ * <p>WLZ-ID - defines landing zone identifier
  */
 public interface ResourcesReader {
   /**
-   * Lists shared resources belonging to a specific landing zone.
+   * Lists shared resources in a specific landing zone.
    *
-   * @param landingZoneId Identifier of a landing zone
-   * @return Resource(s) which correspond(s) search criteria
+   * @param landingZoneId the identifier of the landing zone
+   * @return the list of resources
    */
   List<DeployedResource> listSharedResources(String landingZoneId);
 
+  /**
+   * Lists resources with specific purpose in a landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @param purpose purpose's value
+   * @return the list of resources
+   */
   List<DeployedResource> listResourcesByPurpose(String landingZoneId, ResourcePurpose purpose);
 
-  List<DeployedResource> listResources();
+  /**
+   * Lists all resources in a specific landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @return the list of resources
+   */
+  List<DeployedResource> listResources(String landingZoneId);
 
-  List<DeployedVNet> listVNetWithSubnetPurpose(SubnetResourcePurpose purpose);
+  /**
+   * Lists all virtual networks with specific purpose in a landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @param purpose purpose's value
+   * @return the list of virtual networks
+   */
+  List<DeployedVNet> listVNetWithSubnetPurpose(String landingZoneId, SubnetResourcePurpose purpose);
 
-  List<DeployedSubnet> listSubnetsWithSubnetPurpose(SubnetResourcePurpose purpose);
+  /**
+   * Lists all subnets with specific purpose in a landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @param purpose purpose's value
+   * @return the list of subnets
+   */
+  List<DeployedSubnet> listSubnetsWithSubnetPurpose(
+      String landingZoneId, SubnetResourcePurpose purpose);
 }

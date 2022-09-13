@@ -146,8 +146,8 @@ public class LandingZoneService {
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
 
-    var listGeneralResources = listGeneralResourcesWithPurposes(landingZoneManager);
-    var listSubnetResources = listSubnetResourcesWithPurposes(landingZoneManager);
+    var listGeneralResources = listGeneralResourcesWithPurposes(landingZoneId, landingZoneManager);
+    var listSubnetResources = listSubnetResourcesWithPurposes(landingZoneId, landingZoneManager);
     // Merge lists, no key collision is expected since the purpose sets are different.
     listGeneralResources.putAll(listSubnetResources);
 
@@ -155,8 +155,8 @@ public class LandingZoneService {
   }
 
   private Map<LandingZonePurpose, List<LandingZoneResource>> listGeneralResourcesWithPurposes(
-      LandingZoneManager landingZoneManager) {
-    var deployedResources = landingZoneManager.reader().listResources();
+      String landingZoneId, LandingZoneManager landingZoneManager) {
+    var deployedResources = landingZoneManager.reader().listResources(landingZoneId);
 
     return deployedResources.stream()
         .map(
@@ -175,14 +175,17 @@ public class LandingZoneService {
   }
 
   private Map<LandingZonePurpose, List<LandingZoneResource>> listSubnetResourcesWithPurposes(
-      LandingZoneManager landingZoneManager) {
+      String landingZoneId, LandingZoneManager landingZoneManager) {
     Map<LandingZonePurpose, List<LandingZoneResource>> subnetPurposeMap = new HashMap<>();
     SubnetResourcePurpose.values()
         .forEach(
             p ->
                 subnetPurposeMap.put(
                     p,
-                    landingZoneManager.reader().listSubnetsWithSubnetPurpose(p).stream()
+                    landingZoneManager
+                        .reader()
+                        .listSubnetsWithSubnetPurpose(landingZoneId, p)
+                        .stream()
                         .map(
                             s ->
                                 LandingZoneResource.builder()

@@ -51,43 +51,48 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   @Override
-  public List<DeployedResource> listResources() {
-    List<ResourcePurpose> supportedPurposes = ResourcePurpose.values().stream().toList();
+  public List<DeployedResource> listResources(String landingZoneId) {
+    //    List<ResourcePurpose> supportedPurposes = ResourcePurpose.values().stream().toList();
+    //    return listResourceByTag(
+    //            resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), null)
+    //        .stream()
+    //        .filter(
+    //            deployedResource ->
+    //                supportedPurposes.contains(
+    //                    ResourcePurpose.fromString(
+    //                        deployedResource
+    //                            .tags()
+    //                            .get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))))
+    //        .toList();
+
     return listResourceByTag(
-            resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), null)
-        .stream()
-        .filter(
-            deployedResource ->
-                supportedPurposes.contains(
-                    ResourcePurpose.fromString(
-                        deployedResource
-                            .tags()
-                            .get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))))
-        .toList();
+        resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
   }
 
   @Override
-  public List<DeployedVNet> listVNetWithSubnetPurpose(SubnetResourcePurpose purpose) {
-    return listResourceByTag(resourceGroup.name(), purpose.toString(), null).stream()
+  public List<DeployedVNet> listVNetWithSubnetPurpose(
+      String landingZoneId, SubnetResourcePurpose purpose) {
+    return listResourceByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null).stream()
         .map(this::toDeployedVNet)
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<DeployedSubnet> listSubnetsWithSubnetPurpose(SubnetResourcePurpose purpose) {
-    return listResourceByTag(resourceGroup.name(), purpose.toString(), null).stream()
+  public List<DeployedSubnet> listSubnetsWithSubnetPurpose(
+      String landingZoneId, SubnetResourcePurpose purpose) {
+    return listResourceByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null).stream()
         .map(r -> toDeployedSubnet(r, purpose))
         .toList();
   }
 
   /**
-   * Search for a deployed resources with a specific tag in a specific landing zone.
+   * Lists resources with a specific tag in a specific landing zone.
    *
    * @param landingZoneId Landing zone identifier
    * @param resourceGroup Resource group where landing zone resources are deployed
    * @param key Name of a tag
    * @param value Value of a tag
-   * @return Resources in a specific landing zone which corresponds tag's search criteria
+   * @return List of resources in a specific landing zone which corresponds tag's search criteria
    */
   private List<DeployedResource> listResourceByTag(
       String landingZoneId, String resourceGroup, String key, String value) {

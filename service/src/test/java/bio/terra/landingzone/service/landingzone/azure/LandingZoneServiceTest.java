@@ -264,7 +264,7 @@ public class LandingZoneServiceTest {
     landingZoneService =
         new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    when(resourceReader.listResources()).thenReturn(deployedResources);
+    when(resourceReader.listResources(anyString())).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     // Test
@@ -317,14 +317,14 @@ public class LandingZoneServiceTest {
         new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
 
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    when(resourceReader.listResources()).thenReturn(deployedResources);
-    when(resourceReader.listSubnetsWithSubnetPurpose(any(SubnetResourcePurpose.class)))
+    when(resourceReader.listResources(anyString())).thenReturn(deployedResources);
+    when(resourceReader.listSubnetsWithSubnetPurpose(anyString(), any(SubnetResourcePurpose.class)))
         .thenReturn(List.of());
     when(resourceReader.listSubnetsWithSubnetPurpose(
-            SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET))
+            anyString(), SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET))
         .thenReturn(subnetList1);
     when(resourceReader.listSubnetsWithSubnetPurpose(
-            SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET))
+            anyString(), SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET))
         .thenReturn(subnetList2);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 

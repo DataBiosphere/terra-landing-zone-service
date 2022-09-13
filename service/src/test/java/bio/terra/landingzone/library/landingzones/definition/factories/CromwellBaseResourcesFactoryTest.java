@@ -46,14 +46,14 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
     var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
     assertThat(sharedResources, hasSize(5));
 
-    assertHasVnetWithPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
-    assertHasVnetWithPurpose(SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);
-    assertHasVnetWithPurpose(SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET);
-    assertHasVnetWithPurpose(SubnetResourcePurpose.POSTGRESQL_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.POSTGRESQL_SUBNET);
   }
 
-  private void assertHasVnetWithPurpose(SubnetResourcePurpose purpose) {
-    var vNet = landingZoneManager.reader().listVNetWithSubnetPurpose(purpose);
+  private void assertHasVnetWithPurpose(String landingZoneId, SubnetResourcePurpose purpose) {
+    var vNet = landingZoneManager.reader().listVNetWithSubnetPurpose(landingZoneId, purpose);
     assertThat(vNet, hasSize(1));
   }
 }
