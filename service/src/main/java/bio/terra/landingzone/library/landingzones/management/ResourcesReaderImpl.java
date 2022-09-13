@@ -80,8 +80,23 @@ public class ResourcesReaderImpl implements ResourcesReader {
         .toList();
   }
 
+  /**
+   * Search for a deployed resources with a specific tag in a specific landing zone.
+   *
+   * @param landingZoneId Landing zone identifier
+   * @param resourceGroup Resource group where landing zone resources are deployed
+   * @param key Name of a tag
+   * @param value Value of a tag
+   * @return Resources in a specific landing zone which corresponds tag's search criteria
+   */
   private List<DeployedResource> listResourceByTag(
       String landingZoneId, String resourceGroup, String key, String value) {
+    /*
+    Azure resource manager doesn't allow listing resources by multiple tags.
+    As a result we need 2 requests to Azure:
+    -first, to search for resources with specific landing zone id tag;
+    -second, to search for resources with specific tag's name and tag's value;
+     */
     Stream<Supplier<List<DeployedResource>>> suppliersStream =
         Stream.of(
             () -> listResourceByTag(resourceGroup, key, value),
