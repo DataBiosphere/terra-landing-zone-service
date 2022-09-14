@@ -52,19 +52,6 @@ public class ResourcesReaderImpl implements ResourcesReader {
 
   @Override
   public List<DeployedResource> listResources(String landingZoneId) {
-    //    List<ResourcePurpose> supportedPurposes = ResourcePurpose.values().stream().toList();
-    //    return listResourceByTag(
-    //            resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), null)
-    //        .stream()
-    //        .filter(
-    //            deployedResource ->
-    //                supportedPurposes.contains(
-    //                    ResourcePurpose.fromString(
-    //                        deployedResource
-    //                            .tags()
-    //                            .get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))))
-    //        .toList();
-
     return listResourceByTag(
         resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
   }
