@@ -84,7 +84,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
   private List<DeployedResource> listResourceByTag(
       String landingZoneId, String resourceGroup, String key, String value) {
     /*
-    Azure resource manager doesn't allow listing resources by multiple tags.
+    Current version of Azure SDK doesn't allow listing resources by multiple tags.
     As a result we need 2 requests to Azure:
     -first, to search for resources with specific landing zone id tag;
     -second, to search for resources with specific tag's name and tag's value;

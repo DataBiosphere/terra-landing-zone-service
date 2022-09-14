@@ -241,7 +241,7 @@ policies.
 You can list resources by purpose using the Landing Zone Manager:
 
 ```java
-List<DeployedResource> resources=landingZoneManager.reader().listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
+List<DeployedResource> resources=landingZoneManager.reader().listResourcesByPurpose(landingZoneId, ResourcePurpose.SHARED_RESOURCE);
 
 ```
 
@@ -249,7 +249,7 @@ Virtual Networks can be listed by subnet purpose:
 
 ```java
     List<DeployedVNet> vNets=
-        landingZoneManager.reader().listVNetWithSubnetPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+        landingZoneManager.reader().listVNetWithSubnetPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
 
 ```
 
