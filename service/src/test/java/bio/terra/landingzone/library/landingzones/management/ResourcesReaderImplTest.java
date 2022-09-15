@@ -163,7 +163,7 @@ class ResourcesReaderImplTest {
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listResources(landingZoneId);
+              var resources = resourcesReader.listResourcesWithPurpose(landingZoneId);
               return resources.size() == 1
                   && resources
                       .get(0)
@@ -184,7 +184,7 @@ class ResourcesReaderImplTest {
         .until(
             () -> {
               var resources =
-                  resourcesReader.listSubnetsWithSubnetPurpose(
+                  resourcesReader.listSubnetsBySubnetPurpose(
                       landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
               return resources.size() == 1 && deployedVNet.Id().equals(resources.get(0).vNetId());
             });
@@ -198,7 +198,7 @@ class ResourcesReaderImplTest {
         .until(
             () -> {
               var resources =
-                  resourcesReader.listVNetWithSubnetPurpose(
+                  resourcesReader.listVNetBySubnetPurpose(
                       landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
               return resources.size() == 1
                   && deployedVNet.Id().equalsIgnoreCase(resources.iterator().next().Id());

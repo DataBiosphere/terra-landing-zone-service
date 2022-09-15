@@ -53,7 +53,7 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
   }
 
   private void assertHasVnetWithPurpose(String landingZoneId, SubnetResourcePurpose purpose) {
-    var vNet = landingZoneManager.reader().listVNetWithSubnetPurpose(landingZoneId, purpose);
+    var vNet = landingZoneManager.reader().listVNetBySubnetPurpose(landingZoneId, purpose);
     assertThat(vNet, hasSize(1));
   }
 }

@@ -156,7 +156,7 @@ public class LandingZoneService {
 
   private Map<LandingZonePurpose, List<LandingZoneResource>> listGeneralResourcesWithPurposes(
       String landingZoneId, LandingZoneManager landingZoneManager) {
-    var deployedResources = landingZoneManager.reader().listResources(landingZoneId);
+    var deployedResources = landingZoneManager.reader().listResourcesWithPurpose(landingZoneId);
 
     return deployedResources.stream()
         .map(
@@ -184,7 +184,7 @@ public class LandingZoneService {
                     p,
                     landingZoneManager
                         .reader()
-                        .listSubnetsWithSubnetPurpose(landingZoneId, p)
+                        .listSubnetsBySubnetPurpose(landingZoneId, p)
                         .stream()
                         .map(
                             s ->

@@ -11,13 +11,9 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ResourcesReaderImpl implements ResourcesReader {
   private static final ClientLogger logger = new ClientLogger(ResourcesReaderImpl.class);
@@ -51,13 +47,16 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   @Override
-  public List<DeployedResource> listResources(String landingZoneId) {
+  public List<DeployedResource> listResourcesWithPurpose(String landingZoneId) {
     return listResourceByTag(
-        resourceGroup.name(), LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
+        landingZoneId,
+        resourceGroup.name(),
+        LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+        null);
   }
 
   @Override
-  public List<DeployedVNet> listVNetWithSubnetPurpose(
+  public List<DeployedVNet> listVNetBySubnetPurpose(
       String landingZoneId, SubnetResourcePurpose purpose) {
     return listResourceByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null).stream()
         .map(this::toDeployedVNet)
@@ -65,60 +64,22 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   @Override
-  public List<DeployedSubnet> listSubnetsWithSubnetPurpose(
+  public List<DeployedSubnet> listSubnetsBySubnetPurpose(
       String landingZoneId, SubnetResourcePurpose purpose) {
     return listResourceByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null).stream()
         .map(r -> toDeployedSubnet(r, purpose))
         .toList();
   }
 
-  /**
-   * Lists resources with a specific tag in a specific landing zone.
-   *
-   * @param landingZoneId Landing zone identifier
-   * @param resourceGroup Resource group where landing zone resources are deployed
-   * @param key Name of a tag
-   * @param value Value of a tag
-   * @return List of resources in a specific landing zone which corresponds tag's search criteria
-   */
   private List<DeployedResource> listResourceByTag(
       String landingZoneId, String resourceGroup, String key, String value) {
-    /*
-    Current version of Azure SDK doesn't allow listing resources by multiple tags.
-    As a result we need 2 requests to Azure:
-    -first, to search for resources with specific landing zone id tag;
-    -second, to search for resources with specific tag's name and tag's value;
-     */
-    Stream<Supplier<List<DeployedResource>>> suppliersStream =
-        Stream.of(
-            () -> listResourceByTag(resourceGroup, key, value),
-            () ->
-                listResourceByTag(
-                    resourceGroup, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId));
-
-    return suppliersStream.map(CompletableFuture::supplyAsync).toList().stream()
-        .map(CompletableFuture::join)
-        .flatMap(Collection::stream)
-        .distinct()
-        .filter(
-            r ->
-                r.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
-                    && r.tags()
-                        .get(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
-                        .equals(landingZoneId)
-                    && r.tags().containsKey(key)
-                    && r.tags().get(key).equals(value))
-        .collect(Collectors.toSet())
-        .stream()
-        .toList();
-  }
-
-  private List<DeployedResource> listResourceByTag(String resourceGroup, String key, String value) {
     logger.info("Listing resources by tag. group:{} key:{} value:{} ", resourceGroup, key, value);
     return this.azureResourceManager
         .genericResources()
-        .listByTag(resourceGroup, key, value)
+        .listByTag(resourceGroup, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId)
         .stream()
+        .filter(
+            r -> r.tags().containsKey(key) && (r.tags().get(key).equals(value) || value == null))
         .map(this::toLandingZoneDeployedResource)
         .collect(Collectors.toList());
   }

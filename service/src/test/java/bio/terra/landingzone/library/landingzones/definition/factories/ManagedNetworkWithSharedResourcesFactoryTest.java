@@ -59,7 +59,7 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
               var vNets =
                   landingZoneManager
                       .reader()
-                      .listVNetWithSubnetPurpose(
+                      .listVNetBySubnetPurpose(
                           landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
               return vNets.size() == 1; // only one vnet.
             });

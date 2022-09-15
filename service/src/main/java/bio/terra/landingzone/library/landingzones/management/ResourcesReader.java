@@ -37,12 +37,12 @@ public interface ResourcesReader {
   List<DeployedResource> listResourcesByPurpose(String landingZoneId, ResourcePurpose purpose);
 
   /**
-   * Lists all resources in a specific landing zone.
+   * Lists all resources with purpose in a specific landing zone.
    *
    * @param landingZoneId the identifier of the landing zone
    * @return the list of resources
    */
-  List<DeployedResource> listResources(String landingZoneId);
+  List<DeployedResource> listResourcesWithPurpose(String landingZoneId);
 
   /**
    * Lists all virtual networks with specific purpose in a landing zone.
@@ -51,7 +51,7 @@ public interface ResourcesReader {
    * @param purpose purpose's value
    * @return the list of virtual networks
    */
-  List<DeployedVNet> listVNetWithSubnetPurpose(String landingZoneId, SubnetResourcePurpose purpose);
+  List<DeployedVNet> listVNetBySubnetPurpose(String landingZoneId, SubnetResourcePurpose purpose);
 
   /**
    * Lists all subnets with specific purpose in a landing zone.
@@ -60,6 +60,6 @@ public interface ResourcesReader {
    * @param purpose purpose's value
    * @return the list of subnets
    */
-  List<DeployedSubnet> listSubnetsWithSubnetPurpose(
+  List<DeployedSubnet> listSubnetsBySubnetPurpose(
       String landingZoneId, SubnetResourcePurpose purpose);
 }
