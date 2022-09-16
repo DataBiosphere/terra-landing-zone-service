@@ -73,7 +73,12 @@ public class ResourcesReaderImpl implements ResourcesReader {
 
   private List<DeployedResource> listResourceByTag(
       String landingZoneId, String resourceGroup, String key, String value) {
-    logger.info("Listing resources by tag. group:{} key:{} value:{} ", resourceGroup, key, value);
+    logger.info(
+        "Listing resources by tag. lzid:{} group:{} key:{} value:{} ",
+        landingZoneId,
+        resourceGroup,
+        key,
+        value);
     return this.azureResourceManager
         .genericResources()
         .listByTag(resourceGroup, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId)
