@@ -1,5 +1,7 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -70,6 +72,7 @@ public class LandingZoneServiceTest {
 
   @Captor ArgumentCaptor<String> jobIdCaptor;
   @Captor ArgumentCaptor<Class<?>> classCaptor;
+  @Captor ArgumentCaptor<LandingZoneTarget> landingZoneTargetCaptor;
 
   @Mock private LandingZoneTarget landingZoneTarget;
 
@@ -241,20 +244,33 @@ public class LandingZoneServiceTest {
   }
 
   @Test
+  void listResourcesWithPurposes_LandingZoneManagerIsCreatedWithCorrectTargetParameters() {
+    LandingZone landingZone = createLandingZoneRecord();
+
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
+        .thenReturn(landingZoneManager);
+    landingZoneService =
+        new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
+    ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
+    when(landingZoneManager.reader()).thenReturn(resourceReader);
+
+    landingZoneService.listResourcesWithPurposes(landingZoneId.toString());
+
+    assertThat(landingZoneTargetCaptor.getValue().azureTenantId(), equalTo(landingZone.tenantId()));
+    assertThat(
+        landingZoneTargetCaptor.getValue().azureResourceGroupId(),
+        equalTo(landingZone.resourceGroupId()));
+    assertThat(
+        landingZoneTargetCaptor.getValue().azureSubscriptionId(),
+        equalTo(landingZone.subscriptionId()));
+  }
+
+  @Test
   public void listGeneralResourcesWithPurposes_Success() {
     var deployedResources = setupDeployedResources();
     // Setup mocks
-    LandingZone landingZone =
-        new LandingZone(
-            landingZoneId,
-            "resourceGroupId",
-            "definition",
-            "version",
-            "subscriptionId",
-            "tenantId",
-            Optional.of("displayName"),
-            Optional.of("description"),
-            Collections.emptyMap());
+    LandingZone landingZone = createLandingZoneRecord();
 
     when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
@@ -285,6 +301,19 @@ public class LandingZoneServiceTest {
     assertEquals(1, resourcesGrouped.get(ResourcePurpose.WLZ_RESOURCE).size());
   }
 
+  private LandingZone createLandingZoneRecord() {
+    return new LandingZone(
+        landingZoneId,
+        "resourceGroupId",
+        "definition",
+        "version",
+        "subscriptionId",
+        "tenantId",
+        Optional.of("displayName"),
+        Optional.of("description"),
+        Collections.emptyMap());
+  }
+
   @Test
   public void listResourcesWithPurposes_GeneralAndSubnetResourcesReturned_Success() {
     var deployedResources = setupDeployedResources();
@@ -296,17 +325,7 @@ public class LandingZoneServiceTest {
         List.of(new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_3, VNET_3, REGION));
 
     // Setup Mocks
-    LandingZone landingZone =
-        new LandingZone(
-            landingZoneId,
-            "resourceGroupId",
-            "definition",
-            "version",
-            "subscriptionId",
-            "tenantId",
-            Optional.of("displayName"),
-            Optional.of("description"),
-            Collections.emptyMap());
+    LandingZone landingZone = createLandingZoneRecord();
     when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
