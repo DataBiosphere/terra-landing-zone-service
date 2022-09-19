@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -181,7 +182,9 @@ public class LandingZoneServiceTest {
     var purposeTags =
         Map.of(
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-            ResourcePurpose.SHARED_RESOURCE.toString());
+            ResourcePurpose.SHARED_RESOURCE.toString(),
+            LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+            landingZoneId.toString());
     var deployedResources =
         List.of(
             new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTags, REGION),
@@ -191,13 +194,12 @@ public class LandingZoneServiceTest {
         .thenReturn(landingZoneManager);
 
     ResourcesReader resourceReader = mock(ResourcesReader.class);
-    when(resourceReader.listResourcesByPurpose(ArgumentMatchers.any()))
-        .thenReturn(deployedResources);
+    when(resourceReader.listResourcesByPurpose(any(), any())).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     List<LandingZoneResource> resources =
         landingZoneService.listResourcesByPurpose(
-            ResourcePurpose.SHARED_RESOURCE, landingZoneTarget);
+            landingZoneId.toString(), ResourcePurpose.SHARED_RESOURCE, landingZoneTarget);
 
     assertNotNull(resources);
     assertEquals(2, resources.size());
@@ -262,7 +264,7 @@ public class LandingZoneServiceTest {
     landingZoneService =
         new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    when(resourceReader.listResources()).thenReturn(deployedResources);
+    when(resourceReader.listResourcesWithPurpose(anyString())).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
     // Test
@@ -281,7 +283,7 @@ public class LandingZoneServiceTest {
     assertFalse(resourcesGrouped.containsKey(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET));
 
     // Validate number of members in each group
-    assertEquals(2, resourcesGrouped.get(ResourcePurpose.SHARED_RESOURCE).size());
+    assertEquals(1, resourcesGrouped.get(ResourcePurpose.SHARED_RESOURCE).size());
     assertEquals(1, resourcesGrouped.get(ResourcePurpose.WLZ_RESOURCE).size());
   }
 
@@ -315,14 +317,15 @@ public class LandingZoneServiceTest {
         new LandingZoneService(landingZoneJobService, landingZoneManagerProvider, landingZoneDao);
 
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
-    when(resourceReader.listResources()).thenReturn(deployedResources);
-    when(resourceReader.listSubnetsWithSubnetPurpose(any(SubnetResourcePurpose.class)))
+    when(resourceReader.listResourcesWithPurpose(landingZoneId.toString()))
+        .thenReturn(deployedResources);
+    when(resourceReader.listSubnetsBySubnetPurpose(anyString(), any(SubnetResourcePurpose.class)))
         .thenReturn(List.of());
-    when(resourceReader.listSubnetsWithSubnetPurpose(
-            SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET))
+    when(resourceReader.listSubnetsBySubnetPurpose(
+            eq(landingZoneId.toString()), eq(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)))
         .thenReturn(subnetList1);
-    when(resourceReader.listSubnetsWithSubnetPurpose(
-            SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET))
+    when(resourceReader.listSubnetsBySubnetPurpose(
+            eq(landingZoneId.toString()), eq(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET)))
         .thenReturn(subnetList2);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
@@ -342,7 +345,7 @@ public class LandingZoneServiceTest {
     assertTrue(result.deployedResources().containsKey(ResourcePurpose.SHARED_RESOURCE));
     assertTrue(result.deployedResources().containsKey(ResourcePurpose.WLZ_RESOURCE));
     // Validate number of members in each group
-    assertEquals(2, result.deployedResources().get(ResourcePurpose.SHARED_RESOURCE).size());
+    assertEquals(1, result.deployedResources().get(ResourcePurpose.SHARED_RESOURCE).size());
     assertEquals(1, result.deployedResources().get(ResourcePurpose.WLZ_RESOURCE).size());
     assertEquals(
         2, result.deployedResources().get(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET).size());
@@ -398,18 +401,22 @@ public class LandingZoneServiceTest {
   }
 
   private List<DeployedResource> setupDeployedResources() {
+    String landingZoneId = UUID.randomUUID().toString();
     var purposeTagSet1 =
         Map.of(
+            LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+            landingZoneId,
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
             ResourcePurpose.SHARED_RESOURCE.toString());
     var purposeTagSet2 =
         Map.of(
+            LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+            landingZoneId,
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
             ResourcePurpose.WLZ_RESOURCE.toString());
     return List.of(
         new DeployedResource(STORAGE_ACCOUNT_1, STORAGE_ACCOUNT, purposeTagSet1, REGION),
-        new DeployedResource(VNET_2, VIRTUAL_NETWORK, purposeTagSet2, REGION),
-        new DeployedResource(STORAGE_ACCOUNT_2, STORAGE_ACCOUNT, purposeTagSet1, REGION));
+        new DeployedResource(STORAGE_ACCOUNT_2, STORAGE_ACCOUNT, purposeTagSet2, REGION));
   }
 
   private long countAzureLandingZoneTemplateRecordsWithAttribute(

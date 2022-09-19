@@ -27,10 +27,11 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
 
   @Test
   void deploysLandingZoneV1_resourcesAreCreated() throws InterruptedException {
+    String landingZoneId = UUID.randomUUID().toString();
     var resources =
         landingZoneManager
             .deployLandingZoneAsync(
-                UUID.randomUUID().toString(),
+                landingZoneId,
                 CromwellBaseResourcesFactory.class.getSimpleName(),
                 DefinitionVersion.V1,
                 null)
@@ -42,17 +43,17 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
 
     // check if you can read lz resources
     TimeUnit.SECONDS.sleep(3); // wait for tag propagation...
-    var sharedResources = landingZoneManager.reader().listSharedResources();
+    var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
     assertThat(sharedResources, hasSize(5));
 
-    assertHasVnetWithPurpose(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
-    assertHasVnetWithPurpose(SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);
-    assertHasVnetWithPurpose(SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET);
-    assertHasVnetWithPurpose(SubnetResourcePurpose.POSTGRESQL_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET);
+    assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.POSTGRESQL_SUBNET);
   }
 
-  private void assertHasVnetWithPurpose(SubnetResourcePurpose purpose) {
-    var vNet = landingZoneManager.reader().listVNetWithSubnetPurpose(purpose);
+  private void assertHasVnetWithPurpose(String landingZoneId, SubnetResourcePurpose purpose) {
+    var vNet = landingZoneManager.reader().listVNetBySubnetPurpose(landingZoneId, purpose);
     assertThat(vNet, hasSize(1));
   }
 }

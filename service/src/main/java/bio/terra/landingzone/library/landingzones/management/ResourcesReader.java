@@ -8,13 +8,14 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import java.util.List;
 
 public interface ResourcesReader {
-  List<DeployedResource> listSharedResources();
+  List<DeployedResource> listSharedResources(String landingZoneId);
 
-  List<DeployedResource> listResourcesByPurpose(ResourcePurpose purpose);
+  List<DeployedResource> listResourcesByPurpose(String landingZoneId, ResourcePurpose purpose);
 
-  List<DeployedResource> listResources();
+  List<DeployedResource> listResourcesWithPurpose(String landingZoneId);
 
-  List<DeployedVNet> listVNetWithSubnetPurpose(SubnetResourcePurpose purpose);
+  List<DeployedVNet> listVNetBySubnetPurpose(String landingZoneId, SubnetResourcePurpose purpose);
 
-  List<DeployedSubnet> listSubnetsWithSubnetPurpose(SubnetResourcePurpose purpose);
+  List<DeployedSubnet> listSubnetsBySubnetPurpose(
+      String landingZoneId, SubnetResourcePurpose purpose);
 }

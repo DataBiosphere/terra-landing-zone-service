@@ -132,7 +132,7 @@ class ResourcesReaderImplTest {
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listSharedResources();
+              var resources = resourcesReader.listSharedResources(landingZoneId);
               return resources.size() == 1
                   && deployedStorage
                       .resourceId()
@@ -148,7 +148,8 @@ class ResourcesReaderImplTest {
         .until(
             () -> {
               var resources =
-                  resourcesReader.listResourcesByPurpose(ResourcePurpose.SHARED_RESOURCE);
+                  resourcesReader.listResourcesByPurpose(
+                      landingZoneId, ResourcePurpose.SHARED_RESOURCE);
               return resources.size() == 1
                   && deployedStorage
                       .resourceId()
@@ -162,7 +163,7 @@ class ResourcesReaderImplTest {
         .atMost(Duration.ofSeconds(20))
         .until(
             () -> {
-              var resources = resourcesReader.listResources();
+              var resources = resourcesReader.listResourcesWithPurpose(landingZoneId);
               return resources.size() == 1
                   && resources
                       .get(0)
@@ -183,8 +184,8 @@ class ResourcesReaderImplTest {
         .until(
             () -> {
               var resources =
-                  resourcesReader.listSubnetsWithSubnetPurpose(
-                      SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+                  resourcesReader.listSubnetsBySubnetPurpose(
+                      landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
               return resources.size() == 1 && deployedVNet.Id().equals(resources.get(0).vNetId());
             });
   }
@@ -197,8 +198,8 @@ class ResourcesReaderImplTest {
         .until(
             () -> {
               var resources =
-                  resourcesReader.listVNetWithSubnetPurpose(
-                      SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+                  resourcesReader.listVNetBySubnetPurpose(
+                      landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
               return resources.size() == 1
                   && deployedVNet.Id().equalsIgnoreCase(resources.iterator().next().Id());
             });
