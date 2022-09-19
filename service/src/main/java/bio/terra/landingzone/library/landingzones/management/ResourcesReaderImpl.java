@@ -15,6 +15,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Provides search operations for a resources in specific landing zone. All resources in landing
+ * zone have different set of tags assigned. Each tag has its own purpose. All the search operation
+ * are based on tags.
+ *
+ * <p>Tag examples:
+ *
+ * <p>WLZ-PURPOSE - defines purpose for a specific resource;
+ *
+ * <p>WLZ-ID - defines landing zone identifier
+ */
 public class ResourcesReaderImpl implements ResourcesReader {
   private static final ClientLogger logger = new ClientLogger(ResourcesReaderImpl.class);
 
@@ -27,51 +38,87 @@ public class ResourcesReaderImpl implements ResourcesReader {
     this.resourceGroup = resourceGroup;
   }
 
+  /**
+   * Lists shared resources in a specific landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @return the list of resources
+   */
   @Override
   public List<DeployedResource> listSharedResources(String landingZoneId) {
-    return listResourceByTag(
+    return listResourcesByTag(
         landingZoneId,
         resourceGroup.name(),
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
         ResourcePurpose.SHARED_RESOURCE.toString());
   }
 
+  /**
+   * Lists resources with specific purpose in a landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @param purpose purpose's value
+   * @return the list of resources
+   */
   @Override
   public List<DeployedResource> listResourcesByPurpose(
       String landingZoneId, ResourcePurpose purpose) {
-    return listResourceByTag(
+    return listResourcesByTag(
         landingZoneId,
         resourceGroup.name(),
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
         purpose.toString());
   }
 
+  /**
+   * Lists all resources with purpose in a specific landing zone. Only resources with Landing Zone
+   * Purpose will be returned.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @return the list of resources
+   */
   @Override
   public List<DeployedResource> listResourcesWithPurpose(String landingZoneId) {
-    return listResourceByTag(
+    return listResourcesByTag(
         landingZoneId,
         resourceGroup.name(),
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
         null);
   }
 
+  /**
+   * Lists all virtual networks with specific subnet resource purpose in a landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @param purpose purpose's value
+   * @return the list of virtual networks
+   */
   @Override
   public List<DeployedVNet> listVNetBySubnetPurpose(
       String landingZoneId, SubnetResourcePurpose purpose) {
-    return listResourceByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null).stream()
+    return listResourcesByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null)
+        .stream()
         .map(this::toDeployedVNet)
         .collect(Collectors.toList());
   }
 
+  /**
+   * Lists all subnets with specific subnet purpose in a landing zone.
+   *
+   * @param landingZoneId the identifier of the landing zone
+   * @param purpose purpose's value
+   * @return the list of subnets
+   */
   @Override
   public List<DeployedSubnet> listSubnetsBySubnetPurpose(
       String landingZoneId, SubnetResourcePurpose purpose) {
-    return listResourceByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null).stream()
+    return listResourcesByTag(landingZoneId, resourceGroup.name(), purpose.toString(), null)
+        .stream()
         .map(r -> toDeployedSubnet(r, purpose))
         .toList();
   }
 
-  private List<DeployedResource> listResourceByTag(
+  private List<DeployedResource> listResourcesByTag(
       String landingZoneId, String resourceGroup, String key, String value) {
     logger.info(
         "Listing resources by tag. lzid:{} group:{} key:{} value:{} ",
