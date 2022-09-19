@@ -139,9 +139,9 @@ public class LandingZoneService {
 
     LandingZoneTarget landingZoneTarget =
         new LandingZoneTarget(
-            landingZoneRecord.resourceGroupId(),
+            landingZoneRecord.tenantId(),
             landingZoneRecord.subscriptionId(),
-            landingZoneRecord.tenantId());
+            landingZoneRecord.resourceGroupId());
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
