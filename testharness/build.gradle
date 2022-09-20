@@ -10,8 +10,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
 
-    //implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: "5.7.0"
-
     testImplementation 'bio.terra:terra-cloud-resource-lib:2.0.1-J17-SNAPSHOT'
     testImplementation 'org.apache.commons:commons-lang3:3.8.1'
 
@@ -23,6 +21,7 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
+
     // Allows us to mock final classes
     testImplementation 'org.mockito:mockito-inline:2.13.0'
 
@@ -48,6 +47,7 @@ dependencies {
             includeNoLocationClasses = true
         }
     }
+
     // Create a new :integrationTest task to run integration tests. This won't be executed as
     // part of the standard `./gradlew build` invocation.
     task integrationTest(type: Test) {
