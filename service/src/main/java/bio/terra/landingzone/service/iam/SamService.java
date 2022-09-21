@@ -8,7 +8,6 @@ import bio.terra.common.tracing.OkHttpClientTracingInterceptor;
 import bio.terra.landingzone.library.configuration.SamConfiguration;
 import io.opencensus.contrib.spring.aop.Traced;
 import io.opencensus.trace.Tracing;
-import java.util.List;
 import okhttp3.OkHttpClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
@@ -22,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class SamService {
@@ -43,7 +44,7 @@ public class SamService {
   private ApiClient getApiClient(String accessToken) {
     // OkHttpClient objects manage their own thread pools, so it's much more performant to share one
     // across requests.
-    ApiClient apiClient =
+    var apiClient =
         new ApiClient().setHttpClient(commonHttpClient).setBasePath(samConfig.getBasePath());
     apiClient.setAccessToken(accessToken);
     return apiClient;
@@ -57,11 +58,19 @@ public class SamService {
     return new UsersApi(getApiClient(accessToken));
   }
 
+  /**
+   * Checks whether the calling user may perform an action on a Sam resource.
+   * @param bearerToken the bearer token of the calling user
+   * @param iamResourceType the type of the Sam resource to check
+   * @param resourceId the ID of the Sam resource to check
+   * @param action the action we're querying Sam for
+   * @return true if the user may perform the specified action on the specified resource. False otherwise.
+   */
   @Traced
   public boolean isAuthorized(
       BearerToken bearerToken, String iamResourceType, String resourceId, String action)
       throws InterruptedException {
-    ResourcesApi resourceApi = samResourcesApi(bearerToken.getToken());
+    var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
       return SamRetry.retry(
           () -> resourceApi.resourcePermissionV2(iamResourceType, resourceId, action));
@@ -70,12 +79,16 @@ public class SamService {
     }
   }
 
+  /**
+   * Wrapper around isAuthorized which throws an appropriate exception if the calling user does not
+   * have access to a resource.
+   */
   @Traced
   public void checkAuthz(
       BearerToken bearerToken, String resourceType, String resourceId, String action)
       throws InterruptedException {
-    boolean isAuthorized = isAuthorized(bearerToken, resourceType, resourceId, action);
-    final String userEmail = getUserEmailFromSam(bearerToken);
+    final boolean isAuthorized = isAuthorized(bearerToken, resourceType, resourceId, action);
+    final String userEmail = getUserStatusInfo(bearerToken).getUserEmail();
     if (!isAuthorized)
       throw new ForbiddenException(
           String.format(
@@ -90,21 +103,29 @@ public class SamService {
           resourceType);
   }
 
+  /**
+   * Creates a landing-zone resource in Sam with a parent billing profile, and default owner policy.
+   * @param bearerToken the bearer token of the calling user
+   * @param billingProfileId the ID of the billing profile to set as the parent Sam resource. The
+   *                         effect of this is that the landing zone inherits permissions of the
+   *                         billing profile.
+   * @param landingZoneId the ID of the landing zone resource to create
+   */
   @Traced
   public void createLandingZone(
-      BearerToken bearerToken, String billingprofileId, String landingZoneId)
+      BearerToken bearerToken, String billingProfileId, String landingZoneId)
       throws InterruptedException {
-    ResourcesApi resourceApi = samResourcesApi(bearerToken.getToken());
+    var resourceApi = samResourcesApi(bearerToken.getToken());
 
-    FullyQualifiedResourceId billingProfileParentId =
+    var parentId =
         new FullyQualifiedResourceId()
-            .resourceId(billingprofileId)
+            .resourceId(billingProfileId)
             .resourceTypeName(SamConstants.SamResourceType.SPEND_PROFILE);
 
-    CreateResourceRequestV2 landingZoneRequest =
+    var landingZoneRequest =
         new CreateResourceRequestV2()
             .resourceId(landingZoneId)
-            .parent(billingProfileParentId)
+            .parent(parentId)
             .authDomain(List.of());
     try {
       SamRetry.retry(
@@ -118,10 +139,15 @@ public class SamService {
     }
   }
 
+  /**
+   * Deletes a landing-zone resource in Sam.
+   * @param bearerToken bearer token of the calling user
+   * @param landingZoneId the ID of the landing zone resource to delete
+   */
   @Traced
   public void deleteLandingZone(BearerToken bearerToken, String landingZoneId)
       throws InterruptedException {
-    ResourcesApi resourceApi = samResourcesApi(bearerToken.getToken());
+    var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
       SamRetry.retry(
           () ->
@@ -142,19 +168,9 @@ public class SamService {
     }
   }
 
-  /**
-   * Fetch the email associated with user credentials directly from Sam. Unlike {@code
-   * getRequestUserEmail}, this will always call Sam to fetch an email and will never read it from
-   * the AuthenticatedUserRequest. This is important for calls made by pet service accounts, which
-   * will have a pet email in the AuthenticatedUserRequest, but Sam will return the owner's email.
-   */
-  private String getUserEmailFromSam(BearerToken bearerToken) throws InterruptedException {
-    return getUserStatusInfo(bearerToken).getUserEmail();
-  }
-
   /** Fetch the user status info associated with the user credentials directly from Sam. */
   private UserStatusInfo getUserStatusInfo(BearerToken bearerToken) throws InterruptedException {
-    UsersApi usersApi = samUsersApi(bearerToken.getToken());
+    var usersApi = samUsersApi(bearerToken.getToken());
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException apiException) {

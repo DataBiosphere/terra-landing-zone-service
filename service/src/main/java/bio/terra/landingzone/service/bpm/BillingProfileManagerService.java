@@ -24,8 +24,6 @@ public class BillingProfileManagerService {
   }
 
   private ApiClient getApiClient(String accessToken) {
-    // OkHttpClient objects manage their own thread pools, so it's much more performant to share one
-    // across requests.
     ApiClient apiClient = new ApiClient().setBasePath(bpmConfig.getBasePath());
     apiClient.setAccessToken(accessToken);
     return apiClient;
@@ -35,6 +33,12 @@ public class BillingProfileManagerService {
     return new ProfileApi(getApiClient(accessToken));
   }
 
+  /**
+   * Looks up a billing profile from BPM by id.
+   * @param bearerToken the bearer token of the caller
+   * @param billingProfileId the billing profile ID
+   * @return ProfileModel object
+   */
   public ProfileModel getBillingProfile(BearerToken bearerToken, UUID billingProfileId) {
     try {
       return profileApi(bearerToken.getToken()).getProfile(billingProfileId);

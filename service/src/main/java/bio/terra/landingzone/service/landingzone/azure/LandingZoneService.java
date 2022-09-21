@@ -60,10 +60,24 @@ public class LandingZoneService {
     this.samService = samService;
   }
 
+  /**
+   *
+   * @param jobId
+   * @return
+   */
   public AsyncJobResult<DeployedLandingZone> getAsyncJobResult(String jobId) {
+    // TODO permission check
     return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeployedLandingZone.class);
   }
 
+  /**
+   *
+   * @param bearerToken
+   * @param jobId
+   * @param azureLandingZoneRequest
+   * @param resultPath
+   * @return
+   */
   public String startLandingZoneCreationJob(
       BearerToken bearerToken,
       String jobId,
@@ -100,9 +114,14 @@ public class LandingZoneService {
     return jobBuilder.submit();
   }
 
+  /**
+   *
+   * @return
+   */
   @Cacheable("landingZoneDefinitions")
   public List<LandingZoneDefinition> listLandingZoneDefinitions() {
-    // No authz checks, should still check if you're an enabled user
+    // No authz checks for listing landing zone defintions.
+    // The upstream controller still checks the caller is an enabled user in Sam.
 
     return LandingZoneManager.listDefinitionFactories().stream()
         .flatMap(
@@ -145,7 +164,7 @@ public class LandingZoneService {
   }
 
   public List<String> listLandingZoneIds(LandingZoneTarget landingZoneTarget) {
-    // TODO
+    // TODO is this even used
     return landingZoneDao
         .getLandingZoneList(
             landingZoneTarget.azureSubscriptionId(),
@@ -161,6 +180,7 @@ public class LandingZoneService {
   }
 
   public LandingZoneResourcesByPurpose listResourcesWithPurposes(String landingZoneId) {
+    // TODO add sam check, API looks right
     LandingZone landingZoneRecord = landingZoneDao.getLandingZone(UUID.fromString(landingZoneId));
 
     LandingZoneTarget landingZoneTarget =
