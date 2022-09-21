@@ -1,6 +1,7 @@
 package bio.terra.landingzone.job;
 
 import bio.terra.common.exception.MissingRequiredFieldException;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.TracingHook;
 import bio.terra.landingzone.job.exception.InvalidJobIdException;
@@ -25,6 +26,7 @@ public class LandingZoneJobBuilder {
   @Nullable private String description;
   @Nullable private LandingZoneRequest landingZoneRequest;
   @Nullable private OperationType operationType;
+  @Nullable private BearerToken bearerToken;
 
   public LandingZoneJobBuilder(
       LandingZoneJobService jobService,
@@ -62,6 +64,11 @@ public class LandingZoneJobBuilder {
 
   public LandingZoneJobBuilder operationType(@Nullable OperationType operationType) {
     this.operationType = operationType;
+    return this;
+  }
+
+  public LandingZoneJobBuilder bearerToken(@Nullable BearerToken bearerToken) {
+    this.bearerToken = bearerToken;
     return this;
   }
 
@@ -106,6 +113,10 @@ public class LandingZoneJobBuilder {
       throw new MissingRequiredFieldException("Missing or unspecified operation type");
     }
 
+    if (bearerToken == null) {
+      throw new MissingRequiredFieldException("Missing bearer token");
+    }
+
     // Default to a generated job id
     if (jobId == null) {
       jobId = stairwayComponent.get().createFlightId();
@@ -124,6 +135,10 @@ public class LandingZoneJobBuilder {
 
     if (shouldInsert(LandingZoneFlightMapKeys.OPERATION_TYPE, operationType)) {
       addParameter(LandingZoneFlightMapKeys.OPERATION_TYPE, operationType);
+    }
+
+    if (shouldInsert(LandingZoneFlightMapKeys.BEARER_TOKEN, bearerToken)) {
+      addParameter(LandingZoneFlightMapKeys.BEARER_TOKEN, bearerToken);
     }
   }
 

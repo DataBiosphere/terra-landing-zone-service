@@ -1,15 +1,16 @@
 package bio.terra.landingzone.service.landingzone.azure.model;
 
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
-import bio.terra.landingzone.model.LandingZoneTarget;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Map;
+import java.util.UUID;
 
 public record LandingZoneRequest(
     String definition,
     String version,
     Map<String, String> parameters,
-    LandingZoneTarget landingZoneTarget) {
+    UUID billingProfileId) {
 
   public static Builder builder() {
     return new Builder();
@@ -19,8 +20,7 @@ public record LandingZoneRequest(
     private String definition;
     private String version;
     private Map<String, String> parameters;
-
-    private LandingZoneTarget landingZoneTarget;
+    private UUID billingProfileId;
 
     public Builder definition(String definition) {
       this.definition = definition;
@@ -37,40 +37,22 @@ public record LandingZoneRequest(
       return this;
     }
 
-    public Builder landingZoneTarget(LandingZoneTarget landingZoneTarget) {
-      this.landingZoneTarget = landingZoneTarget;
+    public Builder billingProfileId(UUID billingProfileId) {
+      this.billingProfileId = billingProfileId;
       return this;
     }
 
     public LandingZoneRequest build() {
       if (StringUtils.isBlank(definition)) {
         throw new MissingRequiredFieldsException(
-            "Azure landing zone definition requires definition");
+                "Azure landing zone definition requires definition");
       }
 
-      validateLandingZoneTarget();
-
-      return new LandingZoneRequest(definition, version, parameters, landingZoneTarget);
-    }
-
-    private void validateLandingZoneTarget() {
-      if (landingZoneTarget == null) {
-        throw new MissingRequiredFieldsException("Landing zone target can't be null or is missing");
+      if (billingProfileId == null) {
+        throw new MissingRequiredFieldsException("Azure landing zone definition requires billing profile ID");
       }
 
-      if (StringUtils.isBlank(landingZoneTarget.azureResourceGroupId())) {
-        throw new MissingRequiredFieldsException(
-            "Resource Group ID is missing from the cloud context");
-      }
-
-      if (StringUtils.isBlank(landingZoneTarget.azureSubscriptionId())) {
-        throw new MissingRequiredFieldsException(
-            "Subscription ID is missing from the cloud context");
-      }
-
-      if (StringUtils.isBlank(landingZoneTarget.azureTenantId())) {
-        throw new MissingRequiredFieldsException("Tenant ID is missing from the cloud context");
-      }
+      return new LandingZoneRequest(definition, version, parameters, billingProfileId);
     }
   }
 }

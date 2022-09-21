@@ -5,12 +5,14 @@ import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
+import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
@@ -36,17 +38,19 @@ public class CreateAzureLandingZoneStep implements Step {
   public StepResult doStep(FlightContext context) throws RetryException {
     FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
-        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
+        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneFlightMapKeys.BILLING_PROFILE);
 
     var requestedLandingZone =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
+    var billingProfile =
+            inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     try {
       DeployedLandingZone deployedLandingZone =
           createLandingZone(
               requestedLandingZone,
               landingZoneManagerProvider.createLandingZoneManager(
-                  requestedLandingZone.landingZoneTarget()));
+                      LandingZoneTarget.fromBillingProfile(billingProfile)));
 
       // save for the next step
       context

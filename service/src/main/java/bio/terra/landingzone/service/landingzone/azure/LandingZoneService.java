@@ -1,5 +1,6 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
+import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
 import bio.terra.landingzone.job.JobMapKeys;
@@ -16,6 +17,9 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
+import bio.terra.landingzone.service.iam.SamConstants;
+import bio.terra.landingzone.service.iam.SamRethrow;
+import bio.terra.landingzone.service.iam.SamService;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -43,14 +47,17 @@ public class LandingZoneService {
   private final LandingZoneJobService azureLandingZoneJobService;
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
+  private final SamService samService;
 
   public LandingZoneService(
       LandingZoneJobService azureLandingZoneJobService,
       LandingZoneManagerProvider landingZoneManagerProvider,
-      LandingZoneDao landingZoneDao) {
+      LandingZoneDao landingZoneDao,
+      SamService samService) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.landingZoneDao = landingZoneDao;
+    this.samService = samService;
   }
 
   public AsyncJobResult<DeployedLandingZone> getAsyncJobResult(String jobId) {
@@ -58,10 +65,13 @@ public class LandingZoneService {
   }
 
   public String startLandingZoneCreationJob(
-      String jobId, LandingZoneRequest azureLandingZoneRequest, String resultPath) {
+          BearerToken bearerToken, String jobId, LandingZoneRequest azureLandingZoneRequest, String resultPath) {
+    // Check that the user has "link" permission on the billing profile resource in Sam
+    SamRethrow.onInterrupted(() ->
+            samService.checkAuthz(bearerToken, SamConstants.SamResourceType.SPEND_PROFILE, azureLandingZoneRequest.billingProfileId().toString(), SamConstants.SamSpendProfileAction.LINK),
+            "isAuthorized");
 
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
-
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
     final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
@@ -75,6 +85,7 @@ public class LandingZoneService {
             .flightClass(CreateLandingZoneFlight.class)
             .landingZoneRequest(azureLandingZoneRequest)
             .operationType(OperationType.CREATE)
+            .bearerToken(bearerToken)
             .addParameter(
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
@@ -83,6 +94,8 @@ public class LandingZoneService {
 
   @Cacheable("landingZoneDefinitions")
   public List<LandingZoneDefinition> listLandingZoneDefinitions() {
+    // No authz checks, should still check if you're an enabled user
+
     return LandingZoneManager.listDefinitionFactories().stream()
         .flatMap(
             d ->
@@ -100,6 +113,10 @@ public class LandingZoneService {
 
   public List<LandingZoneResource> listResourcesByPurpose(
       String landingZoneId, ResourcePurpose purpose, LandingZoneTarget landingZoneTarget) {
+
+    // TODO take a landing zone id:
+    //   get from DB
+    //   do sam check
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
@@ -120,6 +137,7 @@ public class LandingZoneService {
   }
 
   public List<String> listLandingZoneIds(LandingZoneTarget landingZoneTarget) {
+    // TODO
     return landingZoneDao
         .getLandingZoneList(
             landingZoneTarget.azureSubscriptionId(),

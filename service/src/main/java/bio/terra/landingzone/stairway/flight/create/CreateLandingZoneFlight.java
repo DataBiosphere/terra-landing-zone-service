@@ -1,7 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create;
 
+import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.RetryRule;
@@ -26,10 +28,16 @@ public class CreateLandingZoneFlight extends Flight {
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
 
-    addCreateSteps(flightBeanBag);
+    final BearerToken bearerToken =
+            inputParameters.get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
+
+    addCreateSteps(flightBeanBag, bearerToken);
   }
 
-  private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag) {
+  private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag, BearerToken bearerToken) {
+
+    addStep(
+            new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     addStep(
         new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
@@ -38,5 +46,9 @@ public class CreateLandingZoneFlight extends Flight {
     addStep(
         new CreateAzureLandingZoneDbRecordStep(flightBeanBag.getLandingZoneDao()),
         RetryRules.shortDatabase());
+
+    addStep(
+            new CreateSamResourceStep(flightBeanBag.getSamService()),
+            RetryRules.shortExponential());
   }
 }

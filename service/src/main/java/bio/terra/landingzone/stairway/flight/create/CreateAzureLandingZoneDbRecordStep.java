@@ -2,10 +2,12 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneIdNotFound;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
+import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
@@ -29,11 +31,11 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     final FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
-        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
+        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneFlightMapKeys.BILLING_PROFILE);
 
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var landingZoneTarget = requestedExternalLandingZoneResource.landingZoneTarget();
+    var landingZoneTarget = LandingZoneTarget.fromBillingProfile(inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class));
 
     if (!context
         .getWorkingMap()

@@ -16,7 +16,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:2.7.0'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.7.0'
     implementation 'org.springframework.retry:spring-retry:1.3.3'
-    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.12:0.1-61135c7'
+    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-e826d4d'
+    implementation 'bio.terra:billing-profile-manager-client:0.1.6-SNAPSHOT'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
     implementation 'javax.servlet:jstl:1.2'
@@ -89,7 +90,7 @@ task integrationTest(type: Test) {
 
 sonarqube {
     properties {
-        property 'sonar.projectName', 'terra-landing-zone-service' 
+        property 'sonar.projectName', 'terra-landing-zone-service'
         property 'sonar.projectKey', 'DataBiosphere_terra-landing-zone-service'
         property 'sonar.organization', 'broad-databiosphere'
         property 'sonar.host.url', 'https://sonarcloud.io'
