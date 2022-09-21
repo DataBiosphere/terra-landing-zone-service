@@ -65,11 +65,19 @@ public class LandingZoneService {
   }
 
   public String startLandingZoneCreationJob(
-          BearerToken bearerToken, String jobId, LandingZoneRequest azureLandingZoneRequest, String resultPath) {
+      BearerToken bearerToken,
+      String jobId,
+      LandingZoneRequest azureLandingZoneRequest,
+      String resultPath) {
     // Check that the user has "link" permission on the billing profile resource in Sam
-    SamRethrow.onInterrupted(() ->
-            samService.checkAuthz(bearerToken, SamConstants.SamResourceType.SPEND_PROFILE, azureLandingZoneRequest.billingProfileId().toString(), SamConstants.SamSpendProfileAction.LINK),
-            "isAuthorized");
+    SamRethrow.onInterrupted(
+        () ->
+            samService.checkAuthz(
+                bearerToken,
+                SamConstants.SamResourceType.SPEND_PROFILE,
+                azureLandingZoneRequest.billingProfileId().toString(),
+                SamConstants.SamSpendProfileAction.LINK),
+        "isAuthorized");
 
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";

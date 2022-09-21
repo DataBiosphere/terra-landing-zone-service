@@ -31,11 +31,15 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     final FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
-        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneFlightMapKeys.BILLING_PROFILE);
+        inputMap,
+        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+        LandingZoneFlightMapKeys.BILLING_PROFILE);
 
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var landingZoneTarget = LandingZoneTarget.fromBillingProfile(inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class));
+    var landingZoneTarget =
+        LandingZoneTarget.fromBillingProfile(
+            inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class));
 
     if (!context
         .getWorkingMap()

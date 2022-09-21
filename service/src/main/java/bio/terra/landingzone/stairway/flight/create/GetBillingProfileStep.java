@@ -13,35 +13,36 @@ import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 
 public class GetBillingProfileStep implements Step {
-    private final BillingProfileManagerService bpmService;
+  private final BillingProfileManagerService bpmService;
 
-    public GetBillingProfileStep(BillingProfileManagerService bpmService) {
-        this.bpmService = bpmService;
+  public GetBillingProfileStep(BillingProfileManagerService bpmService) {
+    this.bpmService = bpmService;
+  }
+
+  @Override
+  public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    FlightMap inputMap = context.getInputParameters();
+    FlightUtils.validateRequiredEntries(
+        inputMap,
+        LandingZoneFlightMapKeys.BEARER_TOKEN,
+        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
+
+    var bearerToken = inputMap.get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
+    var requestedLandingZone =
+        inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
+
+    try {
+      var profile =
+          bpmService.getBillingProfile(bearerToken, requestedLandingZone.billingProfileId());
+      context.getWorkingMap().put(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
+      return StepResult.getStepResultSuccess();
+    } catch (Exception e) {
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
     }
-    @Override
-    public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-        FlightMap inputMap = context.getInputParameters();
-        FlightUtils.validateRequiredEntries(
-                inputMap, LandingZoneFlightMapKeys.BEARER_TOKEN, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
+  }
 
-        var bearerToken =
-                inputMap.get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
-        var requestedLandingZone =
-                inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-
-        try {
-            var profile = bpmService.getBillingProfile(bearerToken, requestedLandingZone.billingProfileId());
-            context
-                    .getWorkingMap()
-                    .put(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
-            return StepResult.getStepResultSuccess();
-        } catch (Exception e) {
-            return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-        }
-    }
-
-    @Override
-    public StepResult undoStep(FlightContext context) throws InterruptedException {
-        return StepResult.getStepResultSuccess();
-    }
+  @Override
+  public StepResult undoStep(FlightContext context) throws InterruptedException {
+    return StepResult.getStepResultSuccess();
+  }
 }

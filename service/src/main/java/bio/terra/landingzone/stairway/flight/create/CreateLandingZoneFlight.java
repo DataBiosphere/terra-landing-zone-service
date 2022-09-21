@@ -29,7 +29,7 @@ public class CreateLandingZoneFlight extends Flight {
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
 
     final BearerToken bearerToken =
-            inputParameters.get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
+        inputParameters.get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
 
     addCreateSteps(flightBeanBag, bearerToken);
   }
@@ -37,7 +37,7 @@ public class CreateLandingZoneFlight extends Flight {
   private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag, BearerToken bearerToken) {
 
     addStep(
-            new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
+        new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     addStep(
         new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
@@ -48,7 +48,6 @@ public class CreateLandingZoneFlight extends Flight {
         RetryRules.shortDatabase());
 
     addStep(
-            new CreateSamResourceStep(flightBeanBag.getSamService()),
-            RetryRules.shortExponential());
+        new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
   }
 }

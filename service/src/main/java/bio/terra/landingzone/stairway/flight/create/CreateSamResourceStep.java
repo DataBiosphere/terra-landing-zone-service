@@ -12,45 +12,43 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreateSamResourceStep implements Step {
-    private static final Logger logger = LoggerFactory.getLogger(CreateSamResourceStep.class);
+  private static final Logger logger = LoggerFactory.getLogger(CreateSamResourceStep.class);
 
-    private final SamService samService;
+  private final SamService samService;
 
-    public CreateSamResourceStep(
-            SamService samService) {
-        this.samService = samService;
-    }
+  public CreateSamResourceStep(SamService samService) {
+    this.samService = samService;
+  }
 
-    @Override
-    public StepResult doStep(FlightContext context)
-            throws InterruptedException, RetryException {
-        var bearerToken =
-                context.getInputParameters().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
-        var requestedLandingZone =
-                context.getInputParameters().get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
+  @Override
+  public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    var bearerToken =
+        context.getInputParameters().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
+    var requestedLandingZone =
+        context
+            .getInputParameters()
+            .get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
 
-        var landingZoneId =
-                context
-                        .getWorkingMap()
-                        .get(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, String.class);
+    var landingZoneId =
+        context
+            .getWorkingMap()
+            .get(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, String.class);
 
+    samService.createLandingZone(
+        bearerToken, requestedLandingZone.billingProfileId().toString(), landingZoneId);
+    return StepResult.getStepResultSuccess();
+  }
 
+  @Override
+  public StepResult undoStep(FlightContext context) throws InterruptedException {
+    var bearerToken =
+        context.getInputParameters().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
 
-        samService.createLandingZone(bearerToken, requestedLandingZone.billingProfileId().toString(), landingZoneId);
-        return StepResult.getStepResultSuccess();
-    }
-
-    @Override
-    public StepResult undoStep(FlightContext context) throws InterruptedException {
-        var bearerToken =
-                context.getInputParameters().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
-
-        var landingZoneId =
-                context
-                        .getWorkingMap()
-                        .get(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, String.class);
-        samService.deleteLandingZone(bearerToken, landingZoneId);
-        return StepResult.getStepResultSuccess();
-    }
-
+    var landingZoneId =
+        context
+            .getWorkingMap()
+            .get(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, String.class);
+    samService.deleteLandingZone(bearerToken, landingZoneId);
+    return StepResult.getStepResultSuccess();
+  }
 }

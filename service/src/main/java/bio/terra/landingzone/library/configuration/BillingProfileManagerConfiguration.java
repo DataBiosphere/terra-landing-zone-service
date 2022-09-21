@@ -8,14 +8,14 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "landingzone.bpm")
 public class BillingProfileManagerConfiguration {
-    /** URL of the BPM instance */
-    private String basePath;
+  /** URL of the BPM instance */
+  private String basePath;
 
-    public String getBasePath() {
-        return basePath;
-    }
+  public String getBasePath() {
+    return basePath;
+  }
 
-    public void setBasePath(String basePath) {
-        this.basePath = basePath;
-    }
+  public void setBasePath(String basePath) {
+    this.basePath = basePath;
+  }
 }

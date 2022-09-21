@@ -38,19 +38,20 @@ public class CreateAzureLandingZoneStep implements Step {
   public StepResult doStep(FlightContext context) throws RetryException {
     FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
-        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneFlightMapKeys.BILLING_PROFILE);
+        inputMap,
+        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+        LandingZoneFlightMapKeys.BILLING_PROFILE);
 
     var requestedLandingZone =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var billingProfile =
-            inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+    var billingProfile = inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     try {
       DeployedLandingZone deployedLandingZone =
           createLandingZone(
               requestedLandingZone,
               landingZoneManagerProvider.createLandingZoneManager(
-                      LandingZoneTarget.fromBillingProfile(billingProfile)));
+                  LandingZoneTarget.fromBillingProfile(billingProfile)));
 
       // save for the next step
       context

@@ -1,16 +1,12 @@
 package bio.terra.landingzone.service.landingzone.azure.model;
 
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Map;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 
 public record LandingZoneRequest(
-    String definition,
-    String version,
-    Map<String, String> parameters,
-    UUID billingProfileId) {
+    String definition, String version, Map<String, String> parameters, UUID billingProfileId) {
 
   public static Builder builder() {
     return new Builder();
@@ -45,11 +41,12 @@ public record LandingZoneRequest(
     public LandingZoneRequest build() {
       if (StringUtils.isBlank(definition)) {
         throw new MissingRequiredFieldsException(
-                "Azure landing zone definition requires definition");
+            "Azure landing zone definition requires definition");
       }
 
       if (billingProfileId == null) {
-        throw new MissingRequiredFieldsException("Azure landing zone definition requires billing profile ID");
+        throw new MissingRequiredFieldsException(
+            "Azure landing zone definition requires billing profile ID");
       }
 
       return new LandingZoneRequest(definition, version, parameters, billingProfileId);

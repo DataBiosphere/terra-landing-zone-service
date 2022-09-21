@@ -18,11 +18,11 @@ public class LandingZoneFlightBeanBag {
 
   @Autowired
   public LandingZoneFlightBeanBag(
-          LandingZoneDao landingZoneDao,
-          LandingZoneAzureConfiguration azureConfiguration,
-          LandingZoneManagerProvider landingZoneManagerProvider,
-          SamService samService,
-          BillingProfileManagerService bpmService) {
+      LandingZoneDao landingZoneDao,
+      LandingZoneAzureConfiguration azureConfiguration,
+      LandingZoneManagerProvider landingZoneManagerProvider,
+      SamService samService,
+      BillingProfileManagerService bpmService) {
     this.landingZoneDao = landingZoneDao;
     this.azureConfiguration = azureConfiguration;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
