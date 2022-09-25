@@ -35,6 +35,7 @@ public class BillingProfileManagerService {
 
   /**
    * Looks up a billing profile from BPM by id.
+   *
    * @param bearerToken the bearer token of the caller
    * @param billingProfileId the billing profile ID
    * @return ProfileModel object

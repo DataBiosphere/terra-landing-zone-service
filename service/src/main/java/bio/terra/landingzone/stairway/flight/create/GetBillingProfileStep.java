@@ -12,6 +12,7 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 
+/** Resolves the billing profile in BPM for use downstream in CreateLandingZoneFlight. */
 public class GetBillingProfileStep implements Step {
   private final BillingProfileManagerService bpmService;
 
@@ -31,6 +32,7 @@ public class GetBillingProfileStep implements Step {
     var requestedLandingZone =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
 
+    // Call BPM to resolve the billing profile, and put it in the working map.
     try {
       var profile =
           bpmService.getBillingProfile(bearerToken, requestedLandingZone.billingProfileId());

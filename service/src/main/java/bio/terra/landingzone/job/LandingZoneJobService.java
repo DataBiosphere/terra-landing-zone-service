@@ -1,6 +1,7 @@
 package bio.terra.landingzone.job;
 
 import bio.terra.common.db.DataSourceInitializer;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.common.logging.LoggingUtils;
 import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.TracingHook;
@@ -17,13 +18,18 @@ import bio.terra.landingzone.job.model.JobReport;
 import bio.terra.landingzone.library.configuration.LandingZoneIngressConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneJobConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
+import bio.terra.landingzone.service.iam.SamConstants;
+import bio.terra.landingzone.service.iam.SamRethrow;
+import bio.terra.landingzone.service.iam.SamService;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightDebugInfo;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.FlightState;
 import bio.terra.stairway.FlightStatus;
 import bio.terra.stairway.Stairway;
+import bio.terra.stairway.exception.DatabaseOperationException;
 import bio.terra.stairway.exception.DuplicateFlightIdException;
 import bio.terra.stairway.exception.FlightNotFoundException;
 import bio.terra.stairway.exception.StairwayException;
@@ -32,6 +38,7 @@ import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.opencensus.contrib.spring.aop.Traced;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -47,6 +54,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LandingZoneJobService {
+  private static final Logger logger = LoggerFactory.getLogger(LandingZoneJobService.class);
 
   private final LandingZoneJobConfiguration jobConfig;
   private final LandingZoneIngressConfiguration ingressConfig;
@@ -55,8 +63,8 @@ public class LandingZoneJobService {
   private final LandingZoneMdcHook mdcHook;
   private final StairwayComponent stairwayComponent;
   private final LandingZoneFlightBeanBag flightBeanBag;
-  private final Logger logger = LoggerFactory.getLogger(LandingZoneJobService.class);
   private final ObjectMapper objectMapper;
+  private final SamService samService;
   private FlightDebugInfo flightDebugInfo;
 
   @Autowired
@@ -67,7 +75,8 @@ public class LandingZoneJobService {
       LandingZoneMdcHook mdcHook,
       @Qualifier("landingZoneStairwayComponent") StairwayComponent stairwayComponent,
       LandingZoneFlightBeanBag flightBeanBag,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      SamService samService) {
     this.jobConfig = jobConfig;
     this.ingressConfig = ingressConfig;
     this.stairwayDatabaseConfiguration = stairwayDatabaseConfiguration;
@@ -76,6 +85,7 @@ public class LandingZoneJobService {
     this.stairwayComponent = stairwayComponent;
     this.flightBeanBag = flightBeanBag;
     this.objectMapper = objectMapper;
+    this.samService = samService;
   }
 
   // Fully fluent style of JobBuilder
@@ -317,6 +327,39 @@ public class LandingZoneJobService {
           .errorReport(errorReport);
     } catch (StairwayException | InterruptedException stairwayEx) {
       throw new InternalStairwayException(stairwayEx);
+    }
+  }
+
+  /**
+   * Ensure the user in the user request has permission to read the landing zone associated with the
+   * Job ID. Throws ForbiddenException if not.
+   *
+   * @param bearerToken bearer token of the user request
+   * @param jobId ID of running job
+   */
+  public void verifyUserAccess(BearerToken bearerToken, String jobId) {
+    try {
+      FlightState flightState = stairwayComponent.get().getFlightState(jobId);
+      FlightMap inputParameters = flightState.getInputParameters();
+      UUID landingZoneId =
+          inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+      if (landingZoneId == null) {
+        throw new JobNotFoundException("The landing zone does not exist for job");
+      }
+      // Check that the calling user has "list-resources" permission on the landing zone resource in
+      // Sam
+      SamRethrow.onInterrupted(
+          () ->
+              samService.checkAuthz(
+                  bearerToken,
+                  SamConstants.SamResourceType.LANDING_ZONE,
+                  landingZoneId.toString(),
+                  SamConstants.SamLandingZoneAction.LIST_RESOURCES),
+          "isAuthorized");
+    } catch (DatabaseOperationException | InterruptedException ex) {
+      throw new InternalStairwayException("Stairway exception looking up the job", ex);
+    } catch (FlightNotFoundException ex) {
+      throw new JobNotFoundException("Job not found", ex);
     }
   }
 

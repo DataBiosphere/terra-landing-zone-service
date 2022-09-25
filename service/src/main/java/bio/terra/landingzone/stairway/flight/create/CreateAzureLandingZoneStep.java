@@ -40,23 +40,21 @@ public class CreateAzureLandingZoneStep implements Step {
     FlightUtils.validateRequiredEntries(
         inputMap,
         LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-        LandingZoneFlightMapKeys.BILLING_PROFILE);
+        LandingZoneFlightMapKeys.BILLING_PROFILE,
+        LandingZoneFlightMapKeys.LANDING_ZONE_ID);
 
     var requestedLandingZone =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
     var billingProfile = inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+    var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     try {
       DeployedLandingZone deployedLandingZone =
           createLandingZone(
+              landingZoneId,
               requestedLandingZone,
               landingZoneManagerProvider.createLandingZoneManager(
                   LandingZoneTarget.fromBillingProfile(billingProfile)));
-
-      // save for the next step
-      context
-          .getWorkingMap()
-          .put(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, deployedLandingZone.id());
 
       persistResponse(context, deployedLandingZone);
 
@@ -93,8 +91,9 @@ public class CreateAzureLandingZoneStep implements Step {
   }
 
   private DeployedLandingZone createLandingZone(
-      LandingZoneRequest landingZoneRequest, LandingZoneManager landingZoneManager) {
-    UUID landingZoneId = UUID.randomUUID();
+      UUID landingZoneId,
+      LandingZoneRequest landingZoneRequest,
+      LandingZoneManager landingZoneManager) {
     List<DeployedResource> deployedResources =
         landingZoneManager.deployLandingZone(
             landingZoneId.toString(),

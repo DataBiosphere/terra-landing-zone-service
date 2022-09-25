@@ -8,6 +8,8 @@ import bio.terra.common.tracing.OkHttpClientTracingInterceptor;
 import bio.terra.landingzone.library.configuration.SamConfiguration;
 import io.opencensus.contrib.spring.aop.Traced;
 import io.opencensus.trace.Tracing;
+import java.util.List;
+import java.util.UUID;
 import okhttp3.OkHttpClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
@@ -21,8 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class SamService {
@@ -60,11 +60,13 @@ public class SamService {
 
   /**
    * Checks whether the calling user may perform an action on a Sam resource.
+   *
    * @param bearerToken the bearer token of the calling user
    * @param iamResourceType the type of the Sam resource to check
    * @param resourceId the ID of the Sam resource to check
    * @param action the action we're querying Sam for
-   * @return true if the user may perform the specified action on the specified resource. False otherwise.
+   * @return true if the user may perform the specified action on the specified resource. False
+   *     otherwise.
    */
   @Traced
   public boolean isAuthorized(
@@ -105,26 +107,25 @@ public class SamService {
 
   /**
    * Creates a landing-zone resource in Sam with a parent billing profile, and default owner policy.
+   *
    * @param bearerToken the bearer token of the calling user
    * @param billingProfileId the ID of the billing profile to set as the parent Sam resource. The
-   *                         effect of this is that the landing zone inherits permissions of the
-   *                         billing profile.
+   *     effect of this is that the landing zone inherits permissions of the billing profile.
    * @param landingZoneId the ID of the landing zone resource to create
    */
   @Traced
-  public void createLandingZone(
-      BearerToken bearerToken, String billingProfileId, String landingZoneId)
+  public void createLandingZone(BearerToken bearerToken, UUID billingProfileId, UUID landingZoneId)
       throws InterruptedException {
     var resourceApi = samResourcesApi(bearerToken.getToken());
 
     var parentId =
         new FullyQualifiedResourceId()
-            .resourceId(billingProfileId)
+            .resourceId(billingProfileId.toString())
             .resourceTypeName(SamConstants.SamResourceType.SPEND_PROFILE);
 
     var landingZoneRequest =
         new CreateResourceRequestV2()
-            .resourceId(landingZoneId)
+            .resourceId(landingZoneId.toString())
             .parent(parentId)
             .authDomain(List.of());
     try {
@@ -141,18 +142,19 @@ public class SamService {
 
   /**
    * Deletes a landing-zone resource in Sam.
+   *
    * @param bearerToken bearer token of the calling user
    * @param landingZoneId the ID of the landing zone resource to delete
    */
   @Traced
-  public void deleteLandingZone(BearerToken bearerToken, String landingZoneId)
+  public void deleteLandingZone(BearerToken bearerToken, UUID landingZoneId)
       throws InterruptedException {
     var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
       SamRetry.retry(
           () ->
               resourceApi.deleteResourceV2(
-                  SamConstants.SamResourceType.LANDING_ZONE, landingZoneId));
+                  SamConstants.SamResourceType.LANDING_ZONE, landingZoneId.toString()));
       logger.info("Deleted Sam resource for landing zone {}", landingZoneId);
     } catch (ApiException apiException) {
       logger.info("Sam API error while deleting landing zone, code is " + apiException.getCode());
