@@ -1,18 +1,19 @@
 package bio.terra.landingzone.service.landingzone.azure.model;
 
 import java.util.List;
+import java.util.UUID;
 
-public record DeployedLandingZone(String id, List<LandingZoneResource> deployedResources) {
+public record DeployedLandingZone(UUID id, List<LandingZoneResource> deployedResources) {
 
   public static Builder builder() {
     return new Builder();
   }
 
   public static class Builder {
-    private String id;
+    private UUID id;
     private List<LandingZoneResource> deployedResources;
 
-    public Builder id(String id) {
+    public Builder id(UUID id) {
       this.id = id;
       return this;
     }

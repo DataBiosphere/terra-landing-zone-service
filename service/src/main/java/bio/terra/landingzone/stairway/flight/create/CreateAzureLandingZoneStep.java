@@ -107,7 +107,7 @@ public class CreateAzureLandingZoneStep implements Step {
         landingZoneRequest.definition(),
         landingZoneRequest.version());
     return DeployedLandingZone.builder()
-        .id(landingZoneId.toString())
+        .id(landingZoneId)
         .deployedResources(
             deployedResources.stream()
                 .map(
