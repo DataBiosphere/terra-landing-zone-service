@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "landingzone.bpm")
-public class BillingProfileManagerConfiguration {
+public class LandingZoneBillingProfileManagerConfiguration {
   /** URL of the BPM instance */
   private String basePath;
 

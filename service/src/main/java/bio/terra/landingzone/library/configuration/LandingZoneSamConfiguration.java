@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "landingzone.sam")
-public class SamConfiguration {
+public class LandingZoneSamConfiguration {
   /** URL of the SAM instance */
   private String basePath;
 

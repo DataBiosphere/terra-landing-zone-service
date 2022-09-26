@@ -1,7 +1,7 @@
 package bio.terra.landingzone.service.bpm;
 
 import bio.terra.common.iam.BearerToken;
-import bio.terra.landingzone.library.configuration.BillingProfileManagerConfiguration;
+import bio.terra.landingzone.library.configuration.LandingZoneBillingProfileManagerConfiguration;
 import bio.terra.landingzone.service.bpm.exception.BillingProfileNotFoundException;
 import bio.terra.profile.api.ProfileApi;
 import bio.terra.profile.client.ApiClient;
@@ -16,10 +16,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class BillingProfileManagerService {
   private static final Logger logger = LoggerFactory.getLogger(BillingProfileManagerService.class);
-  private final BillingProfileManagerConfiguration bpmConfig;
+  private final LandingZoneBillingProfileManagerConfiguration bpmConfig;
 
   @Autowired
-  public BillingProfileManagerService(BillingProfileManagerConfiguration bpmConfig) {
+  public BillingProfileManagerService(LandingZoneBillingProfileManagerConfiguration bpmConfig) {
     this.bpmConfig = bpmConfig;
   }
 

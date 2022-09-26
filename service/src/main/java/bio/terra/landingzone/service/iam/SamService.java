@@ -6,7 +6,7 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
 import bio.terra.common.tracing.OkHttpClientTracingInterceptor;
-import bio.terra.landingzone.library.configuration.SamConfiguration;
+import bio.terra.landingzone.library.configuration.LandingZoneSamConfiguration;
 import io.opencensus.contrib.spring.aop.Traced;
 import io.opencensus.trace.Tracing;
 import java.util.List;
@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class SamService {
   private static final Logger logger = LoggerFactory.getLogger(SamService.class);
-  private final SamConfiguration samConfig;
+  private final LandingZoneSamConfiguration samConfig;
   private final OkHttpClient commonHttpClient;
 
   @Autowired
-  public SamService(SamConfiguration samConfig) {
+  public SamService(LandingZoneSamConfiguration samConfig) {
     this.samConfig = samConfig;
     this.commonHttpClient =
         new ApiClient()
