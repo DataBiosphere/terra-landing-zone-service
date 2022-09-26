@@ -3,8 +3,8 @@ package bio.terra.landingzone.common.utils;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
-import bio.terra.landingzone.service.bpm.BillingProfileManagerService;
-import bio.terra.landingzone.service.iam.SamService;
+import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
+import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,16 +13,16 @@ public class LandingZoneFlightBeanBag {
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneAzureConfiguration azureConfiguration;
   private final LandingZoneManagerProvider landingZoneManagerProvider;
-  private final SamService samService;
-  private final BillingProfileManagerService bpmService;
+  private final LandingZoneSamService samService;
+  private final LandingZoneBillingProfileManagerService bpmService;
 
   @Autowired
   public LandingZoneFlightBeanBag(
       LandingZoneDao landingZoneDao,
       LandingZoneAzureConfiguration azureConfiguration,
       LandingZoneManagerProvider landingZoneManagerProvider,
-      SamService samService,
-      BillingProfileManagerService bpmService) {
+      LandingZoneSamService samService,
+      LandingZoneBillingProfileManagerService bpmService) {
     this.landingZoneDao = landingZoneDao;
     this.azureConfiguration = azureConfiguration;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
@@ -42,11 +42,11 @@ public class LandingZoneFlightBeanBag {
     return landingZoneManagerProvider;
   }
 
-  public SamService getSamService() {
+  public LandingZoneSamService getSamService() {
     return samService;
   }
 
-  public BillingProfileManagerService getBpmService() {
+  public LandingZoneBillingProfileManagerService getBpmService() {
     return bpmService;
   }
 

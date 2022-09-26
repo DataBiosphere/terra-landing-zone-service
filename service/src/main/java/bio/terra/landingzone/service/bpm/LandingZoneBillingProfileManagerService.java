@@ -14,12 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BillingProfileManagerService {
-  private static final Logger logger = LoggerFactory.getLogger(BillingProfileManagerService.class);
+public class LandingZoneBillingProfileManagerService {
+  private static final Logger logger =
+      LoggerFactory.getLogger(LandingZoneBillingProfileManagerService.class);
   private final LandingZoneBillingProfileManagerConfiguration bpmConfig;
 
   @Autowired
-  public BillingProfileManagerService(LandingZoneBillingProfileManagerConfiguration bpmConfig) {
+  public LandingZoneBillingProfileManagerService(
+      LandingZoneBillingProfileManagerConfiguration bpmConfig) {
     this.bpmConfig = bpmConfig;
   }
 

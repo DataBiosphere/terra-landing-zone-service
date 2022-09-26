@@ -27,13 +27,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SamService {
-  private static final Logger logger = LoggerFactory.getLogger(SamService.class);
+public class LandingZoneSamService {
+  private static final Logger logger = LoggerFactory.getLogger(LandingZoneSamService.class);
   private final LandingZoneSamConfiguration samConfig;
   private final OkHttpClient commonHttpClient;
 
   @Autowired
-  public SamService(LandingZoneSamConfiguration samConfig) {
+  public LandingZoneSamService(LandingZoneSamConfiguration samConfig) {
     this.samConfig = samConfig;
     this.commonHttpClient =
         new ApiClient()

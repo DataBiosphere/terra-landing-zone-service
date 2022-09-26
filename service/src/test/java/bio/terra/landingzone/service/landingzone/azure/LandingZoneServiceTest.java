@@ -32,7 +32,7 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesReader;
 import bio.terra.landingzone.model.LandingZoneTarget;
-import bio.terra.landingzone.service.iam.SamService;
+import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -87,7 +87,7 @@ public class LandingZoneServiceTest {
 
   @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
   @Mock private LandingZoneDao landingZoneDao;
-  @Mock private SamService samService;
+  @Mock private LandingZoneSamService samService;
 
   @BeforeEach
   public void setup() {

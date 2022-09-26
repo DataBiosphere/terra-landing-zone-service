@@ -17,9 +17,9 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
+import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
-import bio.terra.landingzone.service.iam.SamService;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -47,13 +47,13 @@ public class LandingZoneService {
   private final LandingZoneJobService azureLandingZoneJobService;
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
-  private final SamService samService;
+  private final LandingZoneSamService samService;
 
   public LandingZoneService(
       LandingZoneJobService azureLandingZoneJobService,
       LandingZoneManagerProvider landingZoneManagerProvider,
       LandingZoneDao landingZoneDao,
-      SamService samService) {
+      LandingZoneSamService samService) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.landingZoneDao = landingZoneDao;

@@ -1,7 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.common.iam.BearerToken;
-import bio.terra.landingzone.service.bpm.BillingProfileManagerService;
+import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
@@ -14,9 +14,9 @@ import bio.terra.stairway.exception.RetryException;
 
 /** Resolves the billing profile in BPM for use downstream in CreateLandingZoneFlight. */
 public class GetBillingProfileStep implements Step {
-  private final BillingProfileManagerService bpmService;
+  private final LandingZoneBillingProfileManagerService bpmService;
 
-  public GetBillingProfileStep(BillingProfileManagerService bpmService) {
+  public GetBillingProfileStep(LandingZoneBillingProfileManagerService bpmService) {
     this.bpmService = bpmService;
   }
 

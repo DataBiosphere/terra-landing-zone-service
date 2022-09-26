@@ -1,7 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.common.iam.BearerToken;
-import bio.terra.landingzone.service.iam.SamService;
+import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 public class CreateSamResourceStep implements Step {
   private static final Logger logger = LoggerFactory.getLogger(CreateSamResourceStep.class);
 
-  private final SamService samService;
+  private final LandingZoneSamService samService;
 
-  public CreateSamResourceStep(SamService samService) {
+  public CreateSamResourceStep(LandingZoneSamService samService) {
     this.samService = samService;
   }
 

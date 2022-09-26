@@ -18,9 +18,9 @@ import bio.terra.landingzone.job.model.JobReport;
 import bio.terra.landingzone.library.configuration.LandingZoneIngressConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneJobConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
+import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
-import bio.terra.landingzone.service.iam.SamService;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
@@ -64,7 +64,7 @@ public class LandingZoneJobService {
   private final StairwayComponent stairwayComponent;
   private final LandingZoneFlightBeanBag flightBeanBag;
   private final ObjectMapper objectMapper;
-  private final SamService samService;
+  private final LandingZoneSamService samService;
   private FlightDebugInfo flightDebugInfo;
 
   @Autowired
@@ -76,7 +76,7 @@ public class LandingZoneJobService {
       @Qualifier("landingZoneStairwayComponent") StairwayComponent stairwayComponent,
       LandingZoneFlightBeanBag flightBeanBag,
       ObjectMapper objectMapper,
-      SamService samService) {
+      LandingZoneSamService samService) {
     this.jobConfig = jobConfig;
     this.ingressConfig = ingressConfig;
     this.stairwayDatabaseConfiguration = stairwayDatabaseConfiguration;
