@@ -236,7 +236,8 @@ public class LandingZoneServiceTest {
       staticMockLandingZoneManager
           .when(LandingZoneManager::listDefinitionFactories)
           .thenReturn(factories);
-      List<LandingZoneDefinition> templates = landingZoneService.listLandingZoneDefinitions();
+      List<LandingZoneDefinition> templates =
+          landingZoneService.listLandingZoneDefinitions(bearerToken);
 
       assertEquals(
           1,

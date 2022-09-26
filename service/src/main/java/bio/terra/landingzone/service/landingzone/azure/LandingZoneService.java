@@ -124,12 +124,13 @@ public class LandingZoneService {
   /**
    * Lists available landing zone definitions.
    *
+   * @param bearerToken bearer token of the user request.
    * @return list of landing zone definitions.
    */
   @Cacheable("landingZoneDefinitions")
-  public List<LandingZoneDefinition> listLandingZoneDefinitions() {
-    // No authz checks for listing landing zone definitions.
-    // The upstream controller still checks the caller is an enabled user in Sam.
+  public List<LandingZoneDefinition> listLandingZoneDefinitions(BearerToken bearerToken) {
+    // Check that the calling user is enabled in Sam, but no further authz checks.
+    SamRethrow.onInterrupted(() -> samService.checkUserEnabled(bearerToken), "checkUserEnabled");
 
     return LandingZoneManager.listDefinitionFactories().stream()
         .flatMap(

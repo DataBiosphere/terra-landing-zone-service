@@ -1,6 +1,7 @@
 package bio.terra.landingzone.service.iam;
 
 import bio.terra.common.exception.ForbiddenException;
+import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
@@ -11,6 +12,7 @@ import io.opencensus.trace.Tracing;
 import java.util.List;
 import java.util.UUID;
 import okhttp3.OkHttpClient;
+import org.apache.commons.lang3.BooleanUtils;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
@@ -90,19 +92,21 @@ public class SamService {
       BearerToken bearerToken, String resourceType, String resourceId, String action)
       throws InterruptedException {
     final boolean isAuthorized = isAuthorized(bearerToken, resourceType, resourceId, action);
-    final String userEmail = getUserStatusInfo(bearerToken).getUserEmail();
-    if (!isAuthorized)
+    if (!isAuthorized) {
+      final String userEmail = getUserStatusInfo(bearerToken).getUserEmail();
       throw new ForbiddenException(
           String.format(
               "User %s is not authorized to %s resource %s of type %s",
               userEmail, action, resourceId, resourceType));
-    else
-      logger.info(
-          "User {} is authorized to {} resource {} of type {}",
-          userEmail,
-          action,
-          resourceId,
-          resourceType);
+    }
+  }
+
+  @Traced
+  public void checkUserEnabled(BearerToken bearerToken) throws InterruptedException {
+    var userInfo = getUserStatusInfo(bearerToken);
+    if (!BooleanUtils.isTrue(userInfo.getEnabled())) {
+      throw new UnauthorizedException("User is disabled");
+    }
   }
 
   /**
