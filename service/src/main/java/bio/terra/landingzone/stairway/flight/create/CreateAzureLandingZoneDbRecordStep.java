@@ -32,7 +32,6 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
     FlightUtils.validateRequiredEntries(
         inputMap,
         LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-        LandingZoneFlightMapKeys.BILLING_PROFILE,
         LandingZoneFlightMapKeys.LANDING_ZONE_ID);
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);

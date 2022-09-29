@@ -78,7 +78,7 @@ public class CreateAzureLandingZoneStep implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) {
-    return null;
+    return StepResult.getStepResultSuccess();
   }
 
   private String listDeployedResourcesAsCsv(List<LandingZoneResource> deployedResources) {
