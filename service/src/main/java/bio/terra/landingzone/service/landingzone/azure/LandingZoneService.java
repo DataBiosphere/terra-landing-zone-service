@@ -81,9 +81,9 @@ public class LandingZoneService {
    * @param jobId job identifier.
    * @param azureLandingZoneRequest landing zone creation request object.
    * @param resultPath API path for checking job result.
-   * @return job ID of submitted flight.
+   * @return job report
    */
-  public String startLandingZoneCreationJob(
+  public AsyncJobResult<DeployedLandingZone> startLandingZoneCreationJob(
       BearerToken bearerToken,
       String jobId,
       LandingZoneRequest azureLandingZoneRequest,
@@ -118,7 +118,8 @@ public class LandingZoneService {
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
-    return jobBuilder.submit();
+    return azureLandingZoneJobService.retrieveAsyncJobResult(
+        jobBuilder.submit(), DeployedLandingZone.class);
   }
 
   /**
