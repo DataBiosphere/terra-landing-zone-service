@@ -22,7 +22,7 @@ public class SamConstants {
   }
 
   public static class SamLandingZoneAction {
-    public static final String LIST_RESOURCES = "list-resources";
+    public static final String LIST_RESOURCES = "list_resources";
 
     private SamLandingZoneAction() {}
   }
