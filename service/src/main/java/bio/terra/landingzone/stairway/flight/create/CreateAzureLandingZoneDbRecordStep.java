@@ -27,19 +27,24 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    // Read input parameters
     final FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
         inputMap,
         LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
         LandingZoneFlightMapKeys.BILLING_PROFILE,
         LandingZoneFlightMapKeys.LANDING_ZONE_ID);
-
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var billingProfile = inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
-    var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
     var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
+    // Read working map parameters
+    final FlightMap workingMap = context.getWorkingMap();
+    FlightUtils.validateRequiredEntries(workingMap, LandingZoneFlightMapKeys.BILLING_PROFILE);
+    var billingProfile = inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+    var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
+
+    // Persist the landing zone record
     landingZoneDao.createLandingZone(
         LandingZone.builder()
             .landingZoneId(landingZoneId)
