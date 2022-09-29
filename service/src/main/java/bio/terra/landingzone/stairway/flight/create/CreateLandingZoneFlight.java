@@ -31,6 +31,9 @@ public class CreateLandingZoneFlight extends Flight {
 
   private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag) {
     addStep(
+        new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
+
+    addStep(
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     addStep(
@@ -40,8 +43,5 @@ public class CreateLandingZoneFlight extends Flight {
     addStep(
         new CreateAzureLandingZoneDbRecordStep(flightBeanBag.getLandingZoneDao()),
         RetryRules.shortDatabase());
-
-    addStep(
-        new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
   }
 }
