@@ -9,6 +9,12 @@ public class SamConstants {
     private SamResourceType() {}
   }
 
+  public static class SamRole {
+    public static final String OWNER = "owner";
+
+    private SamRole() {}
+  }
+
   public static class SamSpendProfileAction {
     public static final String LINK = "link";
 

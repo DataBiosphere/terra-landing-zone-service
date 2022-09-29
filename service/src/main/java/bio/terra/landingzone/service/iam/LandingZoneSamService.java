@@ -10,6 +10,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneSamConfiguration;
 import io.opencensus.contrib.spring.aop.Traced;
 import io.opencensus.trace.Tracing;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.BooleanUtils;
@@ -17,6 +18,7 @@ import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
+import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.CreateResourceRequestV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.FullyQualifiedResourceId;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
@@ -96,7 +98,7 @@ public class LandingZoneSamService {
       final String userEmail = getUserStatusInfo(bearerToken).getUserEmail();
       throw new ForbiddenException(
           String.format(
-              "User %s is not authorized to %s resource %s of type %s",
+              "User %s is not authorized perform action %s on resource %s of type %s",
               userEmail, action, resourceId, resourceType));
     }
   }
@@ -120,16 +122,23 @@ public class LandingZoneSamService {
   @Traced
   public void createLandingZone(BearerToken bearerToken, UUID billingProfileId, UUID landingZoneId)
       throws InterruptedException {
+    var userInfo = getUserStatusInfo(bearerToken);
     var resourceApi = samResourcesApi(bearerToken.getToken());
 
     var parentId =
         new FullyQualifiedResourceId()
             .resourceId(billingProfileId.toString())
             .resourceTypeName(SamConstants.SamResourceType.SPEND_PROFILE);
-
+    var policies =
+        Map.of(
+            "owner",
+            new AccessPolicyMembershipV2()
+                .addMemberEmailsItem(userInfo.getUserEmail())
+                .addRolesItem(SamConstants.SamRole.OWNER));
     var landingZoneRequest =
         new CreateResourceRequestV2()
             .resourceId(landingZoneId.toString())
+            .policies(policies)
             .parent(parentId)
             .authDomain(List.of());
     try {
