@@ -32,7 +32,9 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesReader;
 import bio.terra.landingzone.model.LandingZoneTarget;
+import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
+import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
@@ -40,6 +42,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefiniti
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
+import bio.terra.profile.model.ProfileModel;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -83,17 +86,20 @@ public class LandingZoneServiceTest {
   @Captor ArgumentCaptor<Class<?>> classCaptor;
   @Captor ArgumentCaptor<LandingZoneTarget> landingZoneTargetCaptor;
 
-  @Mock private LandingZoneTarget landingZoneTarget;
-
   @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
   @Mock private LandingZoneDao landingZoneDao;
   @Mock private LandingZoneSamService samService;
+  @Mock private LandingZoneBillingProfileManagerService bpmService;
 
   @BeforeEach
   public void setup() {
     landingZoneService =
         new LandingZoneService(
-            landingZoneJobService, landingZoneManagerProvider, landingZoneDao, samService);
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
   }
 
   @Test
@@ -196,7 +202,11 @@ public class LandingZoneServiceTest {
         .thenReturn(landingZoneManager);
     landingZoneService =
         new LandingZoneService(
-            landingZoneJobService, landingZoneManagerProvider, landingZoneDao, samService);
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
     var purposeTags =
         Map.of(
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
@@ -254,7 +264,7 @@ public class LandingZoneServiceTest {
   public void deleteAzureLandingZone_ThrowsException() {
     Assertions.assertThrows(
         LandingZoneDeleteNotImplemented.class,
-        () -> landingZoneService.deleteLandingZone("lz-1"),
+        () -> landingZoneService.deleteLandingZone(bearerToken, landingZoneId),
         "Delete operation is not supported");
   }
 
@@ -267,7 +277,11 @@ public class LandingZoneServiceTest {
         .thenReturn(landingZoneManager);
     landingZoneService =
         new LandingZoneService(
-            landingZoneJobService, landingZoneManagerProvider, landingZoneDao, samService);
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
@@ -293,7 +307,11 @@ public class LandingZoneServiceTest {
         .thenReturn(landingZoneManager);
     landingZoneService =
         new LandingZoneService(
-            landingZoneJobService, landingZoneManagerProvider, landingZoneDao, samService);
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResourcesWithPurpose(anyString())).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
@@ -349,7 +367,11 @@ public class LandingZoneServiceTest {
 
     landingZoneService =
         new LandingZoneService(
-            landingZoneJobService, landingZoneManagerProvider, landingZoneDao, samService);
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
 
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResourcesWithPurpose(landingZoneId.toString()))
@@ -398,6 +420,54 @@ public class LandingZoneServiceTest {
         subnetList2.get(0).getClass().getSimpleName(),
         subnetResource.resourceType(),
         "Resource type doesn't match.");
+  }
+
+  @Test
+  public void listLandingZoneIds_Success() throws InterruptedException {
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
+    final var tenantId = UUID.randomUUID();
+    final var subscriptionId = UUID.randomUUID();
+    final var resourceGroup = "mrg";
+    LandingZone landingZone =
+        new LandingZone(
+            landingZoneId,
+            resourceGroup,
+            "definition",
+            "version",
+            subscriptionId.toString(),
+            tenantId.toString(),
+            null,
+            null,
+            Collections.emptyMap());
+    when(landingZoneDao.getLandingZoneList(
+            eq(subscriptionId.toString()), eq(tenantId.toString()), eq(resourceGroup)))
+        .thenReturn(List.of(landingZone));
+    when(bpmService.getBillingProfile(any(), eq(billingProfileId)))
+        .thenReturn(
+            new ProfileModel()
+                .tenantId(tenantId)
+                .subscriptionId(subscriptionId)
+                .managedResourceGroupId(resourceGroup));
+    when(samService.isAuthorized(
+            any(),
+            eq(SamConstants.SamResourceType.LANDING_ZONE),
+            eq(landingZoneId.toString()),
+            anyString()))
+        .thenReturn(true);
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+    // Test
+    var result = landingZoneService.listLandingZoneIds(bearerToken, billingProfileId);
+    // Validate number of members in each group
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(landingZoneId, result.get(0));
   }
 
   private List<DeployedResource> setupDeployedResources() {

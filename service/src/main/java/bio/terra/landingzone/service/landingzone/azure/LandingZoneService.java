@@ -17,6 +17,7 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
+import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
@@ -48,16 +49,19 @@ public class LandingZoneService {
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneSamService samService;
+  private final LandingZoneBillingProfileManagerService bpmService;
 
   public LandingZoneService(
       LandingZoneJobService azureLandingZoneJobService,
       LandingZoneManagerProvider landingZoneManagerProvider,
       LandingZoneDao landingZoneDao,
-      LandingZoneSamService samService) {
+      LandingZoneSamService samService,
+      LandingZoneBillingProfileManagerService bpmService) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.landingZoneDao = landingZoneDao;
     this.samService = samService;
+    this.bpmService = bpmService;
   }
 
   /**
@@ -195,7 +199,63 @@ public class LandingZoneService {
         .collect(Collectors.toList());
   }
 
-  public void deleteLandingZone(String landingZoneId) {
+  /**
+   * Lists landing zones for a given billing profile ID that the calling user has access to.
+   *
+   * @param billingProfileId the billing profile ID to search.
+   * @return list of landing zone IDs.
+   */
+  public List<UUID> listLandingZoneIds(BearerToken bearerToken, UUID billingProfileId) {
+    // Call BPM to get the landing zone target.
+    var profile = bpmService.getBillingProfile(bearerToken, billingProfileId);
+
+    // Query the database for landing zone ids with the given target.
+    var landingZoneIds = listLandingZoneIdsByTarget(LandingZoneTarget.fromBillingProfile(profile));
+
+    // Filter the list based on what the user has access to.
+    // Note: this makes a Sam query per landing zone, but we expect there to be at most
+    // 1 landing zone per billing profile in most/all cases.
+    return landingZoneIds.stream()
+        .filter(
+            lz ->
+                SamRethrow.onInterrupted(
+                    () ->
+                        samService.isAuthorized(
+                            bearerToken,
+                            SamConstants.SamResourceType.LANDING_ZONE,
+                            lz.toString(),
+                            SamConstants.SamLandingZoneAction.LIST_RESOURCES),
+                    "isAuthorized"))
+        .toList();
+  }
+
+  /**
+   * Lists landing zones for a given LandingZoneTarget.
+   *
+   * <p>Note: this method does not perform authorization checks. It is public, but only called as
+   * part of other authorized requests, never from a direct API request.
+   *
+   * @param landingZoneTarget the landing zone target to search.
+   * @return list of landing zone IDs.
+   */
+  public List<UUID> listLandingZoneIdsByTarget(LandingZoneTarget landingZoneTarget) {
+    return landingZoneDao
+        .getLandingZoneList(
+            landingZoneTarget.azureSubscriptionId(),
+            landingZoneTarget.azureTenantId(),
+            landingZoneTarget.azureResourceGroupId())
+        .stream()
+        .map(dlz -> dlz.landingZoneId())
+        .toList();
+  }
+
+  /**
+   * Deletes a landing zone.
+   *
+   * @param bearerToken bearer token of the calling user.
+   * @param landingZoneId id of the landing zone
+   */
+  public void deleteLandingZone(BearerToken bearerToken, UUID landingZoneId) {
     throw new LandingZoneDeleteNotImplemented("Delete operation is not implemented");
   }
 
