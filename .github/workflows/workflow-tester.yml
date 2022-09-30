@@ -91,22 +91,3 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  notify-slack:
-    needs: [ bump-check, build, tests-and-sonarqube ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Notify WSM Slack"
-        # post to WSM Slack when a regular push (i.e. non-bumper push) is made to main branch
-        if: always() && github.event_name == 'push' && needs.bump-check.outputs.is-bump == 'no'
-        uses: broadinstitute/action-slack@v3.8.0
-        # see https://github.com/broadinstitute/action-slack
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        with:
-          status: ${{ job.status }}
-          channel: "#terra-wsm-alerts"
-          username: "TPS push to main branch"
-          author_name: "build-and-test"
-          icon_emoji: ":triangular_ruler:"
-          fields: job, commit

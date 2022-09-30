@@ -78,7 +78,7 @@ class ResourcesReaderImplTest {
             .deploy();
     deployedStorage = getDeployedStorage();
     deployedVNet = getDeployedVNet();
-    TimeUnit.SECONDS.sleep(10); // give some time for replication of tag data
+    TimeUnit.SECONDS.sleep(20); // give some time for replication of tag data
     Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
   }
 
@@ -142,7 +142,6 @@ class ResourcesReaderImplTest {
 
   @Test
   void listResourcesByPurpose_storageResourceIsSharedResource() throws InterruptedException {
-
     await()
         .atMost(Duration.ofSeconds(20))
         .until(

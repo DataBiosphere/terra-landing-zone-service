@@ -61,8 +61,30 @@ jar {
     enabled = true
 }
 
+// Modify the standard :test task to only include unit-tagged and library-tagged tests.
 test {
-    useJUnitPlatform ()
+    useJUnitPlatform {
+        includeTags "unit", "library"
+    }
+}
+
+task unitTest(type: Test) {
+    useJUnitPlatform {
+        includeTags "unit"
+    }
+    outputs.upToDateWhen { false }
+}
+
+// Create a new :integrationTest task to run integration tests. This won't be executed as
+// part of the standard `./gradlew build` invocation.
+task integrationTest(type: Test) {
+    useJUnitPlatform {
+        includeTags "integration"
+    }
+    shouldRunAfter test
+    // Force tests to always be re-run, since integration tests involve communicating with external
+    // resources.
+    outputs.upToDateWhen { false }
 }
 
 sonarqube {
