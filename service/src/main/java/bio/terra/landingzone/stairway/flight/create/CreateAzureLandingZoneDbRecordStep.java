@@ -2,15 +2,15 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.stairway.flight.exception.LandingZoneIdNotFound;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
+import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -27,38 +27,27 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    // Read input parameters
     final FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
-        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
-
+        inputMap,
+        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+        LandingZoneFlightMapKeys.LANDING_ZONE_ID);
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var landingZoneTarget = requestedExternalLandingZoneResource.landingZoneTarget();
+    var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
-    if (!context
-        .getWorkingMap()
-        .containsKey(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID)) {
-      logger.error(
-          "Azure Landing Zone flight couldn't be completed. "
-              + "Azure landing zone Id not found. FlightId: {}",
-          context.getFlightId());
-      return new StepResult(
-          StepStatus.STEP_RESULT_FAILURE_FATAL,
-          new LandingZoneIdNotFound(
-              String.format(
-                  "Azure landing zone id not found. " + "FlightId: %s", context.getFlightId())));
-    }
+    // Read working map parameters
+    final FlightMap workingMap = context.getWorkingMap();
+    FlightUtils.validateRequiredEntries(workingMap, LandingZoneFlightMapKeys.BILLING_PROFILE);
+    var billingProfile =
+        workingMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+    var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
 
-    String landingZoneId =
-        context
-            .getWorkingMap()
-            .get(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, String.class);
-
+    // Persist the landing zone record
     landingZoneDao.createLandingZone(
         LandingZone.builder()
-            .landingZoneId(
-                UUID.fromString(
-                    landingZoneId)) // TODO: Check if we can validate that the lz id is UUID earlier
+            .landingZoneId(landingZoneId)
             .definition(requestedExternalLandingZoneResource.definition())
             .version(requestedExternalLandingZoneResource.version())
             .description(
@@ -78,29 +67,9 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
     final FlightMap inputMap = context.getInputParameters();
-    FlightUtils.validateRequiredEntries(
-        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
-
-    if (!context
-        .getWorkingMap()
-        .containsKey(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID)) {
-      logger.error(
-          "Azure Landing Zone flight couldn't be completed. "
-              + "Deployed Azure landing zone Id not found. FlightId: {}",
-          context.getFlightId());
-      return new StepResult(
-          StepStatus.STEP_RESULT_FAILURE_FATAL,
-          new LandingZoneIdNotFound(
-              String.format(
-                  "Azure landing zone id not found. " + "FlightId: %s", context.getFlightId())));
-    }
-
-    String landingZoneId =
-        context
-            .getWorkingMap()
-            .get(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, String.class);
-
-    landingZoneDao.deleteLandingZone(UUID.fromString(landingZoneId));
+    FlightUtils.validateRequiredEntries(inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_ID);
+    var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+    landingZoneDao.deleteLandingZone(landingZoneId);
     return StepResult.getStepResultSuccess();
   }
 }

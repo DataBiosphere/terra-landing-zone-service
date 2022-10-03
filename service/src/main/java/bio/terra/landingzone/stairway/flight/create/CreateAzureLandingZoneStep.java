@@ -5,12 +5,14 @@ import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
+import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
@@ -34,24 +36,30 @@ public class CreateAzureLandingZoneStep implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws RetryException {
+    // Read input parameters
     FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
-        inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS);
-
+        inputMap,
+        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+        LandingZoneFlightMapKeys.LANDING_ZONE_ID);
     var requestedLandingZone =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
+    var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
+    // Read working map parameters
+    FlightMap workingMap = context.getWorkingMap();
+    FlightUtils.validateRequiredEntries(workingMap, LandingZoneFlightMapKeys.BILLING_PROFILE);
+    var billingProfile =
+        workingMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     try {
+      // Deploy the landing zone
       DeployedLandingZone deployedLandingZone =
           createLandingZone(
+              landingZoneId,
               requestedLandingZone,
               landingZoneManagerProvider.createLandingZoneManager(
-                  requestedLandingZone.landingZoneTarget()));
-
-      // save for the next step
-      context
-          .getWorkingMap()
-          .put(LandingZoneFlightMapKeys.DEPLOYED_AZURE_LANDING_ZONE_ID, deployedLandingZone.id());
+                  LandingZoneTarget.fromBillingProfile(billingProfile)));
 
       persistResponse(context, deployedLandingZone);
 
@@ -70,7 +78,7 @@ public class CreateAzureLandingZoneStep implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) {
-    return null;
+    return StepResult.getStepResultSuccess();
   }
 
   private String listDeployedResourcesAsCsv(List<LandingZoneResource> deployedResources) {
@@ -88,8 +96,9 @@ public class CreateAzureLandingZoneStep implements Step {
   }
 
   private DeployedLandingZone createLandingZone(
-      LandingZoneRequest landingZoneRequest, LandingZoneManager landingZoneManager) {
-    UUID landingZoneId = UUID.randomUUID();
+      UUID landingZoneId,
+      LandingZoneRequest landingZoneRequest,
+      LandingZoneManager landingZoneManager) {
     List<DeployedResource> deployedResources =
         landingZoneManager.deployLandingZone(
             landingZoneId.toString(),
@@ -103,7 +112,7 @@ public class CreateAzureLandingZoneStep implements Step {
         landingZoneRequest.definition(),
         landingZoneRequest.version());
     return DeployedLandingZone.builder()
-        .id(landingZoneId.toString())
+        .id(landingZoneId)
         .deployedResources(
             deployedResources.stream()
                 .map(

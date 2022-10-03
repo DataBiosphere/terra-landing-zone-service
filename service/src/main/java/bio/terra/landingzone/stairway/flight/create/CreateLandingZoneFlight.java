@@ -30,6 +30,11 @@ public class CreateLandingZoneFlight extends Flight {
   }
 
   private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag) {
+    addStep(
+        new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
+
+    addStep(
+        new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     addStep(
         new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
