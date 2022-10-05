@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -59,6 +60,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+@Tag("unit")
 @ExtendWith(MockitoExtension.class)
 public class LandingZoneServiceTest {
   private static final String VNET_1 = "vnet_1";
@@ -228,6 +230,60 @@ public class LandingZoneServiceTest {
 
     assertNotNull(resources);
     assertEquals(2, resources.size());
+  }
+
+  @Test
+  public void listResourcesBySubnetPurpose_Success() {
+    var subnetList1 =
+        List.of(
+            new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_1, VNET_1, REGION),
+            new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_2, VNET_3, REGION));
+    var subnetList2 =
+        List.of(new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_3, VNET_3, REGION));
+
+    // Setup Mocks
+    LandingZone landingZone = createLandingZoneRecord();
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
+        .thenReturn(landingZoneManager);
+
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+
+    ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
+    when(resourceReader.listSubnetsBySubnetPurpose(
+            eq(landingZoneId.toString()), eq(SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)))
+        .thenReturn(subnetList1);
+    when(resourceReader.listSubnetsBySubnetPurpose(
+            eq(landingZoneId.toString()), eq(SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET)))
+        .thenReturn(subnetList2);
+    when(landingZoneManager.reader()).thenReturn(resourceReader);
+
+    // Test
+    List<LandingZoneResource> resources_storage_subnet =
+        landingZoneService.listResourcesByPurpose(
+            bearerToken, landingZoneId, SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET);
+
+    assertNotNull(resources_storage_subnet);
+    assertEquals(1, resources_storage_subnet.size());
+    assertTrue(
+        resources_storage_subnet.containsAll(
+            subnetList2.stream().map(s -> toLandingZoneResource(s)).toList()));
+
+    List<LandingZoneResource> resources_compute_subnet =
+        landingZoneService.listResourcesByPurpose(
+            bearerToken, landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
+
+    assertNotNull(resources_compute_subnet);
+    assertEquals(2, resources_compute_subnet.size());
+    assertTrue(
+        resources_compute_subnet.containsAll(
+            subnetList1.stream().map(s -> toLandingZoneResource(s)).toList()));
   }
 
   @Test
@@ -503,5 +559,15 @@ public class LandingZoneServiceTest {
                     && t.definition().equals(className)
                     && t.version().equals(version))
         .count();
+  }
+
+  private LandingZoneResource toLandingZoneResource(DeployedSubnet subnet) {
+    return LandingZoneResource.builder()
+        .resourceId(subnet.id())
+        .resourceType(subnet.getClass().getSimpleName())
+        .resourceName(subnet.name())
+        .resourceParentId(subnet.vNetId())
+        .region(subnet.vNetRegion())
+        .build();
   }
 }

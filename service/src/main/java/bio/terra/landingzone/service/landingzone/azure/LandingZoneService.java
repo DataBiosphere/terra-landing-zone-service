@@ -11,6 +11,7 @@ import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
+import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZonePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
@@ -157,11 +158,12 @@ public class LandingZoneService {
    *
    * @param bearerToken bearer token of the calling user.
    * @param landingZoneId landing zone ID to query.
-   * @param purpose resource purpose to query.
-   * @return
+   * @param purpose landing zone purpose to query.
+   * @return list of resources with the purpose specified.
    */
   public List<LandingZoneResource> listResourcesByPurpose(
-      BearerToken bearerToken, UUID landingZoneId, ResourcePurpose purpose) {
+      BearerToken bearerToken, UUID landingZoneId, LandingZonePurpose purpose) {
+    List<LandingZoneResource> deployedResources = null;
     // Check that the calling user has "list-resources" permission on the landing zone resource in
     // Sam
     SamRethrow.onInterrupted(
@@ -184,19 +186,19 @@ public class LandingZoneService {
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
-    List<DeployedResource> deployedResources =
-        landingZoneManager.reader().listResourcesByPurpose(landingZoneId.toString(), purpose);
 
-    return deployedResources.stream()
-        .map(
-            dp ->
-                LandingZoneResource.builder()
-                    .resourceId(dp.resourceId())
-                    .resourceType(dp.resourceType())
-                    .tags(dp.tags())
-                    .region(dp.region())
-                    .build())
-        .collect(Collectors.toList());
+    if (purpose.getClass().equals(ResourcePurpose.class)) {
+      deployedResources =
+          listResourcesByPurpose(landingZoneManager, landingZoneId, (ResourcePurpose) purpose);
+    }
+
+    if (purpose.getClass().equals(SubnetResourcePurpose.class)) {
+      deployedResources =
+          listResourcesByPurpose(
+              landingZoneManager, landingZoneId, (SubnetResourcePurpose) purpose);
+    }
+
+    return deployedResources;
   }
 
   /**
@@ -301,19 +303,48 @@ public class LandingZoneService {
     return new LandingZoneResourcesByPurpose(listGeneralResources);
   }
 
+  private List<LandingZoneResource> listResourcesByPurpose(
+      LandingZoneManager landingZoneManager, UUID landingZoneId, ResourcePurpose purpose) {
+
+    List<DeployedResource> deployedResources =
+        landingZoneManager.reader().listResourcesByPurpose(landingZoneId.toString(), purpose);
+
+    return deployedResources.stream().map(dp -> toLandingZoneResource(dp)).toList();
+  }
+
+  private List<LandingZoneResource> listResourcesByPurpose(
+      LandingZoneManager landingZoneManager, UUID landingZoneId, SubnetResourcePurpose purpose) {
+    List<DeployedSubnet> deployedSubnets =
+        landingZoneManager.reader().listSubnetsBySubnetPurpose(landingZoneId.toString(), purpose);
+
+    return deployedSubnets.stream().map(s -> toLandingZoneResource(s)).toList();
+  }
+
+  private LandingZoneResource toLandingZoneResource(DeployedSubnet subnet) {
+    return LandingZoneResource.builder()
+        .resourceId(subnet.id())
+        .resourceType(subnet.getClass().getSimpleName())
+        .resourceName(subnet.name())
+        .resourceParentId(subnet.vNetId())
+        .region(subnet.vNetRegion())
+        .build();
+  }
+
+  private LandingZoneResource toLandingZoneResource(DeployedResource resource) {
+    return LandingZoneResource.builder()
+        .resourceId(resource.resourceId())
+        .resourceType(resource.resourceType())
+        .tags(resource.tags())
+        .region(resource.region())
+        .build();
+  }
+
   private Map<LandingZonePurpose, List<LandingZoneResource>> listGeneralResourcesWithPurposes(
       String landingZoneId, LandingZoneManager landingZoneManager) {
     var deployedResources = landingZoneManager.reader().listResourcesWithPurpose(landingZoneId);
 
     return deployedResources.stream()
-        .map(
-            dp ->
-                LandingZoneResource.builder()
-                    .resourceId(dp.resourceId())
-                    .resourceType(dp.resourceType())
-                    .tags(dp.tags())
-                    .region(dp.region())
-                    .build())
+        .map(dp -> toLandingZoneResource(dp))
         .collect(
             Collectors.groupingBy(
                 r ->
@@ -333,15 +364,7 @@ public class LandingZoneService {
                         .reader()
                         .listSubnetsBySubnetPurpose(landingZoneId, p)
                         .stream()
-                        .map(
-                            s ->
-                                LandingZoneResource.builder()
-                                    .resourceId(s.id())
-                                    .resourceType(s.getClass().getSimpleName())
-                                    .resourceName(s.name())
-                                    .resourceParentId(s.vNetId())
-                                    .region(s.vNetRegion())
-                                    .build())
+                        .map(s -> toLandingZoneResource(s))
                         .toList()));
     // Remove empty mappings
     subnetPurposeMap.entrySet().removeIf(entry -> entry.getValue().size() == 0);
