@@ -7,8 +7,10 @@ import bio.terra.landingzone.library.landingzones.LandingZoneTestFixture;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
+import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,32 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET);
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.POSTGRESQL_SUBNET);
+  }
+
+  @Test
+  void deleteLandingZoneResources_resourcesAreDeleted()
+      throws InterruptedException, LandingZoneRuleDeleteException {
+    String landingZoneId = UUID.randomUUID().toString();
+    var resources =
+        landingZoneManager
+            .deployLandingZoneAsync(
+                landingZoneId,
+                CromwellBaseResourcesFactory.class.getSimpleName(),
+                DefinitionVersion.V1,
+                null)
+            .collectList()
+            .block();
+
+    var deletedResources = landingZoneManager.deleteResources(landingZoneId);
+
+    var resourcesAfterDelete =
+        armManagers
+            .azureResourceManager()
+            .genericResources()
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .collect(Collectors.toList());
+    assertThat(resourcesAfterDelete, hasSize(0));
   }
 
   private void assertHasVnetWithPurpose(String landingZoneId, SubnetResourcePurpose purpose) {

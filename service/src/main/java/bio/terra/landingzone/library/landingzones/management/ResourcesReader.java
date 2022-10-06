@@ -16,6 +16,8 @@ public interface ResourcesReader {
 
   List<DeployedVNet> listVNetBySubnetPurpose(String landingZoneId, SubnetResourcePurpose purpose);
 
+  List<DeployedResource> listAllResources(String landingZoneId);
+
   List<DeployedSubnet> listSubnetsBySubnetPurpose(
       String landingZoneId, SubnetResourcePurpose purpose);
 }

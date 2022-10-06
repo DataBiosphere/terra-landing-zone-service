@@ -12,6 +12,7 @@ import bio.terra.landingzone.library.landingzones.definition.factories.LandingZo
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeploymentsImpl;
+import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
@@ -19,10 +20,12 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.batch.BatchManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -37,17 +40,21 @@ public class LandingZoneManager {
   private final ResourceGroup resourceGroup;
   private final ResourcesReader resourcesReader;
 
+  private final ResourcesDeleteManager resourcesDeleteManager;
+
   private LandingZoneManager(
       LandingZoneDefinitionProvider landingZoneDefinitionProvider,
       LandingZoneDeployments landingZoneDeployments,
       AzureResourceManager resourceManager,
       ResourceGroup resourceGroup,
-      ResourcesReader resourcesReader) {
+      ResourcesReader resourcesReader,
+      ResourcesDeleteManager resourcesDeleteManager) {
     this.landingZoneDefinitionProvider = landingZoneDefinitionProvider;
     this.landingZoneDeployments = landingZoneDeployments;
     this.resourceManager = resourceManager;
     this.resourceGroup = resourceGroup;
     this.resourcesReader = resourcesReader;
+    this.resourcesDeleteManager = resourcesDeleteManager;
   }
 
   public static LandingZoneManager createLandingZoneManager(
@@ -63,13 +70,14 @@ public class LandingZoneManager {
     ArmManagers armManagers = createArmManagers(credential, profile);
     ResourceGroup resourceGroup =
         armManagers.azureResourceManager().resourceGroups().getByName(resourceGroupName);
-
+    DeleteRulesVerifier deleteRulesVerifier = new DeleteRulesVerifier(armManagers);
     return new LandingZoneManager(
         new LandingZoneDefinitionProviderImpl(armManagers),
         new LandingZoneDeploymentsImpl(),
         armManagers.azureResourceManager(),
         resourceGroup,
-        new ResourcesReaderImpl(armManagers.azureResourceManager(), resourceGroup));
+        new ResourcesReaderImpl(armManagers.azureResourceManager(), resourceGroup),
+        new ResourcesDeleteManager(armManagers, deleteRulesVerifier));
   }
 
   private static ArmManagers createArmManagers(TokenCredential credential, AzureProfile profile) {
@@ -118,6 +126,14 @@ public class LandingZoneManager {
         .create(version)
         .definition(createNewDefinitionContext(landingZoneId, parameters))
         .deployAsync();
+  }
+
+  public List<String> deleteResources(String landingZoneId) throws LandingZoneRuleDeleteException {
+    return resourcesDeleteManager
+        .deleteLandingZoneResources(landingZoneId, resourceGroup.name())
+        .stream()
+        .map(HasId::id)
+        .collect(Collectors.toList());
   }
 
   private Class<? extends LandingZoneDefinitionFactory> getFactoryFromClassName(String className) {

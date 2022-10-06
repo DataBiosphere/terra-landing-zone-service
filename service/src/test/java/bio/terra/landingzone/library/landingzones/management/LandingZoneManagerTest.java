@@ -1,5 +1,6 @@
 package bio.terra.landingzone.library.landingzones.management;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
@@ -14,11 +15,14 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.TestLandingZoneFactory;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
+import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.awaitility.Awaitility;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,6 +41,7 @@ class LandingZoneManagerTest {
 
   @BeforeAll
   static void setUpTestResourceGroup() {
+    Awaitility.setDefaultPollInterval(Duration.ofSeconds(5));
     azureResourceManager = TestArmResourcesFactory.createArmClient();
   }
 
@@ -103,6 +108,30 @@ class LandingZoneManagerTest {
     assertThat(TestUtils.findFirstVNetId(distinct), is(notNullValue()));
 
     assertThatExpectedResourcesExistsInResourceGroup(distinct);
+  }
+
+  @Test
+  public void deleteResources_deletesLandingZoneResources() throws LandingZoneRuleDeleteException {
+    String landingZone = UUID.randomUUID().toString();
+    List<DeployedResource> lz =
+        landingZoneManager.deployLandingZone(
+            landingZone, TestLandingZoneFactory.class.getSimpleName(), DefinitionVersion.V1, null);
+
+    // look for resources in the RG directly to confirm tags are indexed.
+    await()
+        .atMost(Duration.ofSeconds(60))
+        .until(
+            () -> {
+              return landingZoneManager.reader().listAllResources(landingZone).size() == 2;
+            });
+
+    var deleted = landingZoneManager.deleteResources(landingZone);
+
+    assertThat(deleted, hasSize(2));
+    assertThat(
+        azureResourceManager.genericResources().listByResourceGroup(resourceGroup.name()).stream()
+            .collect(Collectors.toList()),
+        hasSize(0));
   }
 
   private void assertThatExpectedResourcesExistsInResourceGroup(List<DeployedResource> result) {
