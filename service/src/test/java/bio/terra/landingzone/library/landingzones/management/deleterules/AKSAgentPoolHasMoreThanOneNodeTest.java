@@ -46,7 +46,7 @@ class AKSAgentPoolHasMoreThanOneNodeTest extends BaseDependencyRuleUnitTest {
     when(clusters.getByResourceGroup(RESOURCE_GROUP, RESOURCE_NAME)).thenReturn(cluster);
     Map<String, KubernetesClusterAgentPool> pools = new HashMap<>();
     pools.put("Pool", pool);
-    when(pool.maximumNodeSize()).thenReturn(poolSize);
+    when(pool.count()).thenReturn(poolSize);
     when(cluster.agentPools()).thenReturn(pools);
 
     assertThat(rule.hasDependentResources(resourceToDelete), equalTo(expectedResult));

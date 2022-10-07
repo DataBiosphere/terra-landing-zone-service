@@ -24,6 +24,7 @@ import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
+import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
@@ -31,6 +32,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
+import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +48,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class LandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
+  public static final String IS_AUTHORIZED = "isAuthorized";
   private final LandingZoneJobService azureLandingZoneJobService;
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
@@ -80,6 +83,20 @@ public class LandingZoneService {
   }
 
   /**
+   * Retrieves the result of an asynchronous landing zone deleting job.
+   *
+   * @param bearerToken bearer token for the user request.
+   * @param jobId job identifier.
+   * @return result of asynchronous job.
+   */
+  public AsyncJobResult<DeletedLandingZone> getAsyncDeletionJobResult(
+      BearerToken bearerToken, String jobId) {
+    // Check calling user has access to the landing zone referenced by this job
+    azureLandingZoneJobService.verifyUserAccess(bearerToken, jobId);
+    return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeletedLandingZone.class);
+  }
+
+  /**
    * Starts the process to create a landing zone.
    *
    * @param bearerToken bearer token of the user request.
@@ -101,7 +118,7 @@ public class LandingZoneService {
                 SamConstants.SamResourceType.SPEND_PROFILE,
                 azureLandingZoneRequest.billingProfileId().toString(),
                 SamConstants.SamSpendProfileAction.LINK),
-        "isAuthorized");
+        IS_AUTHORIZED);
 
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
@@ -125,6 +142,42 @@ public class LandingZoneService {
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
     return azureLandingZoneJobService.retrieveAsyncJobResult(
         jobBuilder.submit(), DeployedLandingZone.class);
+  }
+
+  /**
+   * Starts a landing zone deletion job.
+   *
+   * @param bearerToken bearer token of the user request.
+   * @param jobId job identifier.
+   * @param landingZoneId landing zone creation request object.
+   * @param resultPath API path for checking job result.
+   * @return job report
+   */
+  public AsyncJobResult<DeletedLandingZone> startLandingZoneDeletionJob(
+      BearerToken bearerToken, String jobId, UUID landingZoneId, String resultPath) {
+
+    SamRethrow.onInterrupted(
+        () ->
+            samService.checkAuthz(
+                bearerToken,
+                SamConstants.SamResourceType.LANDING_ZONE,
+                landingZoneId.toString(),
+                SamConstants.SamLandingZoneAction.DELETE),
+        IS_AUTHORIZED);
+
+    String jobDescription = "Deleting Azure Landing Zone. Landing Zone ID:%s";
+    final LandingZoneJobBuilder jobBuilder =
+        azureLandingZoneJobService
+            .newJob()
+            .jobId(jobId)
+            .description(String.format(jobDescription, landingZoneId.toString()))
+            .flightClass(DeleteLandingZoneFlight.class)
+            .operationType(OperationType.DELETE)
+            .bearerToken(bearerToken)
+            .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
+            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+    return azureLandingZoneJobService.retrieveAsyncJobResult(
+        jobBuilder.submit(), DeletedLandingZone.class);
   }
 
   /**
@@ -173,7 +226,7 @@ public class LandingZoneService {
                 SamConstants.SamResourceType.LANDING_ZONE,
                 landingZoneId.toString(),
                 SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        "isAuthorized");
+        IS_AUTHORIZED);
 
     // Look up the landing zone record from the database
     LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
@@ -227,7 +280,7 @@ public class LandingZoneService {
                             SamConstants.SamResourceType.LANDING_ZONE,
                             lz.toString(),
                             SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-                    "isAuthorized"))
+                    IS_AUTHORIZED))
         .toList();
   }
 
@@ -279,7 +332,7 @@ public class LandingZoneService {
                 SamConstants.SamResourceType.LANDING_ZONE,
                 landingZoneId.toString(),
                 SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        "isAuthorized");
+        IS_AUTHORIZED);
 
     // Look up the landing zone record from the database
     LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
