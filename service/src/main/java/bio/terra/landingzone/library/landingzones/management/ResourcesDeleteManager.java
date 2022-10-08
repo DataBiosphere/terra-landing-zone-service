@@ -55,8 +55,13 @@ public class ResourcesDeleteManager {
     return armManagers
         .azureResourceManager()
         .genericResources()
-        .listByTag(resourceGroupName, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId)
+        .listByResourceGroup(resourceGroupName)
         .stream()
+        .filter(
+            r ->
+                r.tags()
+                    .getOrDefault(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), "")
+                    .equals(landingZoneId))
         .map(r -> toResourceToDelete(r, privateEndPoints))
         .collect(Collectors.toList());
   }

@@ -128,10 +128,16 @@ class LandingZoneManagerTest {
     var deleted = landingZoneManager.deleteResources(landingZone);
 
     assertThat(deleted, hasSize(2));
-    assertThat(
-        azureResourceManager.genericResources().listByResourceGroup(resourceGroup.name()).stream()
-            .collect(Collectors.toList()),
-        hasSize(0));
+    await()
+        .atMost(Duration.ofSeconds(60))
+        .until(
+            () ->
+                azureResourceManager
+                        .genericResources()
+                        .listByResourceGroup(resourceGroup.name())
+                        .stream()
+                        .count()
+                    == 0);
   }
 
   private void assertThatExpectedResourcesExistsInResourceGroup(List<DeployedResource> result) {

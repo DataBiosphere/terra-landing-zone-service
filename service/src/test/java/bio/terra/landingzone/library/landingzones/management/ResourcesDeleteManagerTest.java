@@ -24,11 +24,15 @@ import com.azure.resourcemanager.batch.models.ImageReference;
 import com.azure.resourcemanager.batch.models.ScaleSettings;
 import com.azure.resourcemanager.batch.models.VirtualMachineConfiguration;
 import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
+import com.azure.resourcemanager.compute.models.VirtualMachine;
 import com.azure.resourcemanager.compute.models.VirtualMachineSizeTypes;
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import com.azure.resourcemanager.network.models.Network;
+import com.azure.resourcemanager.postgresql.models.Database;
 import com.azure.resourcemanager.postgresql.models.Server;
+import com.azure.resourcemanager.relay.models.HybridConnection;
 import com.azure.resourcemanager.relay.models.RelayNamespace;
+import com.azure.resourcemanager.storage.models.BlobContainer;
 import com.azure.resourcemanager.storage.models.PublicAccess;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import java.time.Duration;
@@ -164,15 +168,13 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
   }
 
   @Test
-  void landingZoneWithContainerInStorageAccount_cannotDelete() {
-    var container =
-        armManagers
-            .azureResourceManager()
-            .storageBlobContainers()
-            .defineContainer("temp")
-            .withExistingStorageAccount(storageAccount)
-            .withPublicAccess(PublicAccess.NONE)
-            .create();
+  void landingZoneWithDependencies_cannotDelete() {
+    BlobContainer container = createBlobContainer();
+    HybridConnection hc = createHybridConnection();
+    Database db = createDatabase();
+    scaleNodePool();
+    VirtualMachine vm = createVirtualMachine();
+    createBatchPool("mypool");
 
     Exception exception =
         assertThrows(
@@ -184,15 +186,36 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
     assertThat(
         exception.getMessage(),
         containsStringIgnoringCase(StorageAccountHasContainers.class.getSimpleName()));
-
-    armManagers
-        .azureResourceManager()
-        .storageBlobContainers()
-        .delete(resourceGroup.name(), storageAccount.name(), container.name());
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(AzureRelayHasHybridConnections.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(PostgreSQLServerHasDBs.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(AKSAgentPoolHasMoreThanOneNode.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(VmsAreAttachedToVnet.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(BatchAccountHasNodePools.class.getSimpleName()));
   }
 
-  @Test
-  void landingZoneWithHCInRelay_cannotDelete() {
+  private BlobContainer createBlobContainer() {
+    var container =
+        armManagers
+            .azureResourceManager()
+            .storageBlobContainers()
+            .defineContainer("temp")
+            .withExistingStorageAccount(storageAccount)
+            .withPublicAccess(PublicAccess.NONE)
+            .create();
+    return container;
+  }
+
+  private HybridConnection createHybridConnection() {
     var hc =
         armManagers
             .relayManager()
@@ -200,23 +223,10 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
             .define("myhc")
             .withExistingNamespace(resourceGroup.name(), azureRelay.name())
             .create();
-
-    Exception exception =
-        assertThrows(
-            LandingZoneRuleDeleteException.class,
-            () ->
-                deleteManager.deleteLandingZoneResources(
-                    landingZoneId.toString(), resourceGroup.name()));
-
-    assertThat(
-        exception.getMessage(),
-        containsStringIgnoringCase(AzureRelayHasHybridConnections.class.getSimpleName()));
-
-    armManagers.relayManager().hybridConnections().deleteById(hc.id());
+    return hc;
   }
 
-  @Test
-  void landingZoneWithPostgreSQLDB_cannotDelete() {
+  private Database createDatabase() {
     var db =
         armManagers
             .postgreSqlManager()
@@ -224,24 +234,10 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
             .define("mydb")
             .withExistingServer(resourceGroup.name(), postgresServer.name())
             .create();
-
-    Exception exception =
-        assertThrows(
-            LandingZoneRuleDeleteException.class,
-            () ->
-                deleteManager.deleteLandingZoneResources(
-                    landingZoneId.toString(), resourceGroup.name()));
-
-    assertThat(
-        exception.getMessage(),
-        containsStringIgnoringCase(PostgreSQLServerHasDBs.class.getSimpleName()));
-
-    armManagers.postgreSqlManager().databases().deleteById(db.id());
+    return db;
   }
 
-  @Test
-  void landingZoneWithAKSScaledUp_cannotDelete() {
-
+  private void scaleNodePool() {
     var nodePoolName = aksCluster.agentPools().values().stream().findFirst().orElseThrow();
 
     aksCluster
@@ -250,22 +246,9 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
         .withAgentPoolVirtualMachineCount(2)
         .parent()
         .apply();
-
-    Exception exception =
-        assertThrows(
-            LandingZoneRuleDeleteException.class,
-            () ->
-                deleteManager.deleteLandingZoneResources(
-                    landingZoneId.toString(), resourceGroup.name()));
-
-    assertThat(
-        exception.getMessage(),
-        containsStringIgnoringCase(AKSAgentPoolHasMoreThanOneNode.class.getSimpleName()));
   }
 
-  @Test
-  void landingZoneWithVM_cannotDelete() {
-
+  private VirtualMachine createVirtualMachine() {
     var vm =
         armManagers
             .azureResourceManager()
@@ -280,32 +263,19 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
             .withPopularLinuxImage(KnownLinuxVirtualMachineImage.UBUNTU_SERVER_16_04_LTS)
             .withRootUsername("username")
             .withRootPassword(UUID.randomUUID().toString())
-            .withSize(VirtualMachineSizeTypes.STANDARD_D1)
+            .withSize(VirtualMachineSizeTypes.STANDARD_D2_V3)
             .create();
-
-    Exception exception =
-        assertThrows(
-            LandingZoneRuleDeleteException.class,
-            () ->
-                deleteManager.deleteLandingZoneResources(
-                    landingZoneId.toString(), resourceGroup.name()));
-
-    assertThat(
-        exception.getMessage(),
-        containsStringIgnoringCase(VmsAreAttachedToVnet.class.getSimpleName()));
-
-    armManagers.azureResourceManager().virtualMachines().deleteById(vm.id());
+    return vm;
   }
 
-  @Test
-  void landingZoneWithBatchPool_cannotDelete() {
+  private void createBatchPool(String poolName) {
     var pool =
         armManagers
             .batchManager()
             .pools()
-            .define("mypool")
+            .define(poolName)
             .withExistingBatchAccount(resourceGroup.name(), batch.name())
-            .withVmSize("STANDARD_D1")
+            .withVmSize("Standard_D2as_v4")
             .withDeploymentConfiguration(
                 new DeploymentConfiguration()
                     .withVirtualMachineConfiguration(
@@ -324,18 +294,5 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
                             .withFormula("$TargetDedicatedNodes=1")
                             .withEvaluationInterval(Duration.parse("PT5M"))))
             .create();
-
-    Exception exception =
-        assertThrows(
-            LandingZoneRuleDeleteException.class,
-            () ->
-                deleteManager.deleteLandingZoneResources(
-                    landingZoneId.toString(), resourceGroup.name()));
-
-    assertThat(
-        exception.getMessage(),
-        containsStringIgnoringCase(BatchAccountHasNodePools.class.getSimpleName()));
-
-    armManagers.batchManager().pools().delete(resourceGroup.name(), batch.name(), "mypool");
   }
 }
