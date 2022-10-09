@@ -121,7 +121,7 @@ public class LandingZoneServiceTest {
   }
 
   @Test
-  public void getAsyncDeletionJobResult_success() {
+  void getAsyncDeletionJobResult_success() {
     String jobId = "newJobId";
     landingZoneService.getAsyncDeletionJobResult(bearerToken, jobId);
 
@@ -132,7 +132,7 @@ public class LandingZoneServiceTest {
   }
 
   @Test
-  public void startLandingZoneCreationJob_JobIsSubmitted() {
+  void startLandingZoneCreationJob_JobIsSubmitted() {
     var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
     when(mockFactory1.availableVersions())
         .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));

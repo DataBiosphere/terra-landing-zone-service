@@ -27,6 +27,6 @@ public class PostgreSQLServerHasDBs extends ResourceDependencyDeleteRule {
         .listByServer(
             resourceToDelete.resource().resourceGroupName(), resourceToDelete.resource().name())
         .stream()
-        .anyMatch(d -> !SYS_DB_NAMES.stream().anyMatch(n -> n.equalsIgnoreCase(d.name())));
+        .anyMatch(d -> SYS_DB_NAMES.stream().noneMatch(n -> n.equalsIgnoreCase(d.name())));
   }
 }

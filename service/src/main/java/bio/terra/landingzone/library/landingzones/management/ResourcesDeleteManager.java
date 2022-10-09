@@ -50,7 +50,7 @@ public class ResourcesDeleteManager {
             .privateEndpoints()
             .listByResourceGroup(resourceGroupName)
             .stream()
-            .collect(Collectors.toList());
+            .toList();
 
     return armManagers
         .azureResourceManager()
@@ -63,7 +63,7 @@ public class ResourcesDeleteManager {
                     .getOrDefault(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), "")
                     .equals(landingZoneId))
         .map(r -> toResourceToDelete(r, privateEndPoints))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private ResourceToDelete toResourceToDelete(
@@ -99,7 +99,7 @@ public class ResourcesDeleteManager {
     return Stream.concat(
             partitions.get(false).stream().map(this::deleteResource),
             partitions.get(true).stream().map(this::deleteResource))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private GenericResource deleteResource(ResourceToDelete resourceToDelete) {

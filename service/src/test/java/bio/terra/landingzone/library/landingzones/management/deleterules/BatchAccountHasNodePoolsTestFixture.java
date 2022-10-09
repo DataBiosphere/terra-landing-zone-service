@@ -18,7 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class BatchAccountHasNodePoolsTest extends BaseDependencyRuleUnitTest {
+class BatchAccountHasNodePoolsTestFixture extends BaseDependencyRuleFixture {
 
   private BatchAccountHasNodePools rule;
 

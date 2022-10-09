@@ -60,10 +60,11 @@ public class DeleteLandingZoneResourcesStep implements Step {
 
       persistResponse(context, deletedLandingZone);
 
+      String deletedResources = String.join(", ", deletedLandingZone.deleteResources());
       logger.info(
           "Successfully deleted landing zone resources. id='{}', deleted resources='{}'",
-          deletedLandingZone.landingZoneId().toString(),
-          String.join(", ", deletedLandingZone.deleteResources()));
+          deletedLandingZone.landingZoneId(),
+          deletedResources);
 
     } catch (LandingZoneRuleDeleteException e) {
       logger.error("Failed to delete the landing zone due to delete rules.", e);

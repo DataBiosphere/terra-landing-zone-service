@@ -107,7 +107,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
   public List<DeployedResource> listAllResources(String landingZoneId) {
     return landingZoneResources(landingZoneId, resourceGroup.name())
         .map(this::toLandingZoneDeployedResource)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

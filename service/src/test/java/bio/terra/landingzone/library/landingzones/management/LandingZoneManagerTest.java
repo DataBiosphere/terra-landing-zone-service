@@ -111,7 +111,7 @@ class LandingZoneManagerTest {
   }
 
   @Test
-  public void deleteResources_deletesLandingZoneResources() throws LandingZoneRuleDeleteException {
+  void deleteResources_deletesLandingZoneResources() throws LandingZoneRuleDeleteException {
     String landingZone = UUID.randomUUID().toString();
     List<DeployedResource> lz =
         landingZoneManager.deployLandingZone(

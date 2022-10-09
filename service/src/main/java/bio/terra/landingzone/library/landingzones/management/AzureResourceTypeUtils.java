@@ -1,6 +1,8 @@
 package bio.terra.landingzone.library.landingzones.management;
 
 public class AzureResourceTypeUtils {
+  private AzureResourceTypeUtils() {}
+
   public static final String AZURE_VM_TYPE = "Microsoft.Network/virtualNetworks";
   public static final String AZURE_RELAY_TYPE = "Microsoft.Relay/namespaces";
 

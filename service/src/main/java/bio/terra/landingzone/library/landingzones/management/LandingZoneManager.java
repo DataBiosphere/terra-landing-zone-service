@@ -25,7 +25,6 @@ import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -133,7 +132,7 @@ public class LandingZoneManager {
         .deleteLandingZoneResources(landingZoneId, resourceGroup.name())
         .stream()
         .map(HasId::id)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private Class<? extends LandingZoneDefinitionFactory> getFactoryFromClassName(String className) {

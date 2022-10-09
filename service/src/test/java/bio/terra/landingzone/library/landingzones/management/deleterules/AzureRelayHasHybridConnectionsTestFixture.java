@@ -19,7 +19,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 
-class AzureRelayHasHybridConnectionsTest extends BaseDependencyRuleUnitTest {
+class AzureRelayHasHybridConnectionsTestFixture extends BaseDependencyRuleFixture {
 
   @Mock private AzureRelayHasHybridConnections rule;
 
