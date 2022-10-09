@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-public class BaseDependencyRuleUnitTest {
+public class BaseDependencyRuleUnitTestFixture {
   protected ArmManagers armManagers;
 
   protected final String RESOURCE_NAME = "resourceName";
