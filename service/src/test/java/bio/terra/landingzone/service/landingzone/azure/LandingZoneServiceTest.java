@@ -60,8 +60,8 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@Tag("unit")
 @ExtendWith(MockitoExtension.class)
+@Tag("unit")
 public class LandingZoneServiceTest {
   private static final String VNET_1 = "vnet_1";
   private static final String VNET_2 = "vnet_2";
