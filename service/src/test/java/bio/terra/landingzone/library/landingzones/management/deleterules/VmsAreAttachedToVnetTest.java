@@ -16,7 +16,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class VmsAreAttachedToVnetTestFixture extends BaseDependencyRuleFixture {
+class VmsAreAttachedToVnetTest extends BaseDependencyRuleFixture {
 
   protected VmsAreAttachedToVnet rule;
 

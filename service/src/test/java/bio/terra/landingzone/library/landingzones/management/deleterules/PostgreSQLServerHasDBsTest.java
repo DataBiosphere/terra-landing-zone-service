@@ -17,7 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class PostgreSQLServerHasDBsTestFixture extends BaseDependencyRuleFixture {
+class PostgreSQLServerHasDBsTest extends BaseDependencyRuleFixture {
   private PostgreSQLServerHasDBs rule;
 
   @BeforeEach

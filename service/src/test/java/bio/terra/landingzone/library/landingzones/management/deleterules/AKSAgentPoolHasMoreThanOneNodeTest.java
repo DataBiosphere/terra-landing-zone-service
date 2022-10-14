@@ -18,7 +18,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 
-class AKSAgentPoolHasMoreThanOneNodeTestFixture extends BaseDependencyRuleFixture {
+class AKSAgentPoolHasMoreThanOneNodeTest extends BaseDependencyRuleFixture {
 
   private AKSAgentPoolHasMoreThanOneNode rule;
 
