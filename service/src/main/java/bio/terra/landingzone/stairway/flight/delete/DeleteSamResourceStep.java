@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.delete;
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
@@ -41,21 +40,9 @@ public class DeleteSamResourceStep implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    // recreate the sam resource
-    final FlightMap inputMap = context.getInputParameters();
-    FlightUtils.validateRequiredEntries(
-        inputMap,
-        LandingZoneFlightMapKeys.BEARER_TOKEN,
-        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-        LandingZoneFlightMapKeys.LANDING_ZONE_ID);
-
-    var bearerToken = inputMap.get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
-    var requestedExternalLandingZoneResource =
-        inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-
-    landingZoneSamService.createLandingZone(
-        bearerToken, requestedExternalLandingZoneResource.billingProfileId(), landingZoneId);
-    return StepResult.getStepResultSuccess();
+    // No undo for delete. There is no way to put it back.
+    logger.error("Cannot undo delete of Sam resource.");
+    // Surface whatever error caused Stairway to begin undoing.
+    return context.getResult();
   }
 }
