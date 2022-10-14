@@ -36,5 +36,8 @@ public class DeleteLandingZoneFlight extends Flight {
     addStep(
         new DeleteAzureLandingZoneDbRecordStep(flightBeanBag.getLandingZoneDao()),
         RetryRules.shortDatabase());
+
+    addStep(
+        new DeleteSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
   }
 }
