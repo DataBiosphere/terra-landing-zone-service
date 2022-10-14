@@ -17,8 +17,10 @@ import static org.mockito.Mockito.when;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
+import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
@@ -37,11 +39,14 @@ import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
+import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import bio.terra.profile.model.ProfileModel;
 import java.util.Collections;
 import java.util.List;
@@ -116,7 +121,18 @@ public class LandingZoneServiceTest {
   }
 
   @Test
-  public void startLandingZoneCreationJob_JobIsSubmitted() {
+  void getAsyncDeletionJobResult_success() {
+    String jobId = "newJobId";
+    landingZoneService.getAsyncDeletionJobResult(bearerToken, jobId);
+
+    verify(landingZoneJobService, times(1))
+        .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
+    assertEquals(jobId, jobIdCaptor.getValue());
+    assertEquals(DeletedLandingZone.class, classCaptor.getValue());
+  }
+
+  @Test
+  void startLandingZoneCreationJob_JobIsSubmitted() {
     var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
     when(mockFactory1.availableVersions())
         .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
@@ -193,6 +209,31 @@ public class LandingZoneServiceTest {
               landingZoneService.startLandingZoneCreationJob(
                   bearerToken, "jobId", landingZoneRequest, "create-result"));
     }
+  }
+
+  @Test
+  public void startLandingZoneDeletionJob_JobIsSubmitted() {
+
+    var landingZoneId = UUID.randomUUID();
+    String resultPath = "delete-result";
+
+    LandingZoneJobBuilder mockJobBuilder = mock(LandingZoneJobBuilder.class);
+    when(mockJobBuilder.jobId(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.description(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.flightClass(DeleteLandingZoneFlight.class)).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.bearerToken(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.operationType(OperationType.DELETE)).thenReturn(mockJobBuilder);
+    when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId))
+        .thenReturn(mockJobBuilder);
+    when(mockJobBuilder.addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath))
+        .thenReturn(mockJobBuilder);
+
+    landingZoneService.startLandingZoneDeletionJob(
+        bearerToken, "newJobId", landingZoneId, resultPath);
+
+    verify(landingZoneJobService, times(1)).newJob();
+    verify(mockJobBuilder, times(1)).submit();
   }
 
   @Test
