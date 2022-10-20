@@ -368,6 +368,9 @@ public class LandingZoneJobService {
   public void verifyUserAccessForDeleteJobResult(
       BearerToken bearerToken, UUID landingZoneId, String jobId) {
     try {
+      // TODO: This flow must be updated to use the billing profile
+      // once the lz db has a reference to the billing profile.
+      // Ticket: TOAZ-246
       FlightState flightState = stairwayComponent.get().getFlightState(jobId);
       FlightMap inputParameters = flightState.getInputParameters();
       UUID flightLandingZoneId =
