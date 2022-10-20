@@ -1,5 +1,7 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
+import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORIZED;
+
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
@@ -48,7 +50,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class LandingZoneService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneService.class);
-  public static final String IS_AUTHORIZED = "isAuthorized";
   private final LandingZoneJobService azureLandingZoneJobService;
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
@@ -86,13 +87,15 @@ public class LandingZoneService {
    * Retrieves the result of an asynchronous landing zone deleting job.
    *
    * @param bearerToken bearer token for the user request.
+   * @param landingZoneId landing zone id associated with the job.
    * @param jobId job identifier.
    * @return result of asynchronous job.
    */
   public AsyncJobResult<DeletedLandingZone> getAsyncDeletionJobResult(
-      BearerToken bearerToken, String jobId) {
+      BearerToken bearerToken, UUID landingZoneId, String jobId) {
     // Check calling user has access to the landing zone referenced by this job
-    azureLandingZoneJobService.verifyUserAccess(bearerToken, jobId);
+    azureLandingZoneJobService.verifyUserAccessForDeleteJobResult(
+        bearerToken, landingZoneId, jobId);
     return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeletedLandingZone.class);
   }
 

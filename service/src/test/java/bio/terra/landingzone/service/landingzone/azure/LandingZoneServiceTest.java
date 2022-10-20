@@ -123,10 +123,29 @@ public class LandingZoneServiceTest {
   @Test
   void getAsyncDeletionJobResult_success() {
     String jobId = "newJobId";
-    landingZoneService.getAsyncDeletionJobResult(bearerToken, jobId);
+    UUID landingZoneId = UUID.randomUUID();
+    landingZoneService.getAsyncDeletionJobResult(bearerToken, landingZoneId, jobId);
 
     verify(landingZoneJobService, times(1))
         .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
+    verify(landingZoneJobService, times(1))
+        .verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
+
+    assertEquals(jobId, jobIdCaptor.getValue());
+    assertEquals(DeletedLandingZone.class, classCaptor.getValue());
+  }
+
+  @Test
+  void getAsyncDeletionJobResult() {
+    String jobId = "newJobId";
+    UUID landingZoneId = UUID.randomUUID();
+    landingZoneService.getAsyncDeletionJobResult(bearerToken, landingZoneId, jobId);
+
+    verify(landingZoneJobService, times(1))
+        .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
+    verify(landingZoneJobService, times(1))
+        .verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
+
     assertEquals(jobId, jobIdCaptor.getValue());
     assertEquals(DeletedLandingZone.class, classCaptor.getValue());
   }
