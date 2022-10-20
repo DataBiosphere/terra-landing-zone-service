@@ -1,0 +1,14 @@
+# The schema for a landing zone
+databaseChangeLog:
+- changeSet:
+    id: add billing profile id field.
+    author: myazykov
+    changes:
+    - addColumn:
+        tableName: landingzone
+        columns:
+          - column:
+              name: billing_profile_id
+              type: text
+              remarks: |
+                Billing profile ID associated with a landing zone.

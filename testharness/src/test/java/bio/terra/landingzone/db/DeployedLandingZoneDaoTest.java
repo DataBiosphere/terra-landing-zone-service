@@ -19,6 +19,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   private static final String RESOURCE_GROUP = "test-resource-group";
   private static final String SUBSCRIPTION = "test-subscription-Id";
   private static final String TENANT = "test-tenant-Id";
+  private static final UUID BILLING_PROFILE = UUID.randomUUID();
   private static final String DEFINITION = "lzDefinition";
   private static final String VERSION = "v1";
   private static final String DISPLAY_NAME = "lzDisplayName";
@@ -39,6 +40,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               VERSION,
               SUBSCRIPTION,
               TENANT,
+              BILLING_PROFILE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -65,6 +67,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               VERSION,
               SUBSCRIPTION,
               TENANT,
+              BILLING_PROFILE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -78,6 +81,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, lz.version());
       assertEquals(SUBSCRIPTION, lz.subscriptionId());
       assertEquals(TENANT, lz.tenantId());
+      assertEquals(BILLING_PROFILE, lz.billingProfileId());
       assertEquals(DISPLAY_NAME, lz.displayName().get());
       assertEquals(DESCRIPTION, lz.description().get());
       assertEquals(properties, lz.properties());
@@ -104,7 +108,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               DESCRIPTION,
               properties,
               SUBSCRIPTION,
-              TENANT);
+              TENANT,
+              BILLING_PROFILE);
       landingZoneDao.createLandingZone(lz);
 
       assertThrows(DuplicateLandingZoneException.class, () -> landingZoneDao.createLandingZone(lz));
@@ -137,7 +142,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
             DESCRIPTION,
             properties,
             SUBSCRIPTION,
-            TENANT);
+            TENANT,
+            BILLING_PROFILE);
     landingZoneDao.createLandingZone(lz);
 
     assertTrue(landingZoneDao.deleteLandingZone(expectedLzId));
@@ -173,6 +179,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               VERSION,
               SUBSCRIPTION,
               TENANT,
+              BILLING_PROFILE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);

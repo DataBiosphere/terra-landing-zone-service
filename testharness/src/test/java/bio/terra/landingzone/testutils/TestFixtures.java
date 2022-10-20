@@ -15,7 +15,8 @@ public class TestFixtures {
       String description,
       Map<String, String> properties,
       String subscription,
-      String tenant) {
+      String tenant,
+      UUID billingProfileId) {
     return new LandingZone(
         landingZoneId,
         resourceGroupId,
@@ -23,6 +24,7 @@ public class TestFixtures {
         version,
         subscription,
         tenant,
+        billingProfileId,
         Optional.of(displayName),
         Optional.of(description),
         properties);

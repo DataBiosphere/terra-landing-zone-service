@@ -18,6 +18,7 @@ public record LandingZone(
     String version,
     String subscriptionId,
     String tenantId,
+    UUID billingProfileId,
     Optional<String> displayName,
     Optional<String> description,
     Map<String, String> properties) {
@@ -34,6 +35,7 @@ public record LandingZone(
     private String version;
     private String subscriptionId;
     private String tenantId;
+    private UUID billingProfileId;
     private @Nullable String displayName;
     private @Nullable String description;
     private Map<String, String> properties;
@@ -83,6 +85,11 @@ public record LandingZone(
       return this;
     }
 
+    public Builder billingProfileId(UUID billingProfileId) {
+      this.billingProfileId = billingProfileId;
+      return this;
+    }
+
     public LandingZone build() {
       // Always have a map, even if it is empty
       if (properties == null) {
@@ -104,6 +111,7 @@ public record LandingZone(
           version,
           subscriptionId,
           tenantId,
+          billingProfileId,
           Optional.of(displayName),
           Optional.of(description),
           properties);

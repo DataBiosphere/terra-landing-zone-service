@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LandingZoneDao {
   /** SQL query for reading landing zone records. */
   private static final String LANDINGZONE_SELECT_SQL =
-      "SELECT landingzone_id, resource_group, subscription_id, tenant_id, definition_id, definition_version_id, display_name, description, properties"
+      "SELECT landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, definition_id, definition_version_id, display_name, description, properties"
           + " FROM landingzone";
 
   // Landing Zones table fields
@@ -33,6 +33,7 @@ public class LandingZoneDao {
   private static final String SUBSCRIPTION_ID = "subscription_id";
   private static final String RESOURCE_GROUP = "resource_group";
   private static final String TENANT_ID = "tenant_id";
+  private static final String BILLING_PROFILE_ID = "billing_profile_id";
   private static final String DEFINITION_ID = "definition_id";
   private static final String DEFINITION_VERSION_ID = "definition_version_id";
   private static final String DISPLAY_NAME = "display_name";
@@ -62,11 +63,12 @@ public class LandingZoneDao {
       transactionManager = "tlzTransactionManager")
   public UUID createLandingZone(LandingZone landingzone) {
     final String sql =
-        "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, definition_id, definition_version_id, display_name, description, properties) "
-            + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :definition_id, :definition_version_id, :display_name, :description,"
+        "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, definition_id, definition_version_id, display_name, description, properties) "
+            + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :billing_profile_id, :definition_id, :definition_version_id, :display_name, :description,"
             + " cast(:properties AS jsonb))";
 
     final String landingZoneUuid = landingzone.landingZoneId().toString();
+    final String billingProfileUuid = landingzone.landingZoneId().toString();
 
     MapSqlParameterSource params =
         new MapSqlParameterSource()
@@ -74,6 +76,7 @@ public class LandingZoneDao {
             .addValue(RESOURCE_GROUP, landingzone.resourceGroupId())
             .addValue(SUBSCRIPTION_ID, landingzone.subscriptionId())
             .addValue(TENANT_ID, landingzone.tenantId())
+            .addValue(BILLING_PROFILE_ID, billingProfileUuid)
             .addValue(DEFINITION_ID, landingzone.definition())
             .addValue(DEFINITION_VERSION_ID, landingzone.version())
             .addValue(DISPLAY_NAME, landingzone.displayName().orElse(null))
@@ -141,7 +144,7 @@ public class LandingZoneDao {
   }
 
   /**
-   * Retrieves landing zones from database by subscription ID, tenant ID, and resource group ID .
+   * Retrieves landing zones from database by subscription ID, tenant ID, and resource group ID.
    *
    * @param subscriptionId unique identifier of the Azure subscription.
    * @param tenantId unique identifier of the Azure tenant.
@@ -168,15 +171,54 @@ public class LandingZoneDao {
         LANDINGZONE_SELECT_SQL
             + " WHERE subscription_id = :subscription_id"
             + " AND tenant_id = :tenant_id"
-            + " AND resource_group = :resource_group_id";
+            + " AND resource_group = :resource_group";
 
     MapSqlParameterSource params =
         new MapSqlParameterSource()
             .addValue(SUBSCRIPTION_ID, subscriptionId)
             .addValue(TENANT_ID, tenantId)
-            .addValue("resource_group_id", resourceGroupId);
+            .addValue(RESOURCE_GROUP, resourceGroupId);
 
     return jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER);
+  }
+
+  /**
+   * Retrieves a landing zone from database by billing profile ID.
+   *
+   * @param uuid unique identifier of the billing profile.
+   * @return landing zone value object.
+   */
+  public LandingZone getLandingZoneByBillingProfileId(UUID uuid) {
+    return getLandingZoneByBillingProfileIdIfExists(uuid)
+        .orElseThrow(
+            () ->
+                new LandingZoneNotFoundException(
+                    String.format(
+                        "Landing Zone with billing profile %s not found.", uuid.toString())));
+  }
+
+  @Transactional(
+      isolation = Isolation.SERIALIZABLE,
+      propagation = Propagation.REQUIRED,
+      transactionManager = "tlzTransactionManager")
+  public Optional<LandingZone> getLandingZoneByBillingProfileIdIfExists(UUID billingProfileUuid) {
+    if (billingProfileUuid == null) {
+      throw new IllegalArgumentException("Billing Profile ID is required.");
+    }
+
+    String sql = LANDINGZONE_SELECT_SQL + " WHERE billing_profile_id = :billing_profile_id";
+
+    MapSqlParameterSource params =
+        new MapSqlParameterSource().addValue(BILLING_PROFILE_ID, billingProfileUuid.toString());
+    try {
+      LandingZone result =
+          DataAccessUtils.requiredSingleResult(
+              jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER));
+      logger.info("Retrieved landing zone record {}", result);
+      return Optional.of(result);
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
   }
 
   @Transactional(
@@ -207,6 +249,7 @@ public class LandingZoneDao {
               .resourceGroupId(rs.getString(RESOURCE_GROUP))
               .subscriptionId(rs.getString(SUBSCRIPTION_ID))
               .tenantId(rs.getString(TENANT_ID))
+              .billingProfileId(UUID.fromString(rs.getString(BILLING_PROFILE_ID)))
               .definition(rs.getString(DEFINITION_ID))
               .version(rs.getString(DEFINITION_VERSION_ID))
               .displayName(rs.getString(DISPLAY_NAME))

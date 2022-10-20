@@ -400,6 +400,7 @@ public class LandingZoneServiceTest {
         "version",
         "subscriptionId",
         "tenantId",
+        UUID.randomUUID(),
         Optional.of("displayName"),
         Optional.of("description"),
         Collections.emptyMap());
@@ -484,6 +485,7 @@ public class LandingZoneServiceTest {
     // Setup mocks
     final var tenantId = UUID.randomUUID();
     final var subscriptionId = UUID.randomUUID();
+    final var billingProfileId = UUID.randomUUID();
     final var resourceGroup = "mrg";
     LandingZone landingZone =
         new LandingZone(
@@ -493,6 +495,7 @@ public class LandingZoneServiceTest {
             "version",
             subscriptionId.toString(),
             tenantId.toString(),
+            billingProfileId,
             null,
             null,
             Collections.emptyMap());
