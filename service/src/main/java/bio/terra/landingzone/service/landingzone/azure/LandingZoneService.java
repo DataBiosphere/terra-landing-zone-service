@@ -217,25 +217,11 @@ public class LandingZoneService {
   public List<LandingZoneResource> listResourcesByPurpose(
       BearerToken bearerToken, UUID landingZoneId, LandingZonePurpose purpose) {
     List<LandingZoneResource> deployedResources = null;
-    // Check that the calling user has "list-resources" permission on the landing zone resource in
-    // Sam
-    SamRethrow.onInterrupted(
-        () ->
-            samService.checkAuthz(
-                bearerToken,
-                SamConstants.SamResourceType.LANDING_ZONE,
-                landingZoneId.toString(),
-                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        IS_AUTHORIZED);
 
-    // Look up the landing zone record from the database
-    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+    checkIfUserHasPermissionForLandingZoneResource(
+        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
 
-    LandingZoneTarget landingZoneTarget =
-        new LandingZoneTarget(
-            landingZoneRecord.tenantId(),
-            landingZoneRecord.subscriptionId(),
-            landingZoneRecord.resourceGroupId());
+    LandingZoneTarget landingZoneTarget = buildLandingZoneTarget(landingZoneId);
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
@@ -323,25 +309,10 @@ public class LandingZoneService {
    */
   public LandingZoneResourcesByPurpose listResourcesWithPurposes(
       BearerToken bearerToken, UUID landingZoneId) {
-    // Check that the calling user has "list-resources" permission on the landing zone resource in
-    // Sam
-    SamRethrow.onInterrupted(
-        () ->
-            samService.checkAuthz(
-                bearerToken,
-                SamConstants.SamResourceType.LANDING_ZONE,
-                landingZoneId.toString(),
-                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        IS_AUTHORIZED);
+    checkIfUserHasPermissionForLandingZoneResource(
+        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
 
-    // Look up the landing zone record from the database
-    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
-
-    LandingZoneTarget landingZoneTarget =
-        new LandingZoneTarget(
-            landingZoneRecord.tenantId(),
-            landingZoneRecord.subscriptionId(),
-            landingZoneRecord.resourceGroupId());
+    LandingZoneTarget landingZoneTarget = buildLandingZoneTarget(landingZoneId);
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
@@ -356,13 +327,35 @@ public class LandingZoneService {
     return new LandingZoneResourcesByPurpose(listGeneralResources);
   }
 
+  private LandingZoneTarget buildLandingZoneTarget(UUID landingZoneId) {
+    // Look up the landing zone record from the database
+    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+
+    return new LandingZoneTarget(
+        landingZoneRecord.tenantId(),
+        landingZoneRecord.subscriptionId(),
+        landingZoneRecord.resourceGroupId());
+  }
+
+  private void checkIfUserHasPermissionForLandingZoneResource(
+      BearerToken bearerToken, UUID landingZoneId, String permissionName) {
+    SamRethrow.onInterrupted(
+        () ->
+            samService.checkAuthz(
+                bearerToken,
+                SamConstants.SamResourceType.LANDING_ZONE,
+                landingZoneId.toString(),
+                permissionName),
+        IS_AUTHORIZED);
+  }
+
   private List<LandingZoneResource> listResourcesByPurpose(
       LandingZoneManager landingZoneManager, UUID landingZoneId, ResourcePurpose purpose) {
 
     List<DeployedResource> deployedResources =
         landingZoneManager.reader().listResourcesByPurpose(landingZoneId.toString(), purpose);
 
-    return deployedResources.stream().map(dp -> toLandingZoneResource(dp)).toList();
+    return deployedResources.stream().map(this::toLandingZoneResource).toList();
   }
 
   private List<LandingZoneResource> listResourcesByPurpose(
