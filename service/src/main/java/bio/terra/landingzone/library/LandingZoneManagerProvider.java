@@ -7,6 +7,8 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.ClientSecretCredentialBuilder;
+import com.azure.resourcemanager.AzureResourceManager;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,13 +22,26 @@ public class LandingZoneManagerProvider {
   }
 
   public LandingZoneManager createLandingZoneManager(LandingZoneTarget landingZoneTarget) {
+    AzureProfile azureProfile = createAzureProfile(landingZoneTarget);
+    return LandingZoneManager.createLandingZoneManager(
+        buildTokenCredential(), azureProfile, landingZoneTarget.azureResourceGroupId());
+  }
+
+  @NotNull
+  private AzureProfile createAzureProfile(LandingZoneTarget landingZoneTarget) {
     var azureProfile =
         new AzureProfile(
             landingZoneTarget.azureTenantId(),
             landingZoneTarget.azureSubscriptionId(),
             AzureEnvironment.AZURE);
-    return LandingZoneManager.createLandingZoneManager(
-        buildTokenCredential(), azureProfile, landingZoneTarget.azureResourceGroupId());
+    return azureProfile;
+  }
+
+  public AzureResourceManager createAzureResourceManagerClient(
+      LandingZoneTarget landingZoneTarget) {
+    AzureProfile azureProfile = createAzureProfile(landingZoneTarget);
+    return AzureResourceManager.authenticate(buildTokenCredential(), azureProfile)
+        .withSubscription(azureProfile.getSubscriptionId());
   }
 
   private TokenCredential buildTokenCredential() {
