@@ -29,12 +29,10 @@ public class LandingZoneManagerProvider {
 
   @NotNull
   private AzureProfile createAzureProfile(LandingZoneTarget landingZoneTarget) {
-    var azureProfile =
-        new AzureProfile(
-            landingZoneTarget.azureTenantId(),
-            landingZoneTarget.azureSubscriptionId(),
-            AzureEnvironment.AZURE);
-    return azureProfile;
+    return new AzureProfile(
+        landingZoneTarget.azureTenantId(),
+        landingZoneTarget.azureSubscriptionId(),
+        AzureEnvironment.AZURE);
   }
 
   public AzureResourceManager createAzureResourceManagerClient(

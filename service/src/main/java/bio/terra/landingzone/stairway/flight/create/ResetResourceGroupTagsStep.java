@@ -60,7 +60,7 @@ public class ResetResourceGroupTagsStep implements Step {
         landingZoneManagerProvider.createAzureResourceManagerClient(
             LandingZoneTarget.fromBillingProfile(billingProfile));
 
-    Map preexistingTags = getPreexistingTagsFromWorkingMap(workingMap);
+    Map<String, String> preexistingTags = getPreexistingTagsFromWorkingMap(workingMap);
     if (preexistingTags == null || preexistingTags.isEmpty()) return;
 
     logger.info("Preexisting tags were found. Tags:{}", preexistingTags);
@@ -68,7 +68,7 @@ public class ResetResourceGroupTagsStep implements Step {
   }
 
   @Nullable
-  private Map getPreexistingTagsFromWorkingMap(FlightMap workingMap)
+  private Map<String, String> getPreexistingTagsFromWorkingMap(FlightMap workingMap)
       throws JsonProcessingException {
     String mapValue = workingMap.get(RESOURCE_GROUP_TAGS, String.class);
 
@@ -76,12 +76,13 @@ public class ResetResourceGroupTagsStep implements Step {
       return null;
     }
 
-    Map preexistingTags = objectMapper.readValue(mapValue, Map.class);
-    return preexistingTags;
+    return objectMapper.readValue(mapValue, Map.class);
   }
 
   private void mergeAndSetTags(
-      ProfileModel billingProfile, AzureResourceManager azureResourceManager, Map preexistingTags) {
+      ProfileModel billingProfile,
+      AzureResourceManager azureResourceManager,
+      Map<String, String> preexistingTags) {
     ResourceGroup resourceGroup =
         azureResourceManager.resourceGroups().getByName(billingProfile.getManagedResourceGroupId());
     Map<String, String> currentTags = resourceGroup.tags();
