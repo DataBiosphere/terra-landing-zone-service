@@ -30,12 +30,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-class SetResourceGroupTagsStepTest {
+class ResetResourceGroupTagsStepTest {
 
   private static final String RESOURCE_GROUP_NAME = "myRg";
   private static final UUID TENANT_ID = UUID.randomUUID();
   private static final UUID SUBSCRIPTION_ID = UUID.randomUUID();
-  private SetResourceGroupTagsStep setResourceGroupTagsStep;
+  private ResetResourceGroupTagsStep resetResourceGroupTagsStep;
 
   @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
   private ProfileModel billingProfile;
@@ -55,8 +55,8 @@ class SetResourceGroupTagsStepTest {
   @BeforeEach
   void setUp() {
     objectMapper = new ObjectMapper();
-    setResourceGroupTagsStep =
-        new SetResourceGroupTagsStep(landingZoneManagerProvider, objectMapper);
+    resetResourceGroupTagsStep =
+        new ResetResourceGroupTagsStep(landingZoneManagerProvider, objectMapper);
     billingProfile =
         new ProfileModel()
             .managedResourceGroupId(RESOURCE_GROUP_NAME)
@@ -83,7 +83,7 @@ class SetResourceGroupTagsStepTest {
         .thenReturn(objectMapper.writeValueAsString(tags));
     when(azureResourceManager.tagOperations()).thenReturn(tagOperations);
 
-    setResourceGroupTagsStep.doStep(flightContext);
+    resetResourceGroupTagsStep.doStep(flightContext);
 
     verify(tagOperations, times(1)).updateTags(resourceGroup, tags);
   }
@@ -103,7 +103,7 @@ class SetResourceGroupTagsStepTest {
     newTags.put("MyNewTag", "Value");
     when(resourceGroup.tags()).thenReturn(newTags);
 
-    setResourceGroupTagsStep.doStep(flightContext);
+    resetResourceGroupTagsStep.doStep(flightContext);
 
     Map<String, String> expectedMap = new HashMap<>();
     expectedMap.putAll(preExisting);
@@ -119,7 +119,7 @@ class SetResourceGroupTagsStepTest {
     when(flightMap.get(RESOURCE_GROUP_TAGS, String.class))
         .thenReturn(objectMapper.writeValueAsString(tags));
 
-    setResourceGroupTagsStep.doStep(flightContext);
+    resetResourceGroupTagsStep.doStep(flightContext);
 
     verify(tagOperations, times(0)).updateTags(any(Resource.class), any());
   }
@@ -127,7 +127,7 @@ class SetResourceGroupTagsStepTest {
   @Test
   void doStep_withoutPreExistingTagsInWorkingMap() throws InterruptedException {
 
-    setResourceGroupTagsStep.doStep(flightContext);
+    resetResourceGroupTagsStep.doStep(flightContext);
 
     verify(tagOperations, times(0)).updateTags(any(Resource.class), any());
   }

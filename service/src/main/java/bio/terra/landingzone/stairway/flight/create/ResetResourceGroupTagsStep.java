@@ -24,12 +24,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SetResourceGroupTagsStep implements Step {
-  private static final Logger logger = LoggerFactory.getLogger(SetResourceGroupTagsStep.class);
+public class ResetResourceGroupTagsStep implements Step {
+  private static final Logger logger = LoggerFactory.getLogger(ResetResourceGroupTagsStep.class);
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final ObjectMapper objectMapper;
 
-  public SetResourceGroupTagsStep(
+  public ResetResourceGroupTagsStep(
       LandingZoneManagerProvider landingZoneManagerProvider, ObjectMapper objectMapper) {
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.objectMapper = objectMapper;

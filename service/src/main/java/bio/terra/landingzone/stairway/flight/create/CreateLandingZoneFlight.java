@@ -46,7 +46,7 @@ public class CreateLandingZoneFlight extends Flight {
         RetryRules.cloud());
 
     addStep(
-        new SetResourceGroupTagsStep(
+        new ResetResourceGroupTagsStep(
             flightBeanBag.getAzureLandingZoneManagerProvider(), flightBeanBag.getObjectMapper()),
         RetryRules.shortExponential());
 
