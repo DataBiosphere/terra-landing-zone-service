@@ -33,6 +33,7 @@ public class LandingZoneSamService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneSamService.class);
   private final LandingZoneSamConfiguration samConfig;
   private final OkHttpClient commonHttpClient;
+  public static final String IS_AUTHORIZED = "isAuthorized";
 
   @Autowired
   public LandingZoneSamService(LandingZoneSamConfiguration samConfig) {
