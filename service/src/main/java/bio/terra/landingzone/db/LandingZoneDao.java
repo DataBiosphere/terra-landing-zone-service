@@ -68,7 +68,7 @@ public class LandingZoneDao {
             + " cast(:properties AS jsonb))";
 
     final String landingZoneUuid = landingzone.landingZoneId().toString();
-    final String billingProfileUuid = landingzone.landingZoneId().toString();
+    final String billingProfileUuid = landingzone.billingProfileId().toString();
 
     MapSqlParameterSource params =
         new MapSqlParameterSource()

@@ -209,6 +209,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, records.get(0).version());
       assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
       assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(BILLING_PROFILE, records.get(0).billingProfileId());
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());
       assertEquals(properties, records.get(0).properties());

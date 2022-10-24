@@ -60,6 +60,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
             .resourceGroupId(landingZoneTarget.azureResourceGroupId())
             .tenantId(landingZoneTarget.azureTenantId())
             .subscriptionId(landingZoneTarget.azureSubscriptionId())
+            .billingProfileId(requestedExternalLandingZoneResource.billingProfileId())
             .build());
     return StepResult.getStepResultSuccess();
   }
