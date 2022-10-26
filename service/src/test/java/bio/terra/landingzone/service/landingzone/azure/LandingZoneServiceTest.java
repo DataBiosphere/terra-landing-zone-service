@@ -400,7 +400,7 @@ public class LandingZoneServiceTest {
         "version",
         "subscriptionId",
         "tenantId",
-        UUID.randomUUID(),
+        billingProfileId,
         Optional.of("displayName"),
         Optional.of("description"),
         Collections.emptyMap());
@@ -527,6 +527,52 @@ public class LandingZoneServiceTest {
     assertNotNull(result);
     assertEquals(1, result.size());
     assertEquals(landingZoneId, result.get(0));
+  }
+
+  @Test
+  public void getLandingZoneRecord_Success() throws InterruptedException {
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
+    final var tenantId = UUID.randomUUID();
+    final var subscriptionId = UUID.randomUUID();
+    final var resourceGroup = "mrg";
+    final var definition = "definition";
+    final var version = "version";
+    LandingZone landingZone =
+        new LandingZone(
+            landingZoneId,
+            resourceGroup,
+            definition,
+            version,
+            subscriptionId.toString(),
+            tenantId.toString(),
+            billingProfileId,
+            null,
+            null,
+            Collections.emptyMap());
+    when(landingZoneDao.getLandingZoneByBillingProfileId(eq(billingProfileId)))
+        .thenReturn(landingZone);
+    when(samService.isAuthorized(
+            any(),
+            eq(SamConstants.SamResourceType.LANDING_ZONE),
+            eq(landingZoneId.toString()),
+            anyString()))
+        .thenReturn(true);
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+    // Test
+    var result = landingZoneService.getLandingZoneRecord(bearerToken, billingProfileId);
+    // Validate record
+    assertNotNull(result);
+    assertEquals(billingProfileId, result.billingProfileId());
+    assertEquals(landingZoneId, result.landingZoneId());
+    assertEquals(definition, result.definition());
+    assertEquals(version, result.version());
   }
 
   private List<DeployedResource> setupDeployedResources() {

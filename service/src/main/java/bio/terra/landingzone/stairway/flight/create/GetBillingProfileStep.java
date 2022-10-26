@@ -36,6 +36,7 @@ public class GetBillingProfileStep implements Step {
     try {
       var profile =
           bpmService.getBillingProfile(bearerToken, requestedLandingZone.billingProfileId());
+
       context.getWorkingMap().put(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
       return StepResult.getStepResultSuccess();
     } catch (Exception e) {

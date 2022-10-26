@@ -26,12 +26,14 @@ import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefi
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRecord;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,6 +206,7 @@ public class LandingZoneService {
   /**
    * Lists landing zones for a given billing profile ID that the calling user has access to.
    *
+   * @param bearerToken bearer token of the calling user.
    * @param billingProfileId the billing profile ID to search.
    * @return list of landing zone IDs.
    */
@@ -229,6 +232,41 @@ public class LandingZoneService {
                             SamConstants.SamLandingZoneAction.LIST_RESOURCES),
                     "isAuthorized"))
         .toList();
+  }
+
+  /**
+   * Lists landing zone record for a billing profile ID.
+   *
+   * @param bearerToken bearer token of the calling user.
+   * @param billingProfileId the billing profile ID to search.
+   * @return landing zone record.
+   */
+  public LandingZoneRecord getLandingZoneRecord(BearerToken bearerToken, UUID billingProfileId) {
+    // Call BPM to validate user access to billing profile.
+    bpmService.verifyUserAccess(bearerToken, billingProfileId);
+
+    var landingZoneRecord = getLandingZoneRecordByBillingProfile(bearerToken, billingProfileId);
+    return landingZoneRecord;
+  }
+
+  /**
+   * Lists landing zones for all billing profiles that the calling user has access to.
+   *
+   * @param bearerToken bearer token of the calling user.
+   * @return list of landing zone records.
+   */
+  public List<LandingZoneRecord> listLandingZoneRecords(BearerToken bearerToken) {
+    // Call BPM to get the landing zone target.
+    var profileList = bpmService.getBillingProfiles(bearerToken);
+    var landingZoneRecords = new ArrayList<LandingZoneRecord>();
+
+    // Query the database for landing zone records with the profile Ids.
+    profileList.getItems().stream()
+        .forEach(
+            profileModel ->
+                landingZoneRecords.add(
+                    getLandingZoneRecordByBillingProfile(bearerToken, profileModel.getId())));
+    return landingZoneRecords;
   }
 
   /**
@@ -320,6 +358,23 @@ public class LandingZoneService {
     return deployedSubnets.stream().map(s -> toLandingZoneResource(s)).toList();
   }
 
+  private LandingZoneRecord getLandingZoneRecordByBillingProfile(
+      BearerToken bearerToken, UUID billingProfileId) {
+    // Query the database for landing zone ids with the given billing profile ID.
+    var landingZoneRecord =
+        toLandingZoneRecord(landingZoneDao.getLandingZoneByBillingProfileId(billingProfileId));
+
+    SamRethrow.onInterrupted(
+        () ->
+            samService.isAuthorized(
+                bearerToken,
+                SamConstants.SamResourceType.LANDING_ZONE,
+                landingZoneRecord.landingZoneId().toString(),
+                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
+        "isAuthorized");
+    return landingZoneRecord;
+  }
+
   private LandingZoneResource toLandingZoneResource(DeployedSubnet subnet) {
     return LandingZoneResource.builder()
         .resourceId(subnet.id())
@@ -391,5 +446,14 @@ public class LandingZoneService {
           azureLandingZone.version());
       throw new LandingZoneDefinitionNotFound("Requested landing zone definition doesn't exist");
     }
+  }
+
+  private LandingZoneRecord toLandingZoneRecord(LandingZone landingZone) {
+    return LandingZoneRecord.builder()
+        .landingZoneId(landingZone.landingZoneId())
+        .billingProfileId(landingZone.billingProfileId())
+        .definition(landingZone.definition())
+        .version(landingZone.version())
+        .build();
   }
 }

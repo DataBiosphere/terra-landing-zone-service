@@ -183,18 +183,19 @@ public class LandingZoneDao {
   }
 
   /**
-   * Retrieves a landing zone from database by billing profile ID.
+   * Retrieves a landing zone object from database by billing profile ID.
    *
-   * @param uuid unique identifier of the billing profile.
+   * @param billingProfileUuid unique identifier of the billing profile.
    * @return landing zone value object.
    */
-  public LandingZone getLandingZoneByBillingProfileId(UUID uuid) {
-    return getLandingZoneByBillingProfileIdIfExists(uuid)
+  public LandingZone getLandingZoneByBillingProfileId(UUID billingProfileUuid) {
+    return getLandingZoneByBillingProfileIdIfExists(billingProfileUuid)
         .orElseThrow(
             () ->
                 new LandingZoneNotFoundException(
                     String.format(
-                        "Landing Zone with billing profile %s not found.", uuid.toString())));
+                        "Landing Zone with billing profile %s not found.",
+                        billingProfileUuid.toString())));
   }
 
   @Transactional(
