@@ -1,5 +1,7 @@
 package bio.terra.landingzone.job;
 
+import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORIZED;
+
 import bio.terra.common.db.DataSourceInitializer;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.logging.LoggingUtils;
@@ -356,6 +358,45 @@ public class LandingZoneJobService {
                   landingZoneId.toString(),
                   SamConstants.SamLandingZoneAction.LIST_RESOURCES),
           "isAuthorized");
+    } catch (DatabaseOperationException | InterruptedException ex) {
+      throw new InternalStairwayException("Stairway exception looking up the job", ex);
+    } catch (FlightNotFoundException ex) {
+      throw new JobNotFoundException("Job not found", ex);
+    }
+  }
+
+  public void verifyUserAccessForDeleteJobResult(
+      BearerToken bearerToken, UUID landingZoneId, String jobId) {
+    try {
+      // TODO: This flow must be updated to use the billing profile
+      // once the lz db has a reference to the billing profile.
+      // Ticket: TOAZ-246
+      FlightState flightState = stairwayComponent.get().getFlightState(jobId);
+      FlightMap inputParameters = flightState.getInputParameters();
+      UUID flightLandingZoneId =
+          inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+      if (!flightLandingZoneId.equals(landingZoneId)) {
+        throw new JobNotFoundException(
+            "The landing zone does not exist for job or the landing zone id is invalid.");
+      }
+
+      // If the flight is completed successfully only check if the user is a valid SAM user
+      if (getJobStatus(flightState.getFlightStatus()).equals(JobReport.StatusEnum.SUCCEEDED)) {
+        SamRethrow.onInterrupted(
+            () -> samService.checkUserEnabled(bearerToken), "checkUserEnabled");
+        return;
+      }
+
+      // Check that the calling user has "list-delete" permission on the landing zone resource in
+      // Sam
+      SamRethrow.onInterrupted(
+          () ->
+              samService.checkAuthz(
+                  bearerToken,
+                  SamConstants.SamResourceType.LANDING_ZONE,
+                  landingZoneId.toString(),
+                  SamConstants.SamLandingZoneAction.DELETE),
+          IS_AUTHORIZED);
     } catch (DatabaseOperationException | InterruptedException ex) {
       throw new InternalStairwayException("Stairway exception looking up the job", ex);
     } catch (FlightNotFoundException ex) {

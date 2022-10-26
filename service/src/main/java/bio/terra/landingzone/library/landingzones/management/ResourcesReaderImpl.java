@@ -14,6 +14,7 @@ import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Provides search operations for a resources in specific landing zone. All resources in landing
@@ -102,6 +103,13 @@ public class ResourcesReaderImpl implements ResourcesReader {
         .collect(Collectors.toList());
   }
 
+  @Override
+  public List<DeployedResource> listAllResources(String landingZoneId) {
+    return landingZoneResources(landingZoneId, resourceGroup.name())
+        .map(this::toLandingZoneDeployedResource)
+        .toList();
+  }
+
   /**
    * Lists all subnets with specific subnet purpose in a landing zone.
    *
@@ -126,14 +134,18 @@ public class ResourcesReaderImpl implements ResourcesReader {
         resourceGroup,
         key,
         value);
-    return this.azureResourceManager
-        .genericResources()
-        .listByTag(resourceGroup, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId)
-        .stream()
+    return landingZoneResources(landingZoneId, resourceGroup)
         .filter(
             r -> r.tags().containsKey(key) && (r.tags().get(key).equals(value) || value == null))
         .map(this::toLandingZoneDeployedResource)
         .collect(Collectors.toList());
+  }
+
+  private Stream<GenericResource> landingZoneResources(String landingZoneId, String resourceGroup) {
+    return this.azureResourceManager
+        .genericResources()
+        .listByTag(resourceGroup, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId)
+        .stream();
   }
 
   private DeployedResource toLandingZoneDeployedResource(GenericResource r) {

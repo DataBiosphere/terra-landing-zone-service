@@ -1,5 +1,7 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
+import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORIZED;
+
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZone;
@@ -24,6 +26,7 @@ import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
+import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRecord;
@@ -32,6 +35,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
+import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,6 +86,22 @@ public class LandingZoneService {
   }
 
   /**
+   * Retrieves the result of an asynchronous landing zone deleting job.
+   *
+   * @param bearerToken bearer token for the user request.
+   * @param landingZoneId landing zone id associated with the job.
+   * @param jobId job identifier.
+   * @return result of asynchronous job.
+   */
+  public AsyncJobResult<DeletedLandingZone> getAsyncDeletionJobResult(
+      BearerToken bearerToken, UUID landingZoneId, String jobId) {
+    // Check calling user has access to the landing zone referenced by this job
+    azureLandingZoneJobService.verifyUserAccessForDeleteJobResult(
+        bearerToken, landingZoneId, jobId);
+    return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeletedLandingZone.class);
+  }
+
+  /**
    * Starts the process to create a landing zone.
    *
    * @param bearerToken bearer token of the user request.
@@ -103,7 +123,7 @@ public class LandingZoneService {
                 SamConstants.SamResourceType.SPEND_PROFILE,
                 azureLandingZoneRequest.billingProfileId().toString(),
                 SamConstants.SamSpendProfileAction.LINK),
-        "isAuthorized");
+        IS_AUTHORIZED);
 
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
@@ -127,6 +147,42 @@ public class LandingZoneService {
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
     return azureLandingZoneJobService.retrieveAsyncJobResult(
         jobBuilder.submit(), DeployedLandingZone.class);
+  }
+
+  /**
+   * Starts a landing zone deletion job.
+   *
+   * @param bearerToken bearer token of the user request.
+   * @param jobId job identifier.
+   * @param landingZoneId landing zone creation request object.
+   * @param resultPath API path for checking job result.
+   * @return job report
+   */
+  public AsyncJobResult<DeletedLandingZone> startLandingZoneDeletionJob(
+      BearerToken bearerToken, String jobId, UUID landingZoneId, String resultPath) {
+
+    SamRethrow.onInterrupted(
+        () ->
+            samService.checkAuthz(
+                bearerToken,
+                SamConstants.SamResourceType.LANDING_ZONE,
+                landingZoneId.toString(),
+                SamConstants.SamLandingZoneAction.DELETE),
+        IS_AUTHORIZED);
+
+    String jobDescription = "Deleting Azure Landing Zone. Landing Zone ID:%s";
+    final LandingZoneJobBuilder jobBuilder =
+        azureLandingZoneJobService
+            .newJob()
+            .jobId(jobId)
+            .description(String.format(jobDescription, landingZoneId.toString()))
+            .flightClass(DeleteLandingZoneFlight.class)
+            .operationType(OperationType.DELETE)
+            .bearerToken(bearerToken)
+            .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
+            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+    return azureLandingZoneJobService.retrieveAsyncJobResult(
+        jobBuilder.submit(), DeletedLandingZone.class);
   }
 
   /**
@@ -166,25 +222,11 @@ public class LandingZoneService {
   public List<LandingZoneResource> listResourcesByPurpose(
       BearerToken bearerToken, UUID landingZoneId, LandingZonePurpose purpose) {
     List<LandingZoneResource> deployedResources = null;
-    // Check that the calling user has "list-resources" permission on the landing zone resource in
-    // Sam
-    SamRethrow.onInterrupted(
-        () ->
-            samService.checkAuthz(
-                bearerToken,
-                SamConstants.SamResourceType.LANDING_ZONE,
-                landingZoneId.toString(),
-                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        "isAuthorized");
 
-    // Look up the landing zone record from the database
-    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+    checkIfUserHasPermissionForLandingZoneResource(
+        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
 
-    LandingZoneTarget landingZoneTarget =
-        new LandingZoneTarget(
-            landingZoneRecord.tenantId(),
-            landingZoneRecord.subscriptionId(),
-            landingZoneRecord.resourceGroupId());
+    LandingZoneTarget landingZoneTarget = buildLandingZoneTarget(landingZoneId);
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
@@ -230,7 +272,7 @@ public class LandingZoneService {
                             SamConstants.SamResourceType.LANDING_ZONE,
                             lz.toString(),
                             SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-                    "isAuthorized"))
+                    IS_AUTHORIZED))
         .toList();
   }
 
@@ -308,25 +350,10 @@ public class LandingZoneService {
    */
   public LandingZoneResourcesByPurpose listResourcesWithPurposes(
       BearerToken bearerToken, UUID landingZoneId) {
-    // Check that the calling user has "list-resources" permission on the landing zone resource in
-    // Sam
-    SamRethrow.onInterrupted(
-        () ->
-            samService.checkAuthz(
-                bearerToken,
-                SamConstants.SamResourceType.LANDING_ZONE,
-                landingZoneId.toString(),
-                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        "isAuthorized");
+    checkIfUserHasPermissionForLandingZoneResource(
+        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
 
-    // Look up the landing zone record from the database
-    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
-
-    LandingZoneTarget landingZoneTarget =
-        new LandingZoneTarget(
-            landingZoneRecord.tenantId(),
-            landingZoneRecord.subscriptionId(),
-            landingZoneRecord.resourceGroupId());
+    LandingZoneTarget landingZoneTarget = buildLandingZoneTarget(landingZoneId);
 
     LandingZoneManager landingZoneManager =
         landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
@@ -341,13 +368,35 @@ public class LandingZoneService {
     return new LandingZoneResourcesByPurpose(listGeneralResources);
   }
 
+  private LandingZoneTarget buildLandingZoneTarget(UUID landingZoneId) {
+    // Look up the landing zone record from the database
+    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+
+    return new LandingZoneTarget(
+        landingZoneRecord.tenantId(),
+        landingZoneRecord.subscriptionId(),
+        landingZoneRecord.resourceGroupId());
+  }
+
+  private void checkIfUserHasPermissionForLandingZoneResource(
+      BearerToken bearerToken, UUID landingZoneId, String permissionName) {
+    SamRethrow.onInterrupted(
+        () ->
+            samService.checkAuthz(
+                bearerToken,
+                SamConstants.SamResourceType.LANDING_ZONE,
+                landingZoneId.toString(),
+                permissionName),
+        IS_AUTHORIZED);
+  }
+
   private List<LandingZoneResource> listResourcesByPurpose(
       LandingZoneManager landingZoneManager, UUID landingZoneId, ResourcePurpose purpose) {
 
     List<DeployedResource> deployedResources =
         landingZoneManager.reader().listResourcesByPurpose(landingZoneId.toString(), purpose);
 
-    return deployedResources.stream().map(dp -> toLandingZoneResource(dp)).toList();
+    return deployedResources.stream().map(this::toLandingZoneResource).toList();
   }
 
   private List<LandingZoneResource> listResourcesByPurpose(

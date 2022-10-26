@@ -126,7 +126,7 @@ class ResourcesReaderImplTest {
   }
 
   @Test
-  void listSharedResources_storageResourceIsSharedResource() throws InterruptedException {
+  void listSharedResources_storageResourceIsSharedResource() {
 
     await()
         .atMost(Duration.ofSeconds(20))
@@ -141,7 +141,7 @@ class ResourcesReaderImplTest {
   }
 
   @Test
-  void listResourcesByPurpose_storageResourceIsSharedResource() throws InterruptedException {
+  void listResourcesByPurpose_storageResourceIsSharedResource() {
     await()
         .atMost(Duration.ofSeconds(20))
         .until(
@@ -157,7 +157,7 @@ class ResourcesReaderImplTest {
   }
 
   @Test
-  void listResourcesWithPurpose() throws InterruptedException {
+  void listResourcesWithPurpose() {
     await()
         .atMost(Duration.ofSeconds(20))
         .until(
@@ -177,7 +177,7 @@ class ResourcesReaderImplTest {
   }
 
   @Test
-  void listSubnetsWithSubnetPurpose() throws InterruptedException {
+  void listSubnetsWithSubnetPurpose() {
     await()
         .atMost(Duration.ofSeconds(20))
         .until(
@@ -190,7 +190,7 @@ class ResourcesReaderImplTest {
   }
 
   @Test
-  void listVNetWithSubnetPurpose_returnsDeployedVNet() throws InterruptedException {
+  void listVNetWithSubnetPurpose_returnsDeployedVNet() {
 
     await()
         .atMost(Duration.ofSeconds(20))
