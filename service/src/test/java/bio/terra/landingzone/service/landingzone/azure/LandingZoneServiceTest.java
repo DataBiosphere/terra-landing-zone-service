@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
@@ -257,9 +257,9 @@ public class LandingZoneServiceTest {
 
   @Test
   public void listResourcesByPurpose_Success() {
-    LandingZone landingZone = createLandingZoneRecord();
+    LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
     // Setup mocks
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
     landingZoneService =
@@ -302,8 +302,8 @@ public class LandingZoneServiceTest {
         List.of(new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_3, VNET_3, REGION));
 
     // Setup Mocks
-    LandingZone landingZone = createLandingZoneRecord();
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
 
@@ -386,9 +386,9 @@ public class LandingZoneServiceTest {
 
   @Test
   void listResourcesWithPurposes_LandingZoneManagerIsCreatedWithCorrectTargetParameters() {
-    LandingZone landingZone = createLandingZoneRecord();
+    LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
 
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
     landingZoneService =
@@ -403,22 +403,23 @@ public class LandingZoneServiceTest {
 
     landingZoneService.listResourcesWithPurposes(bearerToken, landingZoneId);
 
-    assertThat(landingZoneTargetCaptor.getValue().azureTenantId(), equalTo(landingZone.tenantId()));
+    assertThat(
+        landingZoneTargetCaptor.getValue().azureTenantId(), equalTo(landingZoneRecord.tenantId()));
     assertThat(
         landingZoneTargetCaptor.getValue().azureResourceGroupId(),
-        equalTo(landingZone.resourceGroupId()));
+        equalTo(landingZoneRecord.resourceGroupId()));
     assertThat(
         landingZoneTargetCaptor.getValue().azureSubscriptionId(),
-        equalTo(landingZone.subscriptionId()));
+        equalTo(landingZoneRecord.subscriptionId()));
   }
 
   @Test
   public void listGeneralResourcesWithPurposes_Success() {
     var deployedResources = setupDeployedResources();
     // Setup mocks
-    LandingZone landingZone = createLandingZoneRecord();
+    LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
 
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
     landingZoneService =
@@ -452,8 +453,8 @@ public class LandingZoneServiceTest {
     assertEquals(1, resourcesGrouped.get(ResourcePurpose.WLZ_RESOURCE).size());
   }
 
-  private LandingZone createLandingZoneRecord() {
-    return new LandingZone(
+  private LandingZoneRecord createLandingZoneRecord() {
+    return new LandingZoneRecord(
         landingZoneId,
         "resourceGroupId",
         "definition",
@@ -477,8 +478,8 @@ public class LandingZoneServiceTest {
         List.of(new DeployedSubnet(UUID.randomUUID().toString(), VNET_SUBNET_3, VNET_3, REGION));
 
     // Setup Mocks
-    LandingZone landingZone = createLandingZoneRecord();
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZone);
+    LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
+    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
 
@@ -547,8 +548,8 @@ public class LandingZoneServiceTest {
     final var subscriptionId = UUID.randomUUID();
     final var billingProfileId = UUID.randomUUID();
     final var resourceGroup = "mrg";
-    LandingZone landingZone =
-        new LandingZone(
+    LandingZoneRecord landingZoneRecord =
+        new LandingZoneRecord(
             landingZoneId,
             resourceGroup,
             "definition",
@@ -561,7 +562,7 @@ public class LandingZoneServiceTest {
             Collections.emptyMap());
     when(landingZoneDao.getLandingZoneList(
             eq(subscriptionId.toString()), eq(tenantId.toString()), eq(resourceGroup)))
-        .thenReturn(List.of(landingZone));
+        .thenReturn(List.of(landingZoneRecord));
     when(bpmService.getBillingProfile(any(), eq(billingProfileId)))
         .thenReturn(
             new ProfileModel()
@@ -598,8 +599,8 @@ public class LandingZoneServiceTest {
     final var resourceGroup = "mrg";
     final var definition = "definition";
     final var version = "version";
-    LandingZone landingZone =
-        new LandingZone(
+    LandingZoneRecord landingZoneRecord =
+        new LandingZoneRecord(
             landingZoneId,
             resourceGroup,
             definition,
@@ -611,7 +612,7 @@ public class LandingZoneServiceTest {
             null,
             Collections.emptyMap());
     when(landingZoneDao.getLandingZoneByBillingProfileId(eq(billingProfileId)))
-        .thenReturn(landingZone);
+        .thenReturn(landingZoneRecord);
     when(samService.isAuthorized(
             any(),
             eq(SamConstants.SamResourceType.LANDING_ZONE),

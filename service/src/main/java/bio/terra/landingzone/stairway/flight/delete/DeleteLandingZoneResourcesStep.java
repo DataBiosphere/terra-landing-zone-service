@@ -1,7 +1,6 @@
 package bio.terra.landingzone.stairway.flight.delete;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
@@ -17,7 +16,6 @@ import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
-import com.azure.core.management.exception.ManagementException;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -44,16 +42,10 @@ public class DeleteLandingZoneResourcesStep implements Step {
     FlightUtils.validateRequiredEntries(inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_ID);
     var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
-    LandingZoneRecord landingZoneRecord;
     try {
       // Look up the landing zone record from the database
-      landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
-    } catch (LandingZoneNotFoundException e) {
-      logger.error("Landing zone not found. id={}", landingZoneId, e);
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
-    }
+      LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
 
-    try {
       LandingZoneTarget landingZoneTarget =
           new LandingZoneTarget(
               landingZoneRecord.tenantId(),
@@ -64,9 +56,7 @@ public class DeleteLandingZoneResourcesStep implements Step {
       DeletedLandingZone deletedLandingZone =
           deleteLandingZoneResources(
               landingZoneId,
-              landingZoneRecord.billingProfileId(),
-              landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget),
-              isAttached(landingZoneRecord));
+              landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget));
 
       persistResponse(context, deletedLandingZone);
 
@@ -76,21 +66,6 @@ public class DeleteLandingZoneResourcesStep implements Step {
           deletedLandingZone.landingZoneId(),
           deletedResources);
 
-    } catch (ManagementException e) {
-      // Azure returns AuthorizationFailed when an MRG is deleted or otherwise inaccessible. Since
-      // the user is unable to change the IAM permissions on an MRG due to deny assignments, we
-      // infer that the MRG is gone and move on with the deletion process.
-      if (e.getValue().getCode().equals("AuthorizationFailed")) {
-        logger.warn(
-            "Landing zone MRG is either inaccessible or has been removed. id = '{}'",
-            landingZoneId,
-            e);
-        persistResponse(
-            context,
-            DeletedLandingZone.emptyLandingZone(
-                landingZoneId, landingZoneRecord.billingProfileId()));
-        return StepResult.getStepResultSuccess();
-      }
     } catch (LandingZoneRuleDeleteException e) {
       logger.error("Failed to delete the landing zone due to delete rules.", e);
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
@@ -112,22 +87,10 @@ public class DeleteLandingZoneResourcesStep implements Step {
   }
 
   private DeletedLandingZone deleteLandingZoneResources(
-      UUID landingZoneId,
-      UUID billingProfileId,
-      LandingZoneManager landingZoneManager,
-      boolean isAttached)
+      UUID landingZoneId, LandingZoneManager landingZoneManager)
       throws LandingZoneRuleDeleteException {
-    if (isAttached) {
-      logger.info("Landing zone {} was attached, skipping Azure resource deletion", landingZoneId);
-      return DeletedLandingZone.emptyLandingZone(landingZoneId, billingProfileId);
-    }
-
     List<String> deletedResources = landingZoneManager.deleteResources(landingZoneId.toString());
-    return new DeletedLandingZone(landingZoneId, deletedResources, billingProfileId);
-  }
 
-  private boolean isAttached(LandingZoneRecord record) {
-    return Boolean.parseBoolean(
-        record.properties().getOrDefault(LandingZoneFlightMapKeys.ATTACH, "false"));
+    return new DeletedLandingZone(landingZoneId, deletedResources);
   }
 }

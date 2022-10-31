@@ -1,10 +1,12 @@
 package bio.terra.landingzone.db;
 
+import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.exception.MissingRequiredFieldException;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
+import io.opencensus.contrib.spring.aop.Traced;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +63,7 @@ public class LandingZoneDao {
       isolation = Isolation.SERIALIZABLE,
       propagation = Propagation.REQUIRED,
       transactionManager = "tlzTransactionManager")
-  public UUID createLandingZone(LandingZone landingzone) {
+  public UUID createLandingZone(LandingZoneRecord landingzone) {
     final String sql =
         "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, definition_id, definition_version_id, display_name, description, properties) "
             + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :billing_profile_id, :definition_id, :definition_version_id, :display_name, :description,"
@@ -135,12 +137,35 @@ public class LandingZoneDao {
    * @param uuid unique identifier of the landing zone
    * @return landing zone value object
    */
-  public LandingZone getLandingZone(UUID uuid) {
+  public LandingZoneRecord getLandingZone(UUID uuid) {
     return getLandingZoneIfExists(uuid)
         .orElseThrow(
             () ->
                 new LandingZoneNotFoundException(
                     String.format("Landing Zone %s not found.", uuid.toString())));
+  }
+
+  /**
+   * Retrieve landing zones from a list of IDs. IDs not matching landing zones will be ignored.
+   *
+   * @param idList List of landing zone IDs to query for
+   * @return list of landing zones corresponding to input IDs.
+   */
+  @Traced
+  @ReadTransaction
+  public List<LandingZoneRecord> getLandingZoneMatchingIdList(Set<UUID> idList) {
+    // If the incoming list is empty, the caller does not have permission to see any
+    // landing zone, so we return an empty list.
+    if (idList.isEmpty()) {
+      return Collections.emptyList();
+    }
+    String sql =
+        LANDINGZONE_SELECT_SQL
+            + " WHERE landingzone_id IN (:landingzone_ids) ORDER BY landingzone_id";
+    MapSqlParameterSource params =
+        new MapSqlParameterSource()
+            .addValue("landingzone_ids", idList.stream().map(UUID::toString).toList());
+    return jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER);
   }
 
   /**
@@ -155,7 +180,7 @@ public class LandingZoneDao {
       isolation = Isolation.SERIALIZABLE,
       propagation = Propagation.REQUIRED,
       transactionManager = "tlzTransactionManager")
-  public List<LandingZone> getLandingZoneList(
+  public List<LandingZoneRecord> getLandingZoneList(
       String subscriptionId, String tenantId, String resourceGroupId) {
     if (subscriptionId == null || subscriptionId.isEmpty()) {
       throw new IllegalArgumentException("Subscription ID cannot be null or empty.");
@@ -188,7 +213,7 @@ public class LandingZoneDao {
    * @param billingProfileUuid unique identifier of the billing profile.
    * @return landing zone value object.
    */
-  public LandingZone getLandingZoneByBillingProfileId(UUID billingProfileUuid) {
+  public LandingZoneRecord getLandingZoneByBillingProfileId(UUID billingProfileUuid) {
     return getLandingZoneByBillingProfileIdIfExists(billingProfileUuid)
         .orElseThrow(
             () ->
@@ -202,7 +227,8 @@ public class LandingZoneDao {
       isolation = Isolation.SERIALIZABLE,
       propagation = Propagation.REQUIRED,
       transactionManager = "tlzTransactionManager")
-  public Optional<LandingZone> getLandingZoneByBillingProfileIdIfExists(UUID billingProfileUuid) {
+  public Optional<LandingZoneRecord> getLandingZoneByBillingProfileIdIfExists(
+      UUID billingProfileUuid) {
     if (billingProfileUuid == null) {
       throw new IllegalArgumentException("Billing Profile ID is required.");
     }
@@ -212,7 +238,7 @@ public class LandingZoneDao {
     MapSqlParameterSource params =
         new MapSqlParameterSource().addValue(BILLING_PROFILE_ID, billingProfileUuid.toString());
     try {
-      LandingZone result =
+      LandingZoneRecord result =
           DataAccessUtils.requiredSingleResult(
               jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER));
       logger.info("Retrieved landing zone record {}", result);
@@ -226,14 +252,14 @@ public class LandingZoneDao {
       isolation = Isolation.SERIALIZABLE,
       propagation = Propagation.REQUIRED,
       transactionManager = "tlzTransactionManager")
-  public Optional<LandingZone> getLandingZoneIfExists(UUID uuid) {
+  public Optional<LandingZoneRecord> getLandingZoneIfExists(UUID uuid) {
     if (uuid == null) {
       throw new MissingRequiredFieldException("Valid landing zone id is required");
     }
     String sql = LANDINGZONE_SELECT_SQL + " WHERE landingzone_id = :id";
     MapSqlParameterSource params = new MapSqlParameterSource().addValue("id", uuid.toString());
     try {
-      LandingZone result =
+      LandingZoneRecord result =
           DataAccessUtils.requiredSingleResult(
               jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER));
       logger.info("Retrieved landing zone record {}", result);
@@ -243,9 +269,9 @@ public class LandingZoneDao {
     }
   }
 
-  private static final RowMapper<LandingZone> LANDINGZONE_ROW_MAPPER =
+  private static final RowMapper<LandingZoneRecord> LANDINGZONE_ROW_MAPPER =
       (rs, rowNum) ->
-          LandingZone.builder()
+          LandingZoneRecord.builder()
               .landingZoneId(UUID.fromString(rs.getString(LANDING_ZONE_ID)))
               .resourceGroupId(rs.getString(RESOURCE_GROUP))
               .subscriptionId(rs.getString(SUBSCRIPTION_ID))

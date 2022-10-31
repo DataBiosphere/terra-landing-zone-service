@@ -5,19 +5,22 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
-import com.nimbusds.oauth2.sdk.util.CollectionUtils;
+import bio.terra.common.tracing.OkHttpClientTracingInterceptor;
+import bio.terra.landingzone.library.configuration.LandingZoneSamConfiguration;
 import io.opencensus.contrib.spring.aop.Traced;
-import java.util.HashMap;
+import io.opencensus.trace.Tracing;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Stream;
+import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.BooleanUtils;
+import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
+import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
+import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.CreateResourceRequestV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.FullyQualifiedResourceId;
-import org.broadinstitute.dsde.workbench.client.sam.model.UserResourcesResponse;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +31,36 @@ import org.springframework.stereotype.Component;
 @Component
 public class LandingZoneSamService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneSamService.class);
-  private final LandingZoneSamClient samClient;
+  private final LandingZoneSamConfiguration samConfig;
+  private final OkHttpClient commonHttpClient;
   public static final String IS_AUTHORIZED = "isAuthorized";
 
   @Autowired
-  public LandingZoneSamService(LandingZoneSamClient samClient) {
-    this.samClient = samClient;
+  public LandingZoneSamService(LandingZoneSamConfiguration samConfig) {
+    this.samConfig = samConfig;
+    this.commonHttpClient =
+        new ApiClient()
+            .getHttpClient()
+            .newBuilder()
+            .addInterceptor(new OkHttpClientTracingInterceptor(Tracing.getTracer()))
+            .build();
+  }
+
+  private ApiClient getApiClient(String accessToken) {
+    // OkHttpClient objects manage their own thread pools, so it's much more performant to share one
+    // across requests.
+    var apiClient =
+        new ApiClient().setHttpClient(commonHttpClient).setBasePath(samConfig.getBasePath());
+    apiClient.setAccessToken(accessToken);
+    return apiClient;
+  }
+
+  private ResourcesApi samResourcesApi(String accessToken) {
+    return new ResourcesApi(getApiClient(accessToken));
+  }
+
+  private UsersApi samUsersApi(String accessToken) {
+    return new UsersApi(getApiClient(accessToken));
   }
 
   /**
@@ -50,7 +77,7 @@ public class LandingZoneSamService {
   public boolean isAuthorized(
       BearerToken bearerToken, String iamResourceType, String resourceId, String action)
       throws InterruptedException {
-    var resourceApi = samClient.resourcesApi(bearerToken.getToken());
+    var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
       return SamRetry.retry(
           () -> resourceApi.resourcePermissionV2(iamResourceType, resourceId, action));
@@ -97,26 +124,18 @@ public class LandingZoneSamService {
   public void createLandingZone(BearerToken bearerToken, UUID billingProfileId, UUID landingZoneId)
       throws InterruptedException {
     var userInfo = getUserStatusInfo(bearerToken);
-    var resourcesApi = samClient.resourcesApi(bearerToken.getToken());
+    var resourceApi = samResourcesApi(bearerToken.getToken());
 
     var parentId =
         new FullyQualifiedResourceId()
             .resourceId(billingProfileId.toString())
             .resourceTypeName(SamConstants.SamResourceType.SPEND_PROFILE);
-
-    Map<String, AccessPolicyMembershipV2> policies = new HashMap<>();
-    policies.put(
-        "owner",
-        new AccessPolicyMembershipV2()
-            .addMemberEmailsItem(userInfo.getUserEmail())
-            .addRolesItem(SamConstants.SamRole.OWNER));
-    if (CollectionUtils.isNotEmpty(samClient.getLandingZoneResourceUsers())) {
-      policies.put(
-          "user",
-          new AccessPolicyMembershipV2()
-              .memberEmails(samClient.getLandingZoneResourceUsers())
-              .addRolesItem(SamConstants.SamRole.USER));
-    }
+    var policies =
+        Map.of(
+            "owner",
+            new AccessPolicyMembershipV2()
+                .addMemberEmailsItem(userInfo.getUserEmail())
+                .addRolesItem(SamConstants.SamRole.OWNER));
     var landingZoneRequest =
         new CreateResourceRequestV2()
             .resourceId(landingZoneId.toString())
@@ -126,7 +145,7 @@ public class LandingZoneSamService {
     try {
       SamRetry.retry(
           () ->
-              resourcesApi.createResourceV2(
+              resourceApi.createResourceV2(
                   SamConstants.SamResourceType.LANDING_ZONE, landingZoneRequest));
       logger.info("Created Sam resource for landing zone {}", landingZoneId);
     } catch (ApiException apiException) {
@@ -144,7 +163,7 @@ public class LandingZoneSamService {
   @Traced
   public void deleteLandingZone(BearerToken bearerToken, UUID landingZoneId)
       throws InterruptedException {
-    var resourceApi = samClient.resourcesApi(bearerToken.getToken());
+    var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
       SamRetry.retry(
           () ->
@@ -168,31 +187,45 @@ public class LandingZoneSamService {
   @Traced
   public List<UUID> listLandingZoneResourceIds(BearerToken bearerToken)
       throws InterruptedException {
-    var resourceApi = samClient.resourcesApi(bearerToken.getToken());
+    List<UUID> userLandingZoneResourceIds = null;
+    var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
-      List<UserResourcesResponse> userLandingZones =
+      var userResources =
           SamRetry.retry(
               () ->
                   resourceApi.listResourcesAndPoliciesV2(
                       SamConstants.SamResourceType.LANDING_ZONE));
-      return userLandingZones.stream()
-          .flatMap(
-              p -> {
-                try {
-                  return Stream.of(UUID.fromString(p.getResourceId()));
-                } catch (IllegalArgumentException e) {
-                  return Stream.empty();
-                }
-              })
-          .toList();
+      userLandingZoneResourceIds =
+          userResources.stream()
+              .filter(
+                  userResource ->
+                      userResource
+                              .getDirect()
+                              .getActions()
+                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES)
+                          || userResource
+                              .getPublic()
+                              .getActions()
+                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES)
+                          || userResource
+                              .getInherited()
+                              .getActions()
+                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES))
+              .map(userResource -> UUID.fromString(userResource.getResourceId()))
+              .toList();
     } catch (ApiException apiException) {
-      throw SamExceptionFactory.create("Error getting landing zone ID's in Sam", apiException);
+      logger.info(
+          "Sam API error while getting landing zone type resources and policies, code is "
+              + apiException.getCode());
+      throw SamExceptionFactory.create(
+          "Error getting a landing zone resource ID's in Sam", apiException);
     }
+    return userLandingZoneResourceIds;
   }
 
   /** Fetch the user status info associated with the user credentials directly from Sam. */
   private UserStatusInfo getUserStatusInfo(BearerToken bearerToken) throws InterruptedException {
-    var usersApi = samClient.usersApi(bearerToken.getToken());
+    var usersApi = samUsersApi(bearerToken.getToken());
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException apiException) {

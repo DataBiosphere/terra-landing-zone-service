@@ -1,16 +1,11 @@
 package bio.terra.landingzone.service.landingzone.azure.model;
 
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 
 public record LandingZone(
-    UUID landingZoneId,
-    UUID billingProfileId,
-    String definition,
-    String version,
-    OffsetDateTime createdDate) {
+    UUID landingZoneId, UUID billingProfileId, String definition, String version) {
 
   public static Builder builder() {
     return new Builder();
@@ -21,7 +16,6 @@ public record LandingZone(
     private String version;
     private UUID landingZoneId;
     private UUID billingProfileId;
-    private OffsetDateTime createdDate;
 
     public Builder landingZoneId(UUID landingZoneId) {
       this.landingZoneId = landingZoneId;
@@ -43,11 +37,6 @@ public record LandingZone(
       return this;
     }
 
-    public Builder createdDate(OffsetDateTime createdDate) {
-      this.createdDate = createdDate;
-      return this;
-    }
-
     public LandingZone build() {
       if (landingZoneId == null) {
         throw new MissingRequiredFieldsException(
@@ -63,7 +52,7 @@ public record LandingZone(
       if (StringUtils.isBlank(version)) {
         throw new MissingRequiredFieldsException("Azure landing zone record requires version");
       }
-      return new LandingZone(landingZoneId, billingProfileId, definition, version, createdDate);
+      return new LandingZone(landingZoneId, billingProfileId, definition, version);
     }
   }
 }

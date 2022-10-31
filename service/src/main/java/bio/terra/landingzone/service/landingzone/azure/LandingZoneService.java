@@ -4,7 +4,7 @@ import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORI
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
@@ -28,8 +28,8 @@ import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefi
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefinition;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRecord;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -283,18 +284,43 @@ public class LandingZoneService {
   }
 
   /**
-   * Lists landing zone record for a billing profile ID.
+   * Gets landing zone record by a landing zone ID.
+   *
+   * @param bearerToken bearer token of the calling user.
+   * @param landingZoneId the landing zone ID to search.
+   * @return landing zone record.
+   */
+  public LandingZone getLandingZoneRecord(BearerToken bearerToken, UUID landingZoneId) {
+    checkIfUserHasPermissionForLandingZoneResource(
+        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
+    var landingZone = landingZoneDao.getLandingZone(landingZoneId);
+    return toLandingZone(landingZone);
+  }
+
+  /**
+   * Lists landing zone records for a billing profile ID.
    *
    * @param bearerToken bearer token of the calling user.
    * @param billingProfileId the billing profile ID to search.
-   * @return landing zone record.
+   * @return a list of landing zone records.
    */
-  public LandingZoneRecord getLandingZoneRecord(BearerToken bearerToken, UUID billingProfileId) {
-    // Call BPM to validate user access to billing profile.
-    bpmService.verifyUserAccess(bearerToken, billingProfileId);
+  public List<LandingZone> getLandingZonesByBillingProfile(
+      BearerToken bearerToken, UUID billingProfileId) {
+    var landingZones = new ArrayList<LandingZone>();
+    // No call to BPM here to validate user access to billing profile.
+    // The logic below ensures user has access to landing zones returned.
 
-    var landingZoneRecord = getLandingZoneRecordByBillingProfile(bearerToken, billingProfileId);
-    return landingZoneRecord;
+    // Query the database for landing zone ids with the given billing profile ID.
+    var landingZone =
+        toLandingZone(landingZoneDao.getLandingZoneByBillingProfileId(billingProfileId));
+    // The implementation assumes there is 1:1 relation between Billing Profile ID and Landing Zone
+    // ID
+    // and there can be only one landing zone record returned.
+    // However, the API allows future extensions for more than one landing zone per billing profile.
+    if (isUserAuthorizedForLandingZoneResource(bearerToken, landingZone.landingZoneId())) {
+      landingZones.add(landingZone);
+    }
+    return landingZones;
   }
 
   /**
@@ -303,18 +329,14 @@ public class LandingZoneService {
    * @param bearerToken bearer token of the calling user.
    * @return list of landing zone records.
    */
-  public List<LandingZoneRecord> listLandingZoneRecords(BearerToken bearerToken) {
-    // Call BPM to get the landing zone target.
-    var profileList = bpmService.getBillingProfiles(bearerToken);
-    var landingZoneRecords = new ArrayList<LandingZoneRecord>();
-
-    // Query the database for landing zone records with the profile Ids.
-    profileList.getItems().stream()
-        .forEach(
-            profileModel ->
-                landingZoneRecords.add(
-                    getLandingZoneRecordByBillingProfile(bearerToken, profileModel.getId())));
-    return landingZoneRecords;
+  public List<LandingZone> listLandingZones(BearerToken bearerToken) {
+    var landingZoneUuids =
+        SamRethrow.onInterrupted(
+            () -> samService.listLandingZoneResourceIds(bearerToken), "listLandingZoneResourceIds");
+    // Query the database for landing zone records with the landing zone Ids.
+    return landingZoneDao.getLandingZoneMatchingIdList((Set<UUID>) landingZoneUuids).stream()
+        .map(lz -> toLandingZone(lz))
+        .toList();
   }
 
   /**
@@ -376,7 +398,7 @@ public class LandingZoneService {
 
   private LandingZoneTarget buildLandingZoneTarget(UUID landingZoneId) {
     // Look up the landing zone record from the database
-    LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+    LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
 
     return new LandingZoneTarget(
         landingZoneRecord.tenantId(),
@@ -396,6 +418,18 @@ public class LandingZoneService {
         IS_AUTHORIZED);
   }
 
+  private boolean isUserAuthorizedForLandingZoneResource(
+      BearerToken bearerToken, UUID landingZoneId) {
+    return SamRethrow.onInterrupted(
+        () ->
+            samService.isAuthorized(
+                bearerToken,
+                SamConstants.SamResourceType.LANDING_ZONE,
+                landingZoneId.toString(),
+                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
+        IS_AUTHORIZED);
+  }
+
   private List<LandingZoneResource> listResourcesByPurpose(
       LandingZoneManager landingZoneManager, UUID landingZoneId, ResourcePurpose purpose) {
 
@@ -411,23 +445,6 @@ public class LandingZoneService {
         landingZoneManager.reader().listSubnetsBySubnetPurpose(landingZoneId.toString(), purpose);
 
     return deployedSubnets.stream().map(s -> toLandingZoneResource(s)).toList();
-  }
-
-  private LandingZoneRecord getLandingZoneRecordByBillingProfile(
-      BearerToken bearerToken, UUID billingProfileId) {
-    // Query the database for landing zone ids with the given billing profile ID.
-    var landingZoneRecord =
-        toLandingZoneRecord(landingZoneDao.getLandingZoneByBillingProfileId(billingProfileId));
-
-    SamRethrow.onInterrupted(
-        () ->
-            samService.isAuthorized(
-                bearerToken,
-                SamConstants.SamResourceType.LANDING_ZONE,
-                landingZoneRecord.landingZoneId().toString(),
-                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        "isAuthorized");
-    return landingZoneRecord;
   }
 
   private LandingZoneResource toLandingZoneResource(DeployedSubnet subnet) {
@@ -503,12 +520,14 @@ public class LandingZoneService {
     }
   }
 
-  private LandingZoneRecord toLandingZoneRecord(LandingZone landingZone) {
-    return LandingZoneRecord.builder()
-        .landingZoneId(landingZone.landingZoneId())
-        .billingProfileId(landingZone.billingProfileId())
-        .definition(landingZone.definition())
-        .version(landingZone.version())
-        .build();
+  private LandingZone toLandingZone(LandingZoneRecord landingZoneRecord) {
+    return landingZoneRecord == null
+        ? null
+        : LandingZone.builder()
+            .landingZoneId(landingZoneRecord.landingZoneId())
+            .billingProfileId(landingZoneRecord.billingProfileId())
+            .definition(landingZoneRecord.definition())
+            .version(landingZoneRecord.version())
+            .build();
   }
 }
