@@ -4,7 +4,7 @@ import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 
-public record LandingZoneRecord(
+public record LandingZone(
     UUID landingZoneId, UUID billingProfileId, String definition, String version) {
 
   public static Builder builder() {
@@ -37,7 +37,7 @@ public record LandingZoneRecord(
       return this;
     }
 
-    public LandingZoneRecord build() {
+    public LandingZone build() {
       if (landingZoneId == null) {
         throw new MissingRequiredFieldsException(
             "Azure landing zone record requires landing zone ID");
@@ -52,7 +52,7 @@ public record LandingZoneRecord(
       if (StringUtils.isBlank(version)) {
         throw new MissingRequiredFieldsException("Azure landing zone record requires version");
       }
-      return new LandingZoneRecord(landingZoneId, billingProfileId, definition, version);
+      return new LandingZone(landingZoneId, billingProfileId, definition, version);
     }
   }
 }

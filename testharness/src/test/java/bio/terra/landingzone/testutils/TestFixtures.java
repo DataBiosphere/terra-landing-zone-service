@@ -1,12 +1,12 @@
 package bio.terra.landingzone.testutils;
 
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 public class TestFixtures {
-  public static LandingZone createLandingZone(
+  public static LandingZoneRecord createLandingZone(
       UUID landingZoneId,
       String resourceGroupId,
       String definition,
@@ -17,7 +17,7 @@ public class TestFixtures {
       String subscription,
       String tenant,
       UUID billingProfileId) {
-    return new LandingZone(
+    return new LandingZoneRecord(
         landingZoneId,
         resourceGroupId,
         definition,

@@ -1,7 +1,7 @@
 package bio.terra.landingzone.stairway.flight.delete;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
@@ -44,7 +44,7 @@ public class DeleteLandingZoneResourcesStep implements Step {
 
     try {
       // Look up the landing zone record from the database
-      LandingZone landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+      LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
 
       LandingZoneTarget landingZoneTarget =
           new LandingZoneTarget(

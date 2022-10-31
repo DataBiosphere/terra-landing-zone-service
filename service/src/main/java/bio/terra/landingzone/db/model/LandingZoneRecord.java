@@ -10,8 +10,8 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 /** Internal representation of a Landing Zone. */
-@JsonDeserialize(builder = LandingZone.Builder.class)
-public record LandingZone(
+@JsonDeserialize(builder = LandingZoneRecord.Builder.class)
+public record LandingZoneRecord(
     UUID landingZoneId,
     String resourceGroupId,
     String definition,
@@ -90,7 +90,7 @@ public record LandingZone(
       return this;
     }
 
-    public LandingZone build() {
+    public LandingZoneRecord build() {
       // Always have a map, even if it is empty
       if (properties == null) {
         properties = new HashMap<>();
@@ -104,7 +104,7 @@ public record LandingZone(
       if (landingZoneId == null) {
         throw new MissingRequiredFieldsException("Landing zone requires id");
       }
-      return new LandingZone(
+      return new LandingZoneRecord(
           landingZoneId,
           resourceGroupId,
           definition,

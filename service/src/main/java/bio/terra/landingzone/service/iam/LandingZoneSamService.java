@@ -184,6 +184,45 @@ public class LandingZoneSamService {
     }
   }
 
+  @Traced
+  public List<UUID> listLandingZoneResourceIds(BearerToken bearerToken)
+      throws InterruptedException {
+    List<UUID> userLandingZoneResourceIds = null;
+    var resourceApi = samResourcesApi(bearerToken.getToken());
+    try {
+      var userResources =
+          SamRetry.retry(
+              () ->
+                  resourceApi.listResourcesAndPoliciesV2(
+                      SamConstants.SamResourceType.LANDING_ZONE));
+      userLandingZoneResourceIds =
+          userResources.stream()
+              .filter(
+                  userResource ->
+                      userResource
+                              .getDirect()
+                              .getActions()
+                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES)
+                          || userResource
+                              .getPublic()
+                              .getActions()
+                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES)
+                          || userResource
+                              .getInherited()
+                              .getActions()
+                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES))
+              .map(userResource -> UUID.fromString(userResource.getResourceId()))
+              .toList();
+    } catch (ApiException apiException) {
+      logger.info(
+          "Sam API error while getting landing zone type resources and policies, code is "
+              + apiException.getCode());
+      throw SamExceptionFactory.create(
+          "Error getting a landing zone resource ID's in Sam", apiException);
+    }
+    return userLandingZoneResourceIds;
+  }
+
   /** Fetch the user status info associated with the user credentials directly from Sam. */
   private UserStatusInfo getUserStatusInfo(BearerToken bearerToken) throws InterruptedException {
     var usersApi = samUsersApi(bearerToken.getToken());

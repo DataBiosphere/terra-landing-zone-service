@@ -1,7 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -46,7 +46,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
     // Persist the landing zone record
     landingZoneDao.createLandingZone(
-        LandingZone.builder()
+        LandingZoneRecord.builder()
             .landingZoneId(landingZoneId)
             .definition(requestedExternalLandingZoneResource.definition())
             .version(requestedExternalLandingZoneResource.version())

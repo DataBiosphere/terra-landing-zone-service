@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.testutils.LibraryTestBase;
 import bio.terra.landingzone.testutils.TestFixtures;
 import java.util.Collections;
@@ -32,8 +32,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   public void createLandingZoneSuccess() {
     UUID expectedLzId = UUID.randomUUID();
     try {
-      LandingZone lz =
-          new LandingZone(
+      LandingZoneRecord lz =
+          new LandingZoneRecord(
               expectedLzId,
               RESOURCE_GROUP,
               DEFINITION,
@@ -59,8 +59,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   public void getLandingZone_validateFields_Success() {
     UUID expectedLzId = UUID.randomUUID();
     try {
-      LandingZone lz =
-          new LandingZone(
+      LandingZoneRecord lz =
+          new LandingZoneRecord(
               expectedLzId,
               RESOURCE_GROUP,
               DEFINITION,
@@ -74,7 +74,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       UUID actualLzId = landingZoneDao.createLandingZone(lz);
       assertEquals(expectedLzId, actualLzId);
 
-      LandingZone lzRecord = landingZoneDao.getLandingZone(expectedLzId);
+      LandingZoneRecord lzRecord = landingZoneDao.getLandingZone(expectedLzId);
       assertEquals(expectedLzId, lz.landingZoneId());
       assertEquals(RESOURCE_GROUP, lz.resourceGroupId());
       assertEquals(DEFINITION, lz.definition());
@@ -98,7 +98,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   public void createDuplicateLandingZoneThrowsException() {
     UUID expectedLzId = UUID.randomUUID();
     try {
-      LandingZone lz =
+      LandingZoneRecord lz =
           TestFixtures.createLandingZone(
               expectedLzId,
               RESOURCE_GROUP,
@@ -132,7 +132,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   @Test
   public void deleteLandingZoneSuccess() {
     UUID expectedLzId = UUID.randomUUID();
-    LandingZone lz =
+    LandingZoneRecord lz =
         TestFixtures.createLandingZone(
             expectedLzId,
             RESOURCE_GROUP,
@@ -171,8 +171,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   public void getLandingZoneList_Success() {
     UUID expectedLzId = UUID.randomUUID();
     try {
-      LandingZone lz =
-          new LandingZone(
+      LandingZoneRecord lz =
+          new LandingZoneRecord(
               expectedLzId,
               RESOURCE_GROUP,
               DEFINITION,
@@ -186,14 +186,14 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
 
       landingZoneDao.createLandingZone(lz);
 
-      List<LandingZone> noRecords =
+      List<LandingZoneRecord> noRecords =
           landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, "res_group");
       assertEquals(Collections.EMPTY_LIST, noRecords);
-      List<LandingZone> noRecords1 =
+      List<LandingZoneRecord> noRecords1 =
           landingZoneDao.getLandingZoneList("sub", TENANT, RESOURCE_GROUP);
       assertEquals(Collections.EMPTY_LIST, noRecords1);
 
-      List<LandingZone> lzRecords =
+      List<LandingZoneRecord> lzRecords =
           landingZoneDao.getLandingZoneList(SUBSCRIPTION, TENANT, RESOURCE_GROUP);
 
       // There can be more records created for the same Landing Zone target.

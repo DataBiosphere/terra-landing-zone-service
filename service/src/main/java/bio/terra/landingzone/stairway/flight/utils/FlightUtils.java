@@ -1,7 +1,7 @@
 package bio.terra.landingzone.stairway.flight.utils;
 
 import bio.terra.common.stairway.TracingHook;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.model.ErrorReport;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
@@ -23,7 +23,7 @@ public class FlightUtils {
   public static final Map<String, Class<?>> COMMON_FLIGHT_INPUTS =
       Map.of(
           JobMapKeys.REQUEST.getKeyName(),
-          LandingZone.class,
+          LandingZoneRecord.class,
           JobMapKeys.SUBJECT_ID.getKeyName(),
           String.class,
           LandingZoneMdcHook.MDC_FLIGHT_MAP_KEY,
