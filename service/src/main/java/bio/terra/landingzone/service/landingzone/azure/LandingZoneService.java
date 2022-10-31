@@ -278,17 +278,17 @@ public class LandingZoneService {
   }
 
   /**
-   * Gets landing zone record by a landing zone ID.
+   * Gets landing zone by a landing zone ID.
    *
    * @param bearerToken bearer token of the calling user.
    * @param landingZoneId the landing zone ID to search.
    * @return landing zone record.
    */
-  public LandingZone getLandingZoneRecord(BearerToken bearerToken, UUID landingZoneId) {
+  public LandingZone getLandingZone(BearerToken bearerToken, UUID landingZoneId) {
     checkIfUserHasPermissionForLandingZoneResource(
         bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
-    var landingZone = landingZoneDao.getLandingZone(landingZoneId);
-    return toLandingZone(landingZone);
+    var landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
+    return toLandingZone(landingZoneRecord);
   }
 
   /**
@@ -392,7 +392,7 @@ public class LandingZoneService {
 
   private LandingZoneTarget buildLandingZoneTarget(UUID landingZoneId) {
     // Look up the landing zone record from the database
-    LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+    LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
 
     return new LandingZoneTarget(
         landingZoneRecord.tenantId(),

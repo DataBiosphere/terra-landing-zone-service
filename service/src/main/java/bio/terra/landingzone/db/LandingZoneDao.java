@@ -137,7 +137,7 @@ public class LandingZoneDao {
    * @param uuid unique identifier of the landing zone
    * @return landing zone value object
    */
-  public LandingZoneRecord getLandingZone(UUID uuid) {
+  public LandingZoneRecord getLandingZoneRecord(UUID uuid) {
     return getLandingZoneIfExists(uuid)
         .orElseThrow(
             () ->

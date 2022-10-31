@@ -44,7 +44,7 @@ public class DeleteLandingZoneResourcesStep implements Step {
 
     try {
       // Look up the landing zone record from the database
-      LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZone(landingZoneId);
+      LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
 
       LandingZoneTarget landingZoneTarget =
           new LandingZoneTarget(

@@ -259,7 +259,7 @@ public class LandingZoneServiceTest {
   public void listResourcesByPurpose_Success() {
     LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
     // Setup mocks
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
     landingZoneService =
@@ -303,7 +303,7 @@ public class LandingZoneServiceTest {
 
     // Setup Mocks
     LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
 
@@ -388,7 +388,7 @@ public class LandingZoneServiceTest {
   void listResourcesWithPurposes_LandingZoneManagerIsCreatedWithCorrectTargetParameters() {
     LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
 
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
     landingZoneService =
@@ -419,7 +419,7 @@ public class LandingZoneServiceTest {
     // Setup mocks
     LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
 
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
     landingZoneService =
@@ -479,7 +479,7 @@ public class LandingZoneServiceTest {
 
     // Setup Mocks
     LandingZoneRecord landingZoneRecord = createLandingZoneRecord();
-    when(landingZoneDao.getLandingZone(landingZoneId)).thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
 
@@ -591,7 +591,7 @@ public class LandingZoneServiceTest {
   }
 
   @Test
-  public void getLandingZoneRecord_Success() throws InterruptedException {
+  public void getLandingZone_byLandingZoneId_Success() throws InterruptedException {
     var deployedResources = setupDeployedResources();
     // Setup mocks
     final var tenantId = UUID.randomUUID();
@@ -611,14 +611,7 @@ public class LandingZoneServiceTest {
             null,
             null,
             Collections.emptyMap());
-    when(landingZoneDao.getLandingZoneByBillingProfileId(eq(billingProfileId)))
-        .thenReturn(landingZoneRecord);
-    when(samService.isAuthorized(
-            any(),
-            eq(SamConstants.SamResourceType.LANDING_ZONE),
-            eq(landingZoneId.toString()),
-            anyString()))
-        .thenReturn(true);
+    when(landingZoneDao.getLandingZoneRecord(eq(landingZoneId))).thenReturn(landingZoneRecord);
     landingZoneService =
         new LandingZoneService(
             landingZoneJobService,
@@ -627,11 +620,11 @@ public class LandingZoneServiceTest {
             samService,
             bpmService);
     // Test
-    var result = landingZoneService.getLandingZoneRecord(bearerToken, billingProfileId);
+    var result = landingZoneService.getLandingZone(bearerToken, landingZoneId);
     // Validate record
     assertNotNull(result);
-    assertEquals(billingProfileId, result.billingProfileId());
     assertEquals(landingZoneId, result.landingZoneId());
+    assertEquals(billingProfileId, result.billingProfileId());
     assertEquals(definition, result.definition());
     assertEquals(version, result.version());
   }

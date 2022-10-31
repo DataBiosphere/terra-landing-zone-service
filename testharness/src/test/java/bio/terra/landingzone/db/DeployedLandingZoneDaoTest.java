@@ -74,7 +74,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       UUID actualLzId = landingZoneDao.createLandingZone(lz);
       assertEquals(expectedLzId, actualLzId);
 
-      LandingZoneRecord lzRecord = landingZoneDao.getLandingZone(expectedLzId);
+      LandingZoneRecord lzRecord = landingZoneDao.getLandingZoneRecord(expectedLzId);
       assertEquals(expectedLzId, lz.landingZoneId());
       assertEquals(RESOURCE_GROUP, lz.resourceGroupId());
       assertEquals(DEFINITION, lz.definition());
@@ -126,7 +126,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   public void findNotExistingRecordThrowsException() {
     UUID notExistingLzId = UUID.fromString("00000000-0000-0000-C000-000000000046");
     assertThrows(
-        LandingZoneNotFoundException.class, () -> landingZoneDao.getLandingZone(notExistingLzId));
+        LandingZoneNotFoundException.class,
+        () -> landingZoneDao.getLandingZoneRecord(notExistingLzId));
   }
 
   @Test
