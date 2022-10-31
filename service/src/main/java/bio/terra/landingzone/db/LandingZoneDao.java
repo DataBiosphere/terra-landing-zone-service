@@ -1,12 +1,10 @@
 package bio.terra.landingzone.db;
 
-import bio.terra.common.db.ReadTransaction;
 import bio.terra.common.exception.MissingRequiredFieldException;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
-import io.opencensus.contrib.spring.aop.Traced;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,9 +149,11 @@ public class LandingZoneDao {
    * @param idList List of landing zone IDs to query for
    * @return list of landing zones corresponding to input IDs.
    */
-  @Traced
-  @ReadTransaction
-  public List<LandingZoneRecord> getLandingZoneMatchingIdList(Set<UUID> idList) {
+  @Transactional(
+      isolation = Isolation.SERIALIZABLE,
+      propagation = Propagation.REQUIRED,
+      transactionManager = "tlzTransactionManager")
+  public List<LandingZoneRecord> getLandingZoneMatchingIdList(List<UUID> idList) {
     // If the incoming list is empty, the caller does not have permission to see any
     // landing zone, so we return an empty list.
     if (idList.isEmpty()) {

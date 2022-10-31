@@ -9,11 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.common.exception.ForbiddenException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
@@ -627,6 +629,182 @@ public class LandingZoneServiceTest {
     assertEquals(billingProfileId, result.billingProfileId());
     assertEquals(definition, result.definition());
     assertEquals(version, result.version());
+  }
+
+  @Test
+  public void getLandingZonesByBillingProfile_Success() throws InterruptedException {
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
+    final var tenantId = UUID.randomUUID();
+    final var subscriptionId = UUID.randomUUID();
+    final var resourceGroup = "mrg";
+    final var definition = "definition";
+    final var version = "version";
+    LandingZoneRecord landingZoneRecord =
+        new LandingZoneRecord(
+            landingZoneId,
+            resourceGroup,
+            definition,
+            version,
+            subscriptionId.toString(),
+            tenantId.toString(),
+            billingProfileId,
+            null,
+            null,
+            Collections.emptyMap());
+    when(landingZoneDao.getLandingZoneByBillingProfileId(eq(billingProfileId)))
+        .thenReturn(landingZoneRecord);
+    when(samService.isAuthorized(
+            any(),
+            eq(SamConstants.SamResourceType.LANDING_ZONE),
+            eq(landingZoneId.toString()),
+            anyString()))
+        .thenReturn(true);
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+    // Test
+    var result = landingZoneService.getLandingZonesByBillingProfile(bearerToken, billingProfileId);
+    // Validate record
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(landingZoneId, result.get(0).landingZoneId());
+    assertEquals(billingProfileId, result.get(0).billingProfileId());
+    assertEquals(definition, result.get(0).definition());
+    assertEquals(version, result.get(0).version());
+  }
+
+  @Test
+  public void getLandingZonesByBillingProfile_UserIsNotAuthorized_NoRecords()
+      throws InterruptedException {
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
+    final var tenantId = UUID.randomUUID();
+    final var subscriptionId = UUID.randomUUID();
+    final var resourceGroup = "mrg";
+    final var definition = "definition";
+    final var version = "version";
+    LandingZoneRecord landingZoneRecord =
+        new LandingZoneRecord(
+            landingZoneId,
+            resourceGroup,
+            definition,
+            version,
+            subscriptionId.toString(),
+            tenantId.toString(),
+            billingProfileId,
+            null,
+            null,
+            Collections.emptyMap());
+    when(landingZoneDao.getLandingZoneByBillingProfileId(eq(billingProfileId)))
+        .thenReturn(landingZoneRecord);
+    when(samService.isAuthorized(
+            any(),
+            eq(SamConstants.SamResourceType.LANDING_ZONE),
+            eq(landingZoneId.toString()),
+            anyString()))
+        .thenReturn(false);
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+    // Test
+    var result = landingZoneService.getLandingZonesByBillingProfile(bearerToken, billingProfileId);
+    // Validate there are no records in result.
+    assertNotNull(result);
+    assertEquals(0, result.size());
+  }
+
+  @Test
+  public void listLandingZones_OneRecord_Success() throws InterruptedException {
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
+    final var tenantId = UUID.randomUUID();
+    final var subscriptionId = UUID.randomUUID();
+    final var resourceGroup = "mrg";
+    final var definition = "definition";
+    final var version = "version";
+    LandingZoneRecord landingZoneRecord =
+        new LandingZoneRecord(
+            landingZoneId,
+            resourceGroup,
+            definition,
+            version,
+            subscriptionId.toString(),
+            tenantId.toString(),
+            billingProfileId,
+            null,
+            null,
+            Collections.emptyMap());
+    when(samService.listLandingZoneResourceIds(eq(bearerToken))).thenReturn(List.of(landingZoneId));
+    when(landingZoneDao.getLandingZoneMatchingIdList(List.of(landingZoneId)))
+        .thenReturn(List.of(landingZoneRecord));
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+    // Test
+    var result = landingZoneService.listLandingZones(bearerToken);
+    // Validate there are no records in result.
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(landingZoneId, result.get(0).landingZoneId());
+    assertEquals(billingProfileId, result.get(0).billingProfileId());
+    assertEquals(definition, result.get(0).definition());
+    assertEquals(version, result.get(0).version());
+  }
+
+  @Test
+  public void listLandingZones_NoRecords_Success() throws InterruptedException {
+    var deployedResources = setupDeployedResources();
+    // Setup mocks
+    when(samService.listLandingZoneResourceIds(eq(bearerToken))).thenReturn(List.of());
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+    // Test
+    var result = landingZoneService.listLandingZones(bearerToken);
+    // Validate there are no records in result.
+    assertNotNull(result);
+    assertEquals(0, result.size());
+  }
+
+  @Test
+  public void getLandingZone_UserIsNotAuthorized_ThrowsException() throws InterruptedException {
+    // Setup mocks
+    doThrow(new ForbiddenException("User has no write access"))
+        .when(samService)
+        .checkAuthz(
+            any(),
+            eq(SamConstants.SamResourceType.LANDING_ZONE),
+            eq(landingZoneId.toString()),
+            eq(SamConstants.SamLandingZoneAction.LIST_RESOURCES));
+
+    landingZoneService =
+        new LandingZoneService(
+            landingZoneJobService,
+            landingZoneManagerProvider,
+            landingZoneDao,
+            samService,
+            bpmService);
+    // Test
+    Assertions.assertThrows(
+        ForbiddenException.class,
+        () -> landingZoneService.getLandingZone(bearerToken, landingZoneId));
   }
 
   private List<DeployedResource> setupDeployedResources() {

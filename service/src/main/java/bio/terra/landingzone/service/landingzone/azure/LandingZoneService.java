@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -311,7 +310,14 @@ public class LandingZoneService {
     // ID
     // and there can be only one landing zone record returned.
     // However, the API allows future extensions for more than one landing zone per billing profile.
-    if (isUserAuthorizedForLandingZoneResource(bearerToken, landingZone.landingZoneId())) {
+    if (SamRethrow.onInterrupted(
+        () ->
+            samService.isAuthorized(
+                bearerToken,
+                SamConstants.SamResourceType.LANDING_ZONE,
+                landingZone.landingZoneId().toString(),
+                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
+        IS_AUTHORIZED)) {
       landingZones.add(landingZone);
     }
     return landingZones;
@@ -328,7 +334,7 @@ public class LandingZoneService {
         SamRethrow.onInterrupted(
             () -> samService.listLandingZoneResourceIds(bearerToken), "listLandingZoneResourceIds");
     // Query the database for landing zone records with the landing zone Ids.
-    return landingZoneDao.getLandingZoneMatchingIdList((Set<UUID>) landingZoneUuids).stream()
+    return landingZoneDao.getLandingZoneMatchingIdList(landingZoneUuids).stream()
         .map(lz -> toLandingZone(lz))
         .toList();
   }
@@ -409,18 +415,6 @@ public class LandingZoneService {
                 SamConstants.SamResourceType.LANDING_ZONE,
                 landingZoneId.toString(),
                 permissionName),
-        IS_AUTHORIZED);
-  }
-
-  private boolean isUserAuthorizedForLandingZoneResource(
-      BearerToken bearerToken, UUID landingZoneId) {
-    return SamRethrow.onInterrupted(
-        () ->
-            samService.isAuthorized(
-                bearerToken,
-                SamConstants.SamResourceType.LANDING_ZONE,
-                landingZoneId.toString(),
-                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
         IS_AUTHORIZED);
   }
 

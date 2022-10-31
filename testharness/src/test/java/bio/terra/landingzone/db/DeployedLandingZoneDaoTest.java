@@ -169,7 +169,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   }
 
   @Test
-  public void getLandingZoneList_Success() {
+  public void getLandingZoneList_ByLandingZoneTarget_Success() {
     UUID expectedLzId = UUID.randomUUID();
     try {
       LandingZoneRecord lz =
@@ -200,6 +200,155 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       // There can be more records created for the same Landing Zone target.
       // Checking that above record has been returned.
       assertTrue(lzRecords.size() >= 1);
+      var records = lzRecords.stream().filter(r -> r.landingZoneId().equals(expectedLzId)).toList();
+
+      assertNotNull(records);
+      assertEquals(1, records.size());
+      assertEquals(expectedLzId, records.get(0).landingZoneId());
+      assertEquals(RESOURCE_GROUP, records.get(0).resourceGroupId());
+      assertEquals(DEFINITION, records.get(0).definition());
+      assertEquals(VERSION, records.get(0).version());
+      assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
+      assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(BILLING_PROFILE, records.get(0).billingProfileId());
+      assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
+      assertEquals(DESCRIPTION, records.get(0).description().get());
+      assertEquals(properties, records.get(0).properties());
+    } finally {
+      try {
+        landingZoneDao.deleteLandingZone(expectedLzId);
+      } catch (Exception ex) {
+        fail("Failure during removing landing zone from database", ex);
+      }
+    }
+  }
+
+  @Test
+  public void getLandingZoneList_OneId_Success() {
+    UUID expectedLzId = UUID.randomUUID();
+    try {
+      LandingZoneRecord lz =
+          new LandingZoneRecord(
+              expectedLzId,
+              RESOURCE_GROUP,
+              DEFINITION,
+              VERSION,
+              SUBSCRIPTION,
+              TENANT,
+              BILLING_PROFILE,
+              Optional.of(DISPLAY_NAME),
+              Optional.of(DESCRIPTION),
+              properties);
+      landingZoneDao.createLandingZone(lz);
+      List<LandingZoneRecord> lzRecords =
+          landingZoneDao.getLandingZoneMatchingIdList(List.of(expectedLzId));
+
+      // There can be more records created for the same Landing Zone target.
+      // Checking that above record has been returned.
+      assertTrue(lzRecords.size() >= 1);
+      var records = lzRecords.stream().filter(r -> r.landingZoneId().equals(expectedLzId)).toList();
+
+      assertNotNull(records);
+      assertEquals(1, records.size());
+      assertEquals(expectedLzId, records.get(0).landingZoneId());
+      assertEquals(RESOURCE_GROUP, records.get(0).resourceGroupId());
+      assertEquals(DEFINITION, records.get(0).definition());
+      assertEquals(VERSION, records.get(0).version());
+      assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
+      assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(BILLING_PROFILE, records.get(0).billingProfileId());
+      assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
+      assertEquals(DESCRIPTION, records.get(0).description().get());
+      assertEquals(properties, records.get(0).properties());
+    } finally {
+      try {
+        landingZoneDao.deleteLandingZone(expectedLzId);
+      } catch (Exception ex) {
+        fail("Failure during removing landing zone from database", ex);
+      }
+    }
+  }
+
+  @Test
+  public void getLandingZoneList_Success() {
+    UUID expectedLz1Id = UUID.randomUUID();
+    UUID expectedLz2Id = UUID.randomUUID();
+    try {
+      LandingZoneRecord lz1 =
+          new LandingZoneRecord(
+              expectedLz1Id,
+              RESOURCE_GROUP,
+              DEFINITION,
+              VERSION,
+              SUBSCRIPTION,
+              TENANT,
+              BILLING_PROFILE,
+              Optional.of(DISPLAY_NAME),
+              Optional.of(DESCRIPTION),
+              properties);
+      LandingZoneRecord lz2 =
+          new LandingZoneRecord(
+              expectedLz2Id,
+              RESOURCE_GROUP,
+              DEFINITION,
+              VERSION,
+              SUBSCRIPTION,
+              TENANT,
+              UUID.randomUUID(),
+              Optional.of(DISPLAY_NAME),
+              Optional.of(DESCRIPTION),
+              properties);
+      landingZoneDao.createLandingZone(lz1);
+      landingZoneDao.createLandingZone(lz2);
+      List<LandingZoneRecord> lzRecords =
+          landingZoneDao.getLandingZoneMatchingIdList(List.of(expectedLz1Id, expectedLz2Id));
+
+      // Checking that above records has been returned.
+      assertNotNull(lzRecords);
+      assertTrue(lzRecords.size() == 2);
+      var recordLz1 =
+          lzRecords.stream().filter(r -> r.landingZoneId().equals(expectedLz1Id)).toList();
+      var recordLz2 =
+          lzRecords.stream().filter(r -> r.landingZoneId().equals(expectedLz2Id)).toList();
+
+      assertEquals(expectedLz1Id, recordLz1.get(0).landingZoneId());
+      assertEquals(expectedLz2Id, recordLz2.get(0).landingZoneId());
+      assertEquals(BILLING_PROFILE, recordLz1.get(0).billingProfileId());
+      assertEquals(lz2.billingProfileId(), recordLz2.get(0).billingProfileId());
+    } finally {
+      try {
+        landingZoneDao.deleteLandingZone(expectedLz1Id);
+        landingZoneDao.deleteLandingZone(expectedLz2Id);
+      } catch (Exception ex) {
+        fail("Failure during removing landing zone from database", ex);
+      }
+    }
+  }
+
+  @Test
+  public void getLandingZoneList_NoMatchingIdsAreIgnored_Success() {
+    UUID expectedLzId = UUID.randomUUID();
+    try {
+      LandingZoneRecord lz =
+          new LandingZoneRecord(
+              expectedLzId,
+              RESOURCE_GROUP,
+              DEFINITION,
+              VERSION,
+              SUBSCRIPTION,
+              TENANT,
+              BILLING_PROFILE,
+              Optional.of(DISPLAY_NAME),
+              Optional.of(DESCRIPTION),
+              properties);
+      landingZoneDao.createLandingZone(lz);
+      List<LandingZoneRecord> lzRecords =
+          landingZoneDao.getLandingZoneMatchingIdList(
+              List.of(UUID.randomUUID(), UUID.randomUUID(), expectedLzId));
+
+      // There can be more records created for the same Landing Zone target.
+      // Checking that above record has been returned.
+      assertTrue(lzRecords.size() == 1);
       var records = lzRecords.stream().filter(r -> r.landingZoneId().equals(expectedLzId)).toList();
 
       assertNotNull(records);
