@@ -32,6 +32,8 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDefiniti
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
+import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
+import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneDeletion;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
@@ -108,7 +110,7 @@ public class LandingZoneService {
    * @param resultPath API path for checking job result.
    * @return job report
    */
-  public AsyncJobResult<DeployedLandingZone> startLandingZoneCreationJob(
+  public AsyncJobResult<StartLandingZoneCreation> startLandingZoneCreationJob(
       BearerToken bearerToken,
       String jobId,
       LandingZoneRequest azureLandingZoneRequest,
@@ -143,8 +145,12 @@ public class LandingZoneService {
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
-    return azureLandingZoneJobService.retrieveAsyncJobResult(
-        jobBuilder.submit(), DeployedLandingZone.class);
+    return azureLandingZoneJobService.retrieveStartingAsyncJobResult(
+        jobBuilder.submit(),
+        new StartLandingZoneCreation(
+            landingZoneId,
+            azureLandingZoneRequest.definition(),
+            azureLandingZoneRequest.version()));
   }
 
   /**
@@ -156,7 +162,7 @@ public class LandingZoneService {
    * @param resultPath API path for checking job result.
    * @return job report
    */
-  public AsyncJobResult<DeletedLandingZone> startLandingZoneDeletionJob(
+  public AsyncJobResult<StartLandingZoneDeletion> startLandingZoneDeletionJob(
       BearerToken bearerToken, String jobId, UUID landingZoneId, String resultPath) {
 
     SamRethrow.onInterrupted(
@@ -179,8 +185,8 @@ public class LandingZoneService {
             .bearerToken(bearerToken)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
-    return azureLandingZoneJobService.retrieveAsyncJobResult(
-        jobBuilder.submit(), DeletedLandingZone.class);
+    return azureLandingZoneJobService.retrieveStartingAsyncJobResult(
+        jobBuilder.submit(), new StartLandingZoneDeletion(landingZoneId));
   }
 
   /**

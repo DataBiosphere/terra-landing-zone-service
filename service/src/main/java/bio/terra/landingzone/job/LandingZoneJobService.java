@@ -1,6 +1,8 @@
 package bio.terra.landingzone.job;
 
 import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORIZED;
+import static bio.terra.stairway.FlightStatus.ERROR;
+import static bio.terra.stairway.FlightStatus.FATAL;
 
 import bio.terra.common.db.DataSourceInitializer;
 import bio.terra.common.iam.BearerToken;
@@ -40,6 +42,7 @@ import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.opencensus.contrib.spring.aop.Traced;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -266,6 +269,17 @@ public class LandingZoneJobService {
     }
   }
 
+  public FlightState retrieveFlightState(String jobId) {
+    try {
+      return stairwayComponent.get().getFlightState(jobId);
+    } catch (FlightNotFoundException flightNotFoundException) {
+      throw new JobNotFoundException(
+          "The flight " + jobId + " was not found", flightNotFoundException);
+    } catch (StairwayException | InterruptedException stairwayEx) {
+      throw new InternalStairwayException(stairwayEx);
+    }
+  }
+
   /**
    * There are four cases to handle here:
    *
@@ -328,6 +342,28 @@ public class LandingZoneJobService {
           .result(resultOrException.getResult())
           .errorReport(errorReport);
     } catch (StairwayException | InterruptedException stairwayEx) {
+      throw new InternalStairwayException(stairwayEx);
+    }
+  }
+
+  public <T> AsyncJobResult<T> retrieveStartingAsyncJobResult(String jobId, T result) {
+    try {
+
+      FlightState flightState = retrieveFlightState(jobId);
+      AsyncJobResult<T> asyncJobResult =
+          new AsyncJobResult<T>()
+              .jobReport(mapFlightStateToApiJobReport(flightState))
+              .result(result);
+
+      if (flightState.getFlightStatus().equals(ERROR)
+          || flightState.getFlightStatus().equals(FATAL)) {
+        Exception exception = getExceptionIfPresent(flightState).orElseThrow();
+        asyncJobResult.errorReport(ErrorReportUtils.buildApiErrorReport(exception));
+      }
+
+      return asyncJobResult;
+
+    } catch (StairwayException stairwayEx) {
       throw new InternalStairwayException(stairwayEx);
     }
   }
@@ -435,6 +471,27 @@ public class LandingZoneJobService {
       default:
         throw new InvalidResultStateException("Impossible case reached");
     }
+  }
+
+  private Optional<Exception> getExceptionIfPresent(FlightState flightState) {
+    if (flightState.getFlightStatus().equals(FATAL)
+        || flightState.getFlightStatus().equals(ERROR)) {
+
+      if (flightState.getException().isPresent()) {
+        Exception exception = flightState.getException().get();
+        if (exception instanceof RuntimeException) {
+          return Optional.of(exception);
+        } else {
+          return Optional.of(new JobResponseException("wrap non-runtime exception", exception));
+        }
+      }
+      logger.error(
+          "LZ Stairway flight {} failed with no exception given. Alert: {}",
+          flightState.getFlightId(),
+          LoggingUtils.alertObject());
+      throw new InvalidResultStateException("Failed operation with no exception reported.");
+    }
+    return Optional.empty();
   }
 
   private <T> JobResultOrException<T> handleFailedFlight(FlightState flightState) {
