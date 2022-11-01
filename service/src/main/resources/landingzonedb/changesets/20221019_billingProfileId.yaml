@@ -10,5 +10,8 @@ databaseChangeLog:
           - column:
               name: billing_profile_id
               type: text
+              constraints:
+                nullable: false
+              defaultValue: "00000000-0000-0000-0000-000000000000"
               remarks: |
                 Billing profile ID associated with a landing zone.
