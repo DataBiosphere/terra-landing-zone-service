@@ -50,6 +50,9 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import bio.terra.profile.model.ProfileModel;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +88,8 @@ public class LandingZoneServiceTest {
   private static final UUID landingZoneId = UUID.randomUUID();
   private static final BearerToken bearerToken = new BearerToken("fake-token");
   private static final UUID billingProfileId = UUID.randomUUID();
+  private static final OffsetDateTime createdDate = Instant.now().atOffset(ZoneOffset.UTC);
+
   private LandingZoneService landingZoneService;
 
   @Mock private LandingZoneManager landingZoneManager;
@@ -464,6 +469,7 @@ public class LandingZoneServiceTest {
         "subscriptionId",
         "tenantId",
         billingProfileId,
+        createdDate,
         Optional.of("displayName"),
         Optional.of("description"),
         Collections.emptyMap());
@@ -559,6 +565,7 @@ public class LandingZoneServiceTest {
             subscriptionId.toString(),
             tenantId.toString(),
             billingProfileId,
+            createdDate,
             null,
             null,
             Collections.emptyMap());
@@ -610,6 +617,7 @@ public class LandingZoneServiceTest {
             subscriptionId.toString(),
             tenantId.toString(),
             billingProfileId,
+            createdDate,
             null,
             null,
             Collections.emptyMap());
@@ -649,6 +657,7 @@ public class LandingZoneServiceTest {
             subscriptionId.toString(),
             tenantId.toString(),
             billingProfileId,
+            createdDate,
             null,
             null,
             Collections.emptyMap());
@@ -676,6 +685,7 @@ public class LandingZoneServiceTest {
     assertEquals(billingProfileId, result.get(0).billingProfileId());
     assertEquals(definition, result.get(0).definition());
     assertEquals(version, result.get(0).version());
+    assertEquals(createdDate, result.get(0).createdDate());
   }
 
   @Test
@@ -697,6 +707,7 @@ public class LandingZoneServiceTest {
             subscriptionId.toString(),
             tenantId.toString(),
             billingProfileId,
+            createdDate,
             null,
             null,
             Collections.emptyMap());
@@ -740,6 +751,7 @@ public class LandingZoneServiceTest {
             subscriptionId.toString(),
             tenantId.toString(),
             billingProfileId,
+            createdDate,
             null,
             null,
             Collections.emptyMap());
@@ -762,6 +774,7 @@ public class LandingZoneServiceTest {
     assertEquals(billingProfileId, result.get(0).billingProfileId());
     assertEquals(definition, result.get(0).definition());
     assertEquals(version, result.get(0).version());
+    assertEquals(createdDate, result.get(0).createdDate());
   }
 
   @Test

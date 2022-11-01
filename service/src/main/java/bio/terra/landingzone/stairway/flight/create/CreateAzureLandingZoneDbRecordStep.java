@@ -12,6 +12,9 @@ import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.exception.RetryException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +64,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
             .tenantId(landingZoneTarget.azureTenantId())
             .subscriptionId(landingZoneTarget.azureSubscriptionId())
             .billingProfileId(requestedExternalLandingZoneResource.billingProfileId())
+            .createdDate(OffsetDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
             .build());
     return StepResult.getStepResultSuccess();
   }

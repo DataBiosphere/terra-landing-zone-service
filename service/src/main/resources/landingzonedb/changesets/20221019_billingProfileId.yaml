@@ -15,3 +15,11 @@ databaseChangeLog:
               defaultValue: "00000000-0000-0000-0000-000000000000"
               remarks: |
                 Billing profile ID associated with a landing zone.
+          - column:
+              name: created_date
+              type: timestamptz
+              defaultValueComputed: now()
+              constraints:
+                nullable: false
+              remarks: |
+                Landing zone created date.

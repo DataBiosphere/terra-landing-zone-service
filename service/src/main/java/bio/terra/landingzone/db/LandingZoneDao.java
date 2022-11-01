@@ -5,6 +5,8 @@ import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LandingZoneDao {
   /** SQL query for reading landing zone records. */
   private static final String LANDINGZONE_SELECT_SQL =
-      "SELECT landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, definition_id, definition_version_id, display_name, description, properties"
+      "SELECT landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, definition_id, definition_version_id, display_name, description, created_date, properties"
           + " FROM landingzone";
 
   // Landing Zones table fields
@@ -39,7 +41,7 @@ public class LandingZoneDao {
   private static final String DISPLAY_NAME = "display_name";
   private static final String DESCRIPTION = "description";
   private static final String PROPERTIES = "properties";
-
+  private static final String CREATED_DATE = "created_date";
   private final Logger logger = LoggerFactory.getLogger(LandingZoneDao.class);
   private final LandingZoneDatabaseConfiguration landingZoneDatabaseConfiguration;
   private final NamedParameterJdbcTemplate jdbcLandingZoneTemplate;
@@ -63,8 +65,8 @@ public class LandingZoneDao {
       transactionManager = "tlzTransactionManager")
   public UUID createLandingZone(LandingZoneRecord landingzone) {
     final String sql =
-        "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, definition_id, definition_version_id, display_name, description, properties) "
-            + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :billing_profile_id, :definition_id, :definition_version_id, :display_name, :description,"
+        "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, created_date, definition_id, definition_version_id, display_name, description, properties) "
+            + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :billing_profile_id, :created_date, :definition_id, :definition_version_id, :display_name, :description,"
             + " cast(:properties AS jsonb))";
 
     final String landingZoneUuid = landingzone.landingZoneId().toString();
@@ -77,6 +79,7 @@ public class LandingZoneDao {
             .addValue(SUBSCRIPTION_ID, landingzone.subscriptionId())
             .addValue(TENANT_ID, landingzone.tenantId())
             .addValue(BILLING_PROFILE_ID, billingProfileUuid)
+            .addValue(CREATED_DATE, landingzone.createdDate())
             .addValue(DEFINITION_ID, landingzone.definition())
             .addValue(DEFINITION_VERSION_ID, landingzone.version())
             .addValue(DISPLAY_NAME, landingzone.displayName().orElse(null))
@@ -149,10 +152,6 @@ public class LandingZoneDao {
    * @param idList List of landing zone IDs to query for
    * @return list of landing zones corresponding to input IDs.
    */
-  @Transactional(
-      isolation = Isolation.SERIALIZABLE,
-      propagation = Propagation.REQUIRED,
-      transactionManager = "tlzTransactionManager")
   public List<LandingZoneRecord> getLandingZoneMatchingIdList(List<UUID> idList) {
     // If the incoming list is empty, the caller does not have permission to see any
     // landing zone, so we return an empty list.
@@ -176,10 +175,6 @@ public class LandingZoneDao {
    * @param resourceGroupId unique identifier of the Azure resource group.
    * @return List of landing zone objects.
    */
-  @Transactional(
-      isolation = Isolation.SERIALIZABLE,
-      propagation = Propagation.REQUIRED,
-      transactionManager = "tlzTransactionManager")
   public List<LandingZoneRecord> getLandingZoneList(
       String subscriptionId, String tenantId, String resourceGroupId) {
     if (subscriptionId == null || subscriptionId.isEmpty()) {
@@ -223,10 +218,6 @@ public class LandingZoneDao {
                         billingProfileUuid.toString())));
   }
 
-  @Transactional(
-      isolation = Isolation.SERIALIZABLE,
-      propagation = Propagation.REQUIRED,
-      transactionManager = "tlzTransactionManager")
   public Optional<LandingZoneRecord> getLandingZoneByBillingProfileIdIfExists(
       UUID billingProfileUuid) {
     if (billingProfileUuid == null) {
@@ -248,10 +239,6 @@ public class LandingZoneDao {
     }
   }
 
-  @Transactional(
-      isolation = Isolation.SERIALIZABLE,
-      propagation = Propagation.REQUIRED,
-      transactionManager = "tlzTransactionManager")
   public Optional<LandingZoneRecord> getLandingZoneIfExists(UUID uuid) {
     if (uuid == null) {
       throw new MissingRequiredFieldException("Valid landing zone id is required");
@@ -277,6 +264,9 @@ public class LandingZoneDao {
               .subscriptionId(rs.getString(SUBSCRIPTION_ID))
               .tenantId(rs.getString(TENANT_ID))
               .billingProfileId(UUID.fromString(rs.getString(BILLING_PROFILE_ID)))
+              .createdDate(
+                  OffsetDateTime.ofInstant(
+                      rs.getTimestamp(CREATED_DATE).toInstant(), ZoneOffset.UTC))
               .definition(rs.getString(DEFINITION_ID))
               .version(rs.getString(DEFINITION_VERSION_ID))
               .displayName(rs.getString(DISPLAY_NAME))

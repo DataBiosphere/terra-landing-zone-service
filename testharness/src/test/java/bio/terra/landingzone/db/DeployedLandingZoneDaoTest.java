@@ -7,6 +7,9 @@ import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.testutils.LibraryTestBase;
 import bio.terra.landingzone.testutils.TestFixtures;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +28,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   private static final String DISPLAY_NAME = "lzDisplayName";
   private static final String DESCRIPTION = "lzDescription";
   private static final Map<String, String> properties = Map.of("key1", "value1");
-
+  private static final OffsetDateTime CREATED_DATE = Instant.now().atOffset(ZoneOffset.UTC);
   @Autowired private LandingZoneDao landingZoneDao;
 
   @Test
@@ -41,6 +44,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -68,6 +72,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -109,7 +114,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               properties,
               SUBSCRIPTION,
               TENANT,
-              BILLING_PROFILE);
+              BILLING_PROFILE,
+              CREATED_DATE);
       landingZoneDao.createLandingZone(lz);
 
       assertThrows(DuplicateLandingZoneException.class, () -> landingZoneDao.createLandingZone(lz));
@@ -144,7 +150,8 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
             properties,
             SUBSCRIPTION,
             TENANT,
-            BILLING_PROFILE);
+            BILLING_PROFILE,
+            CREATED_DATE);
     landingZoneDao.createLandingZone(lz);
 
     assertTrue(landingZoneDao.deleteLandingZone(expectedLzId));
@@ -181,6 +188,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -214,6 +222,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());
       assertEquals(properties, records.get(0).properties());
+      verifyOffsetDateTime(CREATED_DATE, records.get(0).createdDate());
     } finally {
       try {
         landingZoneDao.deleteLandingZone(expectedLzId);
@@ -236,6 +245,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -260,6 +270,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());
       assertEquals(properties, records.get(0).properties());
+      verifyOffsetDateTime(CREATED_DATE, records.get(0).createdDate());
     } finally {
       try {
         landingZoneDao.deleteLandingZone(expectedLzId);
@@ -283,6 +294,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -295,6 +307,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               UUID.randomUUID(),
+              CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -338,6 +351,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
               properties);
@@ -363,6 +377,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());
       assertEquals(properties, records.get(0).properties());
+      verifyOffsetDateTime(CREATED_DATE, records.get(0).createdDate());
     } finally {
       try {
         landingZoneDao.deleteLandingZone(expectedLzId);
@@ -376,5 +391,12 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   public void deleteLandingZoneWhenItDoesntExist() {
     UUID notExistingLzId = UUID.fromString("00000000-0000-0000-C000-000000000046");
     assertFalse(landingZoneDao.deleteLandingZone(notExistingLzId));
+  }
+
+  private void verifyOffsetDateTime(OffsetDateTime expected, OffsetDateTime actual) {
+    // There is loss of precision of timestamp while reading from database:
+    // expected: <2022-11-01T18:25:47.060745593Z> but was: <2022-11-01T18:25:47.060746Z>
+    // Therefore, we are comparing to epoch milliseconds.
+    assertEquals(expected.toInstant().toEpochMilli(), actual.toInstant().toEpochMilli());
   }
 }

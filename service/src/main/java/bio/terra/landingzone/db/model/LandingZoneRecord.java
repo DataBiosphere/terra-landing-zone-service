@@ -3,6 +3,7 @@ package bio.terra.landingzone.db.model;
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,7 @@ public record LandingZoneRecord(
     String subscriptionId,
     String tenantId,
     UUID billingProfileId,
+    OffsetDateTime createdDate,
     Optional<String> displayName,
     Optional<String> description,
     Map<String, String> properties) {
@@ -38,6 +40,7 @@ public record LandingZoneRecord(
     private UUID billingProfileId;
     private @Nullable String displayName;
     private @Nullable String description;
+    private OffsetDateTime createdDate;
     private Map<String, String> properties;
 
     public Builder landingZoneId(UUID landingZoneUuid) {
@@ -90,6 +93,11 @@ public record LandingZoneRecord(
       return this;
     }
 
+    public Builder createdDate(OffsetDateTime createdDate) {
+      this.createdDate = createdDate;
+      return this;
+    }
+
     public LandingZoneRecord build() {
       // Always have a map, even if it is empty
       if (properties == null) {
@@ -112,6 +120,7 @@ public record LandingZoneRecord(
           subscriptionId,
           tenantId,
           billingProfileId,
+          createdDate,
           Optional.of(displayName),
           Optional.of(description),
           properties);
