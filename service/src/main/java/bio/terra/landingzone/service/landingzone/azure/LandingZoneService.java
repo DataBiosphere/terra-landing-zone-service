@@ -335,7 +335,7 @@ public class LandingZoneService {
             () -> samService.listLandingZoneResourceIds(bearerToken), "listLandingZoneResourceIds");
     // Query the database for landing zone records with the landing zone Ids.
     return landingZoneDao.getLandingZoneMatchingIdList(landingZoneUuids).stream()
-        .map(lz -> toLandingZone(lz))
+        .map(this::toLandingZone)
         .toList();
   }
 
@@ -432,7 +432,7 @@ public class LandingZoneService {
     List<DeployedSubnet> deployedSubnets =
         landingZoneManager.reader().listSubnetsBySubnetPurpose(landingZoneId.toString(), purpose);
 
-    return deployedSubnets.stream().map(s -> toLandingZoneResource(s)).toList();
+    return deployedSubnets.stream().map(this::toLandingZoneResource).toList();
   }
 
   private LandingZoneResource toLandingZoneResource(DeployedSubnet subnet) {
@@ -459,7 +459,7 @@ public class LandingZoneService {
     var deployedResources = landingZoneManager.reader().listResourcesWithPurpose(landingZoneId);
 
     return deployedResources.stream()
-        .map(dp -> toLandingZoneResource(dp))
+        .map(this::toLandingZoneResource)
         .collect(
             Collectors.groupingBy(
                 r ->
@@ -479,7 +479,7 @@ public class LandingZoneService {
                         .reader()
                         .listSubnetsBySubnetPurpose(landingZoneId, p)
                         .stream()
-                        .map(s -> toLandingZoneResource(s))
+                        .map(this::toLandingZoneResource)
                         .toList()));
     // Remove empty mappings
     subnetPurposeMap.entrySet().removeIf(entry -> entry.getValue().size() == 0);
