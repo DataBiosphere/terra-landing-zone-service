@@ -12,6 +12,7 @@ import io.opencensus.trace.Tracing;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.BooleanUtils;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
@@ -190,37 +191,24 @@ public class LandingZoneSamService {
     List<UUID> userLandingZoneResourceIds = null;
     var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
-      var userResources =
+      var userLandingZones =
           SamRetry.retry(
               () ->
                   resourceApi.listResourcesAndPoliciesV2(
                       SamConstants.SamResourceType.LANDING_ZONE));
-      userLandingZoneResourceIds =
-          userResources.stream()
-              .filter(
-                  userResource ->
-                      userResource
-                              .getDirect()
-                              .getActions()
-                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES)
-                          || userResource
-                              .getPublic()
-                              .getActions()
-                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES)
-                          || userResource
-                              .getInherited()
-                              .getActions()
-                              .contains(SamConstants.SamLandingZoneAction.LIST_RESOURCES))
-              .map(userResource -> UUID.fromString(userResource.getResourceId()))
-              .toList();
+      return userLandingZones.stream()
+          .flatMap(
+              p -> {
+                try {
+                  return Stream.of(UUID.fromString(p.getResourceId()));
+                } catch (IllegalArgumentException e) {
+                  return Stream.empty();
+                }
+              })
+          .toList();
     } catch (ApiException apiException) {
-      logger.info(
-          "Sam API error while getting landing zone type resources and policies, code is "
-              + apiException.getCode());
-      throw SamExceptionFactory.create(
-          "Error getting a landing zone resource ID's in Sam", apiException);
+      throw SamExceptionFactory.create("Error getting landing ID's in Sam", apiException);
     }
-    return userLandingZoneResourceIds;
   }
 
   /** Fetch the user status info associated with the user credentials directly from Sam. */
