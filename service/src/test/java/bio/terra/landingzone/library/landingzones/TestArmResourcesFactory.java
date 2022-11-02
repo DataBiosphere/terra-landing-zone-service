@@ -5,6 +5,8 @@ import com.azure.core.management.Region;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.batch.BatchManager;
+import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
+import com.azure.resourcemanager.monitor.MonitorManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
@@ -25,7 +27,9 @@ public class TestArmResourcesFactory {
         createArmClient(),
         createRelayArmClient(),
         createBatchArmClient(),
-        createPostgreSqlArmClient());
+        createPostgreSqlArmClient(),
+        createLogAnalyticsArmClient(),
+        createMonitorArmClient());
   }
 
   public static RelayManager createRelayArmClient() {
@@ -42,6 +46,18 @@ public class TestArmResourcesFactory {
 
   public static PostgreSqlManager createPostgreSqlArmClient() {
     return PostgreSqlManager.authenticate(
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
+        AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
+  }
+
+  public static LogAnalyticsManager createLogAnalyticsArmClient() {
+    return LogAnalyticsManager.authenticate(
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
+        AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
+  }
+
+  public static MonitorManager createMonitorArmClient() {
+    return MonitorManager.authenticate(
         AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }

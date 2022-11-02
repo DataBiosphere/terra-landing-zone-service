@@ -15,6 +15,7 @@ import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateLinkSubResourceName;
 import com.azure.resourcemanager.postgresql.models.PublicNetworkAccessEnum;
@@ -39,6 +40,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   private final String LZ_DESC =
       "Cromwell Base Resources: VNet, AKS Account & Nodepool, Batch Account,"
           + " Storage Account, PostgreSQL server, Subnets for AKS, Batch, Posgres, and Compute";
+  private final int AUDIT_LOG_RETENTION_DAYS = 365 * 2; // 2 years
 
   enum Subnet {
     AKS_SUBNET,
@@ -95,6 +97,17 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       ParametersResolver parametersResolver =
           new ParametersResolver(definitionContext.parameters(), getDefaultParameters());
 
+      var logAnalyticsWorkspace =
+          armManagers
+              .logAnalyticsManager()
+              .workspaces()
+              .define(
+                  nameGenerator.nextName(
+                      ResourceNameGenerator.MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH))
+              .withRegion(resourceGroup.region())
+              .withExistingResourceGroup(resourceGroup.name())
+              .withRetentionInDays(AUDIT_LOG_RETENTION_DAYS);
+
       var vNet =
           azureResourceManager
               .networks()
@@ -136,6 +149,13 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                       .withName(
                           parametersResolver.getValue(ParametersNames.POSTGRES_SERVER_SKU.name())));
 
+      var storage =
+          azureResourceManager
+              .storageAccounts()
+              .define(nameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH))
+              .withRegion(resourceGroup.region())
+              .withExistingResourceGroup(resourceGroup);
+
       var prerequisites =
           deployment
               .definePrerequisites()
@@ -150,8 +170,20 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                   Subnet.COMPUTE_SUBNET.name(),
                   SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
               .withResourceWithPurpose(postgres, ResourcePurpose.SHARED_RESOURCE)
+              .withResourceWithPurpose(logAnalyticsWorkspace, ResourcePurpose.SHARED_RESOURCE)
+              .withResourceWithPurpose(storage, ResourcePurpose.SHARED_RESOURCE)
               .deploy();
 
+      String logAnalyticsWorkspaceId =
+          prerequisites.stream()
+              .filter(
+                  deployedResource ->
+                      Objects.equals(
+                          deployedResource.resourceType(),
+                          "Microsoft.OperationalInsights/workspaces"))
+              .findFirst()
+              .get()
+              .resourceId();
       String vNetId =
           prerequisites.stream()
               .filter(
@@ -167,6 +199,15 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                   deployedResource ->
                       Objects.equals(
                           deployedResource.resourceType(), "Microsoft.DBforPostgreSQL/servers"))
+              .findFirst()
+              .get()
+              .resourceId();
+      String storageAccountId =
+          prerequisites.stream()
+              .filter(
+                  deployedResource ->
+                      Objects.equals(
+                          deployedResource.resourceType(), "Microsoft.Storage/storageAccounts"))
               .findFirst()
               .get()
               .resourceId();
@@ -187,6 +228,13 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withSubResource(PrivateLinkSubResourceName.fromString("postgresqlServer"))
               .attach();
 
+      final Map<String, ManagedClusterAddonProfile> addonProfileMap = new HashMap<>();
+      addonProfileMap.put(
+          "omsagent",
+          new ManagedClusterAddonProfile()
+              .withEnabled(true)
+              .withConfig(Map.of("logAnalyticsWorkspaceResourceID", logAnalyticsWorkspaceId)));
+
       var aks =
           azureResourceManager
               .kubernetesClusters()
@@ -204,7 +252,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withVirtualNetwork(vNetwork.id(), Subnet.AKS_SUBNET.name())
               .attach()
               .withDnsPrefix(
-                  nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH));
+                  nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH))
+              .withAddOnProfiles(addonProfileMap);
 
       var batch =
           armManagers
@@ -214,13 +263,6 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withRegion(resourceGroup.region())
               .withExistingResourceGroup(resourceGroup.name());
 
-      var storage =
-          azureResourceManager
-              .storageAccounts()
-              .define(nameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
-              .withExistingResourceGroup(resourceGroup);
-
       var relay =
           armManagers
               .relayManager()
@@ -229,12 +271,24 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withRegion(resourceGroup.region())
               .withExistingResourceGroup(resourceGroup.name());
 
+      var storageAuditLogSettings =
+          armManagers
+              .monitorManager()
+              .diagnosticSettings()
+              .define(
+                  nameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+              .withResource(storageAccountId + "/blobServices/default")
+              .withLogAnalytics(logAnalyticsWorkspaceId)
+              .withLog("StorageRead", 0) // retention is handled by the log analytics workspace
+              .withLog("StorageWrite", 0)
+              .withLog("StorageDelete", 0);
+
       return deployment
           .withResourceWithPurpose(aks, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(batch, ResourcePurpose.SHARED_RESOURCE)
-          .withResourceWithPurpose(storage, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(relay, ResourcePurpose.SHARED_RESOURCE)
-          .withResourceWithPurpose(privateEndpoint, ResourcePurpose.SHARED_RESOURCE);
+          .withResourceWithPurpose(privateEndpoint, ResourcePurpose.SHARED_RESOURCE)
+          .withResourceWithPurpose(storageAuditLogSettings, ResourcePurpose.SHARED_RESOURCE);
     }
 
     private Map<String, String> getDefaultParameters() {

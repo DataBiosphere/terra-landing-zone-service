@@ -1,6 +1,8 @@
 package bio.terra.landingzone.library.landingzones.deployment;
 
 import com.azure.resourcemanager.batch.models.BatchAccount;
+import com.azure.resourcemanager.loganalytics.models.Workspace;
+import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.postgresql.models.Server;
@@ -43,6 +45,14 @@ public interface LandingZoneDeployment {
 
       Deployable withResourceWithPurpose(
           PrivateEndpoint.DefinitionStages.WithCreate privateEndpoint,
+          ResourcePurpose sharedResource);
+
+      Deployable withResourceWithPurpose(
+          Workspace.DefinitionStages.WithCreate logAnalyticsWorkspace,
+          ResourcePurpose sharedResource);
+
+      Deployable withResourceWithPurpose(
+          DiagnosticSetting.DefinitionStages.WithCreate logAnalyticsWorkspace,
           ResourcePurpose sharedResource);
 
       WithLandingZoneResource definePrerequisites();

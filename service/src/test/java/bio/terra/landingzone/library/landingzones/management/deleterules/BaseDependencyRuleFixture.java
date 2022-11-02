@@ -8,6 +8,8 @@ import bio.terra.landingzone.library.landingzones.management.ResourceToDelete;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.batch.BatchManager;
+import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
+import com.azure.resourcemanager.monitor.MonitorManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
 import com.azure.resourcemanager.resources.models.GenericResource;
@@ -30,6 +32,8 @@ public class BaseDependencyRuleFixture {
   @Mock protected AzureResourceManager azureResourceManager;
   @Mock protected PostgreSqlManager postgreSqlManager;
   @Mock protected RelayManager relayManager;
+  @Mock protected LogAnalyticsManager logAnalyticsManager;
+  @Mock protected MonitorManager monitorManager;
 
   @Mock protected ResourceToDelete resourceToDelete;
   @Mock protected GenericResource resource;
@@ -37,7 +41,13 @@ public class BaseDependencyRuleFixture {
   @BeforeEach
   void setUpArmManager() {
     armManagers =
-        new ArmManagers(azureResourceManager, relayManager, batchManager, postgreSqlManager);
+        new ArmManagers(
+            azureResourceManager,
+            relayManager,
+            batchManager,
+            postgreSqlManager,
+            logAnalyticsManager,
+            monitorManager);
   }
 
   protected void setUpResourceToDelete() {

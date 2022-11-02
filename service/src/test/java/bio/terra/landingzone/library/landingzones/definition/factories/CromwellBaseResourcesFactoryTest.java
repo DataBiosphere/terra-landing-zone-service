@@ -54,7 +54,7 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
     // check if you can read lz resources
     TimeUnit.SECONDS.sleep(3); // wait for tag propagation...
     var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
-    assertThat(sharedResources, hasSize(5));
+    assertThat(sharedResources, hasSize(6));
 
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);

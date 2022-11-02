@@ -2,6 +2,8 @@ package bio.terra.landingzone.library.landingzones.deployment;
 
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.batch.models.BatchAccount;
+import com.azure.resourcemanager.loganalytics.models.Workspace;
+import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.postgresql.models.Server;
@@ -25,6 +27,10 @@ public class ResourcesTagMapWrapper {
       postgresResourcesTagsMap = new HashMap<>();
   private final Map<PrivateEndpoint.DefinitionStages.WithCreate, Map<String, String>>
       privateEndpointResourcesTagsMap = new HashMap<>();
+  private final Map<Workspace.DefinitionStages.WithCreate, Map<String, String>>
+      logAnalyticsWorkspaceResourcesTagsMap = new HashMap<>();
+  private final Map<DiagnosticSetting.DefinitionStages.WithCreate, Map<String, String>>
+      diagnosticSettingResourcesTagsMap = new HashMap<>();
   private final ClientLogger logger = new ClientLogger(ResourcesTagMapWrapper.class);
   private final String landingZoneId;
 
@@ -92,6 +98,16 @@ public class ResourcesTagMapWrapper {
     return privateEndpointResourcesTagsMap;
   }
 
+  Map<Workspace.DefinitionStages.WithCreate, Map<String, String>>
+      getLogAnalyticsWorkspaceResourcesTagsMap() {
+    return logAnalyticsWorkspaceResourcesTagsMap;
+  }
+
+  Map<DiagnosticSetting.DefinitionStages.WithCreate, Map<String, String>>
+      getDiagnosticSettingResourcesTagsMap() {
+    return diagnosticSettingResourcesTagsMap;
+  }
+
   Map<String, String> getResourceTagsMap(Creatable<?> resource) {
     return resourcesTagsMap.get(resource);
   }
@@ -130,6 +146,23 @@ public class ResourcesTagMapWrapper {
     putTagKeyValue(privateEndpoint, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
     putTagKeyValue(
         privateEndpoint, LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), purpose.toString());
+  }
+
+  void putWithPurpose(
+      Workspace.DefinitionStages.WithCreate logAnalyticsWorkspace, ResourcePurpose purpose) {
+    putTagKeyValue(
+        logAnalyticsWorkspace, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
+    putTagKeyValue(
+        logAnalyticsWorkspace,
+        LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+        purpose.toString());
+  }
+
+  void putWithPurpose(
+      DiagnosticSetting.DefinitionStages.WithCreate diagnosticSetting, ResourcePurpose purpose) {
+    putTagKeyValue(diagnosticSetting, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
+    putTagKeyValue(
+        diagnosticSetting, LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), purpose.toString());
   }
 
   private void putTagKeyValue(
@@ -174,5 +207,27 @@ public class ResourcesTagMapWrapper {
 
     tagMap.put(key, value);
     privateEndpointResourcesTagsMap.put(privateEndpoint, tagMap);
+  }
+
+  private void putTagKeyValue(
+      Workspace.DefinitionStages.WithCreate logAnalyticsWorkspace, String key, String value) {
+    Map<String, String> tagMap = logAnalyticsWorkspaceResourcesTagsMap.get(logAnalyticsWorkspace);
+    if (tagMap == null) {
+      tagMap = new HashMap<>();
+    }
+
+    tagMap.put(key, value);
+    logAnalyticsWorkspaceResourcesTagsMap.put(logAnalyticsWorkspace, tagMap);
+  }
+
+  private void putTagKeyValue(
+      DiagnosticSetting.DefinitionStages.WithCreate diagnosticSetting, String key, String value) {
+    Map<String, String> tagMap = diagnosticSettingResourcesTagsMap.get(diagnosticSetting);
+    if (tagMap == null) {
+      tagMap = new HashMap<>();
+    }
+
+    tagMap.put(key, value);
+    diagnosticSettingResourcesTagsMap.put(diagnosticSetting, tagMap);
   }
 }
