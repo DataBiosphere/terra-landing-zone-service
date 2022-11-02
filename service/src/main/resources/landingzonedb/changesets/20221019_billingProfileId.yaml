@@ -1,0 +1,25 @@
+# The schema for a landing zone
+databaseChangeLog:
+- changeSet:
+    id: add billing profile id field.
+    author: myazykov
+    changes:
+    - addColumn:
+        tableName: landingzone
+        columns:
+          - column:
+              name: billing_profile_id
+              type: text
+              constraints:
+                nullable: false
+              defaultValue: "00000000-0000-0000-0000-000000000000"
+              remarks: |
+                Billing profile ID associated with a landing zone.
+          - column:
+              name: created_date
+              type: timestamptz
+              defaultValueComputed: now()
+              constraints:
+                nullable: false
+              remarks: |
+                Landing zone created date.

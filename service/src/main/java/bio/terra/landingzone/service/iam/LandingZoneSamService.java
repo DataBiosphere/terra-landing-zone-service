@@ -12,6 +12,7 @@ import io.opencensus.trace.Tracing;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.BooleanUtils;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
@@ -181,6 +182,32 @@ public class LandingZoneSamService {
         return;
       }
       throw SamExceptionFactory.create("Error deleting a landing zone in Sam", apiException);
+    }
+  }
+
+  @Traced
+  public List<UUID> listLandingZoneResourceIds(BearerToken bearerToken)
+      throws InterruptedException {
+    List<UUID> userLandingZoneResourceIds = null;
+    var resourceApi = samResourcesApi(bearerToken.getToken());
+    try {
+      var userLandingZones =
+          SamRetry.retry(
+              () ->
+                  resourceApi.listResourcesAndPoliciesV2(
+                      SamConstants.SamResourceType.LANDING_ZONE));
+      return userLandingZones.stream()
+          .flatMap(
+              p -> {
+                try {
+                  return Stream.of(UUID.fromString(p.getResourceId()));
+                } catch (IllegalArgumentException e) {
+                  return Stream.empty();
+                }
+              })
+          .toList();
+    } catch (ApiException apiException) {
+      throw SamExceptionFactory.create("Error getting landing ID's in Sam", apiException);
     }
   }
 

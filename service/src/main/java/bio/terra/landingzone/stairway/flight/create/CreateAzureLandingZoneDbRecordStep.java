@@ -1,7 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.model.LandingZone;
+import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -12,6 +12,9 @@ import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.exception.RetryException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +49,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
     // Persist the landing zone record
     landingZoneDao.createLandingZone(
-        LandingZone.builder()
+        LandingZoneRecord.builder()
             .landingZoneId(landingZoneId)
             .definition(requestedExternalLandingZoneResource.definition())
             .version(requestedExternalLandingZoneResource.version())
@@ -60,6 +63,8 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
             .resourceGroupId(landingZoneTarget.azureResourceGroupId())
             .tenantId(landingZoneTarget.azureTenantId())
             .subscriptionId(landingZoneTarget.azureSubscriptionId())
+            .billingProfileId(requestedExternalLandingZoneResource.billingProfileId())
+            .createdDate(OffsetDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
             .build());
     return StepResult.getStepResultSuccess();
   }

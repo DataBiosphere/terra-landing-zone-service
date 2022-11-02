@@ -3,6 +3,7 @@ package bio.terra.landingzone.db.model;
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -10,14 +11,16 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 /** Internal representation of a Landing Zone. */
-@JsonDeserialize(builder = LandingZone.Builder.class)
-public record LandingZone(
+@JsonDeserialize(builder = LandingZoneRecord.Builder.class)
+public record LandingZoneRecord(
     UUID landingZoneId,
     String resourceGroupId,
     String definition,
     String version,
     String subscriptionId,
     String tenantId,
+    UUID billingProfileId,
+    OffsetDateTime createdDate,
     Optional<String> displayName,
     Optional<String> description,
     Map<String, String> properties) {
@@ -34,8 +37,10 @@ public record LandingZone(
     private String version;
     private String subscriptionId;
     private String tenantId;
+    private UUID billingProfileId;
     private @Nullable String displayName;
     private @Nullable String description;
+    private OffsetDateTime createdDate;
     private Map<String, String> properties;
 
     public Builder landingZoneId(UUID landingZoneUuid) {
@@ -83,7 +88,17 @@ public record LandingZone(
       return this;
     }
 
-    public LandingZone build() {
+    public Builder billingProfileId(UUID billingProfileId) {
+      this.billingProfileId = billingProfileId;
+      return this;
+    }
+
+    public Builder createdDate(OffsetDateTime createdDate) {
+      this.createdDate = createdDate;
+      return this;
+    }
+
+    public LandingZoneRecord build() {
       // Always have a map, even if it is empty
       if (properties == null) {
         properties = new HashMap<>();
@@ -97,13 +112,15 @@ public record LandingZone(
       if (landingZoneId == null) {
         throw new MissingRequiredFieldsException("Landing zone requires id");
       }
-      return new LandingZone(
+      return new LandingZoneRecord(
           landingZoneId,
           resourceGroupId,
           definition,
           version,
           subscriptionId,
           tenantId,
+          billingProfileId,
+          createdDate,
           Optional.of(displayName),
           Optional.of(description),
           properties);
