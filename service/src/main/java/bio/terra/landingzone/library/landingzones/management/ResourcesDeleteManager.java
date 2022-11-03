@@ -52,6 +52,22 @@ public class ResourcesDeleteManager {
             .stream()
             .toList();
 
+    // Deploying AKS with monitoring connected to a log analytics workspace also deploys a
+    // container insights solution named `ContainerInsights(WORKSPACE_ID)` which is untagged
+    // this code lists them all and later code figures out which to delete
+    var solutions =
+        armManagers
+            .azureResourceManager()
+            .genericResources()
+            .listByResourceGroup(resourceGroupName)
+            .stream()
+            .filter(
+                r ->
+                    "solutions".equalsIgnoreCase(r.resourceType())
+                        && "Microsoft.OperationsManagement"
+                            .equalsIgnoreCase(r.resourceProviderNamespace()))
+            .toList();
+
     return armManagers
         .azureResourceManager()
         .genericResources()
@@ -62,25 +78,39 @@ public class ResourcesDeleteManager {
                 r.tags()
                     .getOrDefault(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), "")
                     .equals(landingZoneId))
-        .map(r -> toResourceToDelete(r, privateEndPoints))
+        .map(r -> toResourceToDelete(r, privateEndPoints, solutions))
         .toList();
   }
 
   private ResourceToDelete toResourceToDelete(
-      GenericResource genericResource, List<PrivateEndpoint> privateEndPoints) {
+      GenericResource genericResource,
+      List<PrivateEndpoint> privateEndPoints,
+      List<GenericResource> solutions) {
+
+    PrivateEndpoint privateEndPoint = null;
+    GenericResource solution = null;
     if (privateEndPoints != null) {
-      return privateEndPoints.stream()
-          .filter(
-              p ->
-                  p.privateLinkServiceConnections().values().stream()
-                      .anyMatch(
-                          c -> c.privateLinkResourceId().equalsIgnoreCase(genericResource.id())))
-          .map(p -> new ResourceToDelete(genericResource, p))
-          .findFirst()
-          .orElse(new ResourceToDelete(genericResource, null));
+      privateEndPoint =
+          privateEndPoints.stream()
+              .filter(
+                  p ->
+                      p.privateLinkServiceConnections().values().stream()
+                          .anyMatch(
+                              c ->
+                                  c.privateLinkResourceId().equalsIgnoreCase(genericResource.id())))
+              .findFirst()
+              .orElse(null);
     }
 
-    return new ResourceToDelete(genericResource, null);
+    if (solutions != null) {
+      solution =
+          solutions.stream()
+              .filter(s -> s.name().contains(genericResource.name()))
+              .findFirst()
+              .orElse(null);
+    }
+
+    return new ResourceToDelete(genericResource, privateEndPoint, solution);
   }
 
   private List<GenericResource> deleteLandingZoneResourcesInOrder(
@@ -117,6 +147,20 @@ public class ResourcesDeleteManager {
           .deleteById(resourceToDelete.privateEndpoint().id());
 
       logger.info("Resource deleted. id:{}", resourceToDelete.privateEndpoint().id());
+    }
+
+    if (resourceToDelete.solution() != null) {
+      logger.info(
+          "Deleting landing zone solution {} for resource: {}",
+          resourceToDelete.solution().id(),
+          resourceToDelete.resource().id());
+
+      armManagers
+          .azureResourceManager()
+          .genericResources()
+          .deleteById(resourceToDelete.solution().id());
+
+      logger.info("Resource deleted. id:{}", resourceToDelete.solution().id());
     }
 
     armManagers

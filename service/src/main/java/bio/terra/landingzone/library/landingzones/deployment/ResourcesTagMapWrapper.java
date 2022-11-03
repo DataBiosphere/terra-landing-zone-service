@@ -1,6 +1,7 @@
 package bio.terra.landingzone.library.landingzones.deployment;
 
 import com.azure.core.util.logging.ClientLogger;
+import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.batch.models.BatchAccount;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
@@ -31,6 +32,8 @@ public class ResourcesTagMapWrapper {
       logAnalyticsWorkspaceResourcesTagsMap = new HashMap<>();
   private final Map<DiagnosticSetting.DefinitionStages.WithCreate, Map<String, String>>
       diagnosticSettingResourcesTagsMap = new HashMap<>();
+  private final Map<ApplicationInsightsComponent.DefinitionStages.WithCreate, Map<String, String>>
+      appInsightsResourcesTagsMap = new HashMap<>();
   private final ClientLogger logger = new ClientLogger(ResourcesTagMapWrapper.class);
   private final String landingZoneId;
 
@@ -108,6 +111,11 @@ public class ResourcesTagMapWrapper {
     return diagnosticSettingResourcesTagsMap;
   }
 
+  Map<ApplicationInsightsComponent.DefinitionStages.WithCreate, Map<String, String>>
+      getAppInsightsResourcesTagsMap() {
+    return appInsightsResourcesTagsMap;
+  }
+
   Map<String, String> getResourceTagsMap(Creatable<?> resource) {
     return resourcesTagsMap.get(resource);
   }
@@ -163,6 +171,14 @@ public class ResourcesTagMapWrapper {
     putTagKeyValue(diagnosticSetting, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
     putTagKeyValue(
         diagnosticSetting, LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), purpose.toString());
+  }
+
+  void putWithPurpose(
+      ApplicationInsightsComponent.DefinitionStages.WithCreate appInsights,
+      ResourcePurpose purpose) {
+    putTagKeyValue(appInsights, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId);
+    putTagKeyValue(
+        appInsights, LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), purpose.toString());
   }
 
   private void putTagKeyValue(
@@ -229,5 +245,18 @@ public class ResourcesTagMapWrapper {
 
     tagMap.put(key, value);
     diagnosticSettingResourcesTagsMap.put(diagnosticSetting, tagMap);
+  }
+
+  private void putTagKeyValue(
+      ApplicationInsightsComponent.DefinitionStages.WithCreate appInsights,
+      String key,
+      String value) {
+    Map<String, String> tagMap = appInsightsResourcesTagsMap.get(appInsights);
+    if (tagMap == null) {
+      tagMap = new HashMap<>();
+    }
+
+    tagMap.put(key, value);
+    appInsightsResourcesTagsMap.put(appInsights, tagMap);
   }
 }

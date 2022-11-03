@@ -2,6 +2,7 @@ package bio.terra.landingzone.library.landingzones.deployment;
 
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.Deployable;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
+import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.batch.models.BatchAccount;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
@@ -42,7 +43,8 @@ public class LandingZoneDeploymentImpl
         deployRelayResourcesAsync(),
         deployBatchResourcesAsync(),
         deployPosgresResourcesAsync(),
-        deployPrivateEndpointResourcesAsync());
+        deployPrivateEndpointResourcesAsync(),
+        deployAppInsightsResourcesAsync());
   }
 
   private Flux<DeployedResource> deployRelayResourcesAsync() {
@@ -83,6 +85,13 @@ public class LandingZoneDeploymentImpl
         resourcesTagMapWrapper.getDiagnosticSettingResourcesTagsMap();
     return Flux.fromIterable(resourcesTagsMap.entrySet())
         .flatMap(this::deployDiagnosticSettingResourceAsync);
+  }
+
+  private Flux<DeployedResource> deployAppInsightsResourcesAsync() {
+    Map<ApplicationInsightsComponent.DefinitionStages.WithCreate, Map<String, String>>
+        resourcesTagsMap = resourcesTagMapWrapper.getAppInsightsResourcesTagsMap();
+    return Flux.fromIterable(resourcesTagsMap.entrySet())
+        .flatMap(this::deployAppInsightsResourceAsync);
   }
 
   private Publisher<? extends DeployedResource> deployRelayResourceAsync(
@@ -152,6 +161,19 @@ public class LandingZoneDeploymentImpl
             n ->
                 new DeployedResource(
                     n.id(), "Microsoft.Insights/diagnosticSettings", Map.of(), null));
+  }
+
+  private Publisher<? extends DeployedResource> deployAppInsightsResourceAsync(
+      Map.Entry<ApplicationInsightsComponent.DefinitionStages.WithCreate, Map<String, String>>
+          resourceEntry) {
+
+    ApplicationInsightsComponent.DefinitionStages.WithCreate resource = resourceEntry.getKey();
+    if (resourceEntry.getValue() != null) {
+      resource.withTags(resourceEntry.getValue());
+    }
+
+    return Mono.just(resource.create())
+        .map(n -> new DeployedResource(n.id(), n.type(), n.tags(), n.regionName()));
   }
 
   private Flux<DeployedResource> deployResourcesAsync() {
@@ -248,6 +270,14 @@ public class LandingZoneDeploymentImpl
   public Deployable withResourceWithPurpose(
       DiagnosticSetting.DefinitionStages.WithCreate diagnosticSetting, ResourcePurpose purpose) {
     resourcesTagMapWrapper.putWithPurpose(diagnosticSetting, purpose);
+    return this;
+  }
+
+  @Override
+  public Deployable withResourceWithPurpose(
+      ApplicationInsightsComponent.DefinitionStages.WithCreate appInsights,
+      ResourcePurpose purpose) {
+    resourcesTagMapWrapper.putWithPurpose(appInsights, purpose);
     return this;
   }
 

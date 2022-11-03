@@ -32,6 +32,7 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresql', version: '1.0.2'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0-beta.3'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.20.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0-beta.5'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.15.0'
 
     liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'

@@ -1,6 +1,7 @@
 package bio.terra.landingzone.library.landingzones.definition;
 
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.batch.BatchManager;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.monitor.MonitorManager;
@@ -14,4 +15,5 @@ public record ArmManagers(
     BatchManager batchManager,
     PostgreSqlManager postgreSqlManager,
     LogAnalyticsManager logAnalyticsManager,
-    MonitorManager monitorManager) {}
+    MonitorManager monitorManager,
+    ApplicationInsightsManager applicationInsightsManager) {}

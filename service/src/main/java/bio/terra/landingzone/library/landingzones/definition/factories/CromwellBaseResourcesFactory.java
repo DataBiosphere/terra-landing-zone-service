@@ -13,6 +13,7 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
@@ -283,12 +284,26 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withLog("StorageWrite", 0)
               .withLog("StorageDelete", 0);
 
+      var appInsights =
+          armManagers
+              .applicationInsightsManager()
+              .components()
+              .define(
+                  nameGenerator.nextName(
+                      ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH))
+              .withRegion(resourceGroup.region())
+              .withExistingResourceGroup(resourceGroup.name())
+              .withKind("java")
+              .withApplicationType(ApplicationType.OTHER)
+              .withWorkspaceResourceId(logAnalyticsWorkspaceId);
+
       return deployment
           .withResourceWithPurpose(aks, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(batch, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(relay, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(privateEndpoint, ResourcePurpose.SHARED_RESOURCE)
-          .withResourceWithPurpose(storageAuditLogSettings, ResourcePurpose.SHARED_RESOURCE);
+          .withResourceWithPurpose(storageAuditLogSettings, ResourcePurpose.SHARED_RESOURCE)
+          .withResourceWithPurpose(appInsights, ResourcePurpose.SHARED_RESOURCE);
     }
 
     private Map<String, String> getDefaultParameters() {

@@ -1,5 +1,6 @@
 package bio.terra.landingzone.library.landingzones.deployment;
 
+import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.batch.models.BatchAccount;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
@@ -52,7 +53,11 @@ public interface LandingZoneDeployment {
           ResourcePurpose sharedResource);
 
       Deployable withResourceWithPurpose(
-          DiagnosticSetting.DefinitionStages.WithCreate logAnalyticsWorkspace,
+          DiagnosticSetting.DefinitionStages.WithCreate diagnosticSettings,
+          ResourcePurpose sharedResource);
+
+      Deployable withResourceWithPurpose(
+          ApplicationInsightsComponent.DefinitionStages.WithCreate appInsights,
           ResourcePurpose sharedResource);
 
       WithLandingZoneResource definePrerequisites();

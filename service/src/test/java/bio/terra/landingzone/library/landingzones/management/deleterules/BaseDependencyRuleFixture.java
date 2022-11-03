@@ -7,6 +7,7 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.management.ResourceToDelete;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.batch.BatchManager;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.monitor.MonitorManager;
@@ -34,6 +35,7 @@ public class BaseDependencyRuleFixture {
   @Mock protected RelayManager relayManager;
   @Mock protected LogAnalyticsManager logAnalyticsManager;
   @Mock protected MonitorManager monitorManager;
+  @Mock protected ApplicationInsightsManager applicationInsightsManager;
 
   @Mock protected ResourceToDelete resourceToDelete;
   @Mock protected GenericResource resource;
@@ -47,7 +49,8 @@ public class BaseDependencyRuleFixture {
             batchManager,
             postgreSqlManager,
             logAnalyticsManager,
-            monitorManager);
+            monitorManager,
+            applicationInsightsManager);
   }
 
   protected void setUpResourceToDelete() {
