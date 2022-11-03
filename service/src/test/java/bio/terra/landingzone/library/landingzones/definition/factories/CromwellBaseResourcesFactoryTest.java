@@ -84,16 +84,14 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
     await()
         .atMost(Duration.ofSeconds(120))
         .until(
-            () ->
-            {
-              Stream<GenericResource> stream = armManagers
-                  .azureResourceManager()
-                  .genericResources()
-                  .listByResourceGroup(resourceGroup.name())
-                  .stream();
-              return stream
-                      .count()
-                  == 0;
+            () -> {
+              Stream<GenericResource> stream =
+                  armManagers
+                      .azureResourceManager()
+                      .genericResources()
+                      .listByResourceGroup(resourceGroup.name())
+                      .stream();
+              return stream.count() == 0;
             });
   }
 
