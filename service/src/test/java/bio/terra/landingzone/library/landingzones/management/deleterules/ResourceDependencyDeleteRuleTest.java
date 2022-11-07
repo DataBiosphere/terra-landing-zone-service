@@ -1,6 +1,6 @@
 package bio.terra.landingzone.library.landingzones.management.deleterules;
 
-import static bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils.AZURE_VM_TYPE;
+import static bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils.AZURE_VNET_TYPE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,8 +27,8 @@ class ResourceDependencyDeleteRuleTest {
   void setUp() {
     when(dependencyDeleteRule.applyRule(any())).thenCallRealMethod();
     when(resourceToDelete.resource()).thenReturn(genericResource);
-    when(genericResource.type()).thenReturn(AZURE_VM_TYPE);
-    when(dependencyDeleteRule.getExpectedType()).thenReturn(AZURE_VM_TYPE);
+    when(genericResource.type()).thenReturn(AZURE_VNET_TYPE);
+    when(dependencyDeleteRule.getExpectedType()).thenReturn(AZURE_VNET_TYPE);
   }
 
   @Test

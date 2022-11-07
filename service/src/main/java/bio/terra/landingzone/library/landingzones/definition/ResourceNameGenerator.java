@@ -29,6 +29,7 @@ public class ResourceNameGenerator {
   public static final int MAX_AKS_DNS_PREFIX_NAME_LENGTH = 54;
   public static final int MAX_DIAGNOSTIC_SETTING_NAME_LENGTH = 260;
   public static final int MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH = 255;
+  public static final int MAX_DATA_COLLECTION_RULE_NAME_LENGTH = 64;
 
   private final ClientLogger logger = new ClientLogger(ResourceNameGenerator.class);
   private final String landingZoneId;

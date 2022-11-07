@@ -1,6 +1,6 @@
 package bio.terra.landingzone.library.landingzones.management.deleterules;
 
-import static bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils.AZURE_VM_TYPE;
+import static bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils.AZURE_VNET_TYPE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
@@ -27,7 +27,7 @@ class VmsAreAttachedToVnetTest extends BaseDependencyRuleFixture {
 
   @Test
   void getExpectedType_returnsExpectedType() {
-    assertThat(rule.getExpectedType(), equalTo(AZURE_VM_TYPE));
+    assertThat(rule.getExpectedType(), equalTo(AZURE_VNET_TYPE));
   }
 
   @Test

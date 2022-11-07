@@ -11,6 +11,7 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployme
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
+import bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
@@ -41,7 +42,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   private final String LZ_DESC =
       "Cromwell Base Resources: VNet, AKS Account & Nodepool, Batch Account,"
           + " Storage Account, PostgreSQL server, Subnets for AKS, Batch, Posgres, and Compute";
-  private final int AUDIT_LOG_RETENTION_DAYS = 365 * 2; // 2 years
+  private final int AUDIT_LOG_RETENTION_DAYS = 90;
 
   enum Subnet {
     AKS_SUBNET,
@@ -181,7 +182,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                   deployedResource ->
                       Objects.equals(
                           deployedResource.resourceType(),
-                          "Microsoft.OperationalInsights/workspaces"))
+                          AzureResourceTypeUtils.AZURE_LOG_ANALYTICS_WORKSPACE_TYPE))
               .findFirst()
               .get()
               .resourceId();
@@ -190,7 +191,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .filter(
                   deployedResource ->
                       Objects.equals(
-                          deployedResource.resourceType(), "Microsoft.Network/virtualNetworks"))
+                          deployedResource.resourceType(), AzureResourceTypeUtils.AZURE_VNET_TYPE))
               .findFirst()
               .get()
               .resourceId();
@@ -199,7 +200,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .filter(
                   deployedResource ->
                       Objects.equals(
-                          deployedResource.resourceType(), "Microsoft.DBforPostgreSQL/servers"))
+                          deployedResource.resourceType(),
+                          AzureResourceTypeUtils.AZURE_POSTGRESQL_SERVER_TYPE))
               .findFirst()
               .get()
               .resourceId();
@@ -208,7 +210,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .filter(
                   deployedResource ->
                       Objects.equals(
-                          deployedResource.resourceType(), "Microsoft.Storage/storageAccounts"))
+                          deployedResource.resourceType(),
+                          AzureResourceTypeUtils.AZURE_STORAGE_ACCOUNT_TYPE))
               .findFirst()
               .get()
               .resourceId();
