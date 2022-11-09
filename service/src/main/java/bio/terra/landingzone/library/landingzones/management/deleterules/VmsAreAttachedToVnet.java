@@ -1,6 +1,6 @@
 package bio.terra.landingzone.library.landingzones.management.deleterules;
 
-import static bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils.AZURE_VM_TYPE;
+import static bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils.AZURE_VNET_TYPE;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.management.ResourceToDelete;
@@ -13,7 +13,7 @@ public class VmsAreAttachedToVnet extends ResourceDependencyDeleteRule {
 
   @Override
   public String getExpectedType() {
-    return AZURE_VM_TYPE;
+    return AZURE_VNET_TYPE;
   }
 
   @Override

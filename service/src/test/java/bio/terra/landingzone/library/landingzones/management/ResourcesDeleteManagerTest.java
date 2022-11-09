@@ -9,6 +9,7 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.deleterules.AKSAgentPoolHasMoreThanOneNode;
 import bio.terra.landingzone.library.landingzones.management.deleterules.AzureRelayHasHybridConnections;
@@ -108,16 +109,15 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
         LandingZoneTestFixture.armManagers
             .azureResourceManager()
             .storageAccounts()
-            .getById(
-                resources.stream()
-                    .filter(
-                        r ->
-                            r.resourceType()
-                                .equalsIgnoreCase(
-                                    AzureResourceTypeUtils.AZURE_STORAGE_ACCOUNT_TYPE))
-                    .findFirst()
-                    .orElseThrow()
-                    .resourceId());
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(
+                s ->
+                    s.tags()
+                        .getOrDefault(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), "")
+                        .equalsIgnoreCase(landingZoneId.toString()))
+            .findFirst()
+            .orElseThrow();
 
     azureRelay =
         LandingZoneTestFixture.armManagers

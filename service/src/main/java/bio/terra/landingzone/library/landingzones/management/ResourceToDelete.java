@@ -9,4 +9,5 @@ import com.azure.resourcemanager.resources.models.GenericResource;
  * @param resource resource to delete.
  * @param privateEndpoint private endpoint associated with the resource.
  */
-public record ResourceToDelete(GenericResource resource, PrivateEndpoint privateEndpoint) {}
+public record ResourceToDelete(
+    GenericResource resource, PrivateEndpoint privateEndpoint, GenericResource solution) {}

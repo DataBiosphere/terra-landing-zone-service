@@ -2,7 +2,10 @@ package bio.terra.landingzone.library.landingzones.deployment;
 
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.Deployable;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
+import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.batch.models.BatchAccount;
+import com.azure.resourcemanager.loganalytics.models.Workspace;
+import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.postgresql.models.Server;
@@ -35,10 +38,13 @@ public class LandingZoneDeploymentImpl
   public Flux<DeployedResource> deployAsync() {
     return Flux.merge(
         deployResourcesAsync(),
+        deployLogAnalyticsWorkspaceResourcesAsync(),
+        deployDiagnosticSettingResourcesAsync(),
         deployRelayResourcesAsync(),
         deployBatchResourcesAsync(),
         deployPosgresResourcesAsync(),
-        deployPrivateEndpointResourcesAsync());
+        deployPrivateEndpointResourcesAsync(),
+        deployAppInsightsResourcesAsync());
   }
 
   private Flux<DeployedResource> deployRelayResourcesAsync() {
@@ -65,6 +71,27 @@ public class LandingZoneDeploymentImpl
         resourcesTagMapWrapper.getPrivateEndpointResourcesTagsMap();
     return Flux.fromIterable(resourcesTagsMap.entrySet())
         .flatMap(this::deployPrivateEndpointResourceAsync);
+  }
+
+  private Flux<DeployedResource> deployLogAnalyticsWorkspaceResourcesAsync() {
+    Map<Workspace.DefinitionStages.WithCreate, Map<String, String>> resourcesTagsMap =
+        resourcesTagMapWrapper.getLogAnalyticsWorkspaceResourcesTagsMap();
+    return Flux.fromIterable(resourcesTagsMap.entrySet())
+        .flatMap(this::deployLogAnalyticsWorkspaceResourceAsync);
+  }
+
+  private Flux<DeployedResource> deployDiagnosticSettingResourcesAsync() {
+    Map<DiagnosticSetting.DefinitionStages.WithCreate, Map<String, String>> resourcesTagsMap =
+        resourcesTagMapWrapper.getDiagnosticSettingResourcesTagsMap();
+    return Flux.fromIterable(resourcesTagsMap.entrySet())
+        .flatMap(this::deployDiagnosticSettingResourceAsync);
+  }
+
+  private Flux<DeployedResource> deployAppInsightsResourcesAsync() {
+    Map<ApplicationInsightsComponent.DefinitionStages.WithCreate, Map<String, String>>
+        resourcesTagsMap = resourcesTagMapWrapper.getAppInsightsResourcesTagsMap();
+    return Flux.fromIterable(resourcesTagsMap.entrySet())
+        .flatMap(this::deployAppInsightsResourceAsync);
   }
 
   private Publisher<? extends DeployedResource> deployRelayResourceAsync(
@@ -107,6 +134,43 @@ public class LandingZoneDeploymentImpl
       Map.Entry<PrivateEndpoint.DefinitionStages.WithCreate, Map<String, String>> resourceEntry) {
 
     PrivateEndpoint.DefinitionStages.WithCreate resource = resourceEntry.getKey();
+
+    return Mono.just(resource.create())
+        .map(n -> new DeployedResource(n.id(), n.type(), n.tags(), n.regionName()));
+  }
+
+  private Publisher<? extends DeployedResource> deployLogAnalyticsWorkspaceResourceAsync(
+      Map.Entry<Workspace.DefinitionStages.WithCreate, Map<String, String>> resourceEntry) {
+
+    Workspace.DefinitionStages.WithCreate resource = resourceEntry.getKey();
+    if (resourceEntry.getValue() != null) {
+      resource.withTags(resourceEntry.getValue());
+    }
+
+    return Mono.just(resource.create())
+        .map(n -> new DeployedResource(n.id(), n.type(), n.tags(), n.regionName()));
+  }
+
+  private Publisher<? extends DeployedResource> deployDiagnosticSettingResourceAsync(
+      Map.Entry<DiagnosticSetting.DefinitionStages.WithCreate, Map<String, String>> resourceEntry) {
+
+    DiagnosticSetting.DefinitionStages.WithCreate resource = resourceEntry.getKey();
+
+    return Mono.just(resource.create())
+        .map(
+            n ->
+                new DeployedResource(
+                    n.id(), "Microsoft.Insights/diagnosticSettings", Map.of(), null));
+  }
+
+  private Publisher<? extends DeployedResource> deployAppInsightsResourceAsync(
+      Map.Entry<ApplicationInsightsComponent.DefinitionStages.WithCreate, Map<String, String>>
+          resourceEntry) {
+
+    ApplicationInsightsComponent.DefinitionStages.WithCreate resource = resourceEntry.getKey();
+    if (resourceEntry.getValue() != null) {
+      resource.withTags(resourceEntry.getValue());
+    }
 
     return Mono.just(resource.create())
         .map(n -> new DeployedResource(n.id(), n.type(), n.tags(), n.regionName()));
@@ -192,6 +256,28 @@ public class LandingZoneDeploymentImpl
   public Deployable withResourceWithPurpose(
       PrivateEndpoint.DefinitionStages.WithCreate privateEndpoint, ResourcePurpose purpose) {
     resourcesTagMapWrapper.putWithPurpose(privateEndpoint, purpose);
+    return this;
+  }
+
+  @Override
+  public Deployable withResourceWithPurpose(
+      Workspace.DefinitionStages.WithCreate logAnalyticsWorkspace, ResourcePurpose purpose) {
+    resourcesTagMapWrapper.putWithPurpose(logAnalyticsWorkspace, purpose);
+    return this;
+  }
+
+  @Override
+  public Deployable withResourceWithPurpose(
+      DiagnosticSetting.DefinitionStages.WithCreate diagnosticSetting, ResourcePurpose purpose) {
+    resourcesTagMapWrapper.putWithPurpose(diagnosticSetting, purpose);
+    return this;
+  }
+
+  @Override
+  public Deployable withResourceWithPurpose(
+      ApplicationInsightsComponent.DefinitionStages.WithCreate appInsights,
+      ResourcePurpose purpose) {
+    resourcesTagMapWrapper.putWithPurpose(appInsights, purpose);
     return this;
   }
 

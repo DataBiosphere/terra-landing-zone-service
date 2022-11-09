@@ -9,9 +9,11 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
+import com.azure.resourcemanager.resources.models.GenericResource;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,12 +51,12 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
             .block();
 
     // Note that this resource list does not include pre-requisite resources
-    assertThat(resources, hasSize(5));
+    assertThat(resources, hasSize(6));
 
     // check if you can read lz resources
     TimeUnit.SECONDS.sleep(3); // wait for tag propagation...
     var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
-    assertThat(sharedResources, hasSize(5));
+    assertThat(sharedResources, hasSize(7));
 
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);
@@ -80,16 +82,17 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
 
     // Immediate listing after deletion may return transient resources results.
     await()
-        .atMost(Duration.ofSeconds(60))
+        .atMost(Duration.ofSeconds(120))
         .until(
-            () ->
-                armManagers
-                        .azureResourceManager()
-                        .genericResources()
-                        .listByResourceGroup(resourceGroup.name())
-                        .stream()
-                        .count()
-                    == 0);
+            () -> {
+              Stream<GenericResource> stream =
+                  armManagers
+                      .azureResourceManager()
+                      .genericResources()
+                      .listByResourceGroup(resourceGroup.name())
+                      .stream();
+              return stream.count() == 0;
+            });
   }
 
   private void assertHasVnetWithPurpose(String landingZoneId, SubnetResourcePurpose purpose) {

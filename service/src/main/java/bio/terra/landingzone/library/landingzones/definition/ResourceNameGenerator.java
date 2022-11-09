@@ -16,6 +16,7 @@ public class ResourceNameGenerator {
   public static final int MAX_BATCH_ACCOUNT_NAME_LENGTH = 24;
   public static final int MAX_RELAY_NS_NAME_LENGTH = 50;
   public static final int MAX_POSTGRESQL_SERVER_NAME_LENGTH = 63;
+  public static final int MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH = 63;
   public static final int MAX_PRIVATE_ENDPOINT_NAME_LENGTH = 23; // TODO verify this
   public static final int MAX_PRIVATE_LINK_CONNECTION_NAME_LENGTH = 10; // TODO verify this
   // This is not the maximum value of 63. This lower value is to reduce the risk of deployment
@@ -26,6 +27,9 @@ public class ResourceNameGenerator {
   public static final int MAX_VNET_NAME_LENGTH = 64;
   public static final int MAX_AKS_AGENT_POOL_NAME_LENGTH = 11;
   public static final int MAX_AKS_DNS_PREFIX_NAME_LENGTH = 54;
+  public static final int MAX_DIAGNOSTIC_SETTING_NAME_LENGTH = 260;
+  public static final int MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH = 255;
+  public static final int MAX_DATA_COLLECTION_RULE_NAME_LENGTH = 64;
 
   private final ClientLogger logger = new ClientLogger(ResourceNameGenerator.class);
   private final String landingZoneId;

@@ -17,7 +17,10 @@ import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.batch.BatchManager;
+import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
+import com.azure.resourcemanager.monitor.MonitorManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
@@ -86,8 +89,19 @@ public class LandingZoneManager {
     RelayManager relayManager = RelayManager.authenticate(credential, profile);
     BatchManager batchManager = BatchManager.authenticate(credential, profile);
     PostgreSqlManager postgreSqlManager = PostgreSqlManager.authenticate(credential, profile);
+    LogAnalyticsManager logAnalyticsManager = LogAnalyticsManager.authenticate(credential, profile);
+    MonitorManager monitorManager = MonitorManager.authenticate(credential, profile);
+    ApplicationInsightsManager applicationInsightsManager =
+        ApplicationInsightsManager.authenticate(credential, profile);
 
-    return new ArmManagers(azureResourceManager, relayManager, batchManager, postgreSqlManager);
+    return new ArmManagers(
+        azureResourceManager,
+        relayManager,
+        batchManager,
+        postgreSqlManager,
+        logAnalyticsManager,
+        monitorManager,
+        applicationInsightsManager);
   }
 
   public static List<FactoryDefinitionInfo> listDefinitionFactories() {
