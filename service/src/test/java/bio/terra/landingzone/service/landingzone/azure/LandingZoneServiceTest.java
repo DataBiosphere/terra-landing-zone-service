@@ -49,7 +49,6 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
-import bio.terra.profile.model.ProfileModel;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -543,57 +542,6 @@ public class LandingZoneServiceTest {
         subnetList2.get(0).getClass().getSimpleName(),
         subnetResource.resourceType(),
         "Resource type doesn't match.");
-  }
-
-  @Test
-  void listLandingZoneIds_Success() throws InterruptedException {
-    var deployedResources = setupDeployedResources();
-    // Setup mocks
-    final var tenantId = UUID.randomUUID();
-    final var subscriptionId = UUID.randomUUID();
-    final var billingProfileId = UUID.randomUUID();
-    final var resourceGroup = "mrg";
-    LandingZoneRecord landingZoneRecord =
-        new LandingZoneRecord(
-            landingZoneId,
-            resourceGroup,
-            "definition",
-            "version",
-            subscriptionId.toString(),
-            tenantId.toString(),
-            billingProfileId,
-            createdDate,
-            null,
-            null,
-            Collections.emptyMap());
-    when(landingZoneDao.getLandingZoneList(
-            subscriptionId.toString(), tenantId.toString(), resourceGroup))
-        .thenReturn(List.of(landingZoneRecord));
-    when(bpmService.getBillingProfile(any(), eq(billingProfileId)))
-        .thenReturn(
-            new ProfileModel()
-                .tenantId(tenantId)
-                .subscriptionId(subscriptionId)
-                .managedResourceGroupId(resourceGroup));
-    when(samService.isAuthorized(
-            any(),
-            eq(SamConstants.SamResourceType.LANDING_ZONE),
-            eq(landingZoneId.toString()),
-            anyString()))
-        .thenReturn(true);
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
-    // Test
-    var result = landingZoneService.listLandingZoneIds(bearerToken, billingProfileId);
-    // Validate number of members in each group
-    assertNotNull(result);
-    assertEquals(1, result.size());
-    assertEquals(landingZoneId, result.get(0));
   }
 
   @Test

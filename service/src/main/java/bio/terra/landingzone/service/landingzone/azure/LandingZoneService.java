@@ -258,30 +258,6 @@ public class LandingZoneService {
    * @param billingProfileId the billing profile ID to search.
    * @return list of landing zone IDs.
    */
-  public List<UUID> listLandingZoneIds(BearerToken bearerToken, UUID billingProfileId) {
-    // Call BPM to get the landing zone target.
-    var profile = bpmService.getBillingProfile(bearerToken, billingProfileId);
-
-    // Query the database for landing zone ids with the given target.
-    var landingZoneIds = listLandingZoneIdsByTarget(LandingZoneTarget.fromBillingProfile(profile));
-
-    // Filter the list based on what the user has access to.
-    // Note: this makes a Sam query per landing zone, but we expect there to be at most
-    // 1 landing zone per billing profile in most/all cases.
-    return landingZoneIds.stream()
-        .filter(
-            lz ->
-                SamRethrow.onInterrupted(
-                    () ->
-                        samService.isAuthorized(
-                            bearerToken,
-                            SamConstants.SamResourceType.LANDING_ZONE,
-                            lz.toString(),
-                            SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-                    IS_AUTHORIZED))
-        .toList();
-  }
-
   /**
    * Gets landing zone by a landing zone ID.
    *
@@ -342,26 +318,6 @@ public class LandingZoneService {
     // Query the database for landing zone records with the landing zone Ids.
     return landingZoneDao.getLandingZoneMatchingIdList(landingZoneUuids).stream()
         .map(this::toLandingZone)
-        .toList();
-  }
-
-  /**
-   * Lists landing zones for a given LandingZoneTarget.
-   *
-   * <p>Note: this method does not perform authorization checks. It is public, but only called as
-   * part of other authorized requests, never from a direct API request.
-   *
-   * @param landingZoneTarget the landing zone target to search.
-   * @return list of landing zone IDs.
-   */
-  public List<UUID> listLandingZoneIdsByTarget(LandingZoneTarget landingZoneTarget) {
-    return landingZoneDao
-        .getLandingZoneList(
-            landingZoneTarget.azureSubscriptionId(),
-            landingZoneTarget.azureTenantId(),
-            landingZoneTarget.azureResourceGroupId())
-        .stream()
-        .map(dlz -> dlz.landingZoneId())
         .toList();
   }
 
