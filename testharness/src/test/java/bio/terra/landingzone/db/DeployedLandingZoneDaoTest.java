@@ -10,7 +10,6 @@ import bio.terra.landingzone.testutils.TestFixtures;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
