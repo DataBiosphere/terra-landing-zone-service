@@ -168,41 +168,6 @@ public class LandingZoneDao {
   }
 
   /**
-   * Retrieves landing zones from database by subscription ID, tenant ID, and resource group ID.
-   *
-   * @param subscriptionId unique identifier of the Azure subscription.
-   * @param tenantId unique identifier of the Azure tenant.
-   * @param resourceGroupId unique identifier of the Azure resource group.
-   * @return List of landing zone objects.
-   */
-  public List<LandingZoneRecord> getLandingZoneList(
-      String subscriptionId, String tenantId, String resourceGroupId) {
-    if (subscriptionId == null || subscriptionId.isEmpty()) {
-      throw new IllegalArgumentException("Subscription ID cannot be null or empty.");
-    }
-    if (tenantId == null || tenantId.isEmpty()) {
-      throw new IllegalArgumentException("Tenant ID cannot be null or empty.");
-    }
-    if (resourceGroupId == null || resourceGroupId.isEmpty()) {
-      throw new IllegalArgumentException("Resource Group ID cannot be null or empty.");
-    }
-
-    String sql =
-        LANDINGZONE_SELECT_SQL
-            + " WHERE subscription_id = :subscription_id"
-            + " AND tenant_id = :tenant_id"
-            + " AND resource_group = :resource_group";
-
-    MapSqlParameterSource params =
-        new MapSqlParameterSource()
-            .addValue(SUBSCRIPTION_ID, subscriptionId)
-            .addValue(TENANT_ID, tenantId)
-            .addValue(RESOURCE_GROUP, resourceGroupId);
-
-    return jdbcLandingZoneTemplate.query(sql, params, LANDINGZONE_ROW_MAPPER);
-  }
-
-  /**
    * Retrieves a landing zone object from database by billing profile ID.
    *
    * @param billingProfileUuid unique identifier of the billing profile.
