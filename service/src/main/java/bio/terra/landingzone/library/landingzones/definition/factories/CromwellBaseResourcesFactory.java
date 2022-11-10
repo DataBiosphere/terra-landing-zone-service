@@ -40,6 +40,7 @@ import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCre
 import com.azure.resourcemanager.postgresql.models.ServerVersion;
 import com.azure.resourcemanager.postgresql.models.Sku;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -289,6 +290,19 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withLog("ServiceLog", 0)
               .withLog("AuditLog", 0);
 
+      var postgresLogSettings =
+          armManagers
+              .monitorManager()
+              .diagnosticSettings()
+              .define(
+                  nameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+              .withResource(postgreSqlId)
+              .withLogAnalytics(logAnalyticsWorkspaceId)
+              .withLog("PostgreSQLLogs", 0) // retention is handled by the log analytics workspace
+              .withLog("QueryStoreRuntimeStatistics", 0)
+              .withLog("QueryStoreWaitStatistics", 0)
+              .withMetric("AllMetrics", Duration.ofMinutes(1), 0);
+
       var appInsights =
           armManagers
               .applicationInsightsManager()
@@ -308,6 +322,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
           .withResourceWithPurpose(privateEndpoint, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(storageAuditLogSettings, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(batchLogSettings, ResourcePurpose.SHARED_RESOURCE)
+          .withResourceWithPurpose(postgresLogSettings, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(appInsights, ResourcePurpose.SHARED_RESOURCE);
     }
 
