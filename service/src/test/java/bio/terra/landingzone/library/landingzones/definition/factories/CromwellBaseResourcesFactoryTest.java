@@ -12,7 +12,6 @@ import bio.terra.landingzone.library.landingzones.management.deleterules.Landing
 import com.azure.resourcemanager.resources.models.GenericResource;
 import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,23 +39,23 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
   @Test
   void deploysLandingZoneV1_resourcesAreCreated() throws InterruptedException {
     String landingZoneId = UUID.randomUUID().toString();
-    var resources =
-        landingZoneManager
-            .deployLandingZoneAsync(
-                landingZoneId,
-                CromwellBaseResourcesFactory.class.getSimpleName(),
-                DefinitionVersion.V1,
-                null)
-            .collectList()
-            .block();
-
-    // Note that this resource list does not include pre-requisite resources
-    assertThat(resources, hasSize(6));
+    landingZoneManager
+        .deployLandingZoneAsync(
+            landingZoneId,
+            CromwellBaseResourcesFactory.class.getSimpleName(),
+            DefinitionVersion.V1,
+            null)
+        .collectList()
+        .block();
 
     // check if you can read lz resources
-    TimeUnit.SECONDS.sleep(3); // wait for tag propagation...
-    var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
-    assertThat(sharedResources, hasSize(7));
+    await() // wait for tag propagation...
+        .atMost(Duration.ofSeconds(10))
+        .until(
+            () -> {
+              var sharedResources = landingZoneManager.reader().listSharedResources(landingZoneId);
+              return sharedResources.size() == 8;
+            });
 
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET);
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);

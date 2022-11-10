@@ -63,9 +63,8 @@ public class ResourcesDeleteManager {
             .stream()
             .filter(
                 r ->
-                    "solutions".equalsIgnoreCase(r.resourceType())
-                        && "Microsoft.OperationsManagement"
-                            .equalsIgnoreCase(r.resourceProviderNamespace()))
+                    AzureResourceTypeUtils.AZURE_SOLUTIONS_TYPE.equalsIgnoreCase(
+                        "%s/%s".formatted(r.resourceProviderNamespace(), r.resourceType())))
             .toList();
 
     return armManagers
