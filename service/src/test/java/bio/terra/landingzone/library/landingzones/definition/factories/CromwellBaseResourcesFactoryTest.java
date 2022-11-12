@@ -2,6 +2,7 @@ package bio.terra.landingzone.library.landingzones.definition.factories;
 
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 
 import bio.terra.landingzone.library.landingzones.LandingZoneTestFixture;
@@ -9,10 +10,8 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
-import com.azure.resourcemanager.resources.models.GenericResource;
 import java.time.Duration;
 import java.util.UUID;
-import java.util.stream.Stream;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +36,8 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
   }
 
   @Test
-  void deploysLandingZoneV1_resourcesAreCreated() throws InterruptedException {
+  void deploysLandingZoneV1_resourcesAreCreatedAndDeleted()
+      throws InterruptedException, LandingZoneRuleDeleteException {
     String landingZoneId = UUID.randomUUID().toString();
     landingZoneManager
         .deployLandingZoneAsync(
@@ -63,36 +63,17 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.AKS_NODE_POOL_SUBNET);
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET);
     assertHasVnetWithPurpose(landingZoneId, SubnetResourcePurpose.POSTGRESQL_SUBNET);
-  }
 
-  @Test
-  void deleteLandingZoneResources_resourcesAreDeleted()
-      throws InterruptedException, LandingZoneRuleDeleteException {
-    String landingZoneId = UUID.randomUUID().toString();
-    var resources =
-        landingZoneManager
-            .deployLandingZoneAsync(
-                landingZoneId,
-                CromwellBaseResourcesFactory.class.getSimpleName(),
-                DefinitionVersion.V1,
-                null)
-            .collectList()
-            .block();
-
-    var deletedResources = landingZoneManager.deleteResources(landingZoneId);
+    landingZoneManager.deleteResources(landingZoneId);
 
     // Immediate listing after deletion may return transient resources results.
     await()
         .atMost(Duration.ofSeconds(120))
-        .until(
+        .untilAsserted(
             () -> {
-              Stream<GenericResource> stream =
-                  armManagers
-                      .azureResourceManager()
-                      .genericResources()
-                      .listByResourceGroup(resourceGroup.name())
-                      .stream();
-              return stream.count() == 0;
+              var landingZoneResources =
+                  landingZoneManager.reader().listAllResources(landingZoneId);
+              assertThat(landingZoneResources, empty());
             });
   }
 
