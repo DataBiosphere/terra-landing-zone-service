@@ -103,12 +103,14 @@ jobs:
 
       - name: Upload Testharness Test Reports
         uses: actions/upload-artifact@v1
+        if: always()
         with:
           name: Test Harness Reports
           path: testharness/build/reports/tests
 
       - name: Upload Service Test Reports
         uses: actions/upload-artifact@v1
+        if: always()
         with:
           name: Test Reports
           path: service/build/reports/tests
