@@ -129,7 +129,7 @@ public class LandingZoneService {
 
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
-    UUID landingZoneId = UUID.randomUUID();
+    UUID landingZoneId = azureLandingZoneRequest.landingZoneId().orElseGet(() -> UUID.randomUUID());
     final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
             .newJob()
