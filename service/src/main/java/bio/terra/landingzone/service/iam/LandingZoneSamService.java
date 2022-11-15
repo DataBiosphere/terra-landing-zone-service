@@ -188,7 +188,6 @@ public class LandingZoneSamService {
   @Traced
   public List<UUID> listLandingZoneResourceIds(BearerToken bearerToken)
       throws InterruptedException {
-    List<UUID> userLandingZoneResourceIds = null;
     var resourceApi = samResourcesApi(bearerToken.getToken());
     try {
       var userLandingZones =
@@ -207,7 +206,7 @@ public class LandingZoneSamService {
               })
           .toList();
     } catch (ApiException apiException) {
-      throw SamExceptionFactory.create("Error getting landing ID's in Sam", apiException);
+      throw SamExceptionFactory.create("Error getting landing zone ID's in Sam", apiException);
     }
   }
 
