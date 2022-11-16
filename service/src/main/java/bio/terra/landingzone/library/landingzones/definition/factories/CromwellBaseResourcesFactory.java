@@ -7,17 +7,32 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.LandingZoneDefinable;
 import bio.terra.landingzone.library.landingzones.definition.LandingZoneDefinition;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.Deployable;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils;
+import com.azure.core.util.Context;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
+import com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner;
+import com.azure.resourcemanager.monitor.models.DataCollectionRuleDataSources;
+import com.azure.resourcemanager.monitor.models.DataCollectionRuleDestinations;
+import com.azure.resourcemanager.monitor.models.DataFlow;
+import com.azure.resourcemanager.monitor.models.KnownDataFlowStreams;
+import com.azure.resourcemanager.monitor.models.KnownPerfCounterDataSourceStreams;
+import com.azure.resourcemanager.monitor.models.KnownSyslogDataSourceFacilityNames;
+import com.azure.resourcemanager.monitor.models.KnownSyslogDataSourceLogLevels;
+import com.azure.resourcemanager.monitor.models.KnownSyslogDataSourceStreams;
+import com.azure.resourcemanager.monitor.models.LogAnalyticsDestination;
+import com.azure.resourcemanager.monitor.models.PerfCounterDataSource;
+import com.azure.resourcemanager.monitor.models.SyslogDataSource;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateLinkSubResourceName;
 import com.azure.resourcemanager.postgresql.models.PublicNetworkAccessEnum;
@@ -25,6 +40,7 @@ import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCre
 import com.azure.resourcemanager.postgresql.models.ServerVersion;
 import com.azure.resourcemanager.postgresql.models.Sku;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +58,6 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   private final String LZ_DESC =
       "Cromwell Base Resources: VNet, AKS Account & Nodepool, Batch Account,"
           + " Storage Account, PostgreSQL server, Subnets for AKS, Batch, Posgres, and Compute";
-  private final int AUDIT_LOG_RETENTION_DAYS = 90;
 
   enum Subnet {
     AKS_SUBNET,
@@ -55,7 +70,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     POSTGRES_DB_ADMIN,
     POSTGRES_DB_PASSWORD,
     POSTGRES_SERVER_SKU,
-    VNET_ADDRESS_SPACE
+    VNET_ADDRESS_SPACE,
+    AUDIT_LOG_RETENTION_DAYS
   }
 
   CromwellBaseResourcesFactory() {}
@@ -108,7 +124,10 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                       ResourceNameGenerator.MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH))
               .withRegion(resourceGroup.region())
               .withExistingResourceGroup(resourceGroup.name())
-              .withRetentionInDays(AUDIT_LOG_RETENTION_DAYS);
+              .withRetentionInDays(
+                  Integer.parseInt(
+                      parametersResolver.getValue(
+                          ParametersNames.AUDIT_LOG_RETENTION_DAYS.name())));
 
       var vNet =
           azureResourceManager
@@ -158,6 +177,14 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withRegion(resourceGroup.region())
               .withExistingResourceGroup(resourceGroup);
 
+      var batch =
+          armManagers
+              .batchManager()
+              .batchAccounts()
+              .define(nameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
+              .withRegion(resourceGroup.region())
+              .withExistingResourceGroup(resourceGroup.name());
+
       var prerequisites =
           deployment
               .definePrerequisites()
@@ -174,48 +201,20 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withResourceWithPurpose(postgres, ResourcePurpose.SHARED_RESOURCE)
               .withResourceWithPurpose(logAnalyticsWorkspace, ResourcePurpose.SHARED_RESOURCE)
               .withResourceWithPurpose(storage, ResourcePurpose.SHARED_RESOURCE)
+              .withResourceWithPurpose(batch, ResourcePurpose.SHARED_RESOURCE)
               .deploy();
 
       String logAnalyticsWorkspaceId =
-          prerequisites.stream()
-              .filter(
-                  deployedResource ->
-                      Objects.equals(
-                          deployedResource.resourceType(),
-                          AzureResourceTypeUtils.AZURE_LOG_ANALYTICS_WORKSPACE_TYPE))
-              .findFirst()
-              .get()
-              .resourceId();
-      String vNetId =
-          prerequisites.stream()
-              .filter(
-                  deployedResource ->
-                      Objects.equals(
-                          deployedResource.resourceType(), AzureResourceTypeUtils.AZURE_VNET_TYPE))
-              .findFirst()
-              .get()
-              .resourceId();
+          getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_LOG_ANALYTICS_WORKSPACE_TYPE);
+      String vNetId = getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_VNET_TYPE);
       String postgreSqlId =
-          prerequisites.stream()
-              .filter(
-                  deployedResource ->
-                      Objects.equals(
-                          deployedResource.resourceType(),
-                          AzureResourceTypeUtils.AZURE_POSTGRESQL_SERVER_TYPE))
-              .findFirst()
-              .get()
-              .resourceId();
+          getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_POSTGRESQL_SERVER_TYPE);
       String storageAccountId =
-          prerequisites.stream()
-              .filter(
-                  deployedResource ->
-                      Objects.equals(
-                          deployedResource.resourceType(),
-                          AzureResourceTypeUtils.AZURE_STORAGE_ACCOUNT_TYPE))
-              .findFirst()
-              .get()
-              .resourceId();
+          getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_STORAGE_ACCOUNT_TYPE);
+      String batchAccountId = getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_BATCH_TYPE);
       Network vNetwork = azureResourceManager.networks().getById(vNetId);
+
+      createDataCollectionRule(definitionContext, logAnalyticsWorkspaceId);
 
       var privateEndpoint =
           azureResourceManager
@@ -259,14 +258,6 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                   nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH))
               .withAddOnProfiles(addonProfileMap);
 
-      var batch =
-          armManagers
-              .batchManager()
-              .batchAccounts()
-              .define(nameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
-              .withExistingResourceGroup(resourceGroup.name());
-
       var relay =
           armManagers
               .relayManager()
@@ -287,6 +278,31 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withLog("StorageWrite", 0)
               .withLog("StorageDelete", 0);
 
+      var batchLogSettings =
+          armManagers
+              .monitorManager()
+              .diagnosticSettings()
+              .define(
+                  nameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+              .withResource(batchAccountId)
+              .withLogAnalytics(logAnalyticsWorkspaceId)
+              .withLog("ServiceLogs", 0) // retention is handled by the log analytics workspace
+              .withLog("ServiceLog", 0)
+              .withLog("AuditLog", 0);
+
+      var postgresLogSettings =
+          armManagers
+              .monitorManager()
+              .diagnosticSettings()
+              .define(
+                  nameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+              .withResource(postgreSqlId)
+              .withLogAnalytics(logAnalyticsWorkspaceId)
+              .withLog("PostgreSQLLogs", 0) // retention is handled by the log analytics workspace
+              .withLog("QueryStoreRuntimeStatistics", 0)
+              .withLog("QueryStoreWaitStatistics", 0)
+              .withMetric("AllMetrics", Duration.ofMinutes(1), 0);
+
       var appInsights =
           armManagers
               .applicationInsightsManager()
@@ -302,11 +318,20 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
 
       return deployment
           .withResourceWithPurpose(aks, ResourcePurpose.SHARED_RESOURCE)
-          .withResourceWithPurpose(batch, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(relay, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(privateEndpoint, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(storageAuditLogSettings, ResourcePurpose.SHARED_RESOURCE)
+          .withResourceWithPurpose(batchLogSettings, ResourcePurpose.SHARED_RESOURCE)
+          .withResourceWithPurpose(postgresLogSettings, ResourcePurpose.SHARED_RESOURCE)
           .withResourceWithPurpose(appInsights, ResourcePurpose.SHARED_RESOURCE);
+    }
+
+    private String getResourceId(List<DeployedResource> prerequisites, String resourceType) {
+      return prerequisites.stream()
+          .filter(deployedResource -> Objects.equals(deployedResource.resourceType(), resourceType))
+          .findFirst()
+          .get()
+          .resourceId();
     }
 
     private Map<String, String> getDefaultParameters() {
@@ -319,7 +344,81 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       defaultValues.put(Subnet.BATCH_SUBNET.name(), "10.1.0.8/29");
       defaultValues.put(Subnet.POSTGRESQL_SUBNET.name(), "10.1.0.16/29");
       defaultValues.put(Subnet.COMPUTE_SUBNET.name(), "10.1.0.24/29");
+      defaultValues.put(ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
       return defaultValues;
     }
+  }
+
+  /**
+   * This creates a data collection rule that should mimic closely how they are created via the
+   * portal. Data collection rule can be used by virtual machines with the Azure Monitor Agent to
+   * collect logs and metrics to the landing zone log analytics workspace.
+   *
+   * @param definitionContext
+   * @param logAnalyticsWorkspaceId
+   */
+  private void createDataCollectionRule(
+      DefinitionContext definitionContext, String logAnalyticsWorkspaceId) {
+    // Arbitrary local names to connect things together within the rule
+    final String DESTINATION_NAME = "lz_workspace";
+    final String PERF_COUNTER_NAME = "VMInsightsPerfCounters";
+    final String SYSLOG_NAME = "syslog";
+
+    final List<String> COUNTER_SPECIFICS = List.of("\\VmInsights\\DetailedMetrics");
+
+    armManagers
+        .monitorManager()
+        .serviceClient()
+        .getDataCollectionRules()
+        .createWithResponse(
+            definitionContext.resourceGroup().name(),
+            definitionContext
+                .resourceNameGenerator()
+                .nextName(ResourceNameGenerator.MAX_DATA_COLLECTION_RULE_NAME_LENGTH),
+            new DataCollectionRuleResourceInner()
+                .withDataSources(
+                    new DataCollectionRuleDataSources()
+                        .withPerformanceCounters(
+                            List.of(
+                                new PerfCounterDataSource()
+                                    .withName(PERF_COUNTER_NAME)
+                                    .withCounterSpecifiers(COUNTER_SPECIFICS)
+                                    .withStreams(
+                                        List.of(
+                                            KnownPerfCounterDataSourceStreams
+                                                .MICROSOFT_INSIGHTS_METRICS))
+                                    .withSamplingFrequencyInSeconds(60)))
+                        .withSyslog(
+                            List.of(
+                                new SyslogDataSource()
+                                    .withName(SYSLOG_NAME)
+                                    .withFacilityNames(
+                                        List.of(KnownSyslogDataSourceFacilityNames.ASTERISK))
+                                    .withLogLevels(List.of(KnownSyslogDataSourceLogLevels.ASTERISK))
+                                    .withStreams(
+                                        List.of(KnownSyslogDataSourceStreams.MICROSOFT_SYSLOG)))))
+                .withDestinations(
+                    new DataCollectionRuleDestinations()
+                        .withLogAnalytics(
+                            List.of(
+                                new LogAnalyticsDestination()
+                                    .withName(DESTINATION_NAME)
+                                    .withWorkspaceResourceId(logAnalyticsWorkspaceId))))
+                .withDataFlows(
+                    List.of(
+                        new DataFlow()
+                            .withStreams(List.of(KnownDataFlowStreams.MICROSOFT_PERF))
+                            .withDestinations(List.of(DESTINATION_NAME)),
+                        new DataFlow()
+                            .withStreams(List.of(KnownDataFlowStreams.MICROSOFT_SYSLOG))
+                            .withDestinations(List.of(DESTINATION_NAME))))
+                .withLocation(definitionContext.resourceGroup().region().name())
+                .withTags(
+                    Map.of(
+                        LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                        definitionContext.landingZoneId(),
+                        LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                        ResourcePurpose.SHARED_RESOURCE.toString())),
+            Context.NONE);
   }
 }

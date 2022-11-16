@@ -12,4 +12,5 @@ public class AzureResourceTypeUtils {
   public static final String AZURE_BATCH_TYPE = "Microsoft.Batch/batchAccounts";
   public static final String AZURE_LOG_ANALYTICS_WORKSPACE_TYPE =
       "Microsoft.OperationalInsights/workspaces";
+  public static final String AZURE_SOLUTIONS_TYPE = "Microsoft.OperationsManagement/solutions";
 }
