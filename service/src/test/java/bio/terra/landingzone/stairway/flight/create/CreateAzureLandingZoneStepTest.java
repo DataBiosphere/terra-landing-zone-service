@@ -34,7 +34,7 @@ class CreateAzureLandingZoneStepTest {
   private static final UUID SUBSCRIPTION_ID = UUID.randomUUID();
   private static final String MRG_ID = "mymrg";
   private ProfileModel billingProfile;
-  @Mock private CreateAzureLandingZoneStep createAzureLandingZoneStep;
+  private CreateAzureLandingZoneStep createAzureLandingZoneStep;
 
   @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
   @Mock private FlightContext flightContext;
