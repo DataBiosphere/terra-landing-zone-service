@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import bio.terra.landingzone.library.landingzones.LandingZoneTestFixture;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
-import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
@@ -37,8 +36,9 @@ import com.azure.resourcemanager.storage.models.BlobContainer;
 import com.azure.resourcemanager.storage.models.PublicAccess;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import java.time.Duration;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -69,41 +69,31 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
 
     landingZoneId = UUID.randomUUID();
 
-    List<DeployedResource> resources =
-        landingZoneManager.deployLandingZone(
-            landingZoneId.toString(),
-            CromwellBaseResourcesFactory.class.getSimpleName(),
-            DefinitionVersion.V1,
-            null);
+    landingZoneManager.deployLandingZone(
+        landingZoneId.toString(),
+        CromwellBaseResourcesFactory.class.getSimpleName(),
+        DefinitionVersion.V1,
+        null);
 
     postgresServer =
         LandingZoneTestFixture.armManagers
             .postgreSqlManager()
             .servers()
-            .getById(
-                landingZoneManager.reader().listSharedResources(landingZoneId.toString()).stream()
-                    .filter(
-                        r ->
-                            r.resourceType()
-                                .equalsIgnoreCase(
-                                    AzureResourceTypeUtils.AZURE_POSTGRESQL_SERVER_TYPE))
-                    .findFirst()
-                    .orElseThrow()
-                    .resourceId());
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(pg -> inLandingZone(pg.tags()))
+            .findFirst()
+            .orElseThrow();
 
     aksCluster =
         LandingZoneTestFixture.armManagers
             .azureResourceManager()
             .kubernetesClusters()
-            .getById(
-                resources.stream()
-                    .filter(
-                        r ->
-                            r.resourceType()
-                                .equalsIgnoreCase(AzureResourceTypeUtils.AZURE_AKS_TYPE))
-                    .findFirst()
-                    .orElseThrow()
-                    .resourceId());
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(kc -> inLandingZone(kc.tags()))
+            .findFirst()
+            .orElseThrow();
 
     storageAccount =
         LandingZoneTestFixture.armManagers
@@ -111,11 +101,7 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
             .storageAccounts()
             .listByResourceGroup(resourceGroup.name())
             .stream()
-            .filter(
-                s ->
-                    s.tags()
-                        .getOrDefault(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), "")
-                        .equalsIgnoreCase(landingZoneId.toString()))
+            .filter(sa -> inLandingZone(sa.tags()))
             .findFirst()
             .orElseThrow();
 
@@ -123,15 +109,11 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
         LandingZoneTestFixture.armManagers
             .relayManager()
             .namespaces()
-            .getById(
-                resources.stream()
-                    .filter(
-                        r ->
-                            r.resourceType()
-                                .equalsIgnoreCase(AzureResourceTypeUtils.AZURE_RELAY_TYPE))
-                    .findFirst()
-                    .orElseThrow()
-                    .resourceId());
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(n -> inLandingZone(n.tags()))
+            .findFirst()
+            .orElseThrow();
 
     deployedSubnet =
         landingZoneManager
@@ -151,15 +133,17 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
         LandingZoneTestFixture.armManagers
             .batchManager()
             .batchAccounts()
-            .getById(
-                resources.stream()
-                    .filter(
-                        r ->
-                            r.resourceType()
-                                .equalsIgnoreCase(AzureResourceTypeUtils.AZURE_BATCH_TYPE))
-                    .findFirst()
-                    .orElseThrow()
-                    .resourceId());
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(ba -> inLandingZone(ba.tags()))
+            .findFirst()
+            .orElseThrow();
+  }
+
+  @NotNull
+  private static Boolean inLandingZone(Map<String, String> tags) {
+    return tags.getOrDefault(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), "")
+        .equalsIgnoreCase(landingZoneId.toString());
   }
 
   @BeforeEach
