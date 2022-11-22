@@ -13,6 +13,8 @@ import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeploymentsImpl;
 import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
+import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
+import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
@@ -41,21 +43,24 @@ public class LandingZoneManager {
   private final AzureResourceManager resourceManager;
   private final ResourceGroup resourceGroup;
   private final ResourcesReader resourcesReader;
+  private final QuotaProvider quotaProvider;
 
   private final ResourcesDeleteManager resourcesDeleteManager;
 
-  private LandingZoneManager(
+  LandingZoneManager(
       LandingZoneDefinitionProvider landingZoneDefinitionProvider,
       LandingZoneDeployments landingZoneDeployments,
       AzureResourceManager resourceManager,
       ResourceGroup resourceGroup,
       ResourcesReader resourcesReader,
+      QuotaProvider quotaProvider,
       ResourcesDeleteManager resourcesDeleteManager) {
     this.landingZoneDefinitionProvider = landingZoneDefinitionProvider;
     this.landingZoneDeployments = landingZoneDeployments;
     this.resourceManager = resourceManager;
     this.resourceGroup = resourceGroup;
     this.resourcesReader = resourcesReader;
+    this.quotaProvider = quotaProvider;
     this.resourcesDeleteManager = resourcesDeleteManager;
   }
 
@@ -79,6 +84,7 @@ public class LandingZoneManager {
         armManagers.azureResourceManager(),
         resourceGroup,
         new ResourcesReaderImpl(armManagers.azureResourceManager(), resourceGroup),
+        new QuotaProvider(armManagers),
         new ResourcesDeleteManager(armManagers, deleteRulesVerifier));
   }
 
@@ -166,6 +172,33 @@ public class LandingZoneManager {
         resourceGroup,
         new ResourceNameGenerator(landingZoneId),
         parameters);
+  }
+
+  /**
+   * Returns quota information for a landing zone resource.
+   *
+   * @param landingZoneId landing zone id.
+   * @param resourceId resource id.
+   * @return quota information.
+   */
+  public ResourceQuota resourceQuota(String landingZoneId, String resourceId) {
+    if (StringUtils.isBlank(resourceId)) {
+      throw new IllegalArgumentException("Resource id is required.");
+    }
+    if (StringUtils.isBlank(landingZoneId)) {
+      throw new IllegalArgumentException("Landing zone id is required.");
+    }
+
+    var deployedResource =
+        resourcesReader.listAllResources(landingZoneId).stream()
+            .filter(r -> r.resourceId().equalsIgnoreCase(resourceId))
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "The resource was not found in the landing zone. Please make sure that the landing zone deployment is complete."));
+
+    return quotaProvider.resourceQuota(deployedResource.resourceId());
   }
 
   public ResourcesReader reader() {

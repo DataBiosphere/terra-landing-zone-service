@@ -1,5 +1,6 @@
 package bio.terra.landingzone.service.landingzone.azure;
 
+import static bio.terra.landingzone.library.landingzones.TestUtils.STUB_BATCH_ACCOUNT_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -762,6 +763,25 @@ public class LandingZoneServiceTest {
     Assertions.assertThrows(
         ForbiddenException.class,
         () -> landingZoneService.getLandingZone(bearerToken, landingZoneId));
+  }
+
+  @Test
+  void getResourceQuota_userIsAuthorizedAndLZManagerAndSamIsCalled() throws InterruptedException {
+
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(createLandingZoneRecord());
+    when(landingZoneManagerProvider.createLandingZoneManager(any())).thenReturn(landingZoneManager);
+
+    landingZoneService.getResourceQuota(bearerToken, landingZoneId, STUB_BATCH_ACCOUNT_ID);
+
+    verify(samService, times(1))
+        .checkAuthz(
+            eq(bearerToken),
+            eq(SamConstants.SamResourceType.LANDING_ZONE),
+            eq(landingZoneId.toString()),
+            eq(SamConstants.SamLandingZoneAction.LIST_RESOURCES));
+
+    verify(landingZoneManager, times(1))
+        .resourceQuota(landingZoneId.toString(), STUB_BATCH_ACCOUNT_ID);
   }
 
   private List<DeployedResource> setupDeployedResources() {
