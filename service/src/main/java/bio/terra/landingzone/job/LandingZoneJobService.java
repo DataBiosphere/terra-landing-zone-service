@@ -388,25 +388,30 @@ public class LandingZoneJobService {
       var azureLandingZoneRequest =
           inputParameters.get(
               LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-      // Check that the calling user has "link" permission on the billing profile resource in Sam
-      SamRethrow.onInterrupted(
-          () ->
-              samService.checkAuthz(
-                  bearerToken,
-                  SamConstants.SamResourceType.SPEND_PROFILE,
-                  azureLandingZoneRequest.billingProfileId().toString(),
-                  SamConstants.SamSpendProfileAction.LINK),
-          IS_AUTHORIZED);
-      // Check that the calling user has "list-resources" permission on the landing zone resource in
-      // Sam
-      SamRethrow.onInterrupted(
-          () ->
-              samService.checkAuthz(
-                  bearerToken,
-                  SamConstants.SamResourceType.LANDING_ZONE,
-                  landingZoneId.toString(),
-                  SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-          "isAuthorized");
+
+      if (getJobStatus(flightState.getFlightStatus()).equals(JobReport.StatusEnum.FAILED)) {
+        // Check that the calling user has "link" permission on the billing profile resource in Sam
+        SamRethrow.onInterrupted(
+            () ->
+                samService.checkAuthz(
+                    bearerToken,
+                    SamConstants.SamResourceType.SPEND_PROFILE,
+                    azureLandingZoneRequest.billingProfileId().toString(),
+                    SamConstants.SamSpendProfileAction.LINK),
+            IS_AUTHORIZED);
+      } else {
+        // Check that the calling user has "list-resources" permission on the landing zone resource
+        // in
+        // Sam
+        SamRethrow.onInterrupted(
+            () ->
+                samService.checkAuthz(
+                    bearerToken,
+                    SamConstants.SamResourceType.LANDING_ZONE,
+                    landingZoneId.toString(),
+                    SamConstants.SamLandingZoneAction.LIST_RESOURCES),
+            "isAuthorized");
+      }
     } catch (DatabaseOperationException | InterruptedException ex) {
       throw new InternalStairwayException("Stairway exception looking up the job", ex);
     } catch (FlightNotFoundException ex) {
@@ -429,26 +434,28 @@ public class LandingZoneJobService {
           inputParameters.get(
               LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
 
-      // Check that the calling user has "link" permission on the billing profile resource in Sam
-      SamRethrow.onInterrupted(
-          () ->
-              samService.checkAuthz(
-                  bearerToken,
-                  SamConstants.SamResourceType.SPEND_PROFILE,
-                  azureLandingZoneRequest.billingProfileId().toString(),
-                  SamConstants.SamSpendProfileAction.LINK),
-          IS_AUTHORIZED);
-
-      // Check that the calling user has "list-delete" permission on the landing zone resource in
-      // Sam
-      SamRethrow.onInterrupted(
-          () ->
-              samService.checkAuthz(
-                  bearerToken,
-                  SamConstants.SamResourceType.LANDING_ZONE,
-                  landingZoneId.toString(),
-                  SamConstants.SamLandingZoneAction.DELETE),
-          IS_AUTHORIZED);
+      if (getJobStatus(flightState.getFlightStatus()).equals(JobReport.StatusEnum.SUCCEEDED)) {
+        // Check that the calling user has "link" permission on the billing profile resource in Sam
+        SamRethrow.onInterrupted(
+            () ->
+                samService.checkAuthz(
+                    bearerToken,
+                    SamConstants.SamResourceType.SPEND_PROFILE,
+                    azureLandingZoneRequest.billingProfileId().toString(),
+                    SamConstants.SamSpendProfileAction.LINK),
+            IS_AUTHORIZED);
+      } else {
+        // Check that the calling user has "list-delete" permission on the landing zone resource in
+        // Sam
+        SamRethrow.onInterrupted(
+            () ->
+                samService.checkAuthz(
+                    bearerToken,
+                    SamConstants.SamResourceType.LANDING_ZONE,
+                    landingZoneId.toString(),
+                    SamConstants.SamLandingZoneAction.DELETE),
+            IS_AUTHORIZED);
+      }
     } catch (DatabaseOperationException | InterruptedException ex) {
       throw new InternalStairwayException("Stairway exception looking up the job", ex);
     } catch (FlightNotFoundException ex) {
