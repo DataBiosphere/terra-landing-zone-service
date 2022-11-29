@@ -38,6 +38,7 @@ public class AzureResourceTypeUtils {
     }
 
     // the second to last segment is the resource provider
-    return String.format("%s/%s", segments[RESOURCE_PROVIDER_SEGMENT], segments[RESOURCE_TYPE_SEGMENT]);
+    return String.format(
+        "%s/%s", segments[RESOURCE_PROVIDER_SEGMENT], segments[RESOURCE_TYPE_SEGMENT]);
   }
 }
