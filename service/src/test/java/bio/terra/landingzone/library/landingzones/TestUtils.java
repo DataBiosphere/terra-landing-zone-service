@@ -4,6 +4,12 @@ import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import java.util.List;
 
 public class TestUtils {
+
+  public static final String STUB_BATCH_ACCOUNT_ID =
+      "subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/qms-test/providers/Microsoft.Batch/batchAccounts/testAccount";
+  public static final String STUB_AKS_ID =
+      "subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mrg-20221025205925/providers/Microsoft.ContainerService/managedClusters/akscluster";
+
   public static String findFirstStorageAccountId(List<DeployedResource> resources) {
     return findFirstResourceIdByResourceType(resources, "Microsoft.Storage/storageAccounts");
   }

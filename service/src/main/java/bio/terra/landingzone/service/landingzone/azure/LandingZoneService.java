@@ -19,6 +19,7 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
+import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
@@ -218,6 +219,19 @@ public class LandingZoneService {
   }
 
   /**
+   * Returns resource quota information for a landing zone resource.
+   *
+   * @param landingZoneId landing zone id.
+   * @param resourceId azure resource id.
+   * @return quota information.
+   */
+  public ResourceQuota getResourceQuota(
+      BearerToken bearerToken, UUID landingZoneId, String resourceId) {
+
+    return createLandingZoneManagerAndCheckListPermission(bearerToken, landingZoneId)
+        .resourceQuota(landingZoneId.toString(), resourceId);
+  }
+  /**
    * Lists all landing zone resources with a provided ResourcePurpose.
    *
    * @param bearerToken bearer token of the calling user.
@@ -229,13 +243,8 @@ public class LandingZoneService {
       BearerToken bearerToken, UUID landingZoneId, LandingZonePurpose purpose) {
     List<LandingZoneResource> deployedResources = null;
 
-    checkIfUserHasPermissionForLandingZoneResource(
-        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
-
-    LandingZoneTarget landingZoneTarget = buildLandingZoneTarget(landingZoneId);
-
     LandingZoneManager landingZoneManager =
-        landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
+        createLandingZoneManagerAndCheckListPermission(bearerToken, landingZoneId);
 
     if (purpose.getClass().equals(ResourcePurpose.class)) {
       deployedResources =
@@ -249,6 +258,18 @@ public class LandingZoneService {
     }
 
     return deployedResources;
+  }
+
+  private LandingZoneManager createLandingZoneManagerAndCheckListPermission(
+      BearerToken bearerToken, UUID landingZoneId) {
+    checkIfUserHasPermissionForLandingZoneResource(
+        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
+
+    LandingZoneTarget landingZoneTarget = buildLandingZoneTarget(landingZoneId);
+
+    LandingZoneManager landingZoneManager =
+        landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
+    return landingZoneManager;
   }
 
   /**
@@ -340,13 +361,8 @@ public class LandingZoneService {
    */
   public LandingZoneResourcesByPurpose listResourcesWithPurposes(
       BearerToken bearerToken, UUID landingZoneId) {
-    checkIfUserHasPermissionForLandingZoneResource(
-        bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
-
-    LandingZoneTarget landingZoneTarget = buildLandingZoneTarget(landingZoneId);
-
     LandingZoneManager landingZoneManager =
-        landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget);
+        createLandingZoneManagerAndCheckListPermission(bearerToken, landingZoneId);
 
     var listGeneralResources =
         listGeneralResourcesWithPurposes(landingZoneId.toString(), landingZoneManager);
