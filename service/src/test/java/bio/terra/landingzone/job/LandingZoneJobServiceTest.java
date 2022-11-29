@@ -6,10 +6,14 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.common.exception.ErrorReportException;
+import bio.terra.common.exception.ForbiddenException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
@@ -20,6 +24,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneJobConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -82,13 +87,9 @@ class LandingZoneJobServiceTest {
     String jobId = "myjob";
     UUID landingZoneId = UUID.randomUUID();
     UUID flightLandingZoneId = landingZoneId;
+    var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    when(stairwayComponent.get()).thenReturn(stairwayInstance);
-    when(stairwayInstance.getFlightState(jobId)).thenReturn(flightState);
-    when(flightState.getInputParameters()).thenReturn(flightMap);
-    when(flightState.getFlightStatus()).thenReturn(FlightStatus.SUCCESS);
-    when(flightMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class))
-        .thenReturn(flightLandingZoneId);
+    setupForAccessVerification(FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
 
     landingZoneJobService.verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
   }
@@ -113,28 +114,112 @@ class LandingZoneJobServiceTest {
                 bearerToken, landingZoneId, jobId));
   }
 
-  @Test
-  void verifyUserAccessForDeleteJobResult_jobIsRunningDeleteActionIsChecked()
-      throws InterruptedException {
+  @ParameterizedTest
+  @EnumSource(
+      value = FlightStatus.class,
+      names = {"SUCCESS", "ERROR"},
+      mode = EnumSource.Mode.INCLUDE)
+  void verifyUserAccessForDeleteJobResult_jobIsRunningSamActionsAreChecked(
+      FlightStatus flightStatus) throws InterruptedException {
     String jobId = "myjob";
     UUID landingZoneId = UUID.randomUUID();
-    UUID flightLandingZoneId = landingZoneId;
+    var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    when(stairwayComponent.get()).thenReturn(stairwayInstance);
-    when(stairwayInstance.getFlightState(jobId)).thenReturn(flightState);
-    when(flightState.getInputParameters()).thenReturn(flightMap);
-    when(flightMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class))
-        .thenReturn(flightLandingZoneId);
-    when(flightState.getFlightStatus()).thenReturn(FlightStatus.RUNNING);
+    setupForAccessVerification(flightStatus, jobId, landingZoneId, landingZoneRequest);
 
     landingZoneJobService.verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
 
-    verify(samService, times(1))
+    verify(samService, times(flightStatus.equals(FlightStatus.SUCCESS) ? 1 : 0))
+        .checkAuthz(
+            bearerToken,
+            SamConstants.SamResourceType.SPEND_PROFILE,
+            landingZoneRequest.billingProfileId().toString(),
+            SamConstants.SamSpendProfileAction.LINK);
+
+    verify(samService, times(flightStatus.equals(FlightStatus.ERROR) ? 1 : 0))
         .checkAuthz(
             bearerToken,
             SamConstants.SamResourceType.LANDING_ZONE,
             landingZoneId.toString(),
             SamConstants.SamLandingZoneAction.DELETE);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = FlightStatus.class,
+      names = {"SUCCESS", "ERROR"},
+      mode = EnumSource.Mode.INCLUDE)
+  void verifyUserAccessForCreateJobResult_jobIsRunningSamActionsAreChecked(
+      FlightStatus flightStatus) throws InterruptedException {
+    String jobId = "createJob";
+    UUID landingZoneId = UUID.randomUUID();
+    var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
+
+    setupForAccessVerification(flightStatus, jobId, landingZoneId, landingZoneRequest);
+
+    landingZoneJobService.verifyUserAccess(bearerToken, jobId);
+
+    verify(samService, times(flightStatus.equals(FlightStatus.ERROR) ? 1 : 0))
+        .checkAuthz(
+            bearerToken,
+            SamConstants.SamResourceType.SPEND_PROFILE,
+            landingZoneRequest.billingProfileId().toString(),
+            SamConstants.SamSpendProfileAction.LINK);
+
+    verify(samService, times(flightStatus.equals(FlightStatus.SUCCESS) ? 1 : 0))
+        .checkAuthz(
+            bearerToken,
+            SamConstants.SamResourceType.LANDING_ZONE,
+            landingZoneId.toString(),
+            SamConstants.SamLandingZoneAction.LIST_RESOURCES);
+  }
+
+  @Test
+  void verifyUserAccessForDeleteJobResult_jobIsRunningSamBillingProfileLinkActionFailed()
+      throws InterruptedException {
+    String jobId = "myjob";
+    UUID landingZoneId = UUID.randomUUID();
+    var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
+
+    setupForAccessVerification(FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
+
+    doThrow(ForbiddenException.class)
+        .when(samService)
+        .checkAuthz(
+            eq(bearerToken),
+            eq(SamConstants.SamResourceType.SPEND_PROFILE),
+            eq(landingZoneRequest.billingProfileId().toString()),
+            eq(SamConstants.SamSpendProfileAction.LINK));
+
+    assertThrows(
+        ErrorReportException.class,
+        () ->
+            landingZoneJobService.verifyUserAccessForDeleteJobResult(
+                bearerToken, landingZoneId, jobId));
+  }
+
+  @Test
+  void verifyUserAccessForDeleteJobResult_jobIsRunningSamLandingZoneDeleteActionFailed()
+      throws InterruptedException {
+    String jobId = "myjob";
+    UUID landingZoneId = UUID.randomUUID();
+    var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
+
+    setupForAccessVerification(FlightStatus.ERROR, jobId, landingZoneId, landingZoneRequest);
+
+    doThrow(ForbiddenException.class)
+        .when(samService)
+        .checkAuthz(
+            eq(bearerToken),
+            eq(SamConstants.SamResourceType.LANDING_ZONE),
+            eq(landingZoneId.toString()),
+            eq(SamConstants.SamLandingZoneAction.DELETE));
+
+    assertThrows(
+        ErrorReportException.class,
+        () ->
+            landingZoneJobService.verifyUserAccessForDeleteJobResult(
+                bearerToken, landingZoneId, jobId));
   }
 
   @ParameterizedTest
@@ -220,5 +305,38 @@ class LandingZoneJobServiceTest {
     when(flightMap.get(JobMapKeys.RESULT_PATH.getKeyName(), String.class))
         .thenReturn("myresult-path");
     when(ingressConfig.getDomainName()).thenReturn("https://foo.com");
+  }
+
+  private void setupForAccessVerification(
+      FlightStatus flightStatus,
+      String jobId,
+      UUID landingZoneId,
+      LandingZoneRequest landingZoneRequest)
+      throws InterruptedException {
+    when(stairwayComponent.get()).thenReturn(stairwayInstance);
+    when(stairwayInstance.getFlightState(jobId)).thenReturn(flightState);
+    when(flightState.getInputParameters()).thenReturn(flightMap);
+    when(flightState.getFlightStatus()).thenReturn(flightStatus);
+    when(flightMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class))
+        .thenReturn(landingZoneId);
+    when(flightMap.get(
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class))
+        .thenReturn(landingZoneRequest);
+  }
+
+  /**
+   * Initializes LandingZoneRequest.Builder with required parameters only. It can be used as is or
+   * updated with other parameters to get custom version of LandingZoneRequest.
+   *
+   * <p>Customize with parameters:
+   *
+   * <p>var lzRequest = createDefaultLandingZoneRequestBuilder().version("newVersion").build();
+   *
+   * @return Instance of LandingZoneRequest.Builder
+   */
+  private LandingZoneRequest.Builder createDefaultLandingZoneRequestBuilder() {
+    return LandingZoneRequest.builder()
+        .definition("lzDefinition")
+        .billingProfileId(UUID.randomUUID());
   }
 }
