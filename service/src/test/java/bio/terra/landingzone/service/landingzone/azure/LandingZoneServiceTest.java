@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +50,6 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -104,6 +104,7 @@ public class LandingZoneServiceTest {
   @Mock private LandingZoneDao landingZoneDao;
   @Mock private LandingZoneSamService samService;
   @Mock private LandingZoneBillingProfileManagerService bpmService;
+  @Captor ArgumentCaptor<UUID> captorLandingZoneId;
 
   @BeforeEach
   void setup() {
@@ -171,13 +172,8 @@ public class LandingZoneServiceTest {
                 mockFactory1.getClass().getName(),
                 mockFactory1.availableVersions()));
 
-    LandingZoneJobBuilder mockJobBuilder = mock(LandingZoneJobBuilder.class);
-    when(mockJobBuilder.jobId(any())).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.description(any())).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.flightClass(any())).thenReturn(mockJobBuilder);
+    LandingZoneJobBuilder mockJobBuilder = createMockJobBuilder(OperationType.CREATE);
     when(mockJobBuilder.landingZoneRequest(any())).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.bearerToken(any())).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.operationType(any())).thenReturn(mockJobBuilder);
     when(mockJobBuilder.addParameter(any(), any())).thenReturn(mockJobBuilder);
     when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
 
@@ -197,7 +193,51 @@ public class LandingZoneServiceTest {
       landingZoneService.startLandingZoneCreationJob(
           bearerToken, "newJobId", landingZoneRequest, "create-result");
     }
+    verify(mockJobBuilder, times(1))
+        .addParameter(eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), captorLandingZoneId.capture());
+    assertNotEquals(landingZoneId, captorLandingZoneId.getValue());
+    verify(landingZoneJobService, times(1)).newJob();
+    verify(mockJobBuilder, times(1)).submit();
+  }
 
+  @Test
+  void startLandingZoneCreationJob_WithLandingZoneId_JobIsSubmitted() {
+    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
+    when(mockFactory1.availableVersions())
+        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
+
+    List<FactoryDefinitionInfo> factories =
+        List.of(
+            new FactoryDefinitionInfo(
+                mockFactory1.getClass().getName(),
+                "mockFactory",
+                mockFactory1.getClass().getName(),
+                mockFactory1.availableVersions()));
+
+    LandingZoneJobBuilder mockJobBuilder = createMockJobBuilder(OperationType.CREATE);
+    when(mockJobBuilder.landingZoneRequest(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.addParameter(any(), any())).thenReturn(mockJobBuilder);
+    when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
+
+    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
+        Mockito.mockStatic(LandingZoneManager.class)) {
+      staticMockLandingZoneManager
+          .when(LandingZoneManager::listDefinitionFactories)
+          .thenReturn(factories);
+
+      LandingZoneRequest landingZoneRequest =
+          LandingZoneRequest.builder()
+              .definition(mockFactory1.getClass().getName())
+              .version(DefinitionVersion.V1.toString())
+              .parameters(null)
+              .billingProfileId(billingProfileId)
+              .landingZoneId(landingZoneId)
+              .build();
+      landingZoneService.startLandingZoneCreationJob(
+          bearerToken, "newJobId", landingZoneRequest, "create-result");
+    }
+    verify(mockJobBuilder, times(1))
+        .addParameter(eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), eq(landingZoneId));
     verify(landingZoneJobService, times(1)).newJob();
     verify(mockJobBuilder, times(1)).submit();
   }
@@ -239,21 +279,15 @@ public class LandingZoneServiceTest {
 
   @Test
   void startLandingZoneDeletionJob_JobIsSubmitted() {
-
     var landingZoneId = UUID.randomUUID();
     String resultPath = "delete-result";
 
-    LandingZoneJobBuilder mockJobBuilder = mock(LandingZoneJobBuilder.class);
-    when(mockJobBuilder.jobId(any())).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.description(any())).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.flightClass(DeleteLandingZoneFlight.class)).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.bearerToken(any())).thenReturn(mockJobBuilder);
-    when(mockJobBuilder.operationType(OperationType.DELETE)).thenReturn(mockJobBuilder);
-    when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
+    LandingZoneJobBuilder mockJobBuilder = createMockJobBuilder(OperationType.DELETE);
     when(mockJobBuilder.addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId))
         .thenReturn(mockJobBuilder);
     when(mockJobBuilder.addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath))
         .thenReturn(mockJobBuilder);
+    when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
 
     landingZoneService.startLandingZoneDeletionJob(
         bearerToken, "newJobId", landingZoneId, resultPath);
@@ -269,13 +303,6 @@ public class LandingZoneServiceTest {
     when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
     var purposeTags =
         Map.of(
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
@@ -313,14 +340,6 @@ public class LandingZoneServiceTest {
     when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
-
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
 
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listSubnetsBySubnetPurpose(
@@ -398,18 +417,11 @@ public class LandingZoneServiceTest {
     when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(landingZoneTargetCaptor.capture()))
         .thenReturn(landingZoneManager);
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
 
+    // Test
     landingZoneService.listResourcesWithPurposes(bearerToken, landingZoneId);
-
     assertThat(
         landingZoneTargetCaptor.getValue().azureTenantId(), equalTo(landingZoneRecord.tenantId()));
     assertThat(
@@ -429,13 +441,6 @@ public class LandingZoneServiceTest {
     when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResourcesWithPurpose(anyString())).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
@@ -490,14 +495,6 @@ public class LandingZoneServiceTest {
     when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
-
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
 
     ResourcesReader resourceReader = Mockito.mock(ResourcesReader.class);
     when(resourceReader.listResourcesWithPurpose(landingZoneId.toString()))
@@ -568,13 +565,7 @@ public class LandingZoneServiceTest {
             null,
             Collections.emptyMap());
     when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(landingZoneRecord);
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
+
     // Test
     var result = landingZoneService.getLandingZone(bearerToken, landingZoneId);
     // Validate record
@@ -615,13 +606,7 @@ public class LandingZoneServiceTest {
             eq(landingZoneId.toString()),
             anyString()))
         .thenReturn(true);
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
+
     // Test
     var result = landingZoneService.getLandingZonesByBillingProfile(bearerToken, billingProfileId);
     // Validate record
@@ -664,13 +649,7 @@ public class LandingZoneServiceTest {
             eq(landingZoneId.toString()),
             anyString()))
         .thenReturn(false);
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
+
     // Test
     var result = landingZoneService.getLandingZonesByBillingProfile(bearerToken, billingProfileId);
     // Validate there are no records in result.
@@ -703,13 +682,7 @@ public class LandingZoneServiceTest {
     when(samService.listLandingZoneResourceIds(bearerToken)).thenReturn(List.of(landingZoneId));
     when(landingZoneDao.getLandingZoneMatchingIdList(List.of(landingZoneId)))
         .thenReturn(List.of(landingZoneRecord));
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
+
     // Test
     var result = landingZoneService.listLandingZones(bearerToken);
     // Validate there are no records in result.
@@ -727,13 +700,6 @@ public class LandingZoneServiceTest {
     var deployedResources = setupDeployedResources();
     // Setup mocks
     when(samService.listLandingZoneResourceIds(bearerToken)).thenReturn(List.of());
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
     // Test
     var result = landingZoneService.listLandingZones(bearerToken);
     // Validate there are no records in result.
@@ -752,13 +718,6 @@ public class LandingZoneServiceTest {
             eq(landingZoneId.toString()),
             eq(SamConstants.SamLandingZoneAction.LIST_RESOURCES));
 
-    landingZoneService =
-        new LandingZoneService(
-            landingZoneJobService,
-            landingZoneManagerProvider,
-            landingZoneDao,
-            samService,
-            bpmService);
     // Test
     Assertions.assertThrows(
         ForbiddenException.class,
@@ -801,6 +760,16 @@ public class LandingZoneServiceTest {
     return List.of(
         new DeployedResource(STORAGE_ACCOUNT_1, STORAGE_ACCOUNT, purposeTagSet1, REGION),
         new DeployedResource(STORAGE_ACCOUNT_2, STORAGE_ACCOUNT, purposeTagSet2, REGION));
+  }
+
+  private LandingZoneJobBuilder createMockJobBuilder(OperationType operationType) {
+    LandingZoneJobBuilder mockJobBuilder = mock(LandingZoneJobBuilder.class);
+    when(mockJobBuilder.jobId(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.description(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.flightClass(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.bearerToken(any())).thenReturn(mockJobBuilder);
+    when(mockJobBuilder.operationType(operationType)).thenReturn(mockJobBuilder);
+    return mockJobBuilder;
   }
 
   private long countAzureLandingZoneTemplateRecordsWithAttribute(
