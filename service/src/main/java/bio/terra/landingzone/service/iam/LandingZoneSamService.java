@@ -7,8 +7,10 @@ import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
 import bio.terra.common.tracing.OkHttpClientTracingInterceptor;
 import bio.terra.landingzone.library.configuration.LandingZoneSamConfiguration;
+import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import io.opencensus.contrib.spring.aop.Traced;
 import io.opencensus.trace.Tracing;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -131,16 +133,20 @@ public class LandingZoneSamService {
         new FullyQualifiedResourceId()
             .resourceId(billingProfileId.toString())
             .resourceTypeName(SamConstants.SamResourceType.SPEND_PROFILE);
-    var policies =
-        Map.of(
-            "owner",
-                new AccessPolicyMembershipV2()
-                    .addMemberEmailsItem(userInfo.getUserEmail())
-                    .addRolesItem(SamConstants.SamRole.OWNER),
-            "user",
-                new AccessPolicyMembershipV2()
-                    .memberEmails(samConfig.getLandingZoneResourceUsers())
-                    .addRolesItem(SamConstants.SamRole.USER));
+
+    Map<String, AccessPolicyMembershipV2> policies = new HashMap<>();
+    policies.put(
+        "owner",
+        new AccessPolicyMembershipV2()
+            .addMemberEmailsItem(userInfo.getUserEmail())
+            .addRolesItem(SamConstants.SamRole.OWNER));
+    if (CollectionUtils.isNotEmpty(samConfig.getLandingZoneResourceUsers())) {
+      policies.put(
+          "user",
+          new AccessPolicyMembershipV2()
+              .memberEmails(samConfig.getLandingZoneResourceUsers())
+              .addRolesItem(SamConstants.SamRole.USER));
+    }
     var landingZoneRequest =
         new CreateResourceRequestV2()
             .resourceId(landingZoneId.toString())
