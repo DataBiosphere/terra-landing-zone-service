@@ -134,9 +134,13 @@ public class LandingZoneSamService {
     var policies =
         Map.of(
             "owner",
-            new AccessPolicyMembershipV2()
-                .addMemberEmailsItem(userInfo.getUserEmail())
-                .addRolesItem(SamConstants.SamRole.OWNER));
+                new AccessPolicyMembershipV2()
+                    .addMemberEmailsItem(userInfo.getUserEmail())
+                    .addRolesItem(SamConstants.SamRole.OWNER),
+            "user",
+                new AccessPolicyMembershipV2()
+                    .memberEmails(samConfig.getLandingZoneResourceUsers())
+                    .addRolesItem(SamConstants.SamRole.USER));
     var landingZoneRequest =
         new CreateResourceRequestV2()
             .resourceId(landingZoneId.toString())
