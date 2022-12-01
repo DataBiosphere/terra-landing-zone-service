@@ -12,6 +12,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.exception.translation.FlightExceptionTranslator;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
@@ -72,7 +73,8 @@ public class CreateAzureLandingZoneStep implements Step {
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     } catch (Exception e) {
       // TODO SG: check if we can retry?
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
+      return new StepResult(
+          StepStatus.STEP_RESULT_FAILURE_FATAL, new FlightExceptionTranslator(e).translate());
     }
     return StepResult.getStepResultSuccess();
   }
