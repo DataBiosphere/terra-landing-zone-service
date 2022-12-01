@@ -11,6 +11,7 @@ public class SamConstants {
 
   public static class SamRole {
     public static final String OWNER = "owner";
+    public static final String USER = "user";
 
     private SamRole() {}
   }
