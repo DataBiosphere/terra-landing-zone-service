@@ -15,17 +15,16 @@ class BatchAccountQuotaExceedExceptionRule implements ExceptionMatchingRule {
 
   @Override
   public Optional<LandingZoneCreateException> match(Exception exception) {
-    if ((exception instanceof ManagementException)
-        && (exception.getMessage().contains(POLLING_MESSAGE_MARKER))
-        && ((ManagementException) exception)
+    if ((exception instanceof ManagementException managementException)
+        && (managementException.getMessage().contains(POLLING_MESSAGE_MARKER))
+        && managementException
             // value is a ManagementError which contains more appropriate information about the
             // quota issue
             .getValue()
             .getMessage()
             .contains(BATCH_QUOTA_MESSAGE_MARKER)) {
       return Optional.of(
-          new LandingZoneCreateException(
-              ((ManagementException) exception).getValue().getMessage()));
+          new LandingZoneCreateException(managementException.getValue().getMessage()));
     }
     return Optional.empty();
   }

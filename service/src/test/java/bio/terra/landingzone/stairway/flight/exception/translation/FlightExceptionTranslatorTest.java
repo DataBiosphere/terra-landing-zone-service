@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class FlightExceptionTranslatorTest {
+class FlightExceptionTranslatorTest {
   private FlightExceptionTranslator flightExceptionTranslator;
 
   @Test

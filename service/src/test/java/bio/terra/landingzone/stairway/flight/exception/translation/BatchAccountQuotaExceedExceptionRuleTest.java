@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class BatchAccountQuotaExceedExceptionRuleTest {
+class BatchAccountQuotaExceedExceptionRuleTest {
   private BatchAccountQuotaExceedExceptionRule batchQuotaAccountExceedRule;
 
   @BeforeEach
