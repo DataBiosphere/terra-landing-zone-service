@@ -24,7 +24,8 @@ class BatchAccountQuotaExceedExceptionRule implements ExceptionMatchingRule {
             .getMessage()
             .contains(BATCH_QUOTA_MESSAGE_MARKER)) {
       return Optional.of(
-          new LandingZoneCreateException(managementException.getValue().getMessage()));
+          new LandingZoneCreateException(
+              managementException.getValue().getMessage(), managementException));
     }
     return Optional.empty();
   }

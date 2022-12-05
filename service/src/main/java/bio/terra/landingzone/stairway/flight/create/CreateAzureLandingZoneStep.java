@@ -73,6 +73,11 @@ public class CreateAzureLandingZoneStep implements Step {
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     } catch (Exception e) {
       // TODO SG: check if we can retry?
+      logger.error(
+          String.format(
+              "Failed to create Azure landing zone. id='%s', definition='%s', version='%s'.",
+              landingZoneId, requestedLandingZone.definition(), requestedLandingZone.version()),
+          e);
       return new StepResult(
           StepStatus.STEP_RESULT_FAILURE_FATAL, new FlightExceptionTranslator(e).translate());
     }

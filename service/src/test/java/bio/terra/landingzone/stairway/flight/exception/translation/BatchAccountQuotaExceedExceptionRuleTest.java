@@ -1,5 +1,6 @@
 package bio.terra.landingzone.stairway.flight.exception.translation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
@@ -30,6 +31,7 @@ class BatchAccountQuotaExceedExceptionRuleTest {
         batchQuotaAccountExceedRule.match(flightException);
 
     assertTrue(mappedException.isPresent());
+    assertEquals(flightException, mappedException.get().getCause());
     assertTrue(
         mappedException
             .get()

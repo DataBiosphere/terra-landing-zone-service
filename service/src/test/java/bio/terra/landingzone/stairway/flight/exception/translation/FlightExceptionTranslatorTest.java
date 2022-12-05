@@ -23,6 +23,7 @@ class FlightExceptionTranslatorTest {
     var translatedException = flightExceptionTranslator.translate();
 
     assertTrue(translatedException instanceof LandingZoneCreateException);
+    assertEquals(flightException, translatedException.getCause());
     assertTrue(
         translatedException
             .getMessage()
