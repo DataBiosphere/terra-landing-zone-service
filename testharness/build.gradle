@@ -10,7 +10,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
 
-    testImplementation 'bio.terra:terra-cloud-resource-lib:2.0.1-J17-SNAPSHOT'
     testImplementation 'org.apache.commons:commons-lang3:3.8.1'
 
     // Spotbugs dependencies
