@@ -159,7 +159,7 @@ public class LandingZoneServiceTest {
   }
 
   @Test
-  void startLandingZoneCreationJob_JobIsSubmitted() {
+  void startLandingZoneCreationJob_NoLandingZoneId_JobIsSubmitted() {
     var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
     when(mockFactory1.availableVersions())
         .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
