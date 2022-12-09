@@ -25,6 +25,7 @@ java {
 }
 
 repositories {
+    mavenLocal()
     maven {
         // Terra proxy for maven central
         url 'https://broadinstitute.jfrog.io/broadinstitute/maven-central/'
@@ -45,7 +46,7 @@ dependencies {
     testImplementation 'ch.qos.logback:logback-classic:1.2.10'
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
-    implementation ('bio.terra:terra-common-lib:0.0.75-SNAPSHOT'){
+    implementation ('bio.terra:terra-common-lib:0.0.76-SNAPSHOT'){
         exclude group: "org.broadinstitute.dsde.workbench", module: "sam-client_2.13"
     }
 }

@@ -9,7 +9,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
-
+    implementation('org.liquibase:liquibase-core') {
+        version {
+            strictly('4.18.0')
+        }
+    }
     testImplementation 'org.apache.commons:commons-lang3:3.8.1'
 
     // Spotbugs dependencies
@@ -37,12 +41,12 @@ dependencies {
 
     test {
         useJUnitPlatform {
-            includeTags "library","unit"
+            includeTags "library", "unit"
         }
         outputs.upToDateWhen { false }
         finalizedBy jacocoTestReport
         jacoco {
-            includes = ["bio.terra.landingzone.**" ]
+            includes = ["bio.terra.landingzone.**"]
             includeNoLocationClasses = true
         }
     }

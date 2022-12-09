@@ -41,6 +41,8 @@ landingzone:
     upgradeOnStart: true
     uri: ${env.db.host}/${env.db.landingzone.name}
     username: ${env.db.landingzone.user}
+    contexts:
+      - all
 
   landingzone-stairway-database:
     initialize-on-start: true

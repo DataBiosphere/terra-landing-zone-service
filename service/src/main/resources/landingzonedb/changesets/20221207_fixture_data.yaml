@@ -1,0 +1,40 @@
+# The schema for a landing zone
+databaseChangeLog:
+  - changeSet:
+      id: insert fixture data
+      author: aherbst
+      context: test
+      changes:
+      - insert:
+          tableName: landingzone
+          columns:
+          - column:
+              name: landingzone_id
+              value: 61a81a95-7f6b-4cc0-97bc-9fd75b09aa74
+          - column:
+              name: resource_group
+              value: testLandingZone
+          - column:
+              name: definition_id
+              value: CromwellBaseResourcesFactory
+          - column:
+              name: definition_version_id
+              value: v1
+          - column:
+              name: display_name
+              value: CromwellBaseResourcesFactory
+          - column:
+              name: description
+              value: Definition:CromwellBaseResourcesFactory Version:v1
+          - column:
+              name: subscription_id
+              value: df547342-9cfd-44ef-a6dd-df0ede32f1e3
+          - column:
+              name: tenant_id
+              value: fad90753-2022-4456-9b0a-c7e5b934e408
+          - column:
+              name: billing_profile_id
+              value: 42a540de-d730-4170-9d2b-782dda924030
+          - column:
+              name: created_date
+              value: 2022-12-09 15:23:58.269265+00

@@ -2,6 +2,7 @@ package bio.terra.landingzone.library.configuration;
 
 import bio.terra.common.db.BaseDatabaseProperties;
 import bio.terra.common.db.DataSourceInitializer;
+import java.util.List;
 import javax.sql.DataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -25,6 +26,8 @@ public class LandingZoneDatabaseConfiguration extends BaseDatabaseProperties {
   private boolean initializeOnStart;
   /** If true, primary database will have changesets applied */
   private boolean upgradeOnStart;
+
+  private List<String> contexts;
 
   public boolean isInitializeOnStart() {
     return initializeOnStart;
@@ -56,5 +59,13 @@ public class LandingZoneDatabaseConfiguration extends BaseDatabaseProperties {
   @Bean("tlzTransactionManager")
   public TransactionManager getTlzTransactionManager() {
     return new JdbcTransactionManager(getDataSource());
+  }
+
+  public List<String> getContexts() {
+    return contexts;
+  }
+
+  public void setContexts(List<String> contexts) {
+    this.contexts = contexts;
   }
 }

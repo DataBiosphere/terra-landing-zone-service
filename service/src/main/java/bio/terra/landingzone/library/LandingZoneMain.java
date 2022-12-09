@@ -20,7 +20,9 @@ public class LandingZoneMain {
     if (landingZoneDatabaseConfiguration.isInitializeOnStart()) {
       migrateService.initialize(CHANGELOG_PATH, landingZoneDatabaseConfiguration.getDataSource());
     } else if (landingZoneDatabaseConfiguration.isUpgradeOnStart()) {
-      migrateService.upgrade(CHANGELOG_PATH, landingZoneDatabaseConfiguration.getDataSource());
+      String[] contexts = landingZoneDatabaseConfiguration.getContexts().toArray(new String[0]);
+      migrateService.upgrade(
+          CHANGELOG_PATH, landingZoneDatabaseConfiguration.getDataSource(), contexts);
     }
 
     LandingZoneJobService landingZoneJobService =
