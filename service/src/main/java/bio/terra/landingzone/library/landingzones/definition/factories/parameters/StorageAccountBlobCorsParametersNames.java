@@ -1,0 +1,9 @@
+package bio.terra.landingzone.library.landingzones.definition.factories.parameters;
+
+public enum StorageAccountBlobCorsParametersNames {
+  STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS,
+  STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS,
+  STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS,
+  STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS,
+  STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE
+}

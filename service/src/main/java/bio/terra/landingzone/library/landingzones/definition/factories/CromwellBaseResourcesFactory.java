@@ -7,6 +7,9 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.LandingZoneDefinable;
 import bio.terra.landingzone.library.landingzones.definition.LandingZoneDefinition;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.library.landingzones.definition.factories.parameters.ParametersExtractor;
+import bio.terra.landingzone.library.landingzones.definition.factories.parameters.StorageAccountBlobCorsParametersNames;
+import bio.terra.landingzone.library.landingzones.definition.factories.validation.BlobCorsParametersValidator;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.Deployable;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
@@ -40,7 +43,11 @@ import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCre
 import com.azure.resourcemanager.postgresql.models.ServerVersion;
 import com.azure.resourcemanager.postgresql.models.Sku;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import com.azure.resourcemanager.storage.models.CorsRule;
+import com.azure.resourcemanager.storage.models.CorsRuleAllowedMethodsItem;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +65,16 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   private final String LZ_DESC =
       "Cromwell Base Resources: VNet, AKS Account & Nodepool, Batch Account,"
           + " Storage Account, PostgreSQL server, Subnets for AKS, Batch, Posgres, and Compute";
+
+  public static final String STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT = "*";
+  public static final String STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT =
+      "GET,HEAD,OPTIONS,PUT,PATCH,POST,MERGE,DELETE";
+  public static final String STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT =
+      "authorization,content-type,x-app-id,Referer,x-ms-blob-type,x-ms-copy-source,content-length";
+  public static final String STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT = "";
+  public static final String STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT = "0";
+
+  private BlobCorsParametersValidator validator;
 
   enum Subnet {
     AKS_SUBNET,
@@ -78,6 +95,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
 
   public CromwellBaseResourcesFactory(ArmManagers armManagers) {
     super(armManagers);
+    validator = new BlobCorsParametersValidator();
   }
 
   @Override
@@ -114,6 +132,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       ResourceNameGenerator nameGenerator = definitionContext.resourceNameGenerator();
       ParametersResolver parametersResolver =
           new ParametersResolver(definitionContext.parameters(), getDefaultParameters());
+
+      validator.validate(parametersResolver);
 
       var logAnalyticsWorkspace =
           armManagers
@@ -170,10 +190,12 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                       .withName(
                           parametersResolver.getValue(ParametersNames.POSTGRES_SERVER_SKU.name())));
 
+      String storageAccountName =
+          nameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH);
       var storage =
           azureResourceManager
               .storageAccounts()
-              .define(nameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH))
+              .define(storageAccountName)
               .withRegion(resourceGroup.region())
               .withExistingResourceGroup(resourceGroup);
 
@@ -203,6 +225,10 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withResourceWithPurpose(storage, ResourcePurpose.SHARED_RESOURCE)
               .withResourceWithPurpose(batch, ResourcePurpose.SHARED_RESOURCE)
               .deploy();
+
+      var corsRules = buildStorageAccountBlobServiceCorsRules(parametersResolver);
+      setupCorsForStorageAccountBlobService(
+          azureResourceManager, resourceGroup.name(), storageAccountName, corsRules);
 
       String logAnalyticsWorkspaceId =
           getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_LOG_ANALYTICS_WORKSPACE_TYPE);
@@ -345,6 +371,21 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       defaultValues.put(Subnet.POSTGRESQL_SUBNET.name(), "10.1.0.16/29");
       defaultValues.put(Subnet.COMPUTE_SUBNET.name(), "10.1.0.24/29");
       defaultValues.put(ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
+      defaultValues.put(
+          StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
+          STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT);
+      defaultValues.put(
+          StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS.name(),
+          STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT);
+      defaultValues.put(
+          StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS.name(),
+          STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT);
+      defaultValues.put(
+          StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS.name(),
+          STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT);
+      defaultValues.put(
+          StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
+          STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT);
       return defaultValues;
     }
   }
@@ -420,5 +461,87 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                         ResourcePurpose.SHARED_RESOURCE.toString())),
             Context.NONE);
+  }
+
+  /**
+   * Build list of Cors rules for storage account
+   *
+   * @param parametersResolver
+   * @return List of Cors rules
+   */
+  private ArrayList<CorsRule> buildStorageAccountBlobServiceCorsRules(
+      ParametersResolver parametersResolver) {
+    ArrayList<CorsRule> corsRules = new ArrayList<>();
+
+    var rule = new CorsRule();
+    var origins =
+        Arrays.stream(
+                parametersResolver
+                    .getValue(
+                        StorageAccountBlobCorsParametersNames
+                            .STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS
+                            .name())
+                    .split(","))
+            .toList();
+    rule.withAllowedOrigins(origins);
+
+    var methods =
+        ParametersExtractor.extractAllowedMethods(parametersResolver).stream()
+            .map(CorsRuleAllowedMethodsItem::fromString)
+            .toList();
+    rule.withAllowedMethods(methods);
+
+    var headers =
+        Arrays.stream(
+                parametersResolver
+                    .getValue(
+                        StorageAccountBlobCorsParametersNames
+                            .STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS
+                            .name())
+                    .split(","))
+            .toList();
+    rule.withAllowedHeaders(headers);
+
+    List<String> expHeaders =
+        Arrays.stream(
+                parametersResolver
+                    .getValue(
+                        StorageAccountBlobCorsParametersNames
+                            .STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS
+                            .name())
+                    .split(","))
+            .toList();
+    rule.withExposedHeaders(expHeaders);
+
+    rule =
+        rule.withMaxAgeInSeconds(
+            Integer.parseInt(
+                parametersResolver.getValue(
+                    StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE
+                        .name())));
+
+    corsRules.add(rule);
+    return corsRules;
+  }
+
+  /**
+   * Setup Cors configuration for a storage account
+   *
+   * @param azureResourceManager
+   * @param resourceGroupName
+   * @param storageAccountName
+   * @param corsRules
+   */
+  private void setupCorsForStorageAccountBlobService(
+      AzureResourceManager azureResourceManager,
+      String resourceGroupName,
+      String storageAccountName,
+      List<CorsRule> corsRules) {
+    azureResourceManager
+        .storageBlobServices()
+        .define("blobCorsConfiguration")
+        .withExistingStorageAccount(resourceGroupName, storageAccountName)
+        .withCORSRules(corsRules)
+        .create();
   }
 }
