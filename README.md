@@ -304,6 +304,12 @@ The table below describes the current Landing Zone Definitions available in the 
             <strong>BATCH_SUBNET:</strong> Batch subnet address space <br/>Default value: <i>10.1.0.8/29</i><br/><br/>
             <strong>POSTGRESQL_SUBNET:</strong> PostgreSQL subnet address space <br/>Default value: <i>10.1.0.16/29</i><br/><br/>
             <strong>COMPUTE_SUBNET:</strong> Compute resources subnet address space <br/>Default value: <i>10.1.0.24/29</i><br/><br/>
+            <strong>Azure storage CORS configuration:</strong> <a href="https://learn.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services">documentation</a><br/><br/>
+            <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS:</strong> The origin domains that are permitted to make a request against the storage service via CORS <br/>Default value: <i>*</i><br/><br/>
+            <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS:</strong> The methods (HTTP request verbs) that the origin domain may use for a CORS request <br/>Default value: <i>GET,HEAD,OPTIONS,PUT,PATCH,POST,MERGE,DELETE</i><br/><br/>
+            <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS:</strong> The request headers that the origin domain may specify on the CORS request <br/>Default value: <i>authorization,content-type,x-app-id,Referer,x-ms-blob-type,x-ms-copy-source,content-length</i><br/><br/>
+            <strong>STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS:</strong> The response headers that may be sent in the response to the CORS request and exposed by the browser to the request issuer <br/>Default value: <i>Empty string</i><br/><br/>
+            <strong>STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE:</strong> The maximum amount time that a browser should cache the preflight OPTIONS request (in seconds) <br/>Default value: <i>0</i><br/><br/>
         </td>
     </tr>
 <tr>
