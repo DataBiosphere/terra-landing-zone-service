@@ -275,7 +275,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .defineAgentPool(
                   nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_AGENT_POOL_NAME_LENGTH))
               .withVirtualMachineSize(ContainerServiceVMSizeTypes.STANDARD_A2_V2)
-              .withAgentPoolVirtualMachineCount(1)
+              .withAgentPoolVirtualMachineCount(16)
               .withAgentPoolMode(
                   AgentPoolMode.SYSTEM) // TODO VM Size? Pool Machine count? AgentPoolMode?
               .withVirtualNetwork(vNetwork.id(), Subnet.AKS_SUBNET.name())
@@ -365,11 +365,11 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       defaultValues.put(ParametersNames.POSTGRES_DB_ADMIN.name(), "db_admin");
       defaultValues.put(ParametersNames.POSTGRES_DB_PASSWORD.name(), UUID.randomUUID().toString());
       defaultValues.put(ParametersNames.POSTGRES_SERVER_SKU.name(), "GP_Gen5_2");
-      defaultValues.put(ParametersNames.VNET_ADDRESS_SPACE.name(), "10.1.0.0/27");
-      defaultValues.put(Subnet.AKS_SUBNET.name(), "10.1.0.0/29");
-      defaultValues.put(Subnet.BATCH_SUBNET.name(), "10.1.0.8/29");
-      defaultValues.put(Subnet.POSTGRESQL_SUBNET.name(), "10.1.0.16/29");
-      defaultValues.put(Subnet.COMPUTE_SUBNET.name(), "10.1.0.24/29");
+      defaultValues.put(ParametersNames.VNET_ADDRESS_SPACE.name(), "10.1.0.0/25");
+      defaultValues.put(Subnet.AKS_SUBNET.name(), "10.1.0.0/27");
+      defaultValues.put(Subnet.BATCH_SUBNET.name(), "10.1.0.8/27");
+      defaultValues.put(Subnet.POSTGRESQL_SUBNET.name(), "10.1.0.16/27");
+      defaultValues.put(Subnet.COMPUTE_SUBNET.name(), "10.1.0.24/27");
       defaultValues.put(ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
       defaultValues.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
