@@ -45,8 +45,6 @@ import com.azure.resourcemanager.postgresql.models.Sku;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.azure.resourcemanager.storage.models.CorsRule;
 import com.azure.resourcemanager.storage.models.CorsRuleAllowedMethodsItem;
-import scala.Int;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -278,8 +276,12 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withSystemAssignedManagedServiceIdentity()
               .defineAgentPool(
                   nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_AGENT_POOL_NAME_LENGTH))
-              .withVirtualMachineSize(ContainerServiceVMSizeTypes.fromString(parametersResolver.getValue(ParametersNames.AKS_MACHINE_TYPE.name())))
-              .withAgentPoolVirtualMachineCount(Integer.parseInt(parametersResolver.getValue(ParametersNames.AKS_NODE_COUNT.name())))
+              .withVirtualMachineSize(
+                  ContainerServiceVMSizeTypes.fromString(
+                      parametersResolver.getValue(ParametersNames.AKS_MACHINE_TYPE.name())))
+              .withAgentPoolVirtualMachineCount(
+                  Integer.parseInt(
+                      parametersResolver.getValue(ParametersNames.AKS_NODE_COUNT.name())))
               .withAgentPoolMode(AgentPoolMode.SYSTEM)
               .withVirtualNetwork(vNetwork.id(), Subnet.AKS_SUBNET.name())
               .attach()
@@ -374,7 +376,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       defaultValues.put(Subnet.POSTGRESQL_SUBNET.name(), "10.1.0.16/27");
       defaultValues.put(Subnet.COMPUTE_SUBNET.name(), "10.1.0.24/27");
       defaultValues.put(ParametersNames.AKS_NODE_COUNT.name(), "3");
-      defaultValues.put(ParametersNames.AKS_MACHINE_TYPE.name(), ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
+      defaultValues.put(
+          ParametersNames.AKS_MACHINE_TYPE.name(),
+          ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
       defaultValues.put(ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
       defaultValues.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
