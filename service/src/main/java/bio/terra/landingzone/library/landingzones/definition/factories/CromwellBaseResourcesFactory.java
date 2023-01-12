@@ -9,6 +9,7 @@ import bio.terra.landingzone.library.landingzones.definition.LandingZoneDefiniti
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.ParametersExtractor;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.StorageAccountBlobCorsParametersNames;
+import bio.terra.landingzone.library.landingzones.definition.factories.validation.AksParametersValidator;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.BlobCorsParametersValidator;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.Deployable;
@@ -74,7 +75,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   public static final String STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT = "";
   public static final String STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT = "0";
 
-  private BlobCorsParametersValidator validator;
+  private AksParametersValidator aksValidator;
+  private BlobCorsParametersValidator bcValidator;
 
   enum Subnet {
     AKS_SUBNET,
@@ -83,7 +85,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     COMPUTE_SUBNET
   }
 
-  enum ParametersNames {
+  public enum ParametersNames {
     POSTGRES_DB_ADMIN,
     POSTGRES_DB_PASSWORD,
     POSTGRES_SERVER_SKU,
@@ -100,7 +102,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
 
   public CromwellBaseResourcesFactory(ArmManagers armManagers) {
     super(armManagers);
-    validator = new BlobCorsParametersValidator();
+    aksValidator = new AksParametersValidator();
+    bcValidator = new BlobCorsParametersValidator();
   }
 
   @Override
@@ -138,7 +141,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       ParametersResolver parametersResolver =
           new ParametersResolver(definitionContext.parameters(), getDefaultParameters());
 
-      validator.validate(parametersResolver);
+      aksValidator.validate(parametersResolver);
+      bcValidator.validate(parametersResolver);
 
       var logAnalyticsWorkspace =
           armManagers
