@@ -3,7 +3,6 @@ package bio.terra.landingzone.library.landingzones.definition.factories.validati
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.exception.InvalidInputParameterException;
-
 import java.util.Optional;
 
 public class AksParametersValidator implements InputParameterValidator {
@@ -14,7 +13,8 @@ public class AksParametersValidator implements InputParameterValidator {
   @Override
   public void validate(ParametersResolver parametersResolver)
       throws InvalidInputParameterException {
-    Optional<String> aksAutoscalingRangeValidationMessage = validateAksAutoscalingRange(parametersResolver);
+    Optional<String> aksAutoscalingRangeValidationMessage =
+        validateAksAutoscalingRange(parametersResolver);
     aksAutoscalingRangeValidationMessage.ifPresent(s -> sbErrors.append(s).append(" "));
 
     if (!sbErrors.isEmpty()) {
@@ -23,8 +23,12 @@ public class AksParametersValidator implements InputParameterValidator {
   }
 
   private Optional<String> validateAksAutoscalingRange(ParametersResolver parametersResolver) {
-    String min = parametersResolver.getValue(CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name());
-    String max = parametersResolver.getValue(CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name());
+    String min =
+        parametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name());
+    String max =
+        parametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name());
 
     String minErrorMessage =
         buildErrorMessage(
