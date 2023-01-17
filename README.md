@@ -304,6 +304,11 @@ The table below describes the current Landing Zone Definitions available in the 
             <strong>BATCH_SUBNET:</strong> Batch subnet address space <br/>Default value: <i>10.1.0.8/29</i><br/><br/>
             <strong>POSTGRESQL_SUBNET:</strong> PostgreSQL subnet address space <br/>Default value: <i>10.1.0.16/29</i><br/><br/>
             <strong>COMPUTE_SUBNET:</strong> Compute resources subnet address space <br/>Default value: <i>10.1.0.24/29</i><br/><br/>
+            <strong>AKS_NODE_COUNT:</strong> Number of nodes in AKS Nodepool  <br/>Default value: <i>1</i><br/><br/>
+            <strong>AKS_MACHINE_TYPE:</strong> Machine type used for AKS hosts <br/>Default value: <i>ContainerServiceVMSizeTypes.STANDARD_A2_V2</i><br/><br/>
+            <strong>AKS_AUTOSCALING_ENABLED:</strong> Flag to enabled autoscaling for the AKS nodepool <br/>Default value: <i>false</i><br/><br/>
+            <strong>AKS_AUTOSCALING_MIN:</strong> Minimum number of nodes in nodepool when autoscaling is enabled <br/>Default value: <i>1</i><br/><br/>
+            <strong>AKS_AUTOSCALING_MAX:</strong> Maximum number of nodes in nodepool when autoscaling is enabled <br/>Default value: <i>3</i><br/><br/>
             <strong>Azure storage CORS configuration:</strong> <a href="https://learn.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services">documentation</a><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS:</strong> The origin domains that are permitted to make a request against the storage service via CORS <br/>Default value: <i>*</i><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS:</strong> The methods (HTTP request verbs) that the origin domain may use for a CORS request <br/>Default value: <i>GET,HEAD,OPTIONS,PUT,PATCH,POST,MERGE,DELETE</i><br/><br/>

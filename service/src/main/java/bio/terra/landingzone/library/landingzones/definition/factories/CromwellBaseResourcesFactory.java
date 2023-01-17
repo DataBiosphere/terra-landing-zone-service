@@ -9,6 +9,7 @@ import bio.terra.landingzone.library.landingzones.definition.LandingZoneDefiniti
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.ParametersExtractor;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.StorageAccountBlobCorsParametersNames;
+import bio.terra.landingzone.library.landingzones.definition.factories.validation.AksParametersValidator;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.BlobCorsParametersValidator;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.Deployable;
@@ -74,7 +75,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   public static final String STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT = "";
   public static final String STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT = "0";
 
-  private BlobCorsParametersValidator validator;
+  private AksParametersValidator aksValidator;
+  private BlobCorsParametersValidator bcValidator;
 
   enum Subnet {
     AKS_SUBNET,
@@ -83,19 +85,25 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     COMPUTE_SUBNET
   }
 
-  enum ParametersNames {
+  public enum ParametersNames {
     POSTGRES_DB_ADMIN,
     POSTGRES_DB_PASSWORD,
     POSTGRES_SERVER_SKU,
     VNET_ADDRESS_SPACE,
-    AUDIT_LOG_RETENTION_DAYS
+    AUDIT_LOG_RETENTION_DAYS,
+    AKS_NODE_COUNT,
+    AKS_MACHINE_TYPE,
+    AKS_AUTOSCALING_ENABLED,
+    AKS_AUTOSCALING_MIN,
+    AKS_AUTOSCALING_MAX
   }
 
   CromwellBaseResourcesFactory() {}
 
   public CromwellBaseResourcesFactory(ArmManagers armManagers) {
     super(armManagers);
-    validator = new BlobCorsParametersValidator();
+    aksValidator = new AksParametersValidator();
+    bcValidator = new BlobCorsParametersValidator();
   }
 
   @Override
@@ -133,7 +141,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       ParametersResolver parametersResolver =
           new ParametersResolver(definitionContext.parameters(), getDefaultParameters());
 
-      validator.validate(parametersResolver);
+      aksValidator.validate(parametersResolver);
+      bcValidator.validate(parametersResolver);
 
       var logAnalyticsWorkspace =
           armManagers
@@ -264,7 +273,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withEnabled(true)
               .withConfig(Map.of("logAnalyticsWorkspaceResourceID", logAnalyticsWorkspaceId)));
 
-      var aks =
+      var aksPartial =
           azureResourceManager
               .kubernetesClusters()
               .define(nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH))
@@ -274,11 +283,28 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withSystemAssignedManagedServiceIdentity()
               .defineAgentPool(
                   nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_AGENT_POOL_NAME_LENGTH))
-              .withVirtualMachineSize(ContainerServiceVMSizeTypes.STANDARD_A2_V2)
-              .withAgentPoolVirtualMachineCount(1)
-              .withAgentPoolMode(
-                  AgentPoolMode.SYSTEM) // TODO VM Size? Pool Machine count? AgentPoolMode?
-              .withVirtualNetwork(vNetwork.id(), Subnet.AKS_SUBNET.name())
+              .withVirtualMachineSize(
+                  ContainerServiceVMSizeTypes.fromString(
+                      parametersResolver.getValue(ParametersNames.AKS_MACHINE_TYPE.name())))
+              .withAgentPoolVirtualMachineCount(
+                  Integer.parseInt(
+                      parametersResolver.getValue(ParametersNames.AKS_NODE_COUNT.name())))
+              .withAgentPoolMode(AgentPoolMode.SYSTEM)
+              .withVirtualNetwork(vNetwork.id(), Subnet.AKS_SUBNET.name());
+
+      if (Boolean.getBoolean(
+          parametersResolver.getValue(ParametersNames.AKS_AUTOSCALING_ENABLED.name()))) {
+        int min =
+            Integer.parseInt(
+                parametersResolver.getValue(ParametersNames.AKS_AUTOSCALING_MIN.name()));
+        int max =
+            Integer.parseInt(
+                parametersResolver.getValue(ParametersNames.AKS_AUTOSCALING_MAX.name()));
+        aksPartial = aksPartial.withAutoScaling(min, max);
+      }
+
+      var aks =
+          aksPartial
               .attach()
               .withDnsPrefix(
                   nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH))
@@ -370,6 +396,13 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       defaultValues.put(Subnet.BATCH_SUBNET.name(), "10.1.0.8/29");
       defaultValues.put(Subnet.POSTGRESQL_SUBNET.name(), "10.1.0.16/29");
       defaultValues.put(Subnet.COMPUTE_SUBNET.name(), "10.1.0.24/29");
+      defaultValues.put(ParametersNames.AKS_NODE_COUNT.name(), String.valueOf(1));
+      defaultValues.put(
+          ParametersNames.AKS_MACHINE_TYPE.name(),
+          ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
+      defaultValues.put(ParametersNames.AKS_AUTOSCALING_ENABLED.name(), String.valueOf(false));
+      defaultValues.put(ParametersNames.AKS_AUTOSCALING_MIN.name(), String.valueOf(1));
+      defaultValues.put(ParametersNames.AKS_AUTOSCALING_MAX.name(), String.valueOf(3));
       defaultValues.put(ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
       defaultValues.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
