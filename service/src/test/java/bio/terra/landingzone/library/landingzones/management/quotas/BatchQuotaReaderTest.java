@@ -29,6 +29,7 @@ class BatchQuotaReaderTest {
   private static final int ACTIVE_JOB_SCHEDULE_QUOTA = 10;
   private static final Integer DEDICATED_CORE_QUOTA = 10;
 
+  private static final Integer LOW_PRI_CORE_QUOTA = 5;
   private final Integer POOL_QUOTA = 5;
 
   @Mock private BatchManager batchManager;
@@ -53,6 +54,7 @@ class BatchQuotaReaderTest {
     when(batchAccount.dedicatedCoreQuota()).thenReturn(DEDICATED_CORE_QUOTA);
     when(batchAccount.poolQuota()).thenReturn(POOL_QUOTA);
     when(batchAccount.id()).thenReturn(STUB_BATCH_ACCOUNT_ID);
+    when(batchAccount.lowPriorityCoreQuota()).thenReturn(LOW_PRI_CORE_QUOTA);
   }
 
   private void setUpDedicatedCoreQuotaPerFamily() throws JsonProcessingException {
@@ -78,6 +80,7 @@ class BatchQuotaReaderTest {
     assertThat(quota.resourceId(), equalTo(STUB_BATCH_ACCOUNT_ID));
     assertThat(quota.quota(), hasEntry("activeJobAndJobScheduleQuota", ACTIVE_JOB_SCHEDULE_QUOTA));
     assertThat(quota.quota(), hasEntry("dedicatedCoreQuota", DEDICATED_CORE_QUOTA));
+    assertThat(quota.quota(), hasEntry("lowPriorityCoreQuota", LOW_PRI_CORE_QUOTA));
     assertThat(quota.quota(), hasEntry("dedicatedCoreQuotaPerVMFamilyEnforced", true));
     assertThat(quota.quota(), hasEntry("poolQuota", POOL_QUOTA));
     Map<String, Object> quotaPerVmFamily =

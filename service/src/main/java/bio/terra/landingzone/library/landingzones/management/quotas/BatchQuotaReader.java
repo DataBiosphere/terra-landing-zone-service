@@ -37,6 +37,7 @@ public class BatchQuotaReader implements ResourceQuotaReader {
     Map<String, Object> quotaInformation = new HashMap<>();
     quotaInformation.put(
         "activeJobAndJobScheduleQuota", batchAccount.activeJobAndJobScheduleQuota());
+    quotaInformation.put("lowPriorityCoreQuota", batchAccount.lowPriorityCoreQuota());
     quotaInformation.put("dedicatedCoreQuota", batchAccount.dedicatedCoreQuota());
     quotaInformation.put(
         "dedicatedCoreQuotaPerVMFamilyEnforced",
