@@ -292,7 +292,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withAgentPoolMode(AgentPoolMode.SYSTEM)
               .withVirtualNetwork(vNetwork.id(), Subnet.AKS_SUBNET.name());
 
-      if (Boolean.getBoolean(
+      if (Boolean.parseBoolean(
           parametersResolver.getValue(ParametersNames.AKS_AUTOSCALING_ENABLED.name()))) {
         int min =
             Integer.parseInt(
