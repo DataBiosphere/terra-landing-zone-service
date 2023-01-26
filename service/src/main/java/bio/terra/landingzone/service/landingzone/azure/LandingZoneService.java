@@ -2,6 +2,7 @@ package bio.terra.landingzone.service.landingzone.azure;
 
 import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORIZED;
 
+import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
@@ -50,6 +51,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -289,8 +291,14 @@ public class LandingZoneService {
   public LandingZone getLandingZone(BearerToken bearerToken, UUID landingZoneId) {
     checkIfUserHasPermissionForLandingZoneResource(
         bearerToken, landingZoneId, SamConstants.SamLandingZoneAction.LIST_RESOURCES);
-    var landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
-    return toLandingZone(landingZoneRecord);
+    try {
+      var landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
+      return toLandingZone(landingZoneRecord);
+    } catch (DataAccessException e) {
+      logger.error("Error while retrieving landing zone record {}", landingZoneId, e);
+      throw new InternalServerErrorException(
+          "Database error occurred while retrieving landing zone record.");
+    }
   }
 
   /**
@@ -307,21 +315,29 @@ public class LandingZoneService {
     // The logic below ensures user has access to landing zones returned.
 
     // Query the database for landing zone ids with the given billing profile ID.
-    var landingZone =
-        toLandingZone(landingZoneDao.getLandingZoneByBillingProfileId(billingProfileId));
-    // The implementation assumes there is 1:1 relation between Billing Profile ID and Landing Zone
-    // ID
-    // and there can be only one landing zone record returned.
-    // However, the API allows future extensions for more than one landing zone per billing profile.
-    if (SamRethrow.onInterrupted(
-        () ->
-            samService.isAuthorized(
-                bearerToken,
-                SamConstants.SamResourceType.LANDING_ZONE,
-                landingZone.landingZoneId().toString(),
-                SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-        IS_AUTHORIZED)) {
-      landingZones.add(landingZone);
+    try {
+      var landingZone =
+          toLandingZone(landingZoneDao.getLandingZoneByBillingProfileId(billingProfileId));
+
+      // The implementation assumes there is 1:1 relation between Billing Profile ID and Landing
+      // Zone ID and there can be only one landing zone record returned.
+      // However, the API allows future extensions for more than one landing zone per billing
+      // profile.
+      if (SamRethrow.onInterrupted(
+          () ->
+              samService.isAuthorized(
+                  bearerToken,
+                  SamConstants.SamResourceType.LANDING_ZONE,
+                  landingZone.landingZoneId().toString(),
+                  SamConstants.SamLandingZoneAction.LIST_RESOURCES),
+          IS_AUTHORIZED)) {
+        landingZones.add(landingZone);
+      }
+    } catch (DataAccessException e) {
+      logger.error(
+          "Error while retrieving landing zone record for billing profile {}", billingProfileId, e);
+      throw new InternalServerErrorException(
+          "Database error occurred while retrieving landing zone record by billing profile.");
     }
     return landingZones;
   }
@@ -336,10 +352,16 @@ public class LandingZoneService {
     var landingZoneUuids =
         SamRethrow.onInterrupted(
             () -> samService.listLandingZoneResourceIds(bearerToken), "listLandingZoneResourceIds");
-    // Query the database for landing zone records with the landing zone Ids.
-    return landingZoneDao.getLandingZoneMatchingIdList(landingZoneUuids).stream()
-        .map(this::toLandingZone)
-        .toList();
+    try {
+      // Query the database for landing zone records with the landing zone Ids.
+      return landingZoneDao.getLandingZoneMatchingIdList(landingZoneUuids).stream()
+          .map(this::toLandingZone)
+          .toList();
+    } catch (DataAccessException e) {
+      logger.error("Error while retrieving landing zone records", e);
+      throw new InternalServerErrorException(
+          "Database error occurred while retrieving landing zone records.");
+    }
   }
 
   /**
@@ -375,13 +397,19 @@ public class LandingZoneService {
   }
 
   private LandingZoneTarget buildLandingZoneTarget(UUID landingZoneId) {
-    // Look up the landing zone record from the database
-    LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
+    try {
+      // Look up the landing zone record from the database
+      LandingZoneRecord landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
 
-    return new LandingZoneTarget(
-        landingZoneRecord.tenantId(),
-        landingZoneRecord.subscriptionId(),
-        landingZoneRecord.resourceGroupId());
+      return new LandingZoneTarget(
+          landingZoneRecord.tenantId(),
+          landingZoneRecord.subscriptionId(),
+          landingZoneRecord.resourceGroupId());
+    } catch (DataAccessException e) {
+      logger.error("Error while retrieving landing zone record {}", landingZoneId, e);
+      throw new InternalServerErrorException(
+          "Database error occurred while retrieving landing zone record.");
+    }
   }
 
   private void checkIfUserHasPermissionForLandingZoneResource(
