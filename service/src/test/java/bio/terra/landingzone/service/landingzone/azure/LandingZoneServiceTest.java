@@ -41,6 +41,7 @@ import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
+import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDatabaseException;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
@@ -69,12 +70,12 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataRetrievalFailureException;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 public class LandingZoneServiceTest {
   private static final String VNET_1 = "vnet_1";
-  private static final String VNET_2 = "vnet_2";
   private static final String VNET_3 = "vnet_3";
   private static final String VNET_SUBNET_1 = "vnet_subnet_1";
   private static final String VNET_SUBNET_2 = "vnet_subnet_2";
@@ -577,6 +578,18 @@ public class LandingZoneServiceTest {
   }
 
   @Test
+  void getLandingZone_DatabaseException_ThrowsException() {
+    // Setup mocks
+    doThrow(new DataRetrievalFailureException("..."))
+        .when(landingZoneDao)
+        .getLandingZoneRecord(landingZoneId);
+    // Test
+    Assertions.assertThrows(
+        LandingZoneDatabaseException.class,
+        () -> landingZoneService.getLandingZone(bearerToken, landingZoneId));
+  }
+
+  @Test
   void getLandingZonesByBillingProfile_Success() throws InterruptedException {
     var deployedResources = setupDeployedResources();
     // Setup mocks
@@ -658,6 +671,19 @@ public class LandingZoneServiceTest {
   }
 
   @Test
+  void getLandingZoneByBillingProfileId_DatabaseException_ThrowsException() {
+    UUID billingProfileId = UUID.randomUUID();
+    // Setup mocks
+    doThrow(new DataRetrievalFailureException("..."))
+        .when(landingZoneDao)
+        .getLandingZoneByBillingProfileId(billingProfileId);
+    // Test
+    Assertions.assertThrows(
+        LandingZoneDatabaseException.class,
+        () -> landingZoneService.getLandingZonesByBillingProfile(bearerToken, billingProfileId));
+  }
+
+  @Test
   void listLandingZones_OneRecord_Success() throws InterruptedException {
     var deployedResources = setupDeployedResources();
     // Setup mocks
@@ -705,6 +731,20 @@ public class LandingZoneServiceTest {
     // Validate there are no records in result.
     assertNotNull(result);
     assertEquals(0, result.size());
+  }
+
+  @Test
+  void listLandingZones_DatabaseException_ThrowsException() throws InterruptedException {
+    UUID dummylandingZoneId = UUID.randomUUID();
+    // Setup mocks
+    when(samService.listLandingZoneResourceIds(bearerToken))
+        .thenReturn(List.of(dummylandingZoneId));
+    doThrow(new DataRetrievalFailureException("..."))
+        .when(landingZoneDao)
+        .getLandingZoneMatchingIdList(List.of(dummylandingZoneId));
+    // Test
+    Assertions.assertThrows(
+        LandingZoneDatabaseException.class, () -> landingZoneService.listLandingZones(bearerToken));
   }
 
   @Test
