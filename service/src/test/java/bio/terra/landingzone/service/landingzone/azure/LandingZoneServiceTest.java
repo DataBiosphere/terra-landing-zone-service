@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.common.exception.ForbiddenException;
+import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
@@ -41,7 +42,6 @@ import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
-import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDatabaseException;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
@@ -585,7 +585,7 @@ public class LandingZoneServiceTest {
         .getLandingZoneRecord(landingZoneId);
     // Test
     Assertions.assertThrows(
-        LandingZoneDatabaseException.class,
+        InternalServerErrorException.class,
         () -> landingZoneService.getLandingZone(bearerToken, landingZoneId));
   }
 
@@ -679,7 +679,7 @@ public class LandingZoneServiceTest {
         .getLandingZoneByBillingProfileId(billingProfileId);
     // Test
     Assertions.assertThrows(
-        LandingZoneDatabaseException.class,
+        InternalServerErrorException.class,
         () -> landingZoneService.getLandingZonesByBillingProfile(bearerToken, billingProfileId));
   }
 
@@ -744,7 +744,7 @@ public class LandingZoneServiceTest {
         .getLandingZoneMatchingIdList(List.of(dummylandingZoneId));
     // Test
     Assertions.assertThrows(
-        LandingZoneDatabaseException.class, () -> landingZoneService.listLandingZones(bearerToken));
+        InternalServerErrorException.class, () -> landingZoneService.listLandingZones(bearerToken));
   }
 
   @Test

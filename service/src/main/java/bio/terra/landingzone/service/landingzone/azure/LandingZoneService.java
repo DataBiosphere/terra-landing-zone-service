@@ -2,6 +2,7 @@ package bio.terra.landingzone.service.landingzone.azure;
 
 import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORIZED;
 
+import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
@@ -25,7 +26,6 @@ import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
-import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDatabaseException;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDefinitionNotFound;
 import bio.terra.landingzone.service.landingzone.azure.exception.LandingZoneDeleteNotImplemented;
 import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
@@ -296,7 +296,7 @@ public class LandingZoneService {
       return toLandingZone(landingZoneRecord);
     } catch (DataAccessException e) {
       logger.error("Error while retrieving landing zone record {}", landingZoneId, e);
-      throw new LandingZoneDatabaseException(
+      throw new InternalServerErrorException(
           "Database error occurred while retrieving landing zone record.");
     }
   }
@@ -336,7 +336,7 @@ public class LandingZoneService {
     } catch (DataAccessException e) {
       logger.error(
           "Error while retrieving landing zone record for billing profile {}", billingProfileId, e);
-      throw new LandingZoneDatabaseException(
+      throw new InternalServerErrorException(
           "Database error occurred while retrieving landing zone record by billing profile.");
     }
     return landingZones;
@@ -359,7 +359,7 @@ public class LandingZoneService {
           .toList();
     } catch (DataAccessException e) {
       logger.error("Error while retrieving landing zone records", e);
-      throw new LandingZoneDatabaseException(
+      throw new InternalServerErrorException(
           "Database error occurred while retrieving landing zone records.");
     }
   }
@@ -407,7 +407,7 @@ public class LandingZoneService {
           landingZoneRecord.resourceGroupId());
     } catch (DataAccessException e) {
       logger.error("Error while retrieving landing zone record {}", landingZoneId, e);
-      throw new LandingZoneDatabaseException(
+      throw new InternalServerErrorException(
           "Database error occurred while retrieving landing zone record.");
     }
   }
