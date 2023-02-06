@@ -38,6 +38,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneDeletion;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.attach.AttachAzureLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import com.azure.core.util.ExpandableStringEnum;
@@ -104,6 +105,41 @@ public class LandingZoneService {
     azureLandingZoneJobService.verifyUserAccessForDeleteJobResult(
         bearerToken, landingZoneId, jobId);
     return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeletedLandingZone.class);
+  }
+
+  public DeployedLandingZone attachLandingZone(
+      BearerToken bearerToken,
+      LandingZoneRequest azureLandingZoneRequest,
+      String jobId,
+      String resultPath) {
+    // Check that the calling user has "link" permission on the billing profile resource in Sam
+    SamRethrow.onInterrupted(
+        () ->
+            samService.checkAuthz(
+                bearerToken,
+                SamConstants.SamResourceType.SPEND_PROFILE,
+                azureLandingZoneRequest.billingProfileId().toString(),
+                SamConstants.SamSpendProfileAction.LINK),
+        IS_AUTHORIZED);
+
+    String jobDescription = "Attach Azure Landing Zone. Definition=%s, Version=%s";
+    UUID landingZoneId = azureLandingZoneRequest.landingZoneId().orElseThrow();
+    return azureLandingZoneJobService
+        .newJob()
+        .jobId(jobId)
+        .description(
+            String.format(
+                jobDescription,
+                azureLandingZoneRequest.definition(),
+                azureLandingZoneRequest.version()))
+        .flightClass(AttachAzureLandingZoneFlight.class)
+        .landingZoneRequest(azureLandingZoneRequest)
+        .operationType(OperationType.CREATE)
+        .bearerToken(bearerToken)
+        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
+        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
+        .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
+        .submitAndWait(DeployedLandingZone.class);
   }
 
   /**
@@ -233,6 +269,7 @@ public class LandingZoneService {
     return createLandingZoneManagerAndCheckListPermission(bearerToken, landingZoneId)
         .resourceQuota(landingZoneId.toString(), resourceId);
   }
+
   /**
    * Lists all landing zone resources with a provided ResourcePurpose.
    *

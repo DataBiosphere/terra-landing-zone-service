@@ -2,7 +2,9 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
+import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.model.LandingZoneTarget;
+import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
@@ -66,6 +68,11 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
             .billingProfileId(requestedExternalLandingZoneResource.billingProfileId())
             .createdDate(OffsetDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
             .build());
+
+    // save the landing zone model in the response
+    // excluding resources for now
+    var deployedLandingZone = DeployedLandingZone.builder().id(landingZoneId).build();
+    workingMap.put(JobMapKeys.RESPONSE.getKeyName(), deployedLandingZone);
     return StepResult.getStepResultSuccess();
   }
 

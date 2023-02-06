@@ -160,6 +160,10 @@ public class LandingZoneSamService {
                   SamConstants.SamResourceType.LANDING_ZONE, landingZoneRequest));
       logger.info("Created Sam resource for landing zone {}", landingZoneId);
     } catch (ApiException apiException) {
+      if (apiException.getCode() == HttpStatus.CONFLICT.value()) {
+        // resource already exists, move on
+        return;
+      }
       throw SamExceptionFactory.create(
           "Error creating a landing zone resource in Sam", apiException);
     }
