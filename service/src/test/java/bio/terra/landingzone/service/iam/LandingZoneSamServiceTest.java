@@ -222,8 +222,7 @@ class LandingZoneSamServiceTest {
     samService.deleteLandingZone(SAM_USER.getBearerToken(), LANDING_ZONE_ID);
     // Verify
     verify(resourcesApi)
-        .deleteResourceV2(
-            eq(SamConstants.SamResourceType.LANDING_ZONE), eq(LANDING_ZONE_ID.toString()));
+        .deleteResourceV2(SamConstants.SamResourceType.LANDING_ZONE, LANDING_ZONE_ID.toString());
   }
 
   @Test
@@ -231,16 +230,14 @@ class LandingZoneSamServiceTest {
     // Setup Mocks
     doThrow(new ApiException("...", HttpStatus.SC_NOT_FOUND, null, null))
         .when(resourcesApi)
-        .deleteResourceV2(
-            eq(SamConstants.SamResourceType.LANDING_ZONE), eq(LANDING_ZONE_ID.toString()));
+        .deleteResourceV2(SamConstants.SamResourceType.LANDING_ZONE, LANDING_ZONE_ID.toString());
     when(samClient.resourcesApi(anyString())).thenReturn(resourcesApi);
     samService = new LandingZoneSamService(samClient);
     // Test
     samService.deleteLandingZone(SAM_USER.getBearerToken(), LANDING_ZONE_ID);
     // Verify
     verify(resourcesApi)
-        .deleteResourceV2(
-            eq(SamConstants.SamResourceType.LANDING_ZONE), eq(LANDING_ZONE_ID.toString()));
+        .deleteResourceV2(SamConstants.SamResourceType.LANDING_ZONE, LANDING_ZONE_ID.toString());
   }
 
   @Test
@@ -249,8 +246,7 @@ class LandingZoneSamServiceTest {
     // Setup Mocks
     doThrow(new ApiException("..."))
         .when(resourcesApi)
-        .deleteResourceV2(
-            eq(SamConstants.SamResourceType.LANDING_ZONE), eq(LANDING_ZONE_ID.toString()));
+        .deleteResourceV2(SamConstants.SamResourceType.LANDING_ZONE, LANDING_ZONE_ID.toString());
     when(samClient.resourcesApi(anyString())).thenReturn(resourcesApi);
     samService = new LandingZoneSamService(samClient);
     // Test
