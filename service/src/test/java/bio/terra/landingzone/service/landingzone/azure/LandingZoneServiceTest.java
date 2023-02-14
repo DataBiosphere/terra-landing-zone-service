@@ -544,7 +544,7 @@ public class LandingZoneServiceTest {
   }
 
   @Test
-  void getLandingZone_byLandingZoneId_Success() throws InterruptedException {
+  void getLandingZone_byLandingZoneId_Success() {
     var deployedResources = setupDeployedResources();
     // Setup mocks
     final var tenantId = UUID.randomUUID();
