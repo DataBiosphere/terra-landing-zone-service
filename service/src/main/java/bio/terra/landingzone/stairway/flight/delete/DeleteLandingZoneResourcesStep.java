@@ -56,6 +56,7 @@ public class DeleteLandingZoneResourcesStep implements Step {
       DeletedLandingZone deletedLandingZone =
           deleteLandingZoneResources(
               landingZoneId,
+              landingZoneRecord.billingProfileId(),
               landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget));
 
       persistResponse(context, deletedLandingZone);
@@ -87,10 +88,9 @@ public class DeleteLandingZoneResourcesStep implements Step {
   }
 
   private DeletedLandingZone deleteLandingZoneResources(
-      UUID landingZoneId, LandingZoneManager landingZoneManager)
+      UUID landingZoneId, UUID billingProfileId, LandingZoneManager landingZoneManager)
       throws LandingZoneRuleDeleteException {
     List<String> deletedResources = landingZoneManager.deleteResources(landingZoneId.toString());
-
-    return new DeletedLandingZone(landingZoneId, deletedResources);
+    return new DeletedLandingZone(landingZoneId, deletedResources, billingProfileId);
   }
 }
