@@ -18,6 +18,7 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils;
+import com.azure.core.management.Region;
 import com.azure.core.util.Context;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -95,7 +96,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     AKS_MACHINE_TYPE,
     AKS_AUTOSCALING_ENABLED,
     AKS_AUTOSCALING_MIN,
-    AKS_AUTOSCALING_MAX
+    AKS_AUTOSCALING_MAX,
+    REGION
   }
 
   CromwellBaseResourcesFactory() {}
@@ -141,6 +143,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       ParametersResolver parametersResolver =
           new ParametersResolver(definitionContext.parameters(), getDefaultParameters());
 
+      var region = getRegion(parametersResolver, resourceGroup);
+
       aksValidator.validate(parametersResolver);
       bcValidator.validate(parametersResolver);
 
@@ -151,7 +155,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .define(
                   nameGenerator.nextName(
                       ResourceNameGenerator.MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup.name())
               .withRetentionInDays(
                   Integer.parseInt(
@@ -162,7 +168,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
           azureResourceManager
               .networks()
               .define(nameGenerator.nextName(ResourceNameGenerator.MAX_VNET_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup)
               .withAddressSpace(
                   parametersResolver.getValue(ParametersNames.VNET_ADDRESS_SPACE.name()))
@@ -184,7 +192,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .servers()
               .define(
                   nameGenerator.nextName(ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup.name())
               .withProperties(
                   new ServerPropertiesForDefaultCreate()
@@ -205,7 +215,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
           azureResourceManager
               .storageAccounts()
               .define(storageAccountName)
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup);
 
       var batch =
@@ -213,7 +225,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .batchManager()
               .batchAccounts()
               .define(nameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup.name());
 
       var prerequisites =
@@ -256,7 +270,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .privateEndpoints()
               .define(
                   nameGenerator.nextName(ResourceNameGenerator.MAX_PRIVATE_ENDPOINT_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup)
               .withSubnetId(vNetwork.subnets().get(Subnet.POSTGRESQL_SUBNET.name()).id())
               .definePrivateLinkServiceConnection(
@@ -277,7 +293,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
           azureResourceManager
               .kubernetesClusters()
               .define(nameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup)
               .withDefaultVersion()
               .withSystemAssignedManagedServiceIdentity()
@@ -315,7 +333,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .relayManager()
               .namespaces()
               .define(nameGenerator.nextName(ResourceNameGenerator.MAX_RELAY_NS_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup.name());
 
       var storageAuditLogSettings =
@@ -362,7 +382,9 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .define(
                   nameGenerator.nextName(
                       ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH))
-              .withRegion(resourceGroup.region())
+              .withRegion(
+                  getRegion(
+                      parametersResolver, resourceGroup))
               .withExistingResourceGroup(resourceGroup.name())
               .withKind("java")
               .withApplicationType(ApplicationType.OTHER)
@@ -576,5 +598,18 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
         .withExistingStorageAccount(resourceGroupName, storageAccountName)
         .withCORSRules(corsRules)
         .create();
+  }
+
+  /**
+   * Gets the desired region for the resources in the landing zone, first trying any passed-in
+   * parameters, falling back to the owning resource group's region
+   */
+  private Region getRegion(ParametersResolver parametersResolver, ResourceGroup resourceGroup) {
+    var baseValue = parametersResolver.getValue(ParametersNames.REGION.name());
+    if (null != baseValue && !baseValue.isEmpty()) {
+      return Region.fromName(baseValue);
+    }
+
+    return resourceGroup.region();
   }
 }
