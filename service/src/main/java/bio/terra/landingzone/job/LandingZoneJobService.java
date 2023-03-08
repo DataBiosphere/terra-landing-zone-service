@@ -25,6 +25,7 @@ import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayD
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
+import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -430,18 +431,18 @@ public class LandingZoneJobService {
         throw new JobNotFoundException(
             "The landing zone does not exist for job or the landing zone id is invalid.");
       }
-      var azureLandingZoneRequest =
-          inputParameters.get(
-              LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
 
       if (getJobStatus(flightState.getFlightStatus()).equals(JobReport.StatusEnum.SUCCEEDED)) {
+        var result = flightState.getResultMap().orElseThrow();
+        var deleted = result.get(JobMapKeys.RESPONSE.getKeyName(), DeletedLandingZone.class);
+
         // Check that the calling user has "link" permission on the billing profile resource in Sam
         SamRethrow.onInterrupted(
             () ->
                 samService.checkAuthz(
                     bearerToken,
                     SamConstants.SamResourceType.SPEND_PROFILE,
-                    azureLandingZoneRequest.billingProfileId().toString(),
+                    deleted.billingProfileId().toString(),
                     SamConstants.SamSpendProfileAction.LINK),
             IS_AUTHORIZED);
       } else {

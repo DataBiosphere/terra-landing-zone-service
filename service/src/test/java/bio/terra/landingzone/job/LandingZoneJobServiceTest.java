@@ -24,6 +24,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneJobConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
+import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
 import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
@@ -34,6 +35,7 @@ import bio.terra.stairway.FlightStatus;
 import bio.terra.stairway.Stairway;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,7 +91,8 @@ class LandingZoneJobServiceTest {
     UUID flightLandingZoneId = landingZoneId;
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    setupForAccessVerification(FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
+    setupForDeleteAccessVerification(
+        FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
 
     landingZoneJobService.verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
   }
@@ -125,7 +128,7 @@ class LandingZoneJobServiceTest {
     UUID landingZoneId = UUID.randomUUID();
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    setupForAccessVerification(flightStatus, jobId, landingZoneId, landingZoneRequest);
+    setupForDeleteAccessVerification(flightStatus, jobId, landingZoneId, landingZoneRequest);
 
     landingZoneJobService.verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
 
@@ -181,7 +184,8 @@ class LandingZoneJobServiceTest {
     UUID landingZoneId = UUID.randomUUID();
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    setupForAccessVerification(FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
+    setupForDeleteAccessVerification(
+        FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
 
     doThrow(ForbiddenException.class)
         .when(samService)
@@ -205,7 +209,7 @@ class LandingZoneJobServiceTest {
     UUID landingZoneId = UUID.randomUUID();
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    setupForAccessVerification(FlightStatus.ERROR, jobId, landingZoneId, landingZoneRequest);
+    setupForDeleteAccessVerification(FlightStatus.ERROR, jobId, landingZoneId, landingZoneRequest);
 
     doThrow(ForbiddenException.class)
         .when(samService)
@@ -322,6 +326,28 @@ class LandingZoneJobServiceTest {
     when(flightMap.get(
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class))
         .thenReturn(landingZoneRequest);
+  }
+
+  private void setupForDeleteAccessVerification(
+      FlightStatus flightStatus,
+      String jobId,
+      UUID landingZoneId,
+      LandingZoneRequest landingZoneRequest)
+      throws InterruptedException {
+    when(stairwayComponent.get()).thenReturn(stairwayInstance);
+    when(stairwayInstance.getFlightState(jobId)).thenReturn(flightState);
+    when(flightState.getInputParameters()).thenReturn(flightMap);
+    when(flightState.getFlightStatus()).thenReturn(flightStatus);
+    when(flightMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class))
+        .thenReturn(landingZoneId);
+
+    if (flightStatus.equals(FlightStatus.SUCCESS)) {
+      DeletedLandingZone deletedLandingZone =
+          new DeletedLandingZone(landingZoneId, List.of(), landingZoneRequest.billingProfileId());
+      when(flightMap.get(JobMapKeys.RESPONSE.getKeyName(), DeletedLandingZone.class))
+          .thenReturn(deletedLandingZone);
+      when(flightState.getResultMap()).thenReturn(Optional.of(flightMap));
+    }
   }
 
   /**
