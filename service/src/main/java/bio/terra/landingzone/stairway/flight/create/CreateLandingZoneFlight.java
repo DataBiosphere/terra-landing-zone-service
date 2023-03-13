@@ -4,6 +4,7 @@ import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.RetryRule;
@@ -36,7 +37,7 @@ public class CreateLandingZoneFlight extends Flight {
         inputParameters.get(
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
     if (requestedLandingZone == null) {
-      throw new RuntimeException("Unable to find input map");
+      throw new LandingZoneCreateException("Unable to find requested landing zone in input map");
     }
 
     addStep(
