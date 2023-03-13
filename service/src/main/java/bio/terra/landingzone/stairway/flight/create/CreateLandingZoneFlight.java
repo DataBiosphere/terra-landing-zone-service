@@ -2,6 +2,8 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.RetryRule;
@@ -26,10 +28,17 @@ public class CreateLandingZoneFlight extends Flight {
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
 
-    addCreateSteps(flightBeanBag);
+    addCreateSteps(flightBeanBag, inputParameters);
   }
 
-  private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag) {
+  private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag, FlightMap inputParameters) {
+    var requestedLandingZone =
+        inputParameters.get(
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
+    if (requestedLandingZone == null) {
+      throw new RuntimeException("Unable to find input map");
+    }
+
     addStep(
         new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
 
@@ -41,10 +50,11 @@ public class CreateLandingZoneFlight extends Flight {
             flightBeanBag.getAzureLandingZoneManagerProvider(), flightBeanBag.getObjectMapper()),
         RetryRules.shortExponential());
 
-    addStep(
-        new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
-        RetryRules.cloud());
-
+    if (!requestedLandingZone.isAttaching()) {
+      addStep(
+          new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
+          RetryRules.cloud());
+    }
     addStep(
         new ResetResourceGroupTagsStep(
             flightBeanBag.getAzureLandingZoneManagerProvider(), flightBeanBag.getObjectMapper()),

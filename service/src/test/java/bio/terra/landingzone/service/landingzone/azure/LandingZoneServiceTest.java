@@ -17,16 +17,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.ForbiddenException;
 import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
+import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
 import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
+import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
@@ -105,6 +108,7 @@ public class LandingZoneServiceTest {
   @Mock private LandingZoneDao landingZoneDao;
   @Mock private LandingZoneSamService samService;
   @Mock private LandingZoneBillingProfileManagerService bpmService;
+  @Mock private LandingZoneTestingConfiguration testingConfiguration;
   @Captor ArgumentCaptor<UUID> captorLandingZoneId;
 
   @BeforeEach
@@ -115,7 +119,8 @@ public class LandingZoneServiceTest {
             landingZoneManagerProvider,
             landingZoneDao,
             samService,
-            bpmService);
+            bpmService,
+            testingConfiguration);
   }
 
   @Test
@@ -244,6 +249,45 @@ public class LandingZoneServiceTest {
   }
 
   @Test
+  void startLandingZoneCreationJob_WithLandingZoneId_ErrorWithDuplicateId() {
+    when(landingZoneDao.getLandingZoneIfExists(eq(landingZoneId)))
+        .thenReturn(Optional.of(createLandingZoneRecord()));
+    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
+    when(mockFactory1.availableVersions())
+        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
+
+    List<FactoryDefinitionInfo> factories =
+        List.of(
+            new FactoryDefinitionInfo(
+                mockFactory1.getClass().getName(),
+                "mockFactory",
+                mockFactory1.getClass().getName(),
+                mockFactory1.availableVersions()));
+
+    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
+        Mockito.mockStatic(LandingZoneManager.class)) {
+      staticMockLandingZoneManager
+          .when(LandingZoneManager::listDefinitionFactories)
+          .thenReturn(factories);
+
+      LandingZoneRequest landingZoneRequest =
+          LandingZoneRequest.builder()
+              .definition(mockFactory1.getClass().getName())
+              .version(DefinitionVersion.V1.toString())
+              .parameters(null)
+              .billingProfileId(billingProfileId)
+              .landingZoneId(landingZoneId)
+              .build();
+
+      Assertions.assertThrows(
+          DuplicateLandingZoneException.class,
+          () ->
+              landingZoneService.startLandingZoneCreationJob(
+                  bearerToken, "newJobId", landingZoneRequest, "create-result"));
+    }
+  }
+
+  @Test
   void startLandingZoneCreationJob_ThrowsErrorWhenDefinitionDoesntExist() {
     var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
     when(mockFactory1.availableVersions())
@@ -275,6 +319,43 @@ public class LandingZoneServiceTest {
           () ->
               landingZoneService.startLandingZoneCreationJob(
                   bearerToken, "jobId", landingZoneRequest, "create-result"));
+    }
+  }
+
+  @Test
+  void startLandingZoneCreationJob_ThrowsErrorWhenAttachingInvalidConfiguration() {
+    when(testingConfiguration.isAllowAttach()).thenReturn(false);
+    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
+    when(mockFactory1.availableVersions())
+        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
+
+    List<FactoryDefinitionInfo> factories =
+        List.of(
+            new FactoryDefinitionInfo(
+                mockFactory1.getClass().getName(),
+                "mockFactory",
+                mockFactory1.getClass().getName(),
+                mockFactory1.availableVersions()));
+
+    LandingZoneRequest landingZoneRequest =
+        LandingZoneRequest.builder()
+            .definition(mockFactory1.getClass().getName())
+            .version(DefinitionVersion.V1.toString())
+            .parameters(Map.of(LandingZoneFlightMapKeys.ATTACH, "true"))
+            .billingProfileId(billingProfileId)
+            .landingZoneId(landingZoneId)
+            .build();
+
+    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
+        Mockito.mockStatic(LandingZoneManager.class)) {
+      staticMockLandingZoneManager
+          .when(LandingZoneManager::listDefinitionFactories)
+          .thenReturn(factories);
+      Assertions.assertThrows(
+          BadRequestException.class,
+          () ->
+              landingZoneService.startLandingZoneCreationJob(
+                  bearerToken, "newJobId", landingZoneRequest, "create-result"));
     }
   }
 
