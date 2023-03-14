@@ -1,6 +1,7 @@
 package bio.terra.landingzone.service.landingzone.azure.model;
 
 import bio.terra.landingzone.common.exception.MissingRequiredFieldsException;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,5 +64,14 @@ public record LandingZoneRequest(
       return new LandingZoneRequest(
           definition, version, parameters, billingProfileId, Optional.ofNullable(landingZoneId));
     }
+  }
+
+  public boolean isAttaching() {
+    if (null == this.parameters) {
+      return false;
+    }
+
+    return Boolean.parseBoolean(
+        this.parameters().getOrDefault(LandingZoneFlightMapKeys.ATTACH, "false"));
   }
 }

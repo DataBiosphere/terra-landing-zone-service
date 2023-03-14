@@ -2,9 +2,11 @@ package bio.terra.landingzone.service.landingzone.azure;
 
 import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORIZED;
 
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
+import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
@@ -12,6 +14,7 @@ import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.job.LandingZoneJobService.AsyncJobResult;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
+import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
@@ -62,18 +65,21 @@ public class LandingZoneService {
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneSamService samService;
   private final LandingZoneBillingProfileManagerService bpmService;
+  private final LandingZoneTestingConfiguration testingConfiguration;
 
   public LandingZoneService(
       LandingZoneJobService azureLandingZoneJobService,
       LandingZoneManagerProvider landingZoneManagerProvider,
       LandingZoneDao landingZoneDao,
       LandingZoneSamService samService,
-      LandingZoneBillingProfileManagerService bpmService) {
+      LandingZoneBillingProfileManagerService bpmService,
+      LandingZoneTestingConfiguration landingZoneTestingConfiguration) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.landingZoneDao = landingZoneDao;
     this.samService = samService;
     this.bpmService = bpmService;
+    this.testingConfiguration = landingZoneTestingConfiguration;
   }
 
   /**
@@ -133,6 +139,9 @@ public class LandingZoneService {
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
     UUID landingZoneId = azureLandingZoneRequest.landingZoneId().orElseGet(() -> UUID.randomUUID());
+    checkIfLandingZoneWithIdExists(landingZoneId);
+    checkIfAttaching(azureLandingZoneRequest);
+
     final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
             .newJob()
@@ -156,6 +165,21 @@ public class LandingZoneService {
             landingZoneId,
             azureLandingZoneRequest.definition(),
             azureLandingZoneRequest.version()));
+  }
+
+  private void checkIfLandingZoneWithIdExists(UUID landingZoneId) {
+    var maybeExistingLz = landingZoneDao.getLandingZoneIfExists(landingZoneId);
+    if (maybeExistingLz.isPresent()) {
+      throw new DuplicateLandingZoneException(
+          "Landing zone with ID " + landingZoneId + " already exists");
+    }
+  }
+
+  private void checkIfAttaching(LandingZoneRequest landingZoneRequest) {
+    if (landingZoneRequest.isAttaching() && !testingConfiguration.isAllowAttach()) {
+      throw new BadRequestException(
+          "Invalid request: attaching landing zones not valid in this configuration");
+    }
   }
 
   /**
