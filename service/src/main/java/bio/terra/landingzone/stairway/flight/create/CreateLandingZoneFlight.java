@@ -46,20 +46,11 @@ public class CreateLandingZoneFlight extends Flight {
     addStep(
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
-    addStep(
-        new ReadResourceGroupTagsStep(
-            flightBeanBag.getAzureLandingZoneManagerProvider(), flightBeanBag.getObjectMapper()),
-        RetryRules.shortExponential());
-
     if (!requestedLandingZone.isAttaching()) {
       addStep(
           new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
           RetryRules.cloud());
     }
-    addStep(
-        new ResetResourceGroupTagsStep(
-            flightBeanBag.getAzureLandingZoneManagerProvider(), flightBeanBag.getObjectMapper()),
-        RetryRules.shortExponential());
 
     addStep(
         new CreateAzureLandingZoneDbRecordStep(flightBeanBag.getLandingZoneDao()),
