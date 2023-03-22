@@ -54,6 +54,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import com.azure.core.management.Region;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -862,6 +863,18 @@ public class LandingZoneServiceTest {
 
     verify(landingZoneManager, times(1))
         .resourceQuota(landingZoneId.toString(), STUB_BATCH_ACCOUNT_ID);
+  }
+
+  @Test
+  void getLandingZoneRegion_returnsCorrectRegion() {
+    final Region expectedRegion = Region.ASIA_EAST;
+
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(createLandingZoneRecord());
+    when(landingZoneManagerProvider.createLandingZoneManager(any())).thenReturn(landingZoneManager);
+    when(landingZoneManager.getLandingZoneRegion()).thenReturn(expectedRegion);
+
+    var actualRegionName = landingZoneService.getLandingZoneRegion(bearerToken, landingZoneId);
+    assertEquals(expectedRegion.name(), actualRegionName);
   }
 
   private List<DeployedResource> setupDeployedResources() {

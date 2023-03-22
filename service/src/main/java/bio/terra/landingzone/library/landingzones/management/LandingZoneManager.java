@@ -16,6 +16,7 @@ import bio.terra.landingzone.library.landingzones.management.deleterules.Landing
 import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
 import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.Region;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -211,5 +212,9 @@ public class LandingZoneManager {
 
   public LandingZoneDefinitionProvider provider() {
     return landingZoneDefinitionProvider;
+  }
+
+  public Region getLandingZoneRegion() {
+    return resourceGroup.region();
   }
 }
