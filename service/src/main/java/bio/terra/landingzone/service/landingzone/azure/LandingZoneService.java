@@ -325,6 +325,12 @@ public class LandingZoneService {
     }
   }
 
+  public String getLandingZoneRegion(BearerToken bearerToken, UUID landingZoneId) {
+    var landingZoneManager =
+        createLandingZoneManagerAndCheckListPermission(bearerToken, landingZoneId);
+    return landingZoneManager.getLandingZoneRegion().name();
+  }
+
   /**
    * Lists landing zone records for a billing profile ID.
    *
