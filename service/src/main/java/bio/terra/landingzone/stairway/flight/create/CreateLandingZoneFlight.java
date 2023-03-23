@@ -41,7 +41,9 @@ public class CreateLandingZoneFlight extends Flight {
     }
 
     addStep(
-        new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
+        new CreateSamResourceStep(
+            flightBeanBag.getSamService(), requestedLandingZone.isAttaching()),
+        RetryRules.shortExponential());
 
     addStep(
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());

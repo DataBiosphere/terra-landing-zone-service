@@ -167,7 +167,8 @@ class LandingZoneSamServiceTest {
     when(samClient.usersApi(anyString())).thenReturn(usersApi);
     samService = new LandingZoneSamService(samClient);
     // Test
-    samService.createLandingZone(SAM_USER.getBearerToken(), BILLING_PROFILE_ID, LANDING_ZONE_ID);
+    samService.createLandingZone(
+        SAM_USER.getBearerToken(), BILLING_PROFILE_ID, LANDING_ZONE_ID, false);
     // Verify
     verifyCreateResourceV2(policies);
   }
@@ -188,9 +189,30 @@ class LandingZoneSamServiceTest {
     when(samClient.usersApi(anyString())).thenReturn(usersApi);
     samService = new LandingZoneSamService(samClient);
     // Test
-    samService.createLandingZone(SAM_USER.getBearerToken(), BILLING_PROFILE_ID, LANDING_ZONE_ID);
+    samService.createLandingZone(
+        SAM_USER.getBearerToken(), BILLING_PROFILE_ID, LANDING_ZONE_ID, false);
     // Verify
     verifyCreateResourceV2(policies);
+  }
+
+  @Test
+  void createLandingZone_allowsConflictWhenAttaching() throws ApiException, InterruptedException {
+    var listOfUsers = List.of(SAM_USER.getEmail());
+
+    // Setup Mocks
+    setupSamUserInfoMock(true);
+    doThrow(new ApiException(HttpStatus.SC_CONFLICT, "already exists"))
+        .when(resourcesApi)
+        .createResourceV2(
+            eq(SamConstants.SamResourceType.LANDING_ZONE), any(CreateResourceRequestV2.class));
+    when(samClient.getLandingZoneResourceUsers()).thenReturn(listOfUsers);
+    when(samClient.resourcesApi(anyString())).thenReturn(resourcesApi);
+    when(samClient.usersApi(anyString())).thenReturn(usersApi);
+    samService = new LandingZoneSamService(samClient);
+
+    // Test
+    samService.createLandingZone(
+        SAM_USER.getBearerToken(), BILLING_PROFILE_ID, LANDING_ZONE_ID, true);
   }
 
   @Test
@@ -210,7 +232,7 @@ class LandingZoneSamServiceTest {
     // Test
     Assertions.assertThrows(
         SamInternalServerErrorException.class,
-        () -> samService.createLandingZone(token, BILLING_PROFILE_ID, LANDING_ZONE_ID));
+        () -> samService.createLandingZone(token, BILLING_PROFILE_ID, LANDING_ZONE_ID, false));
   }
 
   @Test

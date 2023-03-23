@@ -18,9 +18,11 @@ public class CreateSamResourceStep implements Step {
   private static final Logger logger = LoggerFactory.getLogger(CreateSamResourceStep.class);
 
   private final LandingZoneSamService samService;
+  private final boolean isAttaching;
 
-  public CreateSamResourceStep(LandingZoneSamService samService) {
+  public CreateSamResourceStep(LandingZoneSamService samService, boolean isAttaching) {
     this.samService = samService;
+    this.isAttaching = isAttaching;
   }
 
   @Override
@@ -38,12 +40,20 @@ public class CreateSamResourceStep implements Step {
     var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     samService.createLandingZone(
-        bearerToken, requestedExternalLandingZoneResource.billingProfileId(), landingZoneId);
+        bearerToken,
+        requestedExternalLandingZoneResource.billingProfileId(),
+        landingZoneId,
+        isAttaching);
     return StepResult.getStepResultSuccess();
   }
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
+    if (this.isAttaching) {
+      // do not delete the Sam resource if we are going to be reusing the LZ via attachment
+      return StepResult.getStepResultSuccess();
+    }
+
     final FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
         inputMap, LandingZoneFlightMapKeys.BEARER_TOKEN, LandingZoneFlightMapKeys.LANDING_ZONE_ID);

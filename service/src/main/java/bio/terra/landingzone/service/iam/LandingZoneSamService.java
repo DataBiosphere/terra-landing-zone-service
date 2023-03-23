@@ -92,9 +92,14 @@ public class LandingZoneSamService {
    * @param billingProfileId the ID of the billing profile to set as the parent Sam resource. The
    *     effect of this is that the landing zone inherits permissions of the billing profile.
    * @param landingZoneId the ID of the landing zone resource to create
+   * @param attaching whether the Landing Zone is being "attached" to existing Azure resources in a
+   *     testing scenario. When set, a conflict on Sam resource creation (409) will be ignored since
+   *     the Sam resource may need to be reused across multiple tests. As such, this parameter
+   *     should only be set to True in testing scenarios.
    */
   @Traced
-  public void createLandingZone(BearerToken bearerToken, UUID billingProfileId, UUID landingZoneId)
+  public void createLandingZone(
+      BearerToken bearerToken, UUID billingProfileId, UUID landingZoneId, boolean attaching)
       throws InterruptedException {
     var userInfo = getUserStatusInfo(bearerToken);
     var resourcesApi = samClient.resourcesApi(bearerToken.getToken());
@@ -130,6 +135,16 @@ public class LandingZoneSamService {
                   SamConstants.SamResourceType.LANDING_ZONE, landingZoneRequest));
       logger.info("Created Sam resource for landing zone {}", landingZoneId);
     } catch (ApiException apiException) {
+      if (apiException.getCode() == HttpStatus.CONFLICT.value() && attaching) {
+        logger.warn(
+            "Landing zone resource with id "
+                + landingZoneId
+                + " already exists. Ignoring since this landing zone is being attached to existing azure resources");
+        return;
+      }
+
+      logger.error(
+          "Error creating a landing zone in Sam, status = " + apiException.getCode(), apiException);
       throw SamExceptionFactory.create(
           "Error creating a landing zone resource in Sam", apiException);
     }
