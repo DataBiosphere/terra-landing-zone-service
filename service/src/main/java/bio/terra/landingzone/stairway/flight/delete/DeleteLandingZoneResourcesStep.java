@@ -16,6 +16,7 @@ import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -57,7 +58,8 @@ public class DeleteLandingZoneResourcesStep implements Step {
           deleteLandingZoneResources(
               landingZoneId,
               landingZoneRecord.billingProfileId(),
-              landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget));
+              landingZoneManagerProvider.createLandingZoneManager(landingZoneTarget),
+              isAttached(landingZoneRecord));
 
       persistResponse(context, deletedLandingZone);
 
@@ -88,9 +90,22 @@ public class DeleteLandingZoneResourcesStep implements Step {
   }
 
   private DeletedLandingZone deleteLandingZoneResources(
-      UUID landingZoneId, UUID billingProfileId, LandingZoneManager landingZoneManager)
+      UUID landingZoneId,
+      UUID billingProfileId,
+      LandingZoneManager landingZoneManager,
+      boolean isAttached)
       throws LandingZoneRuleDeleteException {
+    if (isAttached) {
+      logger.info("Landing zone {} was attached, skipping Azure resource deletion", landingZoneId);
+      return new DeletedLandingZone(landingZoneId, Collections.emptyList(), billingProfileId);
+    }
+
     List<String> deletedResources = landingZoneManager.deleteResources(landingZoneId.toString());
     return new DeletedLandingZone(landingZoneId, deletedResources, billingProfileId);
+  }
+
+  private boolean isAttached(LandingZoneRecord record) {
+    return Boolean.parseBoolean(
+        record.properties().getOrDefault(LandingZoneFlightMapKeys.ATTACH, "false"));
   }
 }
