@@ -95,13 +95,13 @@ jobs:
       - name: Test Service and Library with coverage
         run: ./gradlew --build-cache service:test --scan
 
-      - name: Testhaness Tests with coverage
+      - name: Test Harness Tests with coverage
         run: ./gradlew --build-cache testharness:test --scan
 
       - name: Integration Test with coverage
         run: ./gradlew --build-cache service:integration --scan
 
-      - name: Upload Testharness Test Reports
+      - name: Upload Test Harness Test Reports
         uses: actions/upload-artifact@v1
         if: always()
         with:
