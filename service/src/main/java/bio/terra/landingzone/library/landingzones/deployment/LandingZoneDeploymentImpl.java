@@ -4,6 +4,7 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployme
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationInsightsComponent;
 import com.azure.resourcemanager.batch.models.BatchAccount;
+import com.azure.resourcemanager.compute.models.Disk;
 import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
 import com.azure.resourcemanager.network.models.Network;
@@ -278,6 +279,13 @@ public class LandingZoneDeploymentImpl
       ApplicationInsightsComponent.DefinitionStages.WithCreate appInsights,
       ResourcePurpose purpose) {
     resourcesTagMapWrapper.putWithPurpose(appInsights, purpose);
+    return this;
+  }
+
+  @Override
+  public Deployable withResourceWithPurpose(
+      Disk.DefinitionStages.WithCreate disk, ResourcePurpose resourcePurpose) {
+    resourcesTagMapWrapper.putWithPurpose(disk, resourcePurpose);
     return this;
   }
 

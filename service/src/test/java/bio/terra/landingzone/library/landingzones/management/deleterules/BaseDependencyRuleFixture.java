@@ -9,6 +9,7 @@ import com.azure.core.http.rest.PagedIterable;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.batch.BatchManager;
+import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.monitor.MonitorManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
@@ -36,6 +37,7 @@ public class BaseDependencyRuleFixture {
   @Mock protected LogAnalyticsManager logAnalyticsManager;
   @Mock protected MonitorManager monitorManager;
   @Mock protected ApplicationInsightsManager applicationInsightsManager;
+  @Mock protected ComputeManager computeManager;
 
   @Mock protected ResourceToDelete resourceToDelete;
   @Mock protected GenericResource resource;
@@ -50,7 +52,8 @@ public class BaseDependencyRuleFixture {
             postgreSqlManager,
             logAnalyticsManager,
             monitorManager,
-            applicationInsightsManager);
+            applicationInsightsManager,
+            computeManager);
   }
 
   protected void setUpResourceToDelete() {
