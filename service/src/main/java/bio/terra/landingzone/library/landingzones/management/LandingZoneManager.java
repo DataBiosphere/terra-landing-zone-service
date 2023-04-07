@@ -22,6 +22,7 @@ import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.batch.BatchManager;
+import com.azure.resourcemanager.compute.ComputeManager;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.monitor.MonitorManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
@@ -100,6 +101,7 @@ public class LandingZoneManager {
     MonitorManager monitorManager = MonitorManager.authenticate(credential, profile);
     ApplicationInsightsManager applicationInsightsManager =
         ApplicationInsightsManager.authenticate(credential, profile);
+    ComputeManager computeManager = ComputeManager.authenticate(credential, profile);
 
     return new ArmManagers(
         azureResourceManager,
@@ -108,7 +110,8 @@ public class LandingZoneManager {
         postgreSqlManager,
         logAnalyticsManager,
         monitorManager,
-        applicationInsightsManager);
+        applicationInsightsManager,
+        computeManager);
   }
 
   public static List<FactoryDefinitionInfo> listDefinitionFactories() {
