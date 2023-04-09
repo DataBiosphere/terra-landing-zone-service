@@ -7,9 +7,9 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 
 // Definition of Fake LZ contains all the resource from the CromwellBase LZ, plus additional
 // resources
-class FakeResourcesFactoryDefinitionV1 extends CromwellBaseResourcesDefinitionV1 {
+class ProtectedDataResourcesDefinitionV1 extends CromwellBaseResourcesDefinitionV1 {
 
-  public FakeResourcesFactoryDefinitionV1(ArmManagers armManagers) {
+  public ProtectedDataResourcesDefinitionV1(ArmManagers armManagers) {
     super(armManagers);
   }
 
