@@ -5,7 +5,7 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.LandingZoneDefinable;
 import java.util.List;
 
-public class FakeResourcesFactory extends ArmClientsDefinitionFactory {
+public class ProtectedDataResourcesFactory extends ArmClientsDefinitionFactory {
   private final String LZ_NAME = "Fake Landing Zone Base Resources";
   private final String LZ_DESC = "Every resource which Cromwell has and disk";
 
@@ -22,7 +22,7 @@ public class FakeResourcesFactory extends ArmClientsDefinitionFactory {
   @Override
   public LandingZoneDefinable create(DefinitionVersion version) {
     if (version.equals(DefinitionVersion.V1)) {
-      return new FakeResourcesFactoryDefinitionV1(armManagers);
+      return new ProtectedDataResourcesDefinitionV1(armManagers);
     }
     throw new RuntimeException("Invalid Version");
   }
