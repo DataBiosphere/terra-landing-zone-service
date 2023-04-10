@@ -22,7 +22,7 @@ dependencies {
     testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
 
     // Allows us to mock final classes
-    testImplementation 'org.mockito:mockito-inline:2.13.0'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     jacocoTestReport {
         reports {
