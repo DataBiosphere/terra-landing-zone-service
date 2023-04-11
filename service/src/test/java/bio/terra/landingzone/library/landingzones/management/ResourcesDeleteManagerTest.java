@@ -17,6 +17,7 @@ import bio.terra.landingzone.library.landingzones.management.deleterules.Landing
 import bio.terra.landingzone.library.landingzones.management.deleterules.PostgreSQLServerHasDBs;
 import bio.terra.landingzone.library.landingzones.management.deleterules.StorageAccountHasContainers;
 import bio.terra.landingzone.library.landingzones.management.deleterules.VmsAreAttachedToVnet;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.batch.models.AutoScaleSettings;
 import com.azure.resourcemanager.batch.models.BatchAccount;
 import com.azure.resourcemanager.batch.models.DeploymentConfiguration;
@@ -153,12 +154,11 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
 
   @Test
   void landingZoneWithDependencies_cannotDelete() {
-    //    BlobContainer container = createBlobContainer();
-    //    HybridConnection hc = createHybridConnection();
-    //    Database db = createDatabase();
-    //    scaleNodePool();
-    //    VirtualMachine vm = createVirtualMachine();
-    createBatchPool("mypool");
+    BlobContainer container = createBlobContainer();
+    HybridConnection hc = createHybridConnection();
+    Database db = createDatabase();
+    scaleNodePool();
+    VirtualMachine vm = createVirtualMachine();
     createBatchPool("mypool");
 
     Exception exception =
@@ -254,30 +254,35 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
   }
 
   private void createBatchPool(String poolName) {
-    var pool =
-        armManagers
-            .batchManager()
-            .pools()
-            .define(poolName)
-            .withExistingBatchAccount(resourceGroup.name(), batch.name())
-            .withVmSize("Standard_D2as_v4")
-            .withDeploymentConfiguration(
-                new DeploymentConfiguration()
-                    .withVirtualMachineConfiguration(
-                        new VirtualMachineConfiguration()
-                            .withImageReference(
-                                new ImageReference()
-                                    .withPublisher("Canonical")
-                                    .withOffer("UbuntuServer")
-                                    .withSku("18.04-LTS")
-                                    .withVersion("latest"))
-                            .withNodeAgentSkuId("batch.node.ubuntu 18.04")))
-            .withScaleSettings(
-                new ScaleSettings()
-                    .withAutoScale(
-                        new AutoScaleSettings()
-                            .withFormula("$TargetDedicatedNodes=1")
-                            .withEvaluationInterval(Duration.parse("PT5M"))))
-            .create();
+    try {
+      armManagers
+          .batchManager()
+          .pools()
+          .define(poolName)
+          .withExistingBatchAccount(resourceGroup.name(), batch.name())
+          .withVmSize("Standard_D2as_v4")
+          .withDeploymentConfiguration(
+              new DeploymentConfiguration()
+                  .withVirtualMachineConfiguration(
+                      new VirtualMachineConfiguration()
+                          .withImageReference(
+                              new ImageReference()
+                                  .withPublisher("Canonical")
+                                  .withOffer("UbuntuServer")
+                                  .withSku("18.04-LTS")
+                                  .withVersion("latest"))
+                          .withNodeAgentSkuId("batch.node.ubuntu 18.04")))
+          .withScaleSettings(
+              new ScaleSettings()
+                  .withAutoScale(
+                      new AutoScaleSettings()
+                          .withFormula("$TargetDedicatedNodes=1")
+                          .withEvaluationInterval(Duration.parse("PT5M"))))
+          .create();
+    } catch (ManagementException e) {
+      if (!e.getValue().getCode().equals("Conflict")) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }
