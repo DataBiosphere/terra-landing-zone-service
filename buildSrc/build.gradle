@@ -11,7 +11,7 @@ dependencies {
     implementation 'com.felipefzdz.gradle.shellcheck:shellcheck:1.4.6'
     implementation 'com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin:3.2.0'
     implementation 'com.srcclr.gradle:com.srcclr.gradle.gradle.plugin:3.1.12'
-    implementation 'de.undercouch.download:de.undercouch.download.gradle.plugin:5.1.0'
+    implementation 'de.undercouch.download:de.undercouch.download.gradle.plugin:5.4.0'
     implementation group: 'com.github.spotbugs.snom', name: 'spotbugs-gradle-plugin', version: '5.0.14'
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.0.11.RELEASE'
     implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.1'
