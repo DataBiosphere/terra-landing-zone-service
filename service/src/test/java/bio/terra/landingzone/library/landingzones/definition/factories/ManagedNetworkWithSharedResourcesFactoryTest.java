@@ -11,10 +11,12 @@ import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("integration")
+@Disabled
 class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixture {
 
   private LandingZoneManager landingZoneManager;

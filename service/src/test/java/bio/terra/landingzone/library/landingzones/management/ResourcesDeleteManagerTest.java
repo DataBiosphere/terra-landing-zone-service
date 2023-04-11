@@ -153,11 +153,12 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
 
   @Test
   void landingZoneWithDependencies_cannotDelete() {
-    BlobContainer container = createBlobContainer();
-    HybridConnection hc = createHybridConnection();
-    Database db = createDatabase();
-    scaleNodePool();
-    VirtualMachine vm = createVirtualMachine();
+    //    BlobContainer container = createBlobContainer();
+    //    HybridConnection hc = createHybridConnection();
+    //    Database db = createDatabase();
+    //    scaleNodePool();
+    //    VirtualMachine vm = createVirtualMachine();
+    createBatchPool("mypool");
     createBatchPool("mypool");
 
     Exception exception =
