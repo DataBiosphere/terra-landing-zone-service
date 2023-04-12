@@ -22,7 +22,7 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.5.1'
     implementation 'javax.servlet:jstl:1.2'
     implementation group: 'com.azure', name: 'azure-core', version: '1.34.0'
-    implementation group: 'com.azure', name: 'azure-identity', version: '1.7.1'
+    implementation group: 'com.azure', name: 'azure-identity', version: '1.8.2'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.18.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.18.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.18.0'
