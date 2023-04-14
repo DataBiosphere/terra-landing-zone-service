@@ -4,6 +4,8 @@ import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.LandingZoneStepsDefinitionProviderFactory;
+import bio.terra.landingzone.stairway.flight.StepsDefinitionProvider;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
@@ -12,6 +14,8 @@ import bio.terra.stairway.Step;
 
 /** Flight for creation of a Landing Zone */
 public class CreateLandingZoneFlight extends Flight {
+
+  private final StepsDefinitionProvider stepsDefinitionProvider;
 
   @Override
   public void addStep(Step step, RetryRule retryRule) {
@@ -26,6 +30,11 @@ public class CreateLandingZoneFlight extends Flight {
    */
   public CreateLandingZoneFlight(FlightMap inputParameters, Object applicationContext) {
     super(inputParameters, applicationContext);
+
+    //read it from input parameters instead
+    var stepsDefinitionProviderType = LandingZoneStepsDefinitionProviderFactory.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE;
+    stepsDefinitionProvider = LandingZoneStepsDefinitionProviderFactory.create(stepsDefinitionProviderType);
+
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
 
@@ -47,9 +56,10 @@ public class CreateLandingZoneFlight extends Flight {
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     if (!requestedLandingZone.isAttaching()) {
-      addStep(
-          new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
-          RetryRules.cloud());
+        stepsDefinitionProvider.get().forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
+//      addStep(
+//          new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
+//          RetryRules.cloud());
     }
 
     addStep(
