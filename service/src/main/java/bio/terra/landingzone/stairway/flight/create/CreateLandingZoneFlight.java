@@ -31,9 +31,13 @@ public class CreateLandingZoneFlight extends Flight {
   public CreateLandingZoneFlight(FlightMap inputParameters, Object applicationContext) {
     super(inputParameters, applicationContext);
 
-    //read it from input parameters instead
-    var stepsDefinitionProviderType = LandingZoneStepsDefinitionProviderFactory.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE;
-    stepsDefinitionProvider = LandingZoneStepsDefinitionProviderFactory.create(stepsDefinitionProviderType);
+    // TODO: read it from input parameters instead. Assuming this parameter will be passed up from
+    // the Rest api
+    // as we now pass factory name. Should we introduce v2 version of LZ api?
+    var stepsDefinitionProviderType =
+        LandingZoneStepsDefinitionProviderFactory.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE;
+    stepsDefinitionProvider =
+        LandingZoneStepsDefinitionProviderFactory.create(stepsDefinitionProviderType);
 
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
@@ -56,10 +60,13 @@ public class CreateLandingZoneFlight extends Flight {
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     if (!requestedLandingZone.isAttaching()) {
-        stepsDefinitionProvider.get().forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
-//      addStep(
-//          new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
-//          RetryRules.cloud());
+      stepsDefinitionProvider
+          .get(flightBeanBag.getAzureConfiguration())
+          .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
+      //      addStep(
+      //          new
+      // CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
+      //          RetryRules.cloud());
     }
 
     addStep(

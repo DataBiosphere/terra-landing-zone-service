@@ -28,7 +28,7 @@ public class LandingZoneManagerProvider {
   }
 
   @NotNull
-  private AzureProfile createAzureProfile(LandingZoneTarget landingZoneTarget) {
+  public AzureProfile createAzureProfile(LandingZoneTarget landingZoneTarget) {
     return new AzureProfile(
         landingZoneTarget.azureTenantId(),
         landingZoneTarget.azureSubscriptionId(),
@@ -42,7 +42,7 @@ public class LandingZoneManagerProvider {
         .withSubscription(azureProfile.getSubscriptionId());
   }
 
-  private TokenCredential buildTokenCredential() {
+  public TokenCredential buildTokenCredential() {
     return new ClientSecretCredentialBuilder()
         .clientId(azureConfiguration.getManagedAppClientId())
         .clientSecret(azureConfiguration.getManagedAppClientSecret())
