@@ -1,9 +1,12 @@
 plugins {
     id 'bio.terra.landingzone.java-spring-app-conventions'
 }
-
+dependencyLocking {
+    lockAllConfigurations()
+}
 dependencies {
     implementation project(":service")
+    implementation 'net.minidev:json-smart:2.4.10'
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
