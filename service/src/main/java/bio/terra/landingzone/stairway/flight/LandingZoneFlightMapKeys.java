@@ -7,6 +7,7 @@ public class LandingZoneFlightMapKeys {
   public static final String BEARER_TOKEN = "bearerToken";
   public static final String BILLING_PROFILE = "billingProfile";
   public static final String ATTACH = "attach";
+  public static final String STORAGE_ACCOUNT_NAME = "storageAccountName";
 
   private LandingZoneFlightMapKeys() {}
 }

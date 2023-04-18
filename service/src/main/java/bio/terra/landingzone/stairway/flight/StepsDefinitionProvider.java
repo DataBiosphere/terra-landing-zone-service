@@ -1,6 +1,7 @@
 package bio.terra.landingzone.stairway.flight;
 
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
+import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import java.util.List;
@@ -17,5 +18,7 @@ public interface StepsDefinitionProvider {
    * @param landingZoneAzureConfiguration
    * @return List of pairs of steps and step's retry rule
    */
-  List<Pair<Step, RetryRule>> get(LandingZoneAzureConfiguration landingZoneAzureConfiguration);
+  List<Pair<Step, RetryRule>> get(
+      LandingZoneAzureConfiguration landingZoneAzureConfiguration,
+      ResourceNameGenerator resourceNameGenerator);
 }

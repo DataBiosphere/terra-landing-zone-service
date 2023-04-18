@@ -26,7 +26,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   public static final String STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT = "";
   public static final String STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT = "0";
 
-  enum Subnet {
+  public enum Subnet {
     AKS_SUBNET,
     BATCH_SUBNET,
     POSTGRESQL_SUBNET,
