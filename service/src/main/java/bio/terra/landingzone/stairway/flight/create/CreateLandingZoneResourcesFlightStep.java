@@ -1,5 +1,6 @@
 package bio.terra.landingzone.stairway.flight.create;
 
+import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.job.model.OperationType;
@@ -30,7 +31,7 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     // initialize CreateLandingZoneResourcesFlight
     var jobDescription =
-        "Inner flight to creation landing zone resources. definition='%s', version='%s'";
+        "Inner flight to create landing zone resources. definition='%s', version='%s'";
     var jobId = String.format("lzResources_%s", landingZoneRequest.landingZoneId());
     // TODO: check if we already have flight
 
@@ -41,6 +42,12 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
     // this parameter should be read in AwayCreatLandingZoneFlightStep
     context.getWorkingMap().put(jobIdKey, jobId);
 
+    // use token from parent flight
+    var bearerToken =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
+    var resultPath = context.getWorkingMap().get(JobMapKeys.RESULT_PATH.toString(), String.class);
+
+    // create sub-flight, which is supposed to create all required Azure resources
     azureLandingZoneJobService
         .newJob()
         .jobId(jobId)
@@ -50,10 +57,12 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
         .flightClass(CreateLandingZoneResourcesFlight.class)
         .landingZoneRequest(landingZoneRequest)
         .operationType(OperationType.CREATE)
-        .bearerToken(bearerToken) // <- do we need this?
+        .bearerToken(bearerToken) // <- this is required?
         .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, landingZoneRequest)
         .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneRequest.landingZoneId())
-        .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+        .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
+        .submit(); // TODO: <- check resultPath
+
     return StepResult.getStepResultSuccess();
   }
 

@@ -4,8 +4,6 @@ import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.stairway.flight.LandingZoneStepsDefinitionProviderFactory;
-import bio.terra.landingzone.stairway.flight.StepsDefinitionProvider;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
@@ -15,8 +13,6 @@ import java.util.UUID;
 
 /** Flight for creation of a Landing Zone */
 public class CreateLandingZoneFlight extends Flight {
-
-  private final StepsDefinitionProvider stepsDefinitionProvider;
 
   @Override
   public void addStep(Step step, RetryRule retryRule) {
@@ -31,15 +27,6 @@ public class CreateLandingZoneFlight extends Flight {
    */
   public CreateLandingZoneFlight(FlightMap inputParameters, Object applicationContext) {
     super(inputParameters, applicationContext);
-
-    // TODO: read it from input parameters instead. Assuming this parameter will be passed up from
-    // the Rest api
-    // as we now pass factory name. Should we introduce v2 version of LZ api?
-    var stepsDefinitionProviderType =
-        LandingZoneStepsDefinitionProviderFactory.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE;
-    stepsDefinitionProvider =
-        LandingZoneStepsDefinitionProviderFactory.create(stepsDefinitionProviderType);
-
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
 
@@ -71,16 +58,11 @@ public class CreateLandingZoneFlight extends Flight {
       // and don't need to implement rollback for each step
       // Which option is better here 1 rollback or rollback per resource creation?
       if (Boolean.TRUE.equals(requestedLandingZone.stairwayPath())) {
-        // TODO: introduce inner flight and pass stepsDefinitionProvider
-
         addStep(
             new CreateLandingZoneResourcesFlightStep(
+                flightBeanBag.getAzureLandingZoneJobService(),
+                requestedLandingZone,
                 LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
-        //        stepsDefinitionProvider
-        //            .get(
-        //                flightBeanBag.getAzureConfiguration(),
-        //                new ResourceNameGenerator(landingZoneId.toString()))
-        //            .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
         addStep(
             new AwaitCreateLandingResourcesZoneFlightStep(
                 LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
