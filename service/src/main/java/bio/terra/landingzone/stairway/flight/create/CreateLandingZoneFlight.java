@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.LandingZoneStepsDefinitionProviderFactory;
@@ -71,16 +70,25 @@ public class CreateLandingZoneFlight extends Flight {
       // so, in this case we need only one step to rollback everything at once
       // and don't need to implement rollback for each step
       // Which option is better here 1 rollback or rollback per resource creation?
-      stepsDefinitionProvider
-          .get(
-              flightBeanBag.getAzureConfiguration(),
-              new ResourceNameGenerator(landingZoneId.toString()))
-          .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
+      if (Boolean.TRUE.equals(requestedLandingZone.stairwayPath())) {
+        // TODO: introduce inner flight and pass stepsDefinitionProvider
 
-      //      addStep(
-      //          new
-      // CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
-      //          RetryRules.cloud());
+        addStep(
+            new CreateLandingZoneResourcesFlightStep(
+                LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
+        //        stepsDefinitionProvider
+        //            .get(
+        //                flightBeanBag.getAzureConfiguration(),
+        //                new ResourceNameGenerator(landingZoneId.toString()))
+        //            .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
+        addStep(
+            new AwaitCreateLandingResourcesZoneFlightStep(
+                LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
+      } else {
+        addStep(
+            new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
+            RetryRules.cloud());
+      }
     }
 
     addStep(

@@ -11,11 +11,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateBatchAccountStep extends BaseResourceCreateStep {
-  private static final Logger logger = LoggerFactory.getLogger(CreateBatchAccountStep.class);
-  public static final String BATCH_ACCOUNT_ID = "BATCH_ACCOUNT_ID";
+public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
+  private static final Logger logger = LoggerFactory.getLogger(CreateBatchLogSettingsStep.class);
 
-  public CreateBatchAccountStep(
+  public CreateBatchLogSettingsStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
       ResourceNameGenerator resourceNameGenerator) {
     super(landingZoneAzureConfiguration, resourceNameGenerator);
@@ -24,27 +23,43 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     super.doStep(context);
-    String batchAccountName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH);
+
+    var batchAccountId =
+        getParameterOrThrow(
+            context.getWorkingMap(), CreateBatchAccountStep.BATCH_ACCOUNT_ID, String.class);
+    var logAnalyticsWorkspaceId =
+        getParameterOrThrow(
+            context.getWorkingMap(),
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            String.class);
+
+    var batchLogSettingsName =
+        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH);
     try {
-      var batch =
-          armManagers
-              .batchManager()
-              .batchAccounts()
-              .define(batchAccountName)
-              .withRegion(resourceGroup.region())
-              .withExistingResourceGroup(resourceGroup.name())
-              .create();
-      context.getWorkingMap().put(BATCH_ACCOUNT_ID, batch.id());
+      armManagers
+          .monitorManager()
+          .diagnosticSettings()
+          .define(batchLogSettingsName)
+          .withResource(batchAccountId)
+          .withLogAnalytics(logAnalyticsWorkspaceId)
+          .withLog("ServiceLogs", 0) // retention is handled by the log analytics workspace
+          .withLog("ServiceLog", 0)
+          .withLog("AuditLog", 0)
+          .create();
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
         logger.info(
-            RESOURCE_ALREADY_EXISTS, "Batch account", batchAccountName, resourceGroup.name());
+            RESOURCE_ALREADY_EXISTS,
+            "Batch account log settings",
+            batchLogSettingsName,
+            resourceGroup.name());
         return StepResult.getStepResultSuccess();
       }
-      logger.error(FAILED_TO_CREATE_RESOURCE, "batch account", landingZoneId.toString());
+      logger.error(
+          FAILED_TO_CREATE_RESOURCE, "batch account log settings", landingZoneId.toString());
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     }
+
     return StepResult.getStepResultSuccess();
   }
 

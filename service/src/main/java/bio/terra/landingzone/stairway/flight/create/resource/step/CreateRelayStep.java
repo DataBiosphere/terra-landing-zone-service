@@ -11,11 +11,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateBatchAccountStep extends BaseResourceCreateStep {
-  private static final Logger logger = LoggerFactory.getLogger(CreateBatchAccountStep.class);
-  public static final String BATCH_ACCOUNT_ID = "BATCH_ACCOUNT_ID";
+public class CreateRelayStep extends BaseResourceCreateStep {
+  private static final Logger logger = LoggerFactory.getLogger(CreateRelayStep.class);
 
-  public CreateBatchAccountStep(
+  public CreateRelayStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
       ResourceNameGenerator resourceNameGenerator) {
     super(landingZoneAzureConfiguration, resourceNameGenerator);
@@ -24,25 +23,21 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     super.doStep(context);
-    String batchAccountName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH);
+    var relayName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_RELAY_NS_NAME_LENGTH);
     try {
-      var batch =
-          armManagers
-              .batchManager()
-              .batchAccounts()
-              .define(batchAccountName)
-              .withRegion(resourceGroup.region())
-              .withExistingResourceGroup(resourceGroup.name())
-              .create();
-      context.getWorkingMap().put(BATCH_ACCOUNT_ID, batch.id());
+      armManagers
+          .relayManager()
+          .namespaces()
+          .define(relayName)
+          .withRegion(resourceGroup.region())
+          .withExistingResourceGroup(resourceGroup.name())
+          .create();
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
-        logger.info(
-            RESOURCE_ALREADY_EXISTS, "Batch account", batchAccountName, resourceGroup.name());
+        logger.info(RESOURCE_ALREADY_EXISTS, "Relay", relayName, resourceGroup.name());
         return StepResult.getStepResultSuccess();
       }
-      logger.error(FAILED_TO_CREATE_RESOURCE, "batch account", landingZoneId.toString());
+      logger.error(FAILED_TO_CREATE_RESOURCE, "relay", landingZoneId.toString());
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     }
     return StepResult.getStepResultSuccess();

@@ -12,7 +12,8 @@ public record LandingZoneRequest(
     String version,
     Map<String, String> parameters,
     UUID billingProfileId,
-    Optional<UUID> landingZoneId) {
+    Optional<UUID> landingZoneId,
+    Boolean stairwayPath) {
 
   public static Builder builder() {
     return new Builder();
@@ -24,6 +25,7 @@ public record LandingZoneRequest(
     private Map<String, String> parameters;
     private UUID billingProfileId;
     private UUID landingZoneId;
+    private Boolean stairwayPath;
 
     public Builder definition(String definition) {
       this.definition = definition;
@@ -50,6 +52,11 @@ public record LandingZoneRequest(
       return this;
     }
 
+    public Builder stairwayPath(Boolean stairwayPath) {
+      this.stairwayPath = stairwayPath;
+      return this;
+    }
+
     public LandingZoneRequest build() {
       if (StringUtils.isBlank(definition)) {
         throw new MissingRequiredFieldsException(
@@ -61,8 +68,17 @@ public record LandingZoneRequest(
             "Azure landing zone definition requires billing profile ID");
       }
 
+      if (stairwayPath == null) {
+        stairwayPath = false;
+      }
+
       return new LandingZoneRequest(
-          definition, version, parameters, billingProfileId, Optional.ofNullable(landingZoneId));
+          definition,
+          version,
+          parameters,
+          billingProfileId,
+          Optional.ofNullable(landingZoneId),
+          stairwayPath);
     }
   }
 

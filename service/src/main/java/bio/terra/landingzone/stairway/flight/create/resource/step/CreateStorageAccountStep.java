@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 public class CreateStorageAccountStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateStorageAccountStep.class);
-  public static final String STORAGE_ID = "STORAGE_ID";
+  public static final String STORAGE_ACCOUNT_ID = "STORAGE_ACCOUNT_ID";
 
   public CreateStorageAccountStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
@@ -27,7 +27,6 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
     super.doStep(context);
     String storageAccountName =
         resourceNameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH);
-    ;
     try {
       var storage =
           armManagers
@@ -38,7 +37,7 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
               .withExistingResourceGroup(resourceGroup)
               .create();
 
-      context.getWorkingMap().put(STORAGE_ID, storage.id());
+      context.getWorkingMap().put(STORAGE_ACCOUNT_ID, storage.id());
       context
           .getWorkingMap()
           .put(LandingZoneFlightMapKeys.STORAGE_ACCOUNT_NAME, storageAccountName);

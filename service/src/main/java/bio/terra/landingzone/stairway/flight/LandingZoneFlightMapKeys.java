@@ -8,6 +8,8 @@ public class LandingZoneFlightMapKeys {
   public static final String BILLING_PROFILE = "billingProfile";
   public static final String ATTACH = "attach";
   public static final String STORAGE_ACCOUNT_NAME = "storageAccountName";
+  public static final String CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID =
+      "createLandingZoneResourcesInnerFlightJobId";
 
   private LandingZoneFlightMapKeys() {}
 }

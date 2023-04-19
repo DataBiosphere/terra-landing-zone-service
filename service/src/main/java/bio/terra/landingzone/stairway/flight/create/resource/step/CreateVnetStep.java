@@ -29,7 +29,6 @@ public class CreateVnetStep extends BaseResourceCreateStep {
     super.doStep(context);
     // TODO: check if we can arrange all these dependencies in a different way
     // Most like we need the same setup for different steps. At least we need armManagers.
-
     String vNetName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_VNET_NAME_LENGTH);
     try {
       var vNet =
