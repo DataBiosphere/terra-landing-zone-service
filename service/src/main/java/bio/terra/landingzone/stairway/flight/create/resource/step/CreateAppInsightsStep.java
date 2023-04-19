@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 public class CreateAppInsightsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAppInsightsStep.class);
+  public static final String APP_INSIGHT_ID = "APP_INSIGHT_ID";
 
   public CreateAppInsightsStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
@@ -34,16 +35,18 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
         resourceNameGenerator.nextName(
             ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH);
     try {
-      armManagers
-          .applicationInsightsManager()
-          .components()
-          .define(appInsightsName)
-          .withRegion(resourceGroup.region())
-          .withExistingResourceGroup(resourceGroup.name())
-          .withKind("java")
-          .withApplicationType(ApplicationType.OTHER)
-          .withWorkspaceResourceId(logAnalyticsWorkspaceId)
-          .create();
+      var appInsight =
+          armManagers
+              .applicationInsightsManager()
+              .components()
+              .define(appInsightsName)
+              .withRegion(resourceGroup.region())
+              .withExistingResourceGroup(resourceGroup.name())
+              .withKind("java")
+              .withApplicationType(ApplicationType.OTHER)
+              .withWorkspaceResourceId(logAnalyticsWorkspaceId)
+              .create();
+      context.getWorkingMap().put(APP_INSIGHT_ID, appInsight.id());
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
         logger.info(
@@ -59,6 +62,15 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) {
+    var appInsightId = context.getWorkingMap().get(APP_INSIGHT_ID, String.class);
+    try {
+      armManagers.applicationInsightsManager().components().deleteById(appInsightId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        return StepResult.getStepResultSuccess();
+      }
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 }

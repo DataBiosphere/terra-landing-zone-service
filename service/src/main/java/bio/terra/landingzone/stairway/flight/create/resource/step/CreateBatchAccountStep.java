@@ -50,6 +50,15 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) {
+    var batchAccountId = context.getWorkingMap().get(BATCH_ACCOUNT_ID, String.class);
+    try {
+      armManagers.batchManager().batchAccounts().deleteById(batchAccountId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        return StepResult.getStepResultSuccess();
+      }
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 }

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class CreateAksStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksStep.class);
+  public static final String AKS_ID = "AKS_ID";
 
   public CreateAksStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
@@ -99,6 +100,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
                       LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                       ResourcePurpose.SHARED_RESOURCE.toString()))
               .create();
+      context.getWorkingMap().put(AKS_ID, aks.id());
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
         logger.info(RESOURCE_ALREADY_EXISTS, "AKS", aksName, resourceGroup.name());
@@ -112,6 +114,15 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) {
+    var aksId = context.getWorkingMap().get(AKS_ID, String.class);
+    try {
+      armManagers.azureResourceManager().kubernetesClusters().deleteById(aksId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        return StepResult.getStepResultSuccess();
+      }
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 }

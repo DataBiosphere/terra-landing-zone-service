@@ -68,7 +68,6 @@ public class CreateVnetStep extends BaseResourceCreateStep {
                       CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name(),
                       SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET.toString()))
               .create();
-      // TODO: do we need vNetId downstream?
       context.getWorkingMap().put(VNET_ID, vNet.id());
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
@@ -83,7 +82,15 @@ public class CreateVnetStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    // rollback here or in case of sub-flight do it there
+    var vNetId = context.getWorkingMap().get(VNET_ID, String.class);
+    try {
+      armManagers.azureResourceManager().networks().deleteById(vNetId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        return StepResult.getStepResultSuccess();
+      }
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 }

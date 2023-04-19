@@ -84,6 +84,15 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
+    var postgresId = context.getWorkingMap().get(POSTGRESQL_ID, String.class);
+    try {
+      armManagers.postgreSqlManager().servers().deleteById(postgresId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        return StepResult.getStepResultSuccess();
+      }
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 }

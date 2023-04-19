@@ -72,7 +72,15 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    // rollback here or in case of sub-flight do it there
+    var privateEndpointId = context.getWorkingMap().get(PRIVATE_ENDPOINT_ID, String.class);
+    try {
+      armManagers.azureResourceManager().privateEndpoints().deleteById(privateEndpointId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        return StepResult.getStepResultSuccess();
+      }
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 }

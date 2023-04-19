@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreateRelayStep extends BaseResourceCreateStep {
+  public static final String RELAY_ID = "RELAY_ID";
   private static final Logger logger = LoggerFactory.getLogger(CreateRelayStep.class);
 
   public CreateRelayStep(
@@ -25,13 +26,15 @@ public class CreateRelayStep extends BaseResourceCreateStep {
     super.doStep(context);
     var relayName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_RELAY_NS_NAME_LENGTH);
     try {
-      armManagers
-          .relayManager()
-          .namespaces()
-          .define(relayName)
-          .withRegion(resourceGroup.region())
-          .withExistingResourceGroup(resourceGroup.name())
-          .create();
+      var relay =
+          armManagers
+              .relayManager()
+              .namespaces()
+              .define(relayName)
+              .withRegion(resourceGroup.region())
+              .withExistingResourceGroup(resourceGroup.name())
+              .create();
+      context.getWorkingMap().put(RELAY_ID, relay.id());
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
         logger.info(RESOURCE_ALREADY_EXISTS, "Relay", relayName, resourceGroup.name());
@@ -45,6 +48,15 @@ public class CreateRelayStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) {
+    var relayId = context.getWorkingMap().get(RELAY_ID, String.class);
+    try {
+      armManagers.azureResourceManager().storageAccounts().deleteById(relayId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        return StepResult.getStepResultSuccess();
+      }
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 }
