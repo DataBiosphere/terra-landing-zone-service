@@ -14,7 +14,7 @@ dependencies {
     implementation 'de.undercouch.download:de.undercouch.download.gradle.plugin:5.4.0'
     implementation group: 'com.github.spotbugs.snom', name: 'spotbugs-gradle-plugin', version: '5.0.14'
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.0'
-    implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.1'
+    implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.2'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:4.0.0.2929'
     implementation 'org.springframework.boot:spring-boot-gradle-plugin:2.7.0'
     // This is required due to a dependency conflict between jib and srcclr. Removing it will cause jib to fail.
