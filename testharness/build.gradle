@@ -3,12 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation project(":service")
-
-    constraints {
-        implementation 'net.minidev:json-smart:2.4.10'
+    implementation (project(":service")) {
+        exclude group: 'net.minidev', module: 'json-smart'
     }
-    implementation 'net.minidev:json-smart'
+    implementation 'net.minidev:json-smart:2.4.10'
 
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
@@ -24,7 +22,9 @@ dependencies {
 
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
+        exclude group: 'net.minidev', module: 'json-smart'
     }
+
     testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
 
     // Allows us to mock final classes
