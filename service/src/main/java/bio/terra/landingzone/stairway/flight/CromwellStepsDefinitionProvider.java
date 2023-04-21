@@ -4,7 +4,8 @@ import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
@@ -38,22 +39,20 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(
             new CreateVnetStep(landingZoneAzureConfiguration, resourceNameGenerator),
             RetryRules.cloud()),
-        Pair.of(
-            new CreateLogAnalyticsWorkspaceStep(
-                landingZoneAzureConfiguration, resourceNameGenerator),
-            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateLogAnalyticsWorkspaceStep(
+        //                landingZoneAzureConfiguration, resourceNameGenerator),
+        //            RetryRules.cloud()),
         //        Pair.of(
         //            new CreatePostgresqlDbStep(landingZoneAzureConfiguration,
         // resourceNameGenerator),
         //            RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateStorageAccountStep(landingZoneAzureConfiguration,
-        // resourceNameGenerator),
-        //            RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateBatchAccountStep(landingZoneAzureConfiguration,
-        // resourceNameGenerator),
-        //            RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAccountStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateBatchAccountStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            RetryRules.cloud()),
         //        Pair.of(
         //            new CreateStorageAccountCorsRules(landingZoneAzureConfiguration,
         // resourceNameGenerator),
