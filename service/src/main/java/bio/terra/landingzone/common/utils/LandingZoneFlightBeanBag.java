@@ -1,19 +1,20 @@
 package bio.terra.landingzone.common.utils;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
+import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LandingZoneFlightBeanBag {
-  private final LandingZoneJobService azureLandingZoneJobService;
+  private final LandingZoneService landingZoneService;
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneAzureConfiguration azureConfiguration;
   private final LandingZoneTestingConfiguration testingConfiguration;
@@ -22,9 +23,10 @@ public class LandingZoneFlightBeanBag {
   private final LandingZoneBillingProfileManagerService bpmService;
   private final ObjectMapper objectMapper;
 
+  @Lazy
   @Autowired
   public LandingZoneFlightBeanBag(
-      LandingZoneJobService azureLandingZoneJobService,
+      LandingZoneService landingZoneService,
       LandingZoneDao landingZoneDao,
       LandingZoneAzureConfiguration azureConfiguration,
       LandingZoneTestingConfiguration testingConfiguration,
@@ -32,7 +34,7 @@ public class LandingZoneFlightBeanBag {
       LandingZoneSamService samService,
       LandingZoneBillingProfileManagerService bpmService,
       ObjectMapper objectMapper) {
-    this.azureLandingZoneJobService = azureLandingZoneJobService;
+    this.landingZoneService = landingZoneService;
     this.landingZoneDao = landingZoneDao;
     this.azureConfiguration = azureConfiguration;
     this.testingConfiguration = testingConfiguration;
@@ -42,8 +44,8 @@ public class LandingZoneFlightBeanBag {
     this.objectMapper = objectMapper;
   }
 
-  public LandingZoneJobService getAzureLandingZoneJobService() {
-    return azureLandingZoneJobService;
+  public LandingZoneService getLandingZoneService() {
+    return landingZoneService;
   }
 
   public LandingZoneDao getLandingZoneDao() {

@@ -39,7 +39,9 @@ public class CreateAksStep extends BaseResourceCreateStep {
             context.getWorkingMap(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
-    var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
+    var vNetId =
+        getParameterOrThrow(
+            context.getWorkingMap(), CreateVnetStep.VNET_RESOURCE_KEY, String.class);
 
     try {
       final Map<String, ManagedClusterAddonProfile> addonProfileMap = new HashMap<>();

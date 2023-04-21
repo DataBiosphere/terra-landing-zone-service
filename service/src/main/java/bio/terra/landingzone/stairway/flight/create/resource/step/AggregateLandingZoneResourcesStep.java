@@ -1,0 +1,44 @@
+package bio.terra.landingzone.stairway.flight.create.resource.step;
+
+import bio.terra.landingzone.job.JobMapKeys;
+import bio.terra.landingzone.service.landingzone.azure.model.DeployedLandingZone;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.stairway.FlightContext;
+import bio.terra.stairway.Step;
+import bio.terra.stairway.StepResult;
+import bio.terra.stairway.exception.RetryException;
+import java.util.List;
+import java.util.UUID;
+
+public class AggregateLandingZoneResourcesStep implements Step {
+  @Override
+  public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    var landingZoneId =
+        context.getInputParameters().get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
+    var vNetResource =
+        context.getWorkingMap().get(CreateVnetStep.VNET_RESOURCE_KEY, LandingZoneResource.class);
+    var logAnalyticsWorkspaceResource =
+        context
+            .getWorkingMap()
+            .get(
+                CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
+                LandingZoneResource.class);
+
+    // persist final landing zone creation flight result
+    var deployedLandingZone =
+        DeployedLandingZone.builder()
+            .id(landingZoneId)
+            .deployedResources(List.of(vNetResource, logAnalyticsWorkspaceResource))
+            .build();
+    context.getWorkingMap().put(JobMapKeys.RESPONSE.getKeyName(), deployedLandingZone);
+
+    return StepResult.getStepResultSuccess();
+  }
+
+  @Override
+  public StepResult undoStep(FlightContext context) throws InterruptedException {
+    return StepResult.getStepResultSuccess();
+  }
+}

@@ -60,8 +60,9 @@ public class CreateLandingZoneFlight extends Flight {
       if (Boolean.TRUE.equals(requestedLandingZone.stairwayPath())) {
         addStep(
             new CreateLandingZoneResourcesFlightStep(
-                flightBeanBag.getAzureLandingZoneJobService(),
+                flightBeanBag.getLandingZoneService(),
                 requestedLandingZone,
+                landingZoneId,
                 LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
         addStep(
             new AwaitCreateLandingResourcesZoneFlightStep(

@@ -48,10 +48,12 @@ public class BaseResourceCreateStep implements Step {
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     landingZoneId =
         getParameterOrThrow(
-            context.getWorkingMap(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     var billingProfile =
         getParameterOrThrow(
-            context.getWorkingMap(), LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+            context.getInputParameters(),
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
 
     var azureProfile =

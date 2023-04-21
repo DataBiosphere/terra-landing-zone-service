@@ -106,6 +106,7 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
                 StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name()));
   }
 
+  @Test
   private void assertHasVnetWithPurpose(String landingZoneId, SubnetResourcePurpose purpose) {
     var vNet = landingZoneManager.reader().listVNetBySubnetPurpose(landingZoneId, purpose);
     assertThat(vNet, hasSize(1));

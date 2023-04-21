@@ -2,66 +2,65 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.job.JobMapKeys;
-import bio.terra.landingzone.job.LandingZoneJobService;
-import bio.terra.landingzone.job.model.OperationType;
+import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.exception.FlightNotFoundException;
 import bio.terra.stairway.exception.RetryException;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 
 public class CreateLandingZoneResourcesFlightStep implements Step {
 
-  private final LandingZoneJobService azureLandingZoneJobService;
+  private final LandingZoneService landingZoneService;
   private final LandingZoneRequest landingZoneRequest;
+  private final UUID landingZoneId;
   private final String jobIdKey;
 
   public CreateLandingZoneResourcesFlightStep(
-      LandingZoneJobService azureLandingZoneJobService,
+      LandingZoneService landingZoneService,
       LandingZoneRequest landingZoneRequest,
+      // TODO: check why this is not in landingZoneRequest
+      UUID landingZoneId,
       String jobIdKey) {
-    this.azureLandingZoneJobService = azureLandingZoneJobService;
+    this.landingZoneService = landingZoneService;
     this.landingZoneRequest = landingZoneRequest;
+    this.landingZoneId = landingZoneId;
     this.jobIdKey = jobIdKey;
   }
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    // initialize CreateLandingZoneResourcesFlight
-    var jobDescription =
-        "Inner flight to create landing zone resources. definition='%s', version='%s'";
-    var jobId = String.format("lzResources_%s", landingZoneRequest.landingZoneId());
-    // TODO: check if we already have flight
+    // TODO: jobId is limited to 36 characters
+    var jobId = String.format("lzResources_%s", OffsetDateTime.now().toInstant().getEpochSecond());
 
-    if (isFlightAlreadyExists(jobId)) {
+    if (isFlightAlreadyExists(context, jobId)) {
       return StepResult.getStepResultSuccess();
     }
+
+    // use token from parent flight
+    var bearerToken =
+        context.getInputParameters().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
+    var resultPath =
+        context.getInputParameters().get(JobMapKeys.RESULT_PATH.toString(), String.class);
+    var billingProfile =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     // this parameter should be read in AwayCreatLandingZoneFlightStep
     context.getWorkingMap().put(jobIdKey, jobId);
 
-    // use token from parent flight
-    var bearerToken =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
-    var resultPath = context.getWorkingMap().get(JobMapKeys.RESULT_PATH.toString(), String.class);
-
     // create sub-flight, which is supposed to create all required Azure resources
-    azureLandingZoneJobService
-        .newJob()
-        .jobId(jobId)
-        .description(
-            String.format(
-                jobDescription, landingZoneRequest.definition(), landingZoneRequest.version()))
-        .flightClass(CreateLandingZoneResourcesFlight.class)
-        .landingZoneRequest(landingZoneRequest)
-        .operationType(OperationType.CREATE)
-        .bearerToken(bearerToken) // <- this is required?
-        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, landingZoneRequest)
-        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneRequest.landingZoneId())
-        .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
-        .submit(); // TODO: <- check resultPath
+    landingZoneService.startLandingZoneResourceCreationJob(
+        jobId,
+        landingZoneRequest,
+        billingProfile,
+        landingZoneId,
+        bearerToken,
+        resultPath + "subFlight");
 
     return StepResult.getStepResultSuccess();
   }
@@ -72,12 +71,13 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
     return StepResult.getStepResultSuccess();
   }
 
-  private boolean isFlightAlreadyExists(String jobId) {
+  private boolean isFlightAlreadyExists(FlightContext context, String flightId)
+      throws InterruptedException {
     boolean flightAlreadyExists = true;
     try {
-
+      context.getStairway().getFlightState(flightId);
     } catch (FlightNotFoundException e) {
-      flightAlreadyExists = true;
+      flightAlreadyExists = false;
     }
     return flightAlreadyExists;
   }
