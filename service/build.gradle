@@ -45,7 +45,7 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0-beta.5'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.25.0'
 
-    liquibaseRuntime 'org.liquibase:liquibase-core:3.8.0'
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.21.1'
     liquibaseRuntime 'info.picocli:picocli:4.7.2'
     liquibaseRuntime 'org.postgresql:postgresql:42.6.0'
     liquibaseRuntime 'ch.qos.logback:logback-classic:1.2.10'
