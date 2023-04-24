@@ -1,9 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
@@ -24,9 +24,10 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   public static final String VNET_RESOURCE_KEY = "VNET";
 
   public CreateVnetStep(
-      LandingZoneAzureConfiguration landingZoneAzureConfiguration,
+      ArmManagers armManagers,
+      ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
-    super(landingZoneAzureConfiguration, resourceNameGenerator);
+    super(armManagers, parametersResolver, resourceNameGenerator);
   }
 
   @Override

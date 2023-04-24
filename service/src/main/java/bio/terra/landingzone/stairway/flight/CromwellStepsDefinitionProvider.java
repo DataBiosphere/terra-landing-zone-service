@@ -1,8 +1,9 @@
 package bio.terra.landingzone.stairway.flight;
 
 import bio.terra.landingzone.common.utils.RetryRules;
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
@@ -19,7 +20,8 @@ import org.apache.commons.lang3.tuple.Pair;
 public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider {
   @Override
   public List<Pair<Step, RetryRule>> get(
-      LandingZoneAzureConfiguration landingZoneAzureConfiguration,
+      ArmManagers armManagers,
+      ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     /*
      * ~ - depends on
@@ -41,36 +43,37 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
      * */
     return List.of(
         Pair.of(
-            new CreateVnetStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            new CreateVnetStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         //        Pair.of(
         //            new CreateLogAnalyticsWorkspaceStep(
         //                landingZoneAzureConfiguration, resourceNameGenerator),
         //            RetryRules.cloud()),
         Pair.of(
-            new CreatePostgresqlDbStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            new CreatePostgresqlDbStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
-            new CreateStorageAccountStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            new CreateStorageAccountStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
-            new CreateBatchAccountStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            new CreateBatchAccountStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
-            new CreateStorageAccountCorsRules(landingZoneAzureConfiguration, resourceNameGenerator),
+            new CreateStorageAccountCorsRules(
+                armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         //        Pair.of(
         //            new CreateLogAnalyticsDataCollectionRulesStep(
         //                landingZoneAzureConfiguration, resourceNameGenerator),
         //            RetryRules.cloud()),
         Pair.of(
-            new CreatePrivateEndpointStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            new CreatePrivateEndpointStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         //        Pair.of(
         //            new CreateAksStep(landingZoneAzureConfiguration, resourceNameGenerator),
         //            RetryRules.cloud()),
         Pair.of(
-            new CreateRelayStep(landingZoneAzureConfiguration, resourceNameGenerator),
+            new CreateRelayStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         //        Pair.of(
         //            new CreateStorageAuditLogSettingsStep(

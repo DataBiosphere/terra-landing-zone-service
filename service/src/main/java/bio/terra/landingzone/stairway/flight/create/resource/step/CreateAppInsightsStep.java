@@ -1,8 +1,8 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
@@ -17,9 +17,10 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
   public static final String APP_INSIGHT_ID = "APP_INSIGHT_ID";
 
   public CreateAppInsightsStep(
-      LandingZoneAzureConfiguration landingZoneAzureConfiguration,
+      ArmManagers armManagers,
+      ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
-    super(landingZoneAzureConfiguration, resourceNameGenerator);
+    super(armManagers, parametersResolver, resourceNameGenerator);
   }
 
   @Override

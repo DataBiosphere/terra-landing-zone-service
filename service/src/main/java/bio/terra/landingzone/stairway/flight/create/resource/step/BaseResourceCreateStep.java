@@ -1,13 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
-import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
@@ -17,10 +13,7 @@ import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
-import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.exception.ManagementException;
-import com.azure.core.management.profile.AzureProfile;
-import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
@@ -37,18 +30,18 @@ public abstract class BaseResourceCreateStep implements Step {
   protected static final String RESOURCE_CREATED =
       "{} resource id='{}' in resource group '{}' successfully created.";
 
-  protected final LandingZoneAzureConfiguration landingZoneAzureConfiguration;
-  protected final ResourceNameGenerator resourceNameGenerator;
-
-  // initialized in doStep
-  protected ArmManagers armManagers;
+  // TODO: separate step for resourceGroup
   protected ResourceGroup resourceGroup;
-  protected ParametersResolver parametersResolver;
+  protected final ArmManagers armManagers;
+  protected final ResourceNameGenerator resourceNameGenerator;
+  protected final ParametersResolver parametersResolver;
 
   public BaseResourceCreateStep(
-      LandingZoneAzureConfiguration landingZoneAzureConfiguration,
+      ArmManagers armManagers,
+      ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
-    this.landingZoneAzureConfiguration = landingZoneAzureConfiguration;
+    this.armManagers = armManagers;
+    this.parametersResolver = parametersResolver;
     this.resourceNameGenerator = resourceNameGenerator;
   }
 
@@ -60,18 +53,6 @@ public abstract class BaseResourceCreateStep implements Step {
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
-    var azureProfile =
-        new AzureProfile(
-            landingZoneTarget.azureTenantId(),
-            landingZoneTarget.azureSubscriptionId(),
-            AzureEnvironment.AZURE);
-    var tokenCredentials =
-        new ClientSecretCredentialBuilder()
-            .clientId(landingZoneAzureConfiguration.getManagedAppClientId())
-            .clientSecret(landingZoneAzureConfiguration.getManagedAppClientSecret())
-            .tenantId(landingZoneAzureConfiguration.getManagedAppTenantId())
-            .build();
-    armManagers = LandingZoneManager.createArmManagers(tokenCredentials, azureProfile);
 
     // TODO: introduce separate step for this
     resourceGroup =
@@ -79,15 +60,6 @@ public abstract class BaseResourceCreateStep implements Step {
             .azureResourceManager()
             .resourceGroups()
             .getByName(landingZoneTarget.azureResourceGroupId());
-    var requestedLandingZone =
-        getParameterOrThrow(
-            context.getInputParameters(),
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-            LandingZoneRequest.class);
-
-    parametersResolver =
-        new ParametersResolver(
-            requestedLandingZone.parameters(), LandingZoneDefaultParameters.get());
 
     var landingZoneId =
         getParameterOrThrow(

@@ -1,8 +1,8 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
@@ -23,9 +23,10 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
   public static final String BATCH_ACCOUNT_RESOURCE_KEY = "BATCH_ACCOUNT";
 
   public CreateBatchAccountStep(
-      LandingZoneAzureConfiguration landingZoneAzureConfiguration,
+      ArmManagers armManagers,
+      ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
-    super(landingZoneAzureConfiguration, resourceNameGenerator);
+    super(armManagers, parametersResolver, resourceNameGenerator);
   }
 
   @Override

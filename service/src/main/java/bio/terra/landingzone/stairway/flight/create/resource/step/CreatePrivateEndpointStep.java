@@ -1,9 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
@@ -20,9 +20,10 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
   public static final String PRIVATE_ENDPOINT_RESOURCE_KEY = "PRIVATEENDPOINT";
 
   public CreatePrivateEndpointStep(
-      LandingZoneAzureConfiguration landingZoneAzureConfiguration,
+      ArmManagers armManagers,
+      ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
-    super(landingZoneAzureConfiguration, resourceNameGenerator);
+    super(armManagers, parametersResolver, resourceNameGenerator);
   }
 
   @Override
