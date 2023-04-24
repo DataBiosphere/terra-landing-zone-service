@@ -15,18 +15,27 @@ import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
+import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.AzureEnvironment;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class BaseResourceCreateStep implements Step {
+public abstract class BaseResourceCreateStep implements Step {
+  private static final Logger logger = LoggerFactory.getLogger(BaseResourceCreateStep.class);
+
   protected static final String FAILED_TO_CREATE_RESOURCE =
       "Failed to create landing zone {} resource. landingZoneId={}.";
   protected static final String RESOURCE_ALREADY_EXISTS =
-      "{} resource {} in managed resource group {} already exists.";
+      "{} resource in managed resource group {} already exists.";
+  protected static final String RESOURCE_CREATED =
+      "{} resource id='{}' in resource group '{}' successfully created.";
 
   protected final LandingZoneAzureConfiguration landingZoneAzureConfiguration;
   protected final ResourceNameGenerator resourceNameGenerator;
@@ -85,6 +94,16 @@ public class BaseResourceCreateStep implements Step {
         new ParametersResolver(
             requestedLandingZone.parameters(), LandingZoneDefaultParameters.get());
 
+    try {
+      createResource(context, armManagers);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
+        logger.info(RESOURCE_ALREADY_EXISTS, getResourceType(), resourceGroup.name());
+        return StepResult.getStepResultSuccess();
+      }
+      logger.error(FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId.toString());
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 
@@ -92,6 +111,10 @@ public class BaseResourceCreateStep implements Step {
   public StepResult undoStep(FlightContext context) throws InterruptedException {
     return StepResult.getStepResultSuccess();
   }
+
+  protected abstract void createResource(FlightContext context, ArmManagers armManagers);
+
+  protected abstract String getResourceType();
 
   protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
     // TODO: throw different exception

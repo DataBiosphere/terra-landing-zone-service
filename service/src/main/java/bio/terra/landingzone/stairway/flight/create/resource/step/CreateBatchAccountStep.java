@@ -1,6 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
@@ -8,7 +9,6 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
-import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.exception.ManagementException;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -24,50 +24,6 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
       ResourceNameGenerator resourceNameGenerator) {
     super(landingZoneAzureConfiguration, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    super.doStep(context);
-    String batchAccountName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH);
-    try {
-      var batch =
-          armManagers
-              .batchManager()
-              .batchAccounts()
-              .define(batchAccountName)
-              .withRegion(resourceGroup.region())
-              .withExistingResourceGroup(resourceGroup.name())
-              .withTags(
-                  Map.of(
-                      LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-                      landingZoneId.toString(),
-                      LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                      ResourcePurpose.SHARED_RESOURCE.toString()))
-              .create();
-      context.getWorkingMap().put(BATCH_ACCOUNT_ID, batch.id());
-      context
-          .getWorkingMap()
-          .put(
-              BATCH_ACCOUNT_RESOURCE_KEY,
-              LandingZoneResource.builder()
-                  .resourceId(batch.id())
-                  .resourceType(batch.type())
-                  .tags(batch.tags())
-                  .region(batch.regionName())
-                  .resourceName(batch.name())
-                  .build());
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
-        logger.info(
-            RESOURCE_ALREADY_EXISTS, "Batch account", batchAccountName, resourceGroup.name());
-        return StepResult.getStepResultSuccess();
-      }
-      logger.error(FAILED_TO_CREATE_RESOURCE, "batch account", landingZoneId.toString());
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
-    }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -87,5 +43,43 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
     }
     return StepResult.getStepResultSuccess();
+  }
+
+  @Override
+  protected void createResource(FlightContext context, ArmManagers armManagers) {
+    String batchAccountName =
+        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH);
+    var batch =
+        armManagers
+            .batchManager()
+            .batchAccounts()
+            .define(batchAccountName)
+            .withRegion(resourceGroup.region())
+            .withExistingResourceGroup(resourceGroup.name())
+            .withTags(
+                Map.of(
+                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                    landingZoneId.toString(),
+                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                    ResourcePurpose.SHARED_RESOURCE.toString()))
+            .create();
+    context.getWorkingMap().put(BATCH_ACCOUNT_ID, batch.id());
+    context
+        .getWorkingMap()
+        .put(
+            BATCH_ACCOUNT_RESOURCE_KEY,
+            LandingZoneResource.builder()
+                .resourceId(batch.id())
+                .resourceType(batch.type())
+                .tags(batch.tags())
+                .region(batch.regionName())
+                .resourceName(batch.name())
+                .build());
+    logger.info(RESOURCE_CREATED, getResourceType(), batch.id(), resourceGroup.name());
+  }
+
+  @Override
+  protected String getResourceType() {
+    return "BatchAccount";
   }
 }

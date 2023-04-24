@@ -1,6 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
@@ -8,7 +9,6 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
-import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.postgresql.models.PublicNetworkAccessEnum;
 import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCreate;
@@ -30,59 +30,6 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   }
 
   @Override
-  public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    super.doStep(context);
-    // TODO: check if we can arrange all these dependencies in a different way
-    // Most like we need the same setup for different steps. At least we need armManagers.
-    var postgresName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH);
-    try {
-      var postgres =
-          armManagers
-              .postgreSqlManager()
-              .servers()
-              .define(postgresName)
-              .withRegion(resourceGroup.region())
-              .withExistingResourceGroup(resourceGroup.name())
-              .withProperties(
-                  new ServerPropertiesForDefaultCreate()
-                      .withAdministratorLogin(
-                          parametersResolver.getValue(
-                              CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_ADMIN
-                                  .name()))
-                      .withAdministratorLoginPassword(
-                          parametersResolver.getValue(
-                              CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD
-                                  .name()))
-                      .withVersion(ServerVersion.ONE_ONE)
-                      .withPublicNetworkAccess(PublicNetworkAccessEnum.DISABLED))
-              .withSku(
-                  new Sku()
-                      .withName(
-                          parametersResolver.getValue(
-                              CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU
-                                  .name())))
-              .withTags(
-                  Map.of(
-                      LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-                      landingZoneId.toString(),
-                      LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                      ResourcePurpose.SHARED_RESOURCE.toString()))
-              .create();
-
-      context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
-        logger.info(RESOURCE_ALREADY_EXISTS, "Postgres", postgresName, resourceGroup.name());
-        return StepResult.getStepResultSuccess();
-      }
-      logger.error(FAILED_TO_CREATE_RESOURCE, "postgres", landingZoneId.toString());
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
-    }
-    return StepResult.getStepResultSuccess();
-  }
-
-  @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
     var postgresId = context.getWorkingMap().get(POSTGRESQL_ID, String.class);
     try {
@@ -94,5 +41,51 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
     }
     return StepResult.getStepResultSuccess();
+  }
+
+  @Override
+  protected void createResource(FlightContext context, ArmManagers armManagers) {
+    var postgresName =
+        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH);
+
+    var postgres =
+        armManagers
+            .postgreSqlManager()
+            .servers()
+            .define(postgresName)
+            .withRegion(resourceGroup.region())
+            .withExistingResourceGroup(resourceGroup.name())
+            .withProperties(
+                new ServerPropertiesForDefaultCreate()
+                    .withAdministratorLogin(
+                        parametersResolver.getValue(
+                            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_ADMIN.name()))
+                    .withAdministratorLoginPassword(
+                        parametersResolver.getValue(
+                            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD
+                                .name()))
+                    .withVersion(ServerVersion.ONE_ONE)
+                    .withPublicNetworkAccess(PublicNetworkAccessEnum.DISABLED))
+            .withSku(
+                new Sku()
+                    .withName(
+                        parametersResolver.getValue(
+                            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU
+                                .name())))
+            .withTags(
+                Map.of(
+                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                    landingZoneId.toString(),
+                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                    ResourcePurpose.SHARED_RESOURCE.toString()))
+            .create();
+
+    context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
+    logger.info(RESOURCE_CREATED, getResourceType(), postgres.id(), resourceGroup.name());
+  }
+
+  @Override
+  protected String getResourceType() {
+    return "Postgres";
   }
 }
