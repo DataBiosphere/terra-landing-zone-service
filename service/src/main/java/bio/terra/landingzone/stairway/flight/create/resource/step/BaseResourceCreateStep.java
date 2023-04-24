@@ -41,7 +41,6 @@ public abstract class BaseResourceCreateStep implements Step {
   protected final ResourceNameGenerator resourceNameGenerator;
 
   // initialized in doStep
-  protected UUID landingZoneId;
   protected ArmManagers armManagers;
   protected ResourceGroup resourceGroup;
   protected ParametersResolver parametersResolver;
@@ -55,16 +54,12 @@ public abstract class BaseResourceCreateStep implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    landingZoneId =
-        getParameterOrThrow(
-            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     var billingProfile =
         getParameterOrThrow(
             context.getInputParameters(),
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
-
     var azureProfile =
         new AzureProfile(
             landingZoneTarget.azureTenantId(),
@@ -94,6 +89,9 @@ public abstract class BaseResourceCreateStep implements Step {
         new ParametersResolver(
             requestedLandingZone.parameters(), LandingZoneDefaultParameters.get());
 
+    var landingZoneId =
+        getParameterOrThrow(
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     try {
       createResource(context, armManagers);
     } catch (ManagementException e) {
@@ -109,10 +107,23 @@ public abstract class BaseResourceCreateStep implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
+    //    try {
+    //      deleteResource(context, armManagers);
+    //    } catch (ManagementException e) {
+    //      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+    //        logger.error("{} doesn't exist or has been already deleted.", getResourceType());
+    //        return StepResult.getStepResultSuccess();
+    //      }
+    //      logger.error("Failed attempt to delete {} resource in managed resource group.", vNetId);
+    //      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    //    }
+    //    return StepResult.getStepResultSuccess();
     return StepResult.getStepResultSuccess();
   }
 
   protected abstract void createResource(FlightContext context, ArmManagers armManagers);
+
+  // protected abstract void deleteResource(FlightContext context, ArmManagers armManagers);
 
   protected abstract String getResourceType();
 

@@ -13,6 +13,15 @@ import java.util.List;
 import java.util.UUID;
 
 public class AggregateLandingZoneResourcesStep implements Step {
+  private List<String> deployedResourcesKeys =
+      List.of(
+          CreateVnetStep.VNET_RESOURCE_KEY,
+          CreateBatchAccountStep.BATCH_ACCOUNT_RESOURCE_KEY,
+          CreateStorageAccountStep.STORAGE_ACCOUNT_RESOURCE_KEY,
+          CreatePostgresqlDbStep.POSTGRESQL_RESOURCE_KEY,
+          CreatePrivateEndpointStep.PRIVATE_ENDPOINT_RESOURCE_KEY,
+          CreateRelayStep.RELAY_RESOURCE_KEY);
+
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     var landingZoneId =
@@ -35,31 +44,13 @@ public class AggregateLandingZoneResourcesStep implements Step {
 
   private List<LandingZoneResource> getDeployedResources(FlightContext context) {
     var result = new ArrayList<LandingZoneResource>();
-
-    var vNet =
-        context.getWorkingMap().get(CreateVnetStep.VNET_RESOURCE_KEY, LandingZoneResource.class);
-    if (vNet != null) {
-      result.add(vNet);
-    }
-    var batchAccount =
-        context
-            .getWorkingMap()
-            .get(CreateBatchAccountStep.BATCH_ACCOUNT_RESOURCE_KEY, LandingZoneResource.class);
-    if (batchAccount != null) {
-      result.add(batchAccount);
-    }
-    var storageAccount =
-        context
-            .getWorkingMap()
-            .get(CreateStorageAccountStep.STORAGE_ACCOUNT_RESOURCE_KEY, LandingZoneResource.class);
-    if (storageAccount != null) {
-      result.add(storageAccount);
-    }
-    //        context
-    //            .getWorkingMap()
-    //            .get(
-    //                CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
-    //                LandingZoneResource.class);
+    deployedResourcesKeys.forEach(
+        key -> {
+          var deployedResource = context.getWorkingMap().get(key, LandingZoneResource.class);
+          if (deployedResource != null) {
+            result.add(deployedResource);
+          }
+        });
     return result;
   }
 }

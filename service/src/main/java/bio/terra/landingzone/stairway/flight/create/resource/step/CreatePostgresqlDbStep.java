@@ -6,6 +6,8 @@ import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerat
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
@@ -15,13 +17,15 @@ import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCre
 import com.azure.resourcemanager.postgresql.models.ServerVersion;
 import com.azure.resourcemanager.postgresql.models.Sku;
 import java.util.Map;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
-  public static final String POSTGRESQL_ID = "POSTGRESQL_ID";
   private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDbStep.class);
+  public static final String POSTGRESQL_ID = "POSTGRESQL_ID";
+  public static final String POSTGRESQL_RESOURCE_KEY = "POSTGRESQL";
 
   public CreatePostgresqlDbStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
@@ -45,6 +49,10 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
+    var landingZoneId =
+        getParameterOrThrow(
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
     var postgresName =
         resourceNameGenerator.nextName(ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH);
 
@@ -81,6 +89,17 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
             .create();
 
     context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
+    context
+        .getWorkingMap()
+        .put(
+            POSTGRESQL_RESOURCE_KEY,
+            LandingZoneResource.builder()
+                .resourceId(postgres.id())
+                .resourceType(postgres.type())
+                .tags(postgres.tags())
+                .region(postgres.regionName())
+                .resourceName(postgres.name())
+                .build());
     logger.info(RESOURCE_CREATED, getResourceType(), postgres.id(), resourceGroup.name());
   }
 

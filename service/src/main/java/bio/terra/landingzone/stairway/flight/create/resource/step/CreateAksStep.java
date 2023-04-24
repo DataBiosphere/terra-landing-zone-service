@@ -6,6 +6,8 @@ import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerat
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
@@ -15,6 +17,7 @@ import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeT
 import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +25,7 @@ import org.slf4j.LoggerFactory;
 public class CreateAksStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksStep.class);
   public static final String AKS_ID = "AKS_ID";
+  public static final String AKS_RESOURCE_KEY = "RELAY";
 
   public CreateAksStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
@@ -45,6 +49,10 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
+    UUID landingZoneId =
+        getParameterOrThrow(
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
     var aksName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH);
     var logAnalyticsWorkspaceId =
         getParameterOrThrow(
@@ -114,6 +122,17 @@ public class CreateAksStep extends BaseResourceCreateStep {
                     ResourcePurpose.SHARED_RESOURCE.toString()))
             .create();
     context.getWorkingMap().put(AKS_ID, aks.id());
+    context
+        .getWorkingMap()
+        .put(
+            AKS_RESOURCE_KEY,
+            LandingZoneResource.builder()
+                .resourceId(aks.id())
+                .resourceType(aks.type())
+                .tags(aks.tags())
+                .region(aks.regionName())
+                .resourceName(aks.name())
+                .build());
     logger.info(RESOURCE_CREATED, getResourceType(), aks.id(), resourceGroup.name());
   }
 

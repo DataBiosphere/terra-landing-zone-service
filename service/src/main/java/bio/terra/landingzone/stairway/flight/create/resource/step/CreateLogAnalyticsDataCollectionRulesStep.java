@@ -5,6 +5,7 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import com.azure.core.util.Context;
@@ -22,6 +23,7 @@ import com.azure.resourcemanager.monitor.models.PerfCounterDataSource;
 import com.azure.resourcemanager.monitor.models.SyslogDataSource;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +49,9 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
     final String SYSLOG_NAME = "syslog";
 
     final List<String> COUNTER_SPECIFICS = List.of("\\VmInsights\\DetailedMetrics");
+    var landingZoneId =
+        getParameterOrThrow(
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     var dataCollectionRulesName =
         resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DATA_COLLECTION_RULE_NAME_LENGTH);
     var logAnalyticsWorkspaceId =

@@ -3,6 +3,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
@@ -12,8 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreateRelayStep extends BaseResourceCreateStep {
-  public static final String RELAY_ID = "RELAY_ID";
   private static final Logger logger = LoggerFactory.getLogger(CreateRelayStep.class);
+  public static final String RELAY_ID = "RELAY_ID";
+  public static final String RELAY_RESOURCE_KEY = "RELAY";
 
   public CreateRelayStep(
       LandingZoneAzureConfiguration landingZoneAzureConfiguration,
@@ -48,6 +50,17 @@ public class CreateRelayStep extends BaseResourceCreateStep {
             .withExistingResourceGroup(resourceGroup.name())
             .create();
     context.getWorkingMap().put(RELAY_ID, relay.id());
+    context
+        .getWorkingMap()
+        .put(
+            RELAY_RESOURCE_KEY,
+            LandingZoneResource.builder()
+                .resourceId(relay.id())
+                .resourceType(relay.type())
+                .tags(relay.tags())
+                .region(relay.regionName())
+                .resourceName(relay.name())
+                .build());
     logger.info(RESOURCE_CREATED, getResourceType(), relay.id(), resourceGroup.name());
   }
 
