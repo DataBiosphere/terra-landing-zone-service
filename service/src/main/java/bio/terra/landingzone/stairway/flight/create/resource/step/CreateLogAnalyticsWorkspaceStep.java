@@ -69,7 +69,7 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
             .workspaces()
             .define(logAnalyticsName)
             .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.id())
+            .withExistingResourceGroup(resourceGroup.name())
             .withRetentionInDays(
                 context
                     .getInputParameters()

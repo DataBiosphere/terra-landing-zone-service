@@ -13,7 +13,7 @@ import bio.terra.stairway.exception.RetryException;
 
 public class AwaitCreateLandingResourcesZoneFlightStep implements Step {
   public static final int FLIGHT_POLL_SECONDS = 1;
-  public static final int FLIGHT_POLL_CYCLES = 360;
+  public static final int FLIGHT_POLL_CYCLES = 1200;
 
   private final String jobIdKey;
 

@@ -5,12 +5,19 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePrivateEndpointStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
@@ -45,10 +52,10 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(
             new CreateVnetStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateLogAnalyticsWorkspaceStep(
-        //                landingZoneAzureConfiguration, resourceNameGenerator),
-        //            RetryRules.cloud()),
+        Pair.of(
+            new CreateLogAnalyticsWorkspaceStep(
+                armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
         Pair.of(
             new CreatePostgresqlDbStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
@@ -62,35 +69,33 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             new CreateStorageAccountCorsRules(
                 armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateLogAnalyticsDataCollectionRulesStep(
-        //                landingZoneAzureConfiguration, resourceNameGenerator),
-        //            RetryRules.cloud()),
+        Pair.of(
+            new CreateLogAnalyticsDataCollectionRulesStep(
+                armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
         Pair.of(
             new CreatePrivateEndpointStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateAksStep(landingZoneAzureConfiguration, resourceNameGenerator),
-        //            RetryRules.cloud()),
+        Pair.of(
+            new CreateAksStep(armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
         Pair.of(
             new CreateRelayStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateStorageAuditLogSettingsStep(
-        //                landingZoneAzureConfiguration, resourceNameGenerator),
-        //            RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateBatchLogSettingsStep(landingZoneAzureConfiguration,
-        // resourceNameGenerator),
-        //            RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreatePostgresLogSettingsStep(landingZoneAzureConfiguration,
-        // resourceNameGenerator),
-        //            RetryRules.cloud()),
-        //        Pair.of(
-        //            new CreateAppInsightsStep(landingZoneAzureConfiguration,
-        // resourceNameGenerator),
-        //            RetryRules.cloud())
+        Pair.of(
+            new CreateStorageAuditLogSettingsStep(
+                armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateBatchLogSettingsStep(armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreatePostgresLogSettingsStep(
+                armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
         Pair.of(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential()));
   }
 }
