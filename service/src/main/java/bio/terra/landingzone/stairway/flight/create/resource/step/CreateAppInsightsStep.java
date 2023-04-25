@@ -3,11 +3,16 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
+import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
+import java.util.Map;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +44,9 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
+    var landingZoneId =
+        getParameterOrThrow(
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     var logAnalyticsWorkspaceId =
         getParameterOrThrow(
             context.getWorkingMap(),
@@ -57,6 +65,12 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
             .withKind("java")
             .withApplicationType(ApplicationType.OTHER)
             .withWorkspaceResourceId(logAnalyticsWorkspaceId)
+            .withTags(
+                Map.of(
+                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                    landingZoneId.toString(),
+                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                    ResourcePurpose.SHARED_RESOURCE.toString()))
             .create();
     context.getWorkingMap().put(APP_INSIGHT_ID, appInsight.id());
     logger.info(RESOURCE_CREATED, getResourceType(), appInsight.id(), resourceGroup.name());
