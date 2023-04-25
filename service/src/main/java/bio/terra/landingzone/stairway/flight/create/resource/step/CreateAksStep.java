@@ -75,7 +75,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .kubernetesClusters()
             .define(aksName)
             .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup)
+            .withExistingResourceGroup(resourceGroup.name())
             .withDefaultVersion()
             .withSystemAssignedManagedServiceIdentity()
             .defineAgentPool(

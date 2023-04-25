@@ -61,7 +61,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
             .networks()
             .define(vNetName)
             .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup)
+            .withExistingResourceGroup(resourceGroup.name())
             .withAddressSpace(
                 parametersResolver.getValue(
                     CromwellBaseResourcesFactory.ParametersNames.VNET_ADDRESS_SPACE.name()))
