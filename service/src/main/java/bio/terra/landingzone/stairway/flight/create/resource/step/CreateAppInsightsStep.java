@@ -52,6 +52,7 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
             context.getWorkingMap(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
+
     var appInsightsName =
         resourceNameGenerator.nextName(
             ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH);
@@ -60,8 +61,8 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
             .applicationInsightsManager()
             .components()
             .define(appInsightsName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.name())
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withKind("java")
             .withApplicationType(ApplicationType.OTHER)
             .withWorkspaceResourceId(logAnalyticsWorkspaceId)
@@ -73,7 +74,7 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
                     ResourcePurpose.SHARED_RESOURCE.toString()))
             .create();
     context.getWorkingMap().put(APP_INSIGHT_ID, appInsight.id());
-    logger.info(RESOURCE_CREATED, getResourceType(), appInsight.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), appInsight.id(), getMRGName(context));
   }
 
   @Override

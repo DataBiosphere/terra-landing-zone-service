@@ -43,10 +43,10 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
             .azureResourceManager()
             .storageBlobServices()
             .define("blobCorsConfiguration")
-            .withExistingStorageAccount(resourceGroup.name(), storageAccountName)
+            .withExistingStorageAccount(getMRGName(context), storageAccountName)
             .withCORSRules(corsRules)
             .create();
-    logger.info(RESOURCE_CREATED, getResourceType(), rules.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), rules.id(), getMRGName(context));
   }
 
   @Override

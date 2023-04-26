@@ -66,7 +66,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
             .serviceClient()
             .getDataCollectionRules()
             .createWithResponse(
-                resourceGroup.name(),
+                getMRGName(context),
                 dataCollectionRulesName,
                 new DataCollectionRuleResourceInner()
                     .withDataSources(
@@ -107,7 +107,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
                             new DataFlow()
                                 .withStreams(List.of(KnownDataFlowStreams.MICROSOFT_SYSLOG))
                                 .withDestinations(List.of(DESTINATION_NAME))))
-                    .withLocation(resourceGroup.region().name())
+                    .withLocation(getMRGRegionName(context))
                     .withTags(
                         Map.of(
                             LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
@@ -119,7 +119,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
         RESOURCE_CREATED,
         getResourceType(),
         dataCollectionRules.getValue().id(),
-        resourceGroup.name());
+        getMRGName(context));
   }
 
   @Override

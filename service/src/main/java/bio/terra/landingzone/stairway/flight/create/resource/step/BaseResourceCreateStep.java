@@ -3,7 +3,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
-import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
@@ -14,7 +13,6 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -30,8 +28,6 @@ public abstract class BaseResourceCreateStep implements Step {
   protected static final String RESOURCE_CREATED =
       "{} resource id='{}' in resource group '{}' successfully created.";
 
-  // TODO: separate step for resourceGroup
-  protected ResourceGroup resourceGroup;
   protected final ArmManagers armManagers;
   protected final ResourceNameGenerator resourceNameGenerator;
   protected final ParametersResolver parametersResolver;
@@ -52,14 +48,6 @@ public abstract class BaseResourceCreateStep implements Step {
             context.getInputParameters(),
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             ProfileModel.class);
-    var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
-
-    // TODO: introduce separate step for this
-    resourceGroup =
-        armManagers
-            .azureResourceManager()
-            .resourceGroups()
-            .getByName(landingZoneTarget.azureResourceGroupId());
 
     var landingZoneId =
         getParameterOrThrow(
@@ -68,7 +56,8 @@ public abstract class BaseResourceCreateStep implements Step {
       createResource(context, armManagers);
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
-        logger.info(RESOURCE_ALREADY_EXISTS, getResourceType(), resourceGroup.name());
+        logger.info(
+            RESOURCE_ALREADY_EXISTS, getResourceType(), billingProfile.getManagedResourceGroupId());
         return StepResult.getStepResultSuccess();
       }
       logger.error(FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId.toString());
@@ -103,5 +92,15 @@ public abstract class BaseResourceCreateStep implements Step {
     // TODO: throw different exception
     FlightUtils.validateRequiredEntries(parameters, name);
     return parameters.get(name, clazz);
+  }
+
+  protected String getMRGName(FlightContext context) {
+    return getParameterOrThrow(
+        context.getWorkingMap(), GetManagedResourceGroupInfo.MRG_NAME_KEY, String.class);
+  }
+
+  protected String getMRGRegionName(FlightContext context) {
+    return getParameterOrThrow(
+        context.getWorkingMap(), GetManagedResourceGroupInfo.MRG_REGION_NAME_KEY, String.class);
   }
 }

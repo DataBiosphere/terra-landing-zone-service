@@ -19,6 +19,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageA
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import java.util.List;
@@ -49,6 +50,7 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
      * 14) AppInsights ~ 3)
      * */
     return List.of(
+        Pair.of(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud()),
         Pair.of(
             new CreateVnetStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),

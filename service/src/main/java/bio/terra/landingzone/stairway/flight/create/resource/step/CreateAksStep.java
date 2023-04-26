@@ -53,8 +53,6 @@ public class CreateAksStep extends BaseResourceCreateStep {
     UUID landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-
-    var aksName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH);
     var logAnalyticsWorkspaceId =
         getParameterOrThrow(
             context.getWorkingMap(),
@@ -69,13 +67,14 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .withEnabled(true)
             .withConfig(Map.of("logAnalyticsWorkspaceResourceID", logAnalyticsWorkspaceId)));
 
+    var aksName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH);
     var aksPartial =
         armManagers
             .azureResourceManager()
             .kubernetesClusters()
             .define(aksName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.name())
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withDefaultVersion()
             .withSystemAssignedManagedServiceIdentity()
             .defineAgentPool(
@@ -132,7 +131,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
                 .region(aks.regionName())
                 .resourceName(aks.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), aks.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), aks.id(), getMRGName(context));
   }
 
   @Override

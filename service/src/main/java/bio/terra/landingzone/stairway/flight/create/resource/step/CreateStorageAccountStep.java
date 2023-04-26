@@ -61,8 +61,8 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
             .azureResourceManager()
             .storageAccounts()
             .define(storageAccountName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup)
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withTags(
                 Map.of(
                     LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
@@ -84,7 +84,7 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
                 .region(storage.regionName())
                 .resourceName(storage.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), storage.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), storage.id(), getMRGName(context));
   }
 
   @Override

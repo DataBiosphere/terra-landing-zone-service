@@ -53,6 +53,7 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
     String batchAccountName =
         resourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH);
     var batch =
@@ -60,8 +61,8 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
             .batchManager()
             .batchAccounts()
             .define(batchAccountName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.name())
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withTags(
                 Map.of(
                     LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
@@ -81,7 +82,7 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
                 .region(batch.regionName())
                 .resourceName(batch.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), batch.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), batch.id(), getMRGName(context));
   }
 
   @Override

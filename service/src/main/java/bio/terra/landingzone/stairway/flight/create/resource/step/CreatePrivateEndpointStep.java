@@ -59,8 +59,8 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
             .azureResourceManager()
             .privateEndpoints()
             .define(privateEndpointName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup)
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withSubnetId(
                 vNetwork
                     .subnets()
@@ -83,7 +83,7 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
                 .region(privateEndpoint.regionName())
                 .resourceName(privateEndpoint.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), privateEndpoint.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), privateEndpoint.id(), getMRGName(context));
   }
 
   @Override

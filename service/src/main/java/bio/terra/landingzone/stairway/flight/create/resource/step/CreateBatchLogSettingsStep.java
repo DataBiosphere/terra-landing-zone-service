@@ -36,7 +36,6 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
 
     var batchLogSettingsName =
         resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH);
-
     var batchLogSettings =
         armManagers
             .monitorManager()
@@ -48,7 +47,7 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
             .withLog("ServiceLog", 0)
             .withLog("AuditLog", 0)
             .create();
-    logger.info(RESOURCE_CREATED, getResourceType(), batchLogSettings.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), batchLogSettings.id(), getMRGName(context));
   }
 
   @Override

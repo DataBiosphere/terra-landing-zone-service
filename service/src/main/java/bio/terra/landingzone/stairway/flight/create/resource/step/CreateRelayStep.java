@@ -55,8 +55,8 @@ public class CreateRelayStep extends BaseResourceCreateStep {
             .relayManager()
             .namespaces()
             .define(relayName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.name())
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withTags(
                 Map.of(
                     LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
@@ -76,7 +76,7 @@ public class CreateRelayStep extends BaseResourceCreateStep {
                 .region(relay.regionName())
                 .resourceName(relay.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), relay.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), relay.id(), getMRGName(context));
   }
 
   @Override

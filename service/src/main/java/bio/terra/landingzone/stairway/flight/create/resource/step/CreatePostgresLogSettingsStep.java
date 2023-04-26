@@ -50,8 +50,7 @@ public class CreatePostgresLogSettingsStep extends BaseResourceCreateStep {
             .withLog("QueryStoreWaitStatistics", 0)
             .withMetric("AllMetrics", Duration.ofMinutes(1), 0)
             .create();
-    logger.info(
-        RESOURCE_CREATED, getResourceType(), postgresLogSettings.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), postgresLogSettings.id(), getMRGName(context));
   }
 
   @Override

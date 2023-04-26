@@ -68,8 +68,8 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
             .logAnalyticsManager()
             .workspaces()
             .define(logAnalyticsName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.name())
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withRetentionInDays(
                 context
                     .getInputParameters()
@@ -98,7 +98,7 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
                 .resourceName(logAnalyticsWorkspace.name())
                 .build());
     logger.info(
-        RESOURCE_CREATED, getResourceType(), logAnalyticsWorkspace.id(), resourceGroup.name());
+        RESOURCE_CREATED, getResourceType(), logAnalyticsWorkspace.id(), getMRGName(context));
   }
 
   @Override

@@ -62,8 +62,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
             .postgreSqlManager()
             .servers()
             .define(postgresName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.name())
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withProperties(
                 new ServerPropertiesForDefaultCreate()
                     .withAdministratorLogin(
@@ -101,7 +101,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                 .region(postgres.regionName())
                 .resourceName(postgres.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), postgres.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), postgres.id(), getMRGName(context));
   }
 
   @Override

@@ -11,7 +11,6 @@ import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.exception.FlightNotFoundException;
 import bio.terra.stairway.exception.RetryException;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public class CreateLandingZoneResourcesFlightStep implements Step {
@@ -35,10 +34,9 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    // TODO: jobId is limited to 36 characters
-    var jobId = String.format("lzResources_%s", OffsetDateTime.now().toInstant().getEpochSecond());
+    var subflightId = getSubflightId(landingZoneId.toString());
 
-    if (isFlightAlreadyExists(context, jobId)) {
+    if (isFlightAlreadyExists(context, subflightId)) {
       return StepResult.getStepResultSuccess();
     }
 
@@ -51,11 +49,11 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
         context.getWorkingMap().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     // this parameter should be read in AwayCreatLandingZoneFlightStep
-    context.getWorkingMap().put(jobIdKey, jobId);
+    context.getWorkingMap().put(jobIdKey, subflightId);
 
     // create sub-flight, which is supposed to create all required Azure resources
     landingZoneService.startLandingZoneResourceCreationJob(
-        jobId,
+        subflightId,
         landingZoneRequest,
         billingProfile,
         landingZoneId,
@@ -80,5 +78,13 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
       flightAlreadyExists = false;
     }
     return flightAlreadyExists;
+  }
+
+  private String getSubflightId(String landingZoneId) {
+    // subFlightId is limited up to 36 characters
+    // use first 8 characters and last 4 characters of landingzoneId
+    int len = landingZoneId.length();
+    return String.format(
+        "resFlight_%s", landingZoneId.substring(0, 8) + "_" + landingZoneId.substring(len - 4));
   }
 }

@@ -50,7 +50,7 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
             .withLog("StorageDelete", 0)
             .create();
     logger.info(
-        RESOURCE_CREATED, getResourceType(), storageAuditLogSettings.id(), resourceGroup.name());
+        RESOURCE_CREATED, getResourceType(), storageAuditLogSettings.id(), getMRGName(context));
   }
 
   @Override

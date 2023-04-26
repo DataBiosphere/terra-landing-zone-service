@@ -54,14 +54,15 @@ public class CreateVnetStep extends BaseResourceCreateStep {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
     String vNetName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_VNET_NAME_LENGTH);
     var vNet =
         armManagers
             .azureResourceManager()
             .networks()
             .define(vNetName)
-            .withRegion(resourceGroup.region())
-            .withExistingResourceGroup(resourceGroup.name())
+            .withRegion(getMRGRegionName(context))
+            .withExistingResourceGroup(getMRGName(context))
             .withAddressSpace(
                 parametersResolver.getValue(
                     CromwellBaseResourcesFactory.ParametersNames.VNET_ADDRESS_SPACE.name()))
@@ -106,7 +107,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
                 .region(vNet.regionName())
                 .resourceName(vNet.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), vNet.id(), resourceGroup.name());
+    logger.info(RESOURCE_CREATED, getResourceType(), vNet.id(), getMRGName(context));
   }
 
   @Override
