@@ -3,6 +3,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
@@ -67,20 +68,7 @@ public abstract class BaseResourceCreateStep implements Step {
   }
 
   @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
-    //    try {
-    //      deleteResource(context, armManagers);
-    //    } catch (ManagementException e) {
-    //      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-    //        logger.error("{} doesn't exist or has been already deleted.", getResourceType());
-    //        return StepResult.getStepResultSuccess();
-    //      }
-    //      logger.error("Failed attempt to delete {} resource in managed resource group.", vNetId);
-    //      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-    //    }
-    //    return StepResult.getStepResultSuccess();
-    return StepResult.getStepResultSuccess();
-  }
+  public abstract StepResult undoStep(FlightContext context) throws InterruptedException;
 
   protected abstract void createResource(FlightContext context, ArmManagers armManagers);
 
@@ -96,11 +84,17 @@ public abstract class BaseResourceCreateStep implements Step {
 
   protected String getMRGName(FlightContext context) {
     return getParameterOrThrow(
-        context.getWorkingMap(), GetManagedResourceGroupInfo.MRG_NAME_KEY, String.class);
+            context.getWorkingMap(),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            TargetManagedResourceGroup.class)
+        .name();
   }
 
   protected String getMRGRegionName(FlightContext context) {
     return getParameterOrThrow(
-        context.getWorkingMap(), GetManagedResourceGroupInfo.MRG_REGION_NAME_KEY, String.class);
+            context.getWorkingMap(),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            TargetManagedResourceGroup.class)
+        .region();
   }
 }

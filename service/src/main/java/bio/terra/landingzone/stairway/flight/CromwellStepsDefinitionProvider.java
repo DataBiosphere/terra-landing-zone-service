@@ -26,6 +26,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider {
+  // TODO: this doesn't take into account versioning
   @Override
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
@@ -40,7 +41,7 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
      * 5) Batch account
      *
      * 6) Cors rules ~  4)
-     * 7) Data collection rules ~ 3)
+     * 7) Data collection rules ~ 2)
      * 8) Private endpoint ~ 1), 2)
      * 9) AKS ~ 1)
      * 10) Relay
