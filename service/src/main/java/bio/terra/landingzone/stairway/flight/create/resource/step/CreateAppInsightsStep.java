@@ -32,7 +32,10 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
   public StepResult undoStep(FlightContext context) {
     var appInsightId = context.getWorkingMap().get(APP_INSIGHT_ID, String.class);
     try {
-      armManagers.applicationInsightsManager().components().deleteById(appInsightId);
+      if (appInsightId != null) {
+        armManagers.applicationInsightsManager().components().deleteById(appInsightId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), appInsightId);
+      }
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
         return StepResult.getStepResultSuccess();

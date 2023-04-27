@@ -13,7 +13,10 @@ import bio.terra.stairway.exception.RetryException;
 
 public class AwaitCreateLandingResourcesZoneFlightStep implements Step {
   public static final int FLIGHT_POLL_SECONDS = 1;
-  public static final int FLIGHT_POLL_CYCLES = 1200;
+  // successful flight takes 10 min to deploy all resources,
+  // in case last step failed we need to delete all the resources
+  // let's limit such scenario with 30 min.
+  public static final int FLIGHT_POLL_CYCLES = 1800;
 
   private final String jobIdKey;
 
@@ -50,6 +53,6 @@ public class AwaitCreateLandingResourcesZoneFlightStep implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    return null;
+    return StepResult.getStepResultSuccess();
   }
 }

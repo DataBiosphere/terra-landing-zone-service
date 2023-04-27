@@ -8,6 +8,8 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
+import bio.terra.stairway.StepStatus;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.Context;
 import com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner;
 import com.azure.resourcemanager.monitor.models.DataCollectionRuleDataSources;
@@ -24,10 +26,12 @@ import com.azure.resourcemanager.monitor.models.SyslogDataSource;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreateStep {
+  public static final String DATA_COLLECTION_RULE_NAME = "DATA_COLLECTION_RULES_NAME";
   private static final Logger logger =
       LoggerFactory.getLogger(CreateLogAnalyticsDataCollectionRulesStep.class);
 
@@ -40,6 +44,27 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
 
   @Override
   public StepResult undoStep(FlightContext context) {
+    var dataCollectionRuleName =
+        context.getWorkingMap().get(DATA_COLLECTION_RULE_NAME, String.class);
+    try {
+      if (dataCollectionRuleName != null) {
+        armManagers
+            .monitorManager()
+            .serviceClient()
+            .getDataCollectionRules()
+            .delete(getMRGName(context), dataCollectionRuleName);
+        logger.info("{} resource with id={} deleted.", getResourceType(), dataCollectionRuleName);
+      }
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        logger.error(
+            "Data collection rule doesn't exist or has been already deleted. Id={}",
+            dataCollectionRuleName);
+        return StepResult.getStepResultSuccess();
+      }
+      logger.error("Failed attempt to delete data collection rule. Id={}", dataCollectionRuleName);
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
     return StepResult.getStepResultSuccess();
   }
 
@@ -115,6 +140,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
                             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                             ResourcePurpose.SHARED_RESOURCE.toString())),
                 Context.NONE);
+    context.getWorkingMap().put(DATA_COLLECTION_RULE_NAME, dataCollectionRulesName);
     logger.info(
         RESOURCE_CREATED,
         getResourceType(),

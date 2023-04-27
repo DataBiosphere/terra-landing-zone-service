@@ -53,10 +53,6 @@ public class CreateLandingZoneFlight extends Flight {
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     if (!requestedLandingZone.isAttaching()) {
-      // TODO: use step which run sub-flight with all these steps
-      // so, in this case we need only one step to rollback everything at once
-      // and don't need to implement rollback for each step
-      // Which option is better here 1 rollback or rollback per resource creation?
       if (Boolean.TRUE.equals(requestedLandingZone.stairwayPath())) {
         addStep(
             new CreateLandingZoneResourcesFlightStep(

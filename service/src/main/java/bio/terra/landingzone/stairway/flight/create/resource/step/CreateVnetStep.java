@@ -37,6 +37,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
       if (vNetId != null) {
         // armManagers.azureResourceManager().networks().deleteById(vNetId);
         armManagers.azureResourceManager().genericResources().deleteById(vNetId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), vNetId);
       }
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {

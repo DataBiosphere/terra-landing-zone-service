@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 public class CreateAksStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksStep.class);
   public static final String AKS_ID = "AKS_ID";
-  public static final String AKS_RESOURCE_KEY = "RELAY";
+  public static final String AKS_RESOURCE_KEY = "AKS";
 
   public CreateAksStep(
       ArmManagers armManagers,
@@ -38,7 +38,10 @@ public class CreateAksStep extends BaseResourceCreateStep {
   public StepResult undoStep(FlightContext context) {
     var aksId = context.getWorkingMap().get(AKS_ID, String.class);
     try {
-      armManagers.azureResourceManager().kubernetesClusters().deleteById(aksId);
+      if (aksId != null) {
+        armManagers.azureResourceManager().kubernetesClusters().deleteById(aksId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), aksId);
+      }
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
         return StepResult.getStepResultSuccess();

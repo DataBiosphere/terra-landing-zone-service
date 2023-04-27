@@ -20,6 +20,7 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) {
+    // will be removed as part of batch account deletion
     return StepResult.getStepResultSuccess();
   }
 

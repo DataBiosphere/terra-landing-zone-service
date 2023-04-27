@@ -31,11 +31,11 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    // rollback here or in case of sub-flight do it there
     var storageAccountId = context.getWorkingMap().get(STORAGE_ACCOUNT_ID, String.class);
     try {
       if (storageAccountId != null) {
         armManagers.azureResourceManager().storageAccounts().deleteById(storageAccountId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), storageAccountId);
       }
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {

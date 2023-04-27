@@ -14,7 +14,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnaly
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePrivateEndpointStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
@@ -82,7 +82,7 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             new CreateAksStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
-            new CreateRelayStep(armManagers, parametersResolver, resourceNameGenerator),
+            new CreateRelayNamespaceStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
             new CreateStorageAuditLogSettingsStep(

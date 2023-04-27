@@ -21,7 +21,8 @@ public class AggregateLandingZoneResourcesStep implements Step {
           CreateStorageAccountStep.STORAGE_ACCOUNT_RESOURCE_KEY,
           CreatePostgresqlDbStep.POSTGRESQL_RESOURCE_KEY,
           CreatePrivateEndpointStep.PRIVATE_ENDPOINT_RESOURCE_KEY,
-          CreateRelayStep.RELAY_RESOURCE_KEY);
+          CreateRelayNamespaceStep.RELAY_NAMESPACE_RESOURCE_KEY,
+          CreateAksStep.AKS_RESOURCE_KEY);
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {

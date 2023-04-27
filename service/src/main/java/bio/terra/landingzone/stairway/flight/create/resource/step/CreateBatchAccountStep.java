@@ -35,6 +35,7 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
     try {
       if (batchAccountId != null) {
         armManagers.batchManager().batchAccounts().deleteById(batchAccountId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), batchAccountId);
       }
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {

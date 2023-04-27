@@ -6,6 +6,7 @@ import bio.terra.landingzone.library.landingzones.definition.factories.CromwellB
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
@@ -39,7 +40,30 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
     try {
       if (logAnalyticsWorkspaceId != null) {
         armManagers.logAnalyticsManager().workspaces().deleteById(logAnalyticsWorkspaceId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), logAnalyticsWorkspaceId);
       }
+      // Deploying AKS with monitoring connected to a log analytics workspace also deploys a
+      // container insights solution named `ContainerInsights(WORKSPACE_ID)` which is untagged
+      // this code lists them all and later code figures out which to delete
+      var solutions =
+          armManagers
+              .azureResourceManager()
+              .genericResources()
+              .listByResourceGroup(getMRGName(context))
+              .stream()
+              .filter(
+                  r ->
+                      AzureResourceTypeUtils.AZURE_SOLUTIONS_TYPE.equalsIgnoreCase(
+                          "%s/%s".formatted(r.resourceProviderNamespace(), r.resourceType())))
+              .toList();
+      solutions.forEach(
+          s -> {
+            armManagers.azureResourceManager().genericResources().deleteById(s.id());
+            logger.info(
+                "{} resource with id={} deleted.",
+                AzureResourceTypeUtils.AZURE_SOLUTIONS_TYPE,
+                s.id());
+          });
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
         logger.error(

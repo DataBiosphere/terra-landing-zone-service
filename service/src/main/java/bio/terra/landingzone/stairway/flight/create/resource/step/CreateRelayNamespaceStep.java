@@ -17,12 +17,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateRelayStep extends BaseResourceCreateStep {
-  private static final Logger logger = LoggerFactory.getLogger(CreateRelayStep.class);
-  public static final String RELAY_ID = "RELAY_ID";
-  public static final String RELAY_RESOURCE_KEY = "RELAY";
+public class CreateRelayNamespaceStep extends BaseResourceCreateStep {
+  private static final Logger logger = LoggerFactory.getLogger(CreateRelayNamespaceStep.class);
+  public static final String RELAY_NAMESPACE_ID = "RELAY_NAMESPACE_ID";
+  public static final String RELAY_NAMESPACE_RESOURCE_KEY = "RELAY_NAMESPACE";
 
-  public CreateRelayStep(
+  public CreateRelayNamespaceStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
@@ -31,9 +31,12 @@ public class CreateRelayStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) {
-    var relayId = context.getWorkingMap().get(RELAY_ID, String.class);
+    var relayNamespaceId = context.getWorkingMap().get(RELAY_NAMESPACE_ID, String.class);
     try {
-      armManagers.azureResourceManager().storageAccounts().deleteById(relayId);
+      if (relayNamespaceId != null) {
+        armManagers.relayManager().namespaces().deleteById(relayNamespaceId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), relayNamespaceId);
+      }
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
         return StepResult.getStepResultSuccess();
@@ -50,7 +53,7 @@ public class CreateRelayStep extends BaseResourceCreateStep {
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     var relayName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_RELAY_NS_NAME_LENGTH);
-    var relay =
+    var relayNamespace =
         armManagers
             .relayManager()
             .namespaces()
@@ -64,23 +67,23 @@ public class CreateRelayStep extends BaseResourceCreateStep {
                     LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                     ResourcePurpose.SHARED_RESOURCE.toString()))
             .create();
-    context.getWorkingMap().put(RELAY_ID, relay.id());
+    context.getWorkingMap().put(RELAY_NAMESPACE_ID, relayNamespace.id());
     context
         .getWorkingMap()
         .put(
-            RELAY_RESOURCE_KEY,
+            RELAY_NAMESPACE_RESOURCE_KEY,
             LandingZoneResource.builder()
-                .resourceId(relay.id())
-                .resourceType(relay.type())
-                .tags(relay.tags())
-                .region(relay.regionName())
-                .resourceName(relay.name())
+                .resourceId(relayNamespace.id())
+                .resourceType(relayNamespace.type())
+                .tags(relayNamespace.tags())
+                .region(relayNamespace.regionName())
+                .resourceName(relayNamespace.name())
                 .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), relay.id(), getMRGName(context));
+    logger.info(RESOURCE_CREATED, getResourceType(), relayNamespace.id(), getMRGName(context));
   }
 
   @Override
   protected String getResourceType() {
-    return "Relay";
+    return "RelayNamespace";
   }
 }

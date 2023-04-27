@@ -28,6 +28,7 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
+    // will be removed as part of storage account deletion
     return StepResult.getStepResultSuccess();
   }
 

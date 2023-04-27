@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreatePrivateEndpointStep.class);
   public static final String PRIVATE_ENDPOINT_ID = "PRIVATE_ENDPOINT_ID";
-  public static final String PRIVATE_ENDPOINT_RESOURCE_KEY = "PRIVATEENDPOINT";
+  public static final String PRIVATE_ENDPOINT_RESOURCE_KEY = "PRIVATE_ENDPOINT";
 
   public CreatePrivateEndpointStep(
       ArmManagers armManagers,
@@ -30,7 +30,10 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
   public StepResult undoStep(FlightContext context) throws InterruptedException {
     var privateEndpointId = context.getWorkingMap().get(PRIVATE_ENDPOINT_ID, String.class);
     try {
-      armManagers.azureResourceManager().privateEndpoints().deleteById(privateEndpointId);
+      if (privateEndpointId != null) {
+        armManagers.azureResourceManager().privateEndpoints().deleteById(privateEndpointId);
+        logger.info("{} resource with id={} deleted.", getResourceType(), privateEndpointId);
+      }
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
         return StepResult.getStepResultSuccess();
