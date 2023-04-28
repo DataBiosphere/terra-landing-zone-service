@@ -12,12 +12,8 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AwaitCreateLandingResourcesZoneFlightStep implements Step {
-  private static final Logger logger =
-      LoggerFactory.getLogger(AwaitCreateLandingResourcesZoneFlightStep.class);
   public static final int FLIGHT_POLL_SECONDS = 1;
   // successful flight takes 10 min to deploy all resources,
   // in case last step failed we need to delete all the resources

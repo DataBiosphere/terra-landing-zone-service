@@ -1,11 +1,12 @@
 package bio.terra.landingzone.stairway.flight;
 
 public class LandingZoneStepsDefinitionProviderFactory {
-  // TODO: make enum
   public static final String CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE =
       "CromwellBaseResourcesFactory";
   public static final String PROTECTED_DATA_DEFINITION_STEPS_PROVIDER_NAME =
       "ProtectedDataResourcesFactory";
+
+  private LandingZoneStepsDefinitionProviderFactory() {}
 
   public static StepsDefinitionProvider create(String type) {
     return switch (type) {

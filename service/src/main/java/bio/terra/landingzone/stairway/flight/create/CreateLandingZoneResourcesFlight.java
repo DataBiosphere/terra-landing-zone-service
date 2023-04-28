@@ -51,10 +51,10 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     parametersResolver =
         new ParametersResolver(landingZoneRequest.parameters(), LandingZoneDefaultParameters.get());
 
-    addCreateSteps(flightBeanBag, inputParameters);
+    addCreateSteps();
   }
 
-  private void addCreateSteps(LandingZoneFlightBeanBag flightBeanBag, FlightMap inputParameters) {
+  private void addCreateSteps() {
     stepsDefinitionProvider
         .get(armManagers, parametersResolver, resourceNameGenerator)
         .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));

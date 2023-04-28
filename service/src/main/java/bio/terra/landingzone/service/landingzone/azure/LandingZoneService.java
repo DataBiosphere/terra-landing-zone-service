@@ -173,7 +173,6 @@ public class LandingZoneService {
             azureLandingZoneRequest.version()));
   }
 
-  // TODO: remove it from here. It's not suppose to be invoked externally
   public String startLandingZoneResourceCreationJob(
       String jobId,
       LandingZoneRequest landingZoneRequest,
@@ -183,23 +182,21 @@ public class LandingZoneService {
       String resultPath) {
     var jobDescription =
         "Inner flight to create landing zone resources. definition='%s', version='%s'";
-    String id =
-        azureLandingZoneJobService
-            .newJob()
-            .jobId(jobId)
-            .description(
-                String.format(
-                    jobDescription, landingZoneRequest.definition(), landingZoneRequest.version()))
-            .flightClass(CreateLandingZoneResourcesFlight.class)
-            .landingZoneRequest(landingZoneRequest)
-            .operationType(OperationType.CREATE)
-            .bearerToken(bearerToken)
-            .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, landingZoneRequest)
-            .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
-            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
-            .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile)
-            .submit(); // TODO: <- check resultPath
-    return id;
+    return azureLandingZoneJobService
+        .newJob()
+        .jobId(jobId)
+        .description(
+            String.format(
+                jobDescription, landingZoneRequest.definition(), landingZoneRequest.version()))
+        .flightClass(CreateLandingZoneResourcesFlight.class)
+        .landingZoneRequest(landingZoneRequest)
+        .operationType(OperationType.CREATE)
+        .bearerToken(bearerToken)
+        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, landingZoneRequest)
+        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
+        .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
+        .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile)
+        .submit();
   }
 
   private void checkIfLandingZoneWithIdExists(UUID landingZoneId) {

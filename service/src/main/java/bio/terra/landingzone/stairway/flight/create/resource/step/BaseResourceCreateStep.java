@@ -33,7 +33,7 @@ public abstract class BaseResourceCreateStep implements Step {
   protected final ResourceNameGenerator resourceNameGenerator;
   protected final ParametersResolver parametersResolver;
 
-  public BaseResourceCreateStep(
+  protected BaseResourceCreateStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
@@ -67,17 +67,11 @@ public abstract class BaseResourceCreateStep implements Step {
     return StepResult.getStepResultSuccess();
   }
 
-  @Override
-  public abstract StepResult undoStep(FlightContext context) throws InterruptedException;
-
   protected abstract void createResource(FlightContext context, ArmManagers armManagers);
-
-  // protected abstract void deleteResource(FlightContext context, ArmManagers armManagers);
 
   protected abstract String getResourceType();
 
   protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
-    // TODO: throw different exception
     FlightUtils.validateRequiredEntries(parameters, name);
     return parameters.get(name, clazz);
   }
