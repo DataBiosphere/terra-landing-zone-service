@@ -5,6 +5,7 @@ import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
@@ -17,25 +18,32 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
 
   private final LandingZoneService landingZoneService;
   private final LandingZoneRequest landingZoneRequest;
-  private final UUID landingZoneId;
   private final String jobIdKey;
 
   public CreateLandingZoneResourcesFlightStep(
       LandingZoneService landingZoneService,
       LandingZoneRequest landingZoneRequest,
-      // TODO: check why this is not in landingZoneRequest
-      UUID landingZoneId,
       String jobIdKey) {
     this.landingZoneService = landingZoneService;
     this.landingZoneRequest = landingZoneRequest;
-    this.landingZoneId = landingZoneId;
     this.jobIdKey = jobIdKey;
   }
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    var subflightId = getSubflightId(landingZoneId.toString());
+    FlightUtils.validateRequiredEntries(
+        context.getInputParameters(),
+        LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+        LandingZoneFlightMapKeys.BEARER_TOKEN,
+        JobMapKeys.RESULT_PATH.getKeyName());
 
+    FlightUtils.validateRequiredEntries(
+        context.getWorkingMap(), LandingZoneFlightMapKeys.BILLING_PROFILE);
+
+    var landingZoneId =
+        context.getInputParameters().get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
+    var subflightId = getSubflightId(landingZoneId.toString());
     if (isFlightAlreadyExists(context, subflightId)) {
       return StepResult.getStepResultSuccess();
     }
@@ -44,7 +52,7 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
     var bearerToken =
         context.getInputParameters().get(LandingZoneFlightMapKeys.BEARER_TOKEN, BearerToken.class);
     var resultPath =
-        context.getInputParameters().get(JobMapKeys.RESULT_PATH.toString(), String.class);
+        context.getInputParameters().get(JobMapKeys.RESULT_PATH.getKeyName(), String.class);
     var billingProfile =
         context.getWorkingMap().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
@@ -58,7 +66,7 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
         billingProfile,
         landingZoneId,
         bearerToken,
-        resultPath + "subFlight");
+        resultPath + subflightId);
 
     return StepResult.getStepResultSuccess();
   }

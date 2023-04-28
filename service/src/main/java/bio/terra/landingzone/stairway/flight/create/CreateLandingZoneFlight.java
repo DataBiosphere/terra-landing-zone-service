@@ -9,7 +9,6 @@ import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
-import java.util.UUID;
 
 /** Flight for creation of a Landing Zone */
 public class CreateLandingZoneFlight extends Flight {
@@ -41,11 +40,6 @@ public class CreateLandingZoneFlight extends Flight {
       throw new LandingZoneCreateException("Unable to find requested landing zone in input map");
     }
 
-    var landingZoneId = inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-    if (landingZoneId == null) {
-      throw new LandingZoneCreateException("Landing zone identifier is not defined.");
-    }
-
     addStep(
         new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
 
@@ -58,7 +52,6 @@ public class CreateLandingZoneFlight extends Flight {
             new CreateLandingZoneResourcesFlightStep(
                 flightBeanBag.getLandingZoneService(),
                 requestedLandingZone,
-                landingZoneId,
                 LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
         addStep(
             new AwaitCreateLandingResourcesZoneFlightStep(
