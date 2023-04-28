@@ -22,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class CreateLandingZoneFlightTest {
+class CreateLandingZoneFlightTest {
   private static final UUID BILLING_PROFILE_ID = UUID.randomUUID();
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
 

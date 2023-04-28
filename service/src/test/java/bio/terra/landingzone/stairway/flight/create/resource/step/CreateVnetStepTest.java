@@ -42,7 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class CreateVnetStepTest {
+class CreateVnetStepTest {
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final String VNET_NAME = "vNet";
   private static final String VNET_ID = "networkId";
@@ -125,7 +125,7 @@ public class CreateVnetStepTest {
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
-    var workingMap = new FlightMap(); // empty, not VNET_ID key
+    var workingMap = new FlightMap(); // empty, there is no VNET_ID key
     when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
 
     var stepResult = createVnetStep.undoStep(mockFlightContext);
