@@ -53,7 +53,9 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {}
+  protected void deleteResource(String resourceId) {
+    // do nothing
+  }
 
   @Override
   protected String getResourceType() {
