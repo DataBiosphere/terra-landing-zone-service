@@ -56,7 +56,7 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
     var billingProfile =
         context.getWorkingMap().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
-    // this parameter should be read in AwayCreatLandingZoneFlightStep
+    // this parameter should be read in AwaitCreateLandingResourcesZoneFlightStep
     context.getWorkingMap().put(jobIdKey, subflightId);
 
     // create sub-flight, which is supposed to create all required Azure resources
@@ -74,6 +74,9 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
     // nothing to undo
+    // This step initiates sub-flight to create all required landing zone resources.
+    // In case of failure corresponding steps from this sub-flight undo all the resource creation.
+    // So, in this particular case there is nothing we need to undo here.
     return StepResult.getStepResultSuccess();
   }
 

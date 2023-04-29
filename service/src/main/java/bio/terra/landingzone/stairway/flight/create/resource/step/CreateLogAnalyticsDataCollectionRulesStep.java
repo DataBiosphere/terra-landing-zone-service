@@ -25,6 +25,7 @@ import com.azure.resourcemanager.monitor.models.PerfCounterDataSource;
 import com.azure.resourcemanager.monitor.models.SyslogDataSource;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -149,7 +150,17 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    // do nothing
+  }
+
+  @Override
   protected String getResourceType() {
     return "LogAnalyticsDataCollectionRules";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.empty();
   }
 }

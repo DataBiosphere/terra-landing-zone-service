@@ -9,16 +9,13 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
-import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,23 +29,6 @@ public class CreateAksStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) {
-    var aksId = context.getWorkingMap().get(AKS_ID, String.class);
-    try {
-      if (aksId != null) {
-        armManagers.azureResourceManager().kubernetesClusters().deleteById(aksId);
-        logger.info("{} resource with id={} deleted.", getResourceType(), aksId);
-      }
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-        return StepResult.getStepResultSuccess();
-      }
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-    }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -138,7 +118,17 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    armManagers.azureResourceManager().kubernetesClusters().deleteById(resourceId);
+  }
+
+  @Override
   protected String getResourceType() {
     return "AKS";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.ofNullable(context.getWorkingMap().get(AKS_ID, String.class));
   }
 }

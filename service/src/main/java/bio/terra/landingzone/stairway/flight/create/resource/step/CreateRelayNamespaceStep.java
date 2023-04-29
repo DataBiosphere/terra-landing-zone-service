@@ -8,12 +8,9 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
-import com.azure.core.management.exception.ManagementException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,23 +24,6 @@ public class CreateRelayNamespaceStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) {
-    var relayNamespaceId = context.getWorkingMap().get(RELAY_NAMESPACE_ID, String.class);
-    try {
-      if (relayNamespaceId != null) {
-        armManagers.relayManager().namespaces().deleteById(relayNamespaceId);
-        logger.info("{} resource with id={} deleted.", getResourceType(), relayNamespaceId);
-      }
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-        return StepResult.getStepResultSuccess();
-      }
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-    }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -83,7 +63,17 @@ public class CreateRelayNamespaceStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    armManagers.relayManager().namespaces().deleteById(resourceId);
+  }
+
+  @Override
   protected String getResourceType() {
     return "RelayNamespace";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.ofNullable(context.getWorkingMap().get(RELAY_NAMESPACE_ID, String.class));
   }
 }

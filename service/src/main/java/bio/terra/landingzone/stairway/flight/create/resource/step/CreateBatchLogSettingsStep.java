@@ -5,6 +5,7 @@ import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerat
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,15 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {}
+
+  @Override
   protected String getResourceType() {
     return "BatchLogSettings";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.empty();
   }
 }

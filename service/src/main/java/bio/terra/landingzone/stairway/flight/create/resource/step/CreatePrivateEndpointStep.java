@@ -6,11 +6,8 @@ import bio.terra.landingzone.library.landingzones.definition.factories.CromwellB
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
-import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.network.models.PrivateLinkSubResourceName;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,23 +21,6 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
-    var privateEndpointId = context.getWorkingMap().get(PRIVATE_ENDPOINT_ID, String.class);
-    try {
-      if (privateEndpointId != null) {
-        armManagers.azureResourceManager().privateEndpoints().deleteById(privateEndpointId);
-        logger.info("{} resource with id={} deleted.", getResourceType(), privateEndpointId);
-      }
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-        return StepResult.getStepResultSuccess();
-      }
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-    }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -90,7 +70,17 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    armManagers.azureResourceManager().privateEndpoints().deleteById(resourceId);
+  }
+
+  @Override
   protected String getResourceType() {
     return "PrivateEndpoint";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.ofNullable(context.getWorkingMap().get(PRIVATE_ENDPOINT_ID, String.class));
   }
 }

@@ -14,6 +14,7 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.exception.ManagementException;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,6 +29,11 @@ public abstract class BaseResourceCreateStep implements Step {
       "{} resource in managed resource group {} already exists.";
   protected static final String RESOURCE_CREATED =
       "{} resource id='{}' in resource group '{}' successfully created.";
+  private static final String RESOURCE_DELETED_OR_DOESNT_EXIST =
+      "{} doesn't exist or has been already deleted. Id={}";
+  private static final String FAILED_ATTEMPT_TO_DELETE_RESOURCE =
+      "Failed attempt to delete {}. Id={}";
+  private static final String RESOURCE_DELETED = "{} resource with id={} deleted.";
 
   protected final ArmManagers armManagers;
   protected final ResourceNameGenerator resourceNameGenerator;
@@ -67,9 +73,32 @@ public abstract class BaseResourceCreateStep implements Step {
     return StepResult.getStepResultSuccess();
   }
 
+  @Override
+  public StepResult undoStep(FlightContext flightContext) throws InterruptedException {
+    var resourceId = getResourceId(flightContext);
+    try {
+      if (resourceId.isPresent()) {
+        deleteResource(resourceId.get());
+        logger.info(RESOURCE_DELETED, getResourceType(), resourceId.get());
+      }
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        logger.error(RESOURCE_DELETED_OR_DOESNT_EXIST, getResourceType(), resourceId.orElse("n/a"));
+        return StepResult.getStepResultSuccess();
+      }
+      logger.error(FAILED_ATTEMPT_TO_DELETE_RESOURCE, getResourceType(), resourceId.orElse("n/a"));
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
+    }
+    return StepResult.getStepResultSuccess();
+  }
+
   protected abstract void createResource(FlightContext context, ArmManagers armManagers);
 
+  protected abstract void deleteResource(String resourceId);
+
   protected abstract String getResourceType();
+
+  protected abstract Optional<String> getResourceId(FlightContext context);
 
   protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
     FlightUtils.validateRequiredEntries(parameters, name);

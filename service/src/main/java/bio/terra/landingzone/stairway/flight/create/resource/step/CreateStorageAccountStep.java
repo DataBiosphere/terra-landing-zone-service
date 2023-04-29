@@ -8,12 +8,9 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
-import com.azure.core.management.exception.ManagementException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,26 +24,6 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
-    var storageAccountId = context.getWorkingMap().get(STORAGE_ACCOUNT_ID, String.class);
-    try {
-      if (storageAccountId != null) {
-        armManagers.azureResourceManager().storageAccounts().deleteById(storageAccountId);
-        logger.info("{} resource with id={} deleted.", getResourceType(), storageAccountId);
-      }
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-        logger.error(
-            "Storage account doesn't exist or has been already deleted. Id={}", storageAccountId);
-        return StepResult.getStepResultSuccess();
-      }
-      logger.error("Failed attempt to delete storage account. Id={}", storageAccountId);
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-    }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -88,7 +65,17 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    armManagers.azureResourceManager().storageAccounts().deleteById(resourceId);
+  }
+
+  @Override
   protected String getResourceType() {
     return "StorageAccount";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.ofNullable(context.getWorkingMap().get(STORAGE_ACCOUNT_ID, String.class));
   }
 }

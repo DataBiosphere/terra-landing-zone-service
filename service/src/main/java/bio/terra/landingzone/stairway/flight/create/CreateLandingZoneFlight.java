@@ -47,7 +47,7 @@ public class CreateLandingZoneFlight extends Flight {
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     if (!requestedLandingZone.isAttaching()) {
-      if (Boolean.TRUE.equals(requestedLandingZone.stairwayPath())) {
+      if (Boolean.TRUE.equals(requestedLandingZone.useStairwayPath())) {
         addStep(
             new CreateLandingZoneResourcesFlightStep(
                 flightBeanBag.getLandingZoneService(),

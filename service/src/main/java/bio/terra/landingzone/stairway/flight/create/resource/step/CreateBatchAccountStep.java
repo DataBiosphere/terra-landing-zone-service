@@ -8,12 +8,9 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
-import com.azure.core.management.exception.ManagementException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,26 +24,6 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) {
-    var batchAccountId = context.getWorkingMap().get(BATCH_ACCOUNT_ID, String.class);
-    try {
-      if (batchAccountId != null) {
-        armManagers.batchManager().batchAccounts().deleteById(batchAccountId);
-        logger.info("{} resource with id={} deleted.", getResourceType(), batchAccountId);
-      }
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-        logger.error(
-            "Batch account doesn't exist or has been already deleted. Id={}", batchAccountId);
-        return StepResult.getStepResultSuccess();
-      }
-      logger.error("Failed attempt to delete batch account. Id={}", batchAccountId);
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-    }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -87,7 +64,17 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    armManagers.batchManager().batchAccounts().deleteById(resourceId);
+  }
+
+  @Override
   protected String getResourceType() {
     return "BatchAccount";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.ofNullable(context.getWorkingMap().get(BATCH_ACCOUNT_ID, String.class));
   }
 }

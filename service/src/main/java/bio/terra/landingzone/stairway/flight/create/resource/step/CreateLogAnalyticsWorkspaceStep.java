@@ -14,6 +14,7 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.management.exception.ManagementException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,13 +36,8 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    String logAnalyticsWorkspaceId =
-        context.getWorkingMap().get(LOG_ANALYTICS_WORKSPACE_ID, String.class);
+    super.undoStep(context);
     try {
-      if (logAnalyticsWorkspaceId != null) {
-        armManagers.logAnalyticsManager().workspaces().deleteById(logAnalyticsWorkspaceId);
-        logger.info("{} resource with id={} deleted.", getResourceType(), logAnalyticsWorkspaceId);
-      }
       // Deploying AKS with monitoring connected to a log analytics workspace also deploys a
       // container insights solution named `ContainerInsights(WORKSPACE_ID)` which is untagged
       // this code lists them all and later code figures out which to delete
@@ -58,21 +54,25 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
               .toList();
       solutions.forEach(
           s -> {
-            armManagers.azureResourceManager().genericResources().deleteById(s.id());
-            logger.info(
-                "{} resource with id={} deleted.",
-                AzureResourceTypeUtils.AZURE_SOLUTIONS_TYPE,
-                s.id());
+            try {
+              armManagers.azureResourceManager().genericResources().deleteById(s.id());
+              logger.info(
+                  "{} resource with id={} deleted.",
+                  AzureResourceTypeUtils.AZURE_SOLUTIONS_TYPE,
+                  s.id());
+            } catch (ManagementException e) {
+              logger.error(
+                  "ContainerInsight doesn't exist or has been already deleted. Id={}", s.id());
+              throw e;
+            }
           });
     } catch (ManagementException e) {
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-        logger.error(
-            "Log analytics workspace doesn't exist or has been already deleted. Id={}",
-            logAnalyticsWorkspaceId);
         return StepResult.getStepResultSuccess();
       }
       logger.error(
-          "Failed attempt to delete log analytics workspace. Id={}", logAnalyticsWorkspaceId);
+          "Failed attempt to delete ContainerInsight workspace. LogAnalyticsWorkspaceId={}",
+          getResourceId(context));
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
     }
     return StepResult.getStepResultSuccess();
@@ -126,7 +126,18 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    armManagers.logAnalyticsManager().workspaces().deleteById(resourceId);
+  }
+
+  @Override
   protected String getResourceType() {
     return "LogAnalyticsWorkspace";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.ofNullable(
+        context.getWorkingMap().get(LOG_ANALYTICS_WORKSPACE_ID, String.class));
   }
 }

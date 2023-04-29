@@ -4,8 +4,8 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
 import java.time.Duration;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,11 +17,6 @@ public class CreatePostgresLogSettingsStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -54,7 +49,17 @@ public class CreatePostgresLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    // do nothing
+  }
+
+  @Override
   protected String getResourceType() {
     return "PostgresLogSettings";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.empty();
   }
 }

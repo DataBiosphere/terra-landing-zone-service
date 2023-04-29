@@ -14,7 +14,7 @@ import bio.terra.stairway.exception.RetryException;
 import java.util.Optional;
 
 public class AwaitCreateLandingResourcesZoneFlightStep implements Step {
-  public static final int FLIGHT_POLL_SECONDS = 1;
+  public static final int FLIGHT_POLL_SECONDS = 5;
   // successful flight takes 10 min to deploy all resources,
   // in case last step failed we need to delete all the resources
   // let's limit such scenario with 30 min.

@@ -4,7 +4,7 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +17,6 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
-    // will be removed as part of storage account deletion
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -55,7 +49,17 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    // do nothing
+  }
+
+  @Override
   protected String getResourceType() {
     return "StorageAuditLogSettings";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.empty();
   }
 }

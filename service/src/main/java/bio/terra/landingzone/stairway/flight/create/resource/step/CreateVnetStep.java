@@ -9,12 +9,9 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
-import com.azure.core.management.exception.ManagementException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,25 +25,6 @@ public class CreateVnetStep extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
-    var vNetId = context.getWorkingMap().get(VNET_ID, String.class);
-    try {
-      if (vNetId != null) {
-        armManagers.azureResourceManager().networks().deleteById(vNetId);
-        logger.info("{} resource with id={} deleted.", getResourceType(), vNetId);
-      }
-    } catch (ManagementException e) {
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
-        logger.error("Virtual network doesn't exist or has been already deleted. Id={}", vNetId);
-        return StepResult.getStepResultSuccess();
-      }
-      logger.error("Failed attempt to delete virtual network. Id={}", vNetId);
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-    }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -85,14 +63,14 @@ public class CreateVnetStep extends BaseResourceCreateStep {
                 Map.of(
                     LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
                     landingZoneId.toString(),
-                    CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name(),
                     SubnetResourcePurpose.AKS_NODE_POOL_SUBNET.toString(),
-                    CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name(),
+                    CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name(),
                     SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET.toString(),
-                    CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name(),
+                    CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name(),
                     SubnetResourcePurpose.POSTGRESQL_SUBNET.toString(),
-                    CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name(),
-                    SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET.toString()))
+                    CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name(),
+                    SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET.toString(),
+                    CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name()))
             .create();
 
     context.getWorkingMap().put(VNET_ID, vNet.id());
@@ -111,7 +89,17 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    armManagers.azureResourceManager().networks().deleteById(resourceId);
+  }
+
+  @Override
   public String getResourceType() {
     return "VirtualNetwork";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.ofNullable(context.getWorkingMap().get(VNET_ID, String.class));
   }
 }

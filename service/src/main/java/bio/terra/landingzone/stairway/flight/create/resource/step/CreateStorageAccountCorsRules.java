@@ -7,12 +7,12 @@ import bio.terra.landingzone.library.landingzones.definition.factories.parameter
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.StorageAccountBlobCorsParametersNames;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.StepResult;
 import com.azure.resourcemanager.storage.models.CorsRule;
 import com.azure.resourcemanager.storage.models.CorsRuleAllowedMethodsItem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +24,6 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-  }
-
-  @Override
-  public StepResult undoStep(FlightContext context) throws InterruptedException {
-    // will be removed as part of storage account deletion
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
@@ -51,8 +45,18 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   }
 
   @Override
+  protected void deleteResource(String resourceId) {
+    // do nothing
+  }
+
+  @Override
   protected String getResourceType() {
     return "StorageAccountCorsRules";
+  }
+
+  @Override
+  protected Optional<String> getResourceId(FlightContext context) {
+    return Optional.empty();
   }
 
   /**
