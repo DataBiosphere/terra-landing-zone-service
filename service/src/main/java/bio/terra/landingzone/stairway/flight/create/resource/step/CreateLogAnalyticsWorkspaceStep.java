@@ -62,7 +62,8 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
                   s.id());
             } catch (ManagementException e) {
               logger.error(
-                  "ContainerInsight doesn't exist or has been already deleted. Id={}", s.id());
+                  "Failed attempt to delete ContainerInsight (might be already deleted or doesn't exist). Id={}",
+                  s.id());
               throw e;
             }
           });

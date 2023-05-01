@@ -18,7 +18,7 @@ public class AwaitCreateLandingResourcesZoneFlightStep implements Step {
   // successful flight takes 10 min to deploy all resources,
   // in case last step failed we need to delete all the resources
   // let's limit such scenario with 30 min.
-  public static final int FLIGHT_POLL_CYCLES = 1800;
+  public static final int FLIGHT_POLL_CYCLES = 360;
 
   private final String jobIdKey;
 
