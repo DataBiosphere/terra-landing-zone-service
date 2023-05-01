@@ -89,7 +89,7 @@ public class LandingZoneManager {
         new ResourcesDeleteManager(armManagers, deleteRulesVerifier));
   }
 
-  private static ArmManagers createArmManagers(TokenCredential credential, AzureProfile profile) {
+  public static ArmManagers createArmManagers(TokenCredential credential, AzureProfile profile) {
     AzureResourceManager azureResourceManager =
         AzureResourceManager.authenticate(credential, profile)
             .withSubscription(profile.getSubscriptionId());

@@ -6,12 +6,15 @@ import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
+import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LandingZoneFlightBeanBag {
+  private final LandingZoneService landingZoneService;
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneAzureConfiguration azureConfiguration;
   private final LandingZoneTestingConfiguration testingConfiguration;
@@ -20,8 +23,10 @@ public class LandingZoneFlightBeanBag {
   private final LandingZoneBillingProfileManagerService bpmService;
   private final ObjectMapper objectMapper;
 
+  @Lazy
   @Autowired
   public LandingZoneFlightBeanBag(
+      LandingZoneService landingZoneService,
       LandingZoneDao landingZoneDao,
       LandingZoneAzureConfiguration azureConfiguration,
       LandingZoneTestingConfiguration testingConfiguration,
@@ -29,6 +34,7 @@ public class LandingZoneFlightBeanBag {
       LandingZoneSamService samService,
       LandingZoneBillingProfileManagerService bpmService,
       ObjectMapper objectMapper) {
+    this.landingZoneService = landingZoneService;
     this.landingZoneDao = landingZoneDao;
     this.azureConfiguration = azureConfiguration;
     this.testingConfiguration = testingConfiguration;
@@ -36,6 +42,10 @@ public class LandingZoneFlightBeanBag {
     this.samService = samService;
     this.bpmService = bpmService;
     this.objectMapper = objectMapper;
+  }
+
+  public LandingZoneService getLandingZoneService() {
+    return landingZoneService;
   }
 
   public LandingZoneDao getLandingZoneDao() {

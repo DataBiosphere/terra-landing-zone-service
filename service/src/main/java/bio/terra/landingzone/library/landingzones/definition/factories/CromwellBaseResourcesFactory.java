@@ -78,7 +78,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   private AksParametersValidator aksValidator;
   private BlobCorsParametersValidator bcValidator;
 
-  enum Subnet {
+  public enum Subnet {
     AKS_SUBNET,
     BATCH_SUBNET,
     POSTGRESQL_SUBNET,
