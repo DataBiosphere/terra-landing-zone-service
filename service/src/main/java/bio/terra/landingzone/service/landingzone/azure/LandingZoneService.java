@@ -41,18 +41,21 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneDeletion;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneResourcesFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import bio.terra.profile.model.ProfileModel;
 import com.azure.core.util.ExpandableStringEnum;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -555,25 +558,42 @@ public class LandingZoneService {
   }
 
   private void checkIfRequestedFactoryExists(LandingZoneRequest azureLandingZone) {
-    Predicate<FactoryDefinitionInfo> requiredDefinition =
-        (FactoryDefinitionInfo f) ->
-            f.className().equals(azureLandingZone.definition())
-                && f.versions().stream()
-                    .map(ExpandableStringEnum::toString)
-                    .toList()
-                    .contains(azureLandingZone.version());
-    var requestedFactory =
-        LandingZoneManager.listDefinitionFactories().stream()
-            .filter(requiredDefinition)
-            .findFirst();
+    if (Boolean.TRUE.equals(azureLandingZone.useStairwayPath())) {
+      checkIfRequestedFactoryExists(azureLandingZone.definition());
+    } else {
+      Predicate<FactoryDefinitionInfo> requiredDefinition =
+          (FactoryDefinitionInfo f) ->
+              f.className().equals(azureLandingZone.definition())
+                  && f.versions().stream()
+                      .map(ExpandableStringEnum::toString)
+                      .toList()
+                      .contains(azureLandingZone.version());
+      var requestedFactory =
+          LandingZoneManager.listDefinitionFactories().stream()
+              .filter(requiredDefinition)
+              .findFirst();
 
-    if (requestedFactory.isEmpty()) {
-      logger.warn(
-          "Azure landing zone definition with name={} and version={} doesn't exist",
-          azureLandingZone.definition(),
-          azureLandingZone.version());
-      throw new LandingZoneDefinitionNotFound("Requested landing zone definition doesn't exist");
+      if (requestedFactory.isEmpty()) {
+        throwIfFactoryDoesntExist(azureLandingZone.definition(), azureLandingZone.version());
+      }
     }
+  }
+
+  private void checkIfRequestedFactoryExists(String definition) {
+    var factoryExists =
+        Arrays.stream(StepsDefinitionFactoryType.values())
+            .anyMatch(v -> StringUtils.equals(v.getValue(), definition));
+    if (!factoryExists) {
+      throwIfFactoryDoesntExist(definition, null /*ignoring version for now*/);
+    }
+  }
+
+  private void throwIfFactoryDoesntExist(String definition, String version) {
+    logger.warn(
+        "Azure landing zone definition with name={} and version={} doesn't exist",
+        definition,
+        version);
+    throw new LandingZoneDefinitionNotFound("Requested landing zone definition doesn't exist");
   }
 
   private LandingZone toLandingZone(LandingZoneRecord landingZoneRecord) {
