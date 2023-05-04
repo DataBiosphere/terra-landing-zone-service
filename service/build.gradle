@@ -55,7 +55,7 @@ dependencies {
     spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.awaitility:awaitility:4.2.0'
