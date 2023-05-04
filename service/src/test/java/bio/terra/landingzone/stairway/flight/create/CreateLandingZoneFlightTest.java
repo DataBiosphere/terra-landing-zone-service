@@ -7,7 +7,7 @@ import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.stairway.flight.LandingZoneStepsDefinitionProviderFactory;
+import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
 import java.util.List;
@@ -100,7 +100,7 @@ class CreateLandingZoneFlightTest {
 
   LandingZoneRequest createDefaultLandingZoneRequest(Boolean stairwayPath) {
     return new LandingZoneRequest(
-        LandingZoneStepsDefinitionProviderFactory.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE,
+        StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue(),
         "v1",
         Map.of(),
         BILLING_PROFILE_ID,

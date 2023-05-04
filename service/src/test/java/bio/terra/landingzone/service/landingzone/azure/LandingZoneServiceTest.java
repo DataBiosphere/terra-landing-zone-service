@@ -324,6 +324,23 @@ public class LandingZoneServiceTest {
   }
 
   @Test
+  void startLandingZoneCreationJob_ThrowsErrorWhenDefinitionDoesntExistForStairwayPath() {
+    LandingZoneRequest landingZoneRequest =
+        LandingZoneRequest.builder()
+            .definition("NotExistingDefinition")
+            .version(DefinitionVersion.V5.toString())
+            .parameters(null)
+            .billingProfileId(billingProfileId)
+            .useStairwayPath(true)
+            .build();
+    Assertions.assertThrows(
+        LandingZoneDefinitionNotFound.class,
+        () ->
+            landingZoneService.startLandingZoneCreationJob(
+                bearerToken, "jobId", landingZoneRequest, "create-result"));
+  }
+
+  @Test
   void startLandingZoneCreationJob_ThrowsErrorWhenAttachingInvalidConfiguration() {
     when(testingConfiguration.isAllowAttach()).thenReturn(false);
     var mockFactory1 = mock(LandingZoneDefinitionFactory.class);

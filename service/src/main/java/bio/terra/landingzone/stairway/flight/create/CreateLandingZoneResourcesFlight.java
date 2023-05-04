@@ -11,13 +11,16 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.LandingZoneStepsDefinitionProviderFactory;
+import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.landingzone.stairway.flight.StepsDefinitionProvider;
+import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.ClientSecretCredentialBuilder;
+import java.util.UUID;
 
 public class CreateLandingZoneResourcesFlight extends Flight {
 
@@ -42,12 +45,17 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     landingZoneRequest =
         inputParameters.get(
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
-    stepsDefinitionProvider =
-        LandingZoneStepsDefinitionProviderFactory.create(landingZoneRequest.definition());
-    armManagers = initializeArmManagers(inputParameters, flightBeanBag.getAzureConfiguration());
-    resourceNameGenerator =
-        new ResourceNameGenerator(landingZoneRequest.landingZoneId().toString());
+    if (landingZoneRequest == null) {
+      throw new LandingZoneCreateException("Unable to find requested landing zone in input map");
+    }
 
+    var landingZoneId = getLandingZoneId(inputParameters, landingZoneRequest);
+    resourceNameGenerator = new ResourceNameGenerator(landingZoneId.toString());
+
+    stepsDefinitionProvider =
+        LandingZoneStepsDefinitionProviderFactory.create(
+            StepsDefinitionFactoryType.fromString(landingZoneRequest.definition()));
+    armManagers = initializeArmManagers(inputParameters, flightBeanBag.getAzureConfiguration());
     parametersResolver =
         new ParametersResolver(landingZoneRequest.parameters(), LandingZoneDefaultParameters.get());
 
@@ -77,5 +85,18 @@ public class CreateLandingZoneResourcesFlight extends Flight {
             .tenantId(azureConfiguration.getManagedAppTenantId())
             .build();
     return LandingZoneManager.createArmManagers(tokenCredentials, azureProfile);
+  }
+
+  private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {
+    // landing zone identifier can come in request's body or we generate it and keep it separately
+    if (landingZoneRequest.landingZoneId().isPresent()) {
+      return landingZoneRequest.landingZoneId().get();
+    } else {
+      var landingZoneId = inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+      if (landingZoneId == null) {
+        throw new LandingZoneCreateException("Unable to find landing zone identifier in input map");
+      }
+      return landingZoneId;
+    }
   }
 }
