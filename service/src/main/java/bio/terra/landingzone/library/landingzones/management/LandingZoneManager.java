@@ -28,6 +28,7 @@ import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.HasId;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -100,6 +101,8 @@ public class LandingZoneManager {
     MonitorManager monitorManager = MonitorManager.authenticate(credential, profile);
     ApplicationInsightsManager applicationInsightsManager =
         ApplicationInsightsManager.authenticate(credential, profile);
+    SecurityInsightsManager securityInsightsManager =
+        SecurityInsightsManager.authenticate(credential, profile);
 
     return new ArmManagers(
         azureResourceManager,
@@ -108,7 +111,8 @@ public class LandingZoneManager {
         postgreSqlManager,
         logAnalyticsManager,
         monitorManager,
-        applicationInsightsManager);
+        applicationInsightsManager,
+        securityInsightsManager);
   }
 
   public static List<FactoryDefinitionInfo> listDefinitionFactories() {

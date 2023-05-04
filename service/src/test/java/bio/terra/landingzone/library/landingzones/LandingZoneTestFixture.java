@@ -25,7 +25,8 @@ public class LandingZoneTestFixture {
             TestArmResourcesFactory.createPostgreSqlArmClient(),
             TestArmResourcesFactory.createLogAnalyticsArmClient(),
             TestArmResourcesFactory.createMonitorArmClient(),
-            TestArmResourcesFactory.createApplicationInsightsArmClient());
+            TestArmResourcesFactory.createApplicationInsightsArmClient(),
+            TestArmResourcesFactory.createSecurityInsightsArmClient());
     resourceGroup =
         TestArmResourcesFactory.createTestResourceGroup(armManagers.azureResourceManager());
     tokenCredential = AzureIntegrationUtils.getAdminAzureCredentialsOrDie();

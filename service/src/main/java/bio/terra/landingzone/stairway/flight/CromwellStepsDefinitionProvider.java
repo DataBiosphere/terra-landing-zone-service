@@ -1,23 +1,11 @@
 package bio.terra.landingzone.stairway.flight;
 
 import bio.terra.landingzone.common.utils.RetryRules;
+import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
-import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePrivateEndpointStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.stairway.RetryRule;
@@ -31,7 +19,8 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
+      ResourceNameGenerator resourceNameGenerator,
+      LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     /*
      * ~ - depends on
      * 1) VNet step
@@ -58,47 +47,54 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(
             new CreateLogAnalyticsWorkspaceStep(
                 armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreatePostgresqlDbStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAccountStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateBatchAccountStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAccountCorsRules(
-                armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateLogAnalyticsDataCollectionRulesStep(
-                armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreatePrivateEndpointStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateAksStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateRelayNamespaceStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAuditLogSettingsStep(
-                armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateBatchLogSettingsStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreatePostgresLogSettingsStep(
-                armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential()));
+            RetryRules.cloud()) // ,
+        //        Pair.of(
+        //            new CreatePostgresqlDbStep(armManagers, parametersResolver,
+        // resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateStorageAccountStep(armManagers, parametersResolver,
+        // resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateBatchAccountStep(armManagers, parametersResolver,
+        // resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateStorageAccountCorsRules(
+        //                armManagers, parametersResolver, resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateLogAnalyticsDataCollectionRulesStep(
+        //                armManagers, parametersResolver, resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreatePrivateEndpointStep(armManagers, parametersResolver,
+        // resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateAksStep(armManagers, parametersResolver, resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateRelayNamespaceStep(armManagers, parametersResolver,
+        // resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateStorageAuditLogSettingsStep(
+        //                armManagers, parametersResolver, resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateBatchLogSettingsStep(armManagers, parametersResolver,
+        // resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreatePostgresLogSettingsStep(
+        //                armManagers, parametersResolver, resourceNameGenerator),
+        //            RetryRules.cloud()),
+        //        Pair.of(
+        //            new CreateAppInsightsStep(armManagers, parametersResolver,
+        // resourceNameGenerator),
+        //            RetryRules.cloud())
+        );
   }
 }
