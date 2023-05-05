@@ -89,8 +89,9 @@ public class CreateLandingZoneResourcesFlight extends Flight {
 
   private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {
     // landing zone identifier can come in request's body or we generate it and keep it separately
-    if (landingZoneRequest.landingZoneId().isPresent()) {
-      return landingZoneRequest.landingZoneId().get();
+    var lzId = landingZoneRequest.landingZoneId();
+    if (lzId.isPresent()) {
+      return lzId.get();
     } else {
       var landingZoneId = inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
       if (landingZoneId == null) {
