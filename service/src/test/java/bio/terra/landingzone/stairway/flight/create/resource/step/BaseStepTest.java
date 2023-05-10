@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.mockito.Mock;
 
-public class BaseStepTest {
+class BaseStepTest {
   protected static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   protected static final String VNET_NAME = "vNet";
   protected static final String VNET_ID = "networkId";

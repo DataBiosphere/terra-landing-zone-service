@@ -5,6 +5,7 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.securityinsights.models.AutomationRuleRunPlaybookAction;
 import com.azure.resourcemanager.securityinsights.models.AutomationRuleTriggeringLogic;
@@ -39,6 +40,10 @@ public class CreateSentinelRunPlaybookAutomationRule extends BaseResourceCreateS
             context.getWorkingMap(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             LandingZoneResource.class);
+
+    if (workspace.resourceName().isEmpty()) {
+      throw new MissingRequiredFieldsException("LogAnalyticsWorkspace resource name is not set.");
+    }
 
     var trigger =
         new AutomationRuleTriggeringLogic()
