@@ -23,6 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,6 +41,9 @@ class CreateSentinelStepTest extends BaseStepTest {
 
   private CreateSentinelStep createSentinelStep;
 
+  @Captor ArgumentCaptor<String> resourceGroupNameCaptor;
+  @Captor ArgumentCaptor<String> workspaceNameCaptor;
+
   @BeforeEach
   void setUp() {
     createSentinelStep =
@@ -47,6 +52,8 @@ class CreateSentinelStepTest extends BaseStepTest {
 
   @Test
   void doStepSuccess() throws InterruptedException {
+    var logAnalyticsLandingZoneResource = buildLandingZoneResource();
+    var resourceGroupName = "mrgName";
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -56,14 +63,18 @@ class CreateSentinelStepTest extends BaseStepTest {
             LANDING_ZONE_ID),
         Map.of(
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            new TargetManagedResourceGroup("mgrName", "mrgRegion"),
+            new TargetManagedResourceGroup(resourceGroupName, "mrgRegion"),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
-            buildLandingZoneResource()));
+            logAnalyticsLandingZoneResource));
     setupArmManagersForDoStep(RESOURCE_ID);
 
     StepResult stepResult = createSentinelStep.doStep(mockFlightContext);
 
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
+    assertThat(
+        workspaceNameCaptor.getValue(),
+        equalTo(logAnalyticsLandingZoneResource.resourceName().get()));
+    assertThat(resourceGroupNameCaptor.getValue(), equalTo(resourceGroupName));
     verify(mockDefinitionStagesWithCreate, times(1)).create();
   }
 
@@ -108,7 +119,8 @@ class CreateSentinelStepTest extends BaseStepTest {
   private void setupArmManagersForDoStep(String resourceId) {
     when(mockSentinelOnboardingState.id()).thenReturn(resourceId);
     when(mockDefinitionStagesWithCreate.create()).thenReturn(mockSentinelOnboardingState);
-    when(mockDefinitionStagesBlank.withExistingWorkspace(anyString(), anyString()))
+    when(mockDefinitionStagesBlank.withExistingWorkspace(
+            resourceGroupNameCaptor.capture(), workspaceNameCaptor.capture()))
         .thenReturn(mockDefinitionStagesWithCreate);
     when(mockSentinelOnboardingStages.define(anyString())).thenReturn(mockDefinitionStagesBlank);
     when(mockSecurityInsightsManager.sentinelOnboardingStates())

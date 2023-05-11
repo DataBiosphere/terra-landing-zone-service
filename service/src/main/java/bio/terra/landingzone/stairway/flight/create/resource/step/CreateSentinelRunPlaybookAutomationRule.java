@@ -35,13 +35,14 @@ public class CreateSentinelRunPlaybookAutomationRule extends BaseResourceCreateS
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
-    var workspace =
+    var logAnalyticsWorkspace =
         getParameterOrThrow(
             context.getWorkingMap(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             LandingZoneResource.class);
 
-    if (workspace.resourceName().isEmpty()) {
+    var logAnalyticsWorkspaceResourceName = logAnalyticsWorkspace.resourceName();
+    if (logAnalyticsWorkspaceResourceName.isEmpty()) {
       throw new MissingRequiredFieldsException("LogAnalyticsWorkspace resource name is not set.");
     }
 
@@ -64,7 +65,7 @@ public class CreateSentinelRunPlaybookAutomationRule extends BaseResourceCreateS
             .securityInsightsManager()
             .automationRules()
             .define("runSendSlackNotificationPlaybook")
-            .withExistingWorkspace(getMRGName(context), workspace.resourceName().get())
+            .withExistingWorkspace(getMRGName(context), logAnalyticsWorkspaceResourceName.get())
             .withDisplayName("Run Slack Notification Playbook")
             .withOrder(1)
             .withTriggeringLogic(trigger)

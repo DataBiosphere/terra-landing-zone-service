@@ -24,13 +24,14 @@ public class CreateSentinelStep extends BaseResourceCreateStep {
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
-    var workspace =
+    var logAnalyticsWorkspace =
         getParameterOrThrow(
             context.getWorkingMap(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             LandingZoneResource.class);
 
-    if (workspace.resourceName().isEmpty()) {
+    var logAnalyticsWorkspaceResourceName = logAnalyticsWorkspace.resourceName();
+    if (logAnalyticsWorkspaceResourceName.isEmpty()) {
       throw new MissingRequiredFieldsException("LogAnalyticsWorkspace resource name is not set.");
     }
 
@@ -39,7 +40,7 @@ public class CreateSentinelStep extends BaseResourceCreateStep {
             .securityInsightsManager()
             .sentinelOnboardingStates()
             .define("default")
-            .withExistingWorkspace(getMRGName(context), workspace.resourceName().get())
+            .withExistingWorkspace(getMRGName(context), logAnalyticsWorkspaceResourceName.get())
             .create();
 
     context.getWorkingMap().put(SENTINEL_ID, state.id());
