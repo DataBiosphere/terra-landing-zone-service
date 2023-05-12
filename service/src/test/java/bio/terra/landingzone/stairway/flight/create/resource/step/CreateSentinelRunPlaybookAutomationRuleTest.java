@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
@@ -120,6 +121,7 @@ class CreateSentinelRunPlaybookAutomationRuleTest extends BaseStepTest {
     assertThat(playBookAction.actionConfiguration().tenantId(), equalTo(tenantId));
 
     verify(mockAutomationRuleDefinitionStageWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockAutomationRuleDefinitionStageWithCreate);
   }
 
   @Test

@@ -2,25 +2,20 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
-import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
@@ -29,13 +24,11 @@ import com.azure.resourcemanager.batch.models.BatchAccount;
 import com.azure.resourcemanager.batch.models.BatchAccounts;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -44,15 +37,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class CreateBatchAccountStepTest {
+class CreateBatchAccountStepTest extends BaseStepTest {
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final String BATCH_ACCOUNT_NAME = "testBatchAccount";
   private static final String BATCH_ACCOUNT_ID = "batchAccountId";
-
-  @Mock private ArmManagers mockArmManagers;
-  @Mock private ParametersResolver mockParametersResolver;
-  @Mock private ResourceNameGenerator mockResourceNameGenerator;
-  @Mock private FlightContext mockFlightContext;
 
   @Mock private BatchManager mockBatchManager;
   @Mock private BatchAccounts mockBatchAccounts;
@@ -83,6 +71,7 @@ class CreateBatchAccountStepTest {
         .thenReturn(BATCH_ACCOUNT_NAME);
 
     setupFlightContext(
+        mockFlightContext,
         Map.of(
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
@@ -94,8 +83,9 @@ class CreateBatchAccountStepTest {
     var stepResult = createBatchAccountStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
-    verifyTags();
+    verifyBasicTags(batchAccountTagsCaptor, LANDING_ZONE_ID);
     verify(mockBatchAccountDefinitionStagesWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockBatchAccountDefinitionStagesWithCreate);
   }
 
   @ParameterizedTest
@@ -130,17 +120,8 @@ class CreateBatchAccountStepTest {
 
     var stepResult = createBatchAccountStep.undoStep(mockFlightContext);
 
-    verify(mockBatchAccounts, never()).deleteById(BATCH_ACCOUNT_ID);
+    verify(mockBatchAccounts, never()).deleteById(anyString());
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
-  }
-
-  static Stream<Arguments> inputParameterProvider() {
-    return Stream.of(
-        Arguments.of(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                new ProfileModel().id(UUID.randomUUID()))),
-        Arguments.of(Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_ID, LANDING_ZONE_ID)));
   }
 
   private void setupArmManagers(
@@ -156,28 +137,5 @@ class CreateBatchAccountStepTest {
     when(mockBatchAccounts.define(name)).thenReturn(mockBatchAccountDefinitionStagesBlank);
     when(mockBatchManager.batchAccounts()).thenReturn(mockBatchAccounts);
     when(mockArmManagers.batchManager()).thenReturn(mockBatchManager);
-  }
-
-  private void setupFlightContext(
-      Map<String, Object> inputParameters, Map<String, Object> workingMap) {
-    FlightMap inputParamsMap = FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    FlightMap workingParamMap = FlightTestUtils.prepareFlightWorkingParameters(workingMap);
-    when(mockFlightContext.getInputParameters()).thenReturn(inputParamsMap);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingParamMap);
-  }
-
-  private void verifyTags() {
-    var numberOfExpectedTags = 2;
-    var tags = batchAccountTagsCaptor.getValue();
-    assertNotNull(tags);
-    assertThat(tags.size(), equalTo(numberOfExpectedTags));
-    assertTrue(tags.containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString()));
-    assertThat(
-        tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()),
-        equalTo(LANDING_ZONE_ID.toString()));
-    assertTrue(tags.containsKey(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()));
-    assertThat(
-        tags.get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()),
-        equalTo(ResourcePurpose.SHARED_RESOURCE.toString()));
   }
 }

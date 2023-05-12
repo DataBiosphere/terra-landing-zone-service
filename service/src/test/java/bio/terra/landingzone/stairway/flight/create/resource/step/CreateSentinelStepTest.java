@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -76,6 +77,7 @@ class CreateSentinelStepTest extends BaseStepTest {
         equalTo(logAnalyticsLandingZoneResource.resourceName().get()));
     assertThat(resourceGroupNameCaptor.getValue(), equalTo(resourceGroupName));
     verify(mockDefinitionStagesWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockDefinitionStagesWithCreate);
   }
 
   @Test
@@ -112,7 +114,7 @@ class CreateSentinelStepTest extends BaseStepTest {
 
     var stepResult = createSentinelStep.undoStep(mockFlightContext);
 
-    verify(mockSentinelOnboardingStages, never()).deleteById(VNET_ID);
+    verify(mockSentinelOnboardingStages, never()).deleteById(anyString());
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 

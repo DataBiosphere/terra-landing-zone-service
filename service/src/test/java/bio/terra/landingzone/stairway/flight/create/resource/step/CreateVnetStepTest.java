@@ -4,12 +4,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
@@ -26,14 +26,14 @@ import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.Networks;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,6 +46,8 @@ class CreateVnetStepTest extends BaseStepTest {
   @Mock private Network.DefinitionStages.WithGroup mockDefinitionStageWithGroup;
   @Mock private Network.DefinitionStages.WithCreate mockDefinitionStageWithCreate;
   @Mock private Network.DefinitionStages.WithCreateAndSubnet mockDefinitionStageWithCreateAndSubnet;
+
+  @Captor private ArgumentCaptor<Map<String, String>> vnetTagsCaptor;
 
   private CreateVnetStep createVnetStep;
 
@@ -78,12 +80,14 @@ class CreateVnetStepTest extends BaseStepTest {
 
     var stepResult = createVnetStep.doStep(mockFlightContext);
 
-    verify(mockDefinitionStageWithCreate, times(1)).create();
     assertTrue(mockFlightContext.getWorkingMap().containsKey(CreateVnetStep.VNET_ID));
     assertThat(
         mockFlightContext.getWorkingMap().get(CreateVnetStep.VNET_ID, String.class),
         equalTo(VNET_ID));
+    // verifyBasicTags(vnetTagsCaptor, LANDING_ZONE_ID);
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
+    verify(mockDefinitionStageWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockDefinitionStageWithCreate);
   }
 
   @ParameterizedTest
@@ -119,12 +123,12 @@ class CreateVnetStepTest extends BaseStepTest {
 
     var stepResult = createVnetStep.undoStep(mockFlightContext);
 
-    verify(mockNetworks, never()).deleteById(VNET_ID);
+    verify(mockNetworks, never()).deleteById(anyString());
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
   private void setupArmManagers(Network result) {
-    when(mockDefinitionStageWithCreateAndSubnet.withTags(anyMap()))
+    when(mockDefinitionStageWithCreateAndSubnet.withTags(vnetTagsCaptor.capture()))
         .thenReturn(mockDefinitionStageWithCreate);
     when(mockDefinitionStageWithCreateAndSubnet.withSubnet(anyString(), anyString()))
         .thenReturn(mockDefinitionStageWithCreateAndSubnet);
@@ -152,14 +156,5 @@ class CreateVnetStepTest extends BaseStepTest {
         .thenReturn("10.1.0.16/29");
     when(mockParametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name()))
         .thenReturn("10.1.0.24/29");
-  }
-
-  static Stream<Arguments> inputParameterProvider() {
-    return Stream.of(
-        Arguments.of(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                new ProfileModel().id(UUID.randomUUID()))),
-        Arguments.of(Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_ID, LANDING_ZONE_ID)));
   }
 }
