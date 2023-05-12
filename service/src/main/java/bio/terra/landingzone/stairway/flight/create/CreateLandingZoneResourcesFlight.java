@@ -1,7 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
+import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
+import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -13,6 +15,7 @@ import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.LandingZoneStepsDefinitionProviderFactory;
 import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.landingzone.stairway.flight.StepsDefinitionProvider;
+import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.Flight;
@@ -29,6 +32,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
   private final ArmManagers armManagers;
   private final ResourceNameGenerator resourceNameGenerator;
   private final ParametersResolver parametersResolver;
+  private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   /**
    * All subclasses must provide a constructor with this signature.
@@ -49,6 +53,9 @@ public class CreateLandingZoneResourcesFlight extends Flight {
       throw new LandingZoneCreateException("Unable to find requested landing zone in input map");
     }
 
+    landingZoneProtectedDataConfiguration =
+        flightBeanBag.getLandingZoneProtectedDataConfiguration();
+
     var landingZoneId = getLandingZoneId(inputParameters, landingZoneRequest);
     resourceNameGenerator = new ResourceNameGenerator(landingZoneId.toString());
 
@@ -64,8 +71,15 @@ public class CreateLandingZoneResourcesFlight extends Flight {
 
   private void addCreateSteps() {
     stepsDefinitionProvider
-        .get(armManagers, parametersResolver, resourceNameGenerator)
+        .get(
+            armManagers,
+            parametersResolver,
+            resourceNameGenerator,
+            landingZoneProtectedDataConfiguration)
         .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
+
+    // last step to aggregate results
+    addStep(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential());
   }
 
   private ArmManagers initializeArmManagers(

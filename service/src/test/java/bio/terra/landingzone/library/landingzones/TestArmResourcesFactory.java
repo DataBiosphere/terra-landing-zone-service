@@ -11,6 +11,7 @@ import com.azure.resourcemanager.monitor.MonitorManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -31,7 +32,8 @@ public class TestArmResourcesFactory {
         createPostgreSqlArmClient(),
         createLogAnalyticsArmClient(),
         createMonitorArmClient(),
-        createApplicationInsightsArmClient());
+        createApplicationInsightsArmClient(),
+        createSecurityInsightsArmClient());
   }
 
   public static RelayManager createRelayArmClient() {
@@ -66,6 +68,12 @@ public class TestArmResourcesFactory {
 
   public static ApplicationInsightsManager createApplicationInsightsArmClient() {
     return ApplicationInsightsManager.authenticate(
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
+        AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
+  }
+
+  public static SecurityInsightsManager createSecurityInsightsArmClient() {
+    return SecurityInsightsManager.authenticate(
         AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }

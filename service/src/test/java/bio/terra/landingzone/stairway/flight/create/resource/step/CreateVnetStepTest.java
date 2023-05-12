@@ -12,16 +12,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -42,16 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class CreateVnetStepTest {
-  private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
-  private static final String VNET_NAME = "vNet";
-  private static final String VNET_ID = "networkId";
-
-  @Mock private ArmManagers mockArmManagers;
-  @Mock private ParametersResolver mockParametersResolver;
-  @Mock private ResourceNameGenerator mockResourceNameGenerator;
-  @Mock private FlightContext mockFlightContext;
-
+class CreateVnetStepTest extends BaseStepTest {
   @Mock private AzureResourceManager mockAzureResourceManager;
   @Mock private Networks mockNetworks;
   @Mock private Network.DefinitionStages.Blank mockDefinitionStageBlack;
@@ -73,6 +61,7 @@ class CreateVnetStepTest {
         .thenReturn(VNET_NAME);
 
     setupFlightContext(
+        mockFlightContext,
         Map.of(
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
@@ -132,14 +121,6 @@ class CreateVnetStepTest {
 
     verify(mockNetworks, never()).deleteById(VNET_ID);
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
-  }
-
-  private void setupFlightContext(
-      Map<String, Object> inputParameters, Map<String, Object> workingMap) {
-    FlightMap inputParamsMap = FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    FlightMap workingParamMap = FlightTestUtils.prepareFlightWorkingParameters(workingMap);
-    when(mockFlightContext.getInputParameters()).thenReturn(inputParamsMap);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingParamMap);
   }
 
   private void setupArmManagers(Network result) {

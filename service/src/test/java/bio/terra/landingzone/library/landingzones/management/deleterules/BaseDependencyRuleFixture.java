@@ -14,6 +14,7 @@ import com.azure.resourcemanager.monitor.MonitorManager;
 import com.azure.resourcemanager.postgresql.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
 import com.azure.resourcemanager.resources.models.GenericResource;
+import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -36,6 +37,7 @@ public class BaseDependencyRuleFixture {
   @Mock protected LogAnalyticsManager logAnalyticsManager;
   @Mock protected MonitorManager monitorManager;
   @Mock protected ApplicationInsightsManager applicationInsightsManager;
+  @Mock protected SecurityInsightsManager securityInsightsManager;
 
   @Mock protected ResourceToDelete resourceToDelete;
   @Mock protected GenericResource resource;
@@ -50,7 +52,8 @@ public class BaseDependencyRuleFixture {
             postgreSqlManager,
             logAnalyticsManager,
             monitorManager,
-            applicationInsightsManager);
+            applicationInsightsManager,
+            securityInsightsManager);
   }
 
   protected void setUpResourceToDelete() {

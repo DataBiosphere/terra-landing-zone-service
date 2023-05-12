@@ -30,6 +30,10 @@ landingzone:
     resource-id: mc-terra-workspace-manager
     timeout-seconds: 1800
 
+  protected-data:
+    logic-app-resource-id: [ PUT VALUE HERE ]
+    tenant-id: [ PUT VALUE HERE ]
+
 terra.common:
   kubernetes:
     in-kubernetes: false

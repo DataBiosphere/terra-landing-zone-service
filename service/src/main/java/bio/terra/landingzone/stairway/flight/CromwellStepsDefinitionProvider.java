@@ -1,10 +1,10 @@
 package bio.terra.landingzone.stairway.flight;
 
 import bio.terra.landingzone.common.utils.RetryRules;
+import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
-import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
@@ -31,7 +31,8 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
+      ResourceNameGenerator resourceNameGenerator,
+      LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     /*
      * ~ - depends on
      * 1) VNet step
@@ -98,7 +99,6 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.cloud()),
         Pair.of(
             new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential()));
+            RetryRules.cloud()));
   }
 }

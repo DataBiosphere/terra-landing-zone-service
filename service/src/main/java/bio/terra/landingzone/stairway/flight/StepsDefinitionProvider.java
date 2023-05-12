@@ -1,5 +1,6 @@
 package bio.terra.landingzone.stairway.flight;
 
+import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -19,10 +20,12 @@ public interface StepsDefinitionProvider {
    * @param ArmManagers armManagers
    * @param ParametersResolver parametersResolver
    * @param ResourceNameGenerator resourceNameGenerator
+   * @param LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration
    * @return List of pairs of steps and step's retry rule
    */
   List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator);
+      ResourceNameGenerator resourceNameGenerator,
+      LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration);
 }
