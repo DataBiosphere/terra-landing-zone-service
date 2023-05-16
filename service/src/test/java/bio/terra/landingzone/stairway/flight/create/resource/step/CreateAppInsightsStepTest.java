@@ -126,7 +126,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
   }
 
   @ParameterizedTest
-  @MethodSource("workingParameterProvider")
+  @MethodSource("workingParametersProvider")
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
     FlightMap flightMapInputParameters =
         FlightTestUtils.prepareFlightInputParameters(
@@ -193,7 +193,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
     when(mockArmManagers.applicationInsightsManager()).thenReturn(mockApplicationInsightsManager);
   }
 
-  private static Stream<Arguments> workingParameterProvider() {
+  private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
         // intentionally return empty map, to check required parameter validation
         Arguments.of(Map.of()));
