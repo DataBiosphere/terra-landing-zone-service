@@ -13,10 +13,12 @@ import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeploymentsImpl;
 import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
+import bio.terra.landingzone.library.landingzones.management.exception.ManagedResourceGroupNotFoundException;
 import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
 import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.Region;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -77,17 +79,31 @@ public class LandingZoneManager {
     }
 
     ArmManagers armManagers = createArmManagers(credential, profile);
-    ResourceGroup resourceGroup =
-        armManagers.azureResourceManager().resourceGroups().getByName(resourceGroupName);
-    DeleteRulesVerifier deleteRulesVerifier = new DeleteRulesVerifier(armManagers);
-    return new LandingZoneManager(
-        new LandingZoneDefinitionProviderImpl(armManagers),
-        new LandingZoneDeploymentsImpl(),
-        armManagers.azureResourceManager(),
-        resourceGroup,
-        new ResourcesReaderImpl(armManagers.azureResourceManager(), resourceGroup),
-        new QuotaProvider(armManagers),
-        new ResourcesDeleteManager(armManagers, deleteRulesVerifier));
+    try {
+      ResourceGroup resourceGroup =
+          armManagers.azureResourceManager().resourceGroups().getByName(resourceGroupName);
+      DeleteRulesVerifier deleteRulesVerifier = new DeleteRulesVerifier(armManagers);
+      return new LandingZoneManager(
+          new LandingZoneDefinitionProviderImpl(armManagers),
+          new LandingZoneDeploymentsImpl(),
+          armManagers.azureResourceManager(),
+          resourceGroup,
+          new ResourcesReaderImpl(armManagers.azureResourceManager(), resourceGroup),
+          new QuotaProvider(armManagers),
+          new ResourcesDeleteManager(armManagers, deleteRulesVerifier));
+    } catch (ManagementException e) {
+      // Azure returns AuthorizationFailed when an MRG is deleted or otherwise inaccessible. Since
+      // the user is unable to change the IAM permissions on an MRG due to deny assignments, we
+      // infer that the MRG is gone and move on with the deletion process.
+      if (e.getValue().getCode().equals("AuthorizationFailed")) {
+        throw new ManagedResourceGroupNotFoundException(
+            String.format(
+                "MRG has been deleted or is otherwise inaccessible. Tenant id: %s, subscription id: %s, MRG name: %s.",
+                profile.getTenantId(), profile.getSubscriptionId(), resourceGroupName));
+      } else {
+        throw e;
+      }
+    }
   }
 
   public static ArmManagers createArmManagers(TokenCredential credential, AzureProfile profile) {
