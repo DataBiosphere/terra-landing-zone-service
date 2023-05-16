@@ -21,7 +21,6 @@ import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsExce
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.Networks;
 import java.util.Map;
@@ -40,7 +39,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class CreateVnetStepTest extends BaseStepTest {
-  @Mock private AzureResourceManager mockAzureResourceManager;
   @Mock private Networks mockNetworks;
   @Mock private Network.DefinitionStages.Blank mockDefinitionStageBlack;
   @Mock private Network.DefinitionStages.WithGroup mockDefinitionStageWithGroup;

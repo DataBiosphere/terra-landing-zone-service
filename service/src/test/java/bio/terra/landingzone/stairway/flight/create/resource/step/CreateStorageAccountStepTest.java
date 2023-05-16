@@ -19,7 +19,6 @@ import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccounts;
 import java.util.Map;
@@ -42,7 +41,6 @@ class CreateStorageAccountStepTest extends BaseStepTest {
   private static final String STORAGE_ACCOUNT_ID = "storageAccountId";
   private static final String STORAGE_ACCOUNT_NAME = "testStorageAccount";
 
-  @Mock AzureResourceManager mockAzureResourceManager;
   @Mock StorageAccounts mockStorageAccounts;
   @Mock StorageAccount.DefinitionStages.Blank mockStorageAccountDefinitionStagesBlank;
   @Mock StorageAccount.DefinitionStages.WithGroup mockStorageAccountDefinitionStagesWithGroup;

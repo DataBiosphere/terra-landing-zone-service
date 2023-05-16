@@ -17,12 +17,14 @@ import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
+import com.azure.resourcemanager.AzureResourceManager;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
 class BaseStepTest {
@@ -31,9 +33,12 @@ class BaseStepTest {
   protected static final String VNET_ID = "networkId";
 
   @Mock protected ArmManagers mockArmManagers;
+  @Mock protected AzureResourceManager mockAzureResourceManager;
   @Mock protected ParametersResolver mockParametersResolver;
   @Mock protected ResourceNameGenerator mockResourceNameGenerator;
   @Mock protected FlightContext mockFlightContext;
+
+  @Captor protected ArgumentCaptor<Map<String, String>> tagsCaptor;
 
   protected void setupFlightContext(
       FlightContext flightContext,
