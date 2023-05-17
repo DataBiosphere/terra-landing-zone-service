@@ -59,7 +59,7 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
   private CreatePostgresLogSettingsStep createPostgresLogSettingsStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createPostgresLogSettingsStep =
         new CreatePostgresLogSettingsStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -75,7 +75,7 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
             ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
         .thenReturn(postgresLogSettingsName);
 
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -90,7 +90,7 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
             logAnalyticsWorkspaceId,
             CreatePostgresqlDbStep.POSTGRESQL_ID,
             postgreSqlId));
-    setupArmManagers();
+    setupArmManagersForDoStep();
 
     StepResult stepResult = createPostgresLogSettingsStep.doStep(mockFlightContext);
 
@@ -143,7 +143,7 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
                 "logAnalyticsWorkspaceId")));
   }
 
-  private void setupArmManagers() {
+  private void setupArmManagersForDoStep() {
     when(mockDiagnosticSetting.id()).thenReturn(RESOURCE_ID);
     when(mockWithCreate.create()).thenReturn(mockDiagnosticSetting);
     when(mockWithCreate.withMetric("AllMetrics", Duration.ofMinutes(1), 0))

@@ -58,7 +58,7 @@ class CreateBatchAccountStepTest extends BaseStepTest {
   private CreateBatchAccountStep createBatchAccountStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createBatchAccountStep =
         new CreateBatchAccountStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -66,7 +66,7 @@ class CreateBatchAccountStepTest extends BaseStepTest {
 
   @Test
   void doStepSuccess() throws InterruptedException {
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
         .thenReturn(BATCH_ACCOUNT_NAME);
 
@@ -78,12 +78,12 @@ class CreateBatchAccountStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID),
         Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
-    setupArmManagers(BATCH_ACCOUNT_ID, BATCH_ACCOUNT_NAME, mrg.region(), mrg.name());
+    setupArmManagersForDoStep(BATCH_ACCOUNT_ID, BATCH_ACCOUNT_NAME, mrg.region(), mrg.name());
 
     var stepResult = createBatchAccountStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
-    verifyBasicTags(batchAccountTagsCaptor, LANDING_ZONE_ID);
+    verifyBasicTags(batchAccountTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockBatchAccountDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockBatchAccountDefinitionStagesWithCreate);
   }
@@ -124,7 +124,7 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
-  private void setupArmManagers(
+  private void setupArmManagersForDoStep(
       String batchAccountId, String name, String region, String resourceGroup) {
     when(mockBatchAccount.id()).thenReturn(batchAccountId);
     when(mockBatchAccountDefinitionStagesWithCreate.create()).thenReturn(mockBatchAccount);

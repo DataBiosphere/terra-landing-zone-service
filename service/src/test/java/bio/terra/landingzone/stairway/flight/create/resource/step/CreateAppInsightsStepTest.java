@@ -71,7 +71,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
   private CreateAppInsightsStep createAppInsightsStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createAppInsightsStep =
         new CreateAppInsightsStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -86,7 +86,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
             ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH))
         .thenReturn(appInsightName);
 
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -99,12 +99,12 @@ class CreateAppInsightsStepTest extends BaseStepTest {
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             logAnalyticsWorkspaceId));
-    setupArmManagers(RESOURCE_ID, appInsightName, logAnalyticsWorkspaceId);
+    setupArmManagersForDoStep(RESOURCE_ID, appInsightName, logAnalyticsWorkspaceId);
 
     StepResult stepResult = createAppInsightsStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
-    verifyBasicTags(tagsCaptor, LANDING_ZONE_ID);
+    verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockAppInsightDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockAppInsightDefinitionStagesWithCreate);
     assertThat(kindCaptor.getValue(), equalTo("java"));
@@ -169,7 +169,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
-  private void setupArmManagers(
+  private void setupArmManagersForDoStep(
       String appInsightId, String appInsightName, String workspaceResourceId) {
     when(mockApplicationInsightsComponent.id()).thenReturn(appInsightId);
     when(mockAppInsightDefinitionStagesWithCreate.create())

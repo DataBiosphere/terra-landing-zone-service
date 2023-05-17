@@ -37,6 +37,11 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
     super.undoStep(context);
+
+    if (getResourceId(context).isEmpty()) {
+      return StepResult.getStepResultSuccess();
+    }
+
     try {
       // Deploying AKS with monitoring connected to a log analytics workspace also deploys a
       // container insights solution named `ContainerInsights(WORKSPACE_ID)` which is untagged

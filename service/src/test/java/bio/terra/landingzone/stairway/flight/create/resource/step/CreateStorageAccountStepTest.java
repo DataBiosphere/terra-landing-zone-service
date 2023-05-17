@@ -54,7 +54,7 @@ class CreateStorageAccountStepTest extends BaseStepTest {
   private CreateStorageAccountStep createStorageAccountStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createStorageAccountStep =
         new CreateStorageAccountStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -62,7 +62,7 @@ class CreateStorageAccountStepTest extends BaseStepTest {
 
   @Test
   void doStepSuccess() throws InterruptedException {
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
         .thenReturn(STORAGE_ACCOUNT_NAME);
 
@@ -74,12 +74,12 @@ class CreateStorageAccountStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID),
         Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
-    setupArmManagers(STORAGE_ACCOUNT_ID, STORAGE_ACCOUNT_NAME, mrg.region(), mrg.name());
+    setupArmManagersForDoStep(STORAGE_ACCOUNT_ID, STORAGE_ACCOUNT_NAME, mrg.region(), mrg.name());
 
     var stepResult = createStorageAccountStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
-    verifyBasicTags(storageAccountTagsCaptor, LANDING_ZONE_ID);
+    verifyBasicTags(storageAccountTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockStorageAccountDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockStorageAccountDefinitionStagesWithCreate);
   }
@@ -120,7 +120,7 @@ class CreateStorageAccountStepTest extends BaseStepTest {
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
-  private void setupArmManagers(
+  private void setupArmManagersForDoStep(
       String storageAccountId, String storageAccountName, String region, String resourceGroupName) {
     when(mockStorageAccount.id()).thenReturn(storageAccountId);
     when(mockStorageAccountDefinitionStagesWithCreate.create()).thenReturn(mockStorageAccount);

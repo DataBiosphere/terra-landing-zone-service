@@ -67,7 +67,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   private CreatePostgresqlDbStep createPostgresqlDbStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createPostgresqlDbStep =
         new CreatePostgresqlDbStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -79,7 +79,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     var postgresPassword = "password";
     var postgresqlSku = "psqlSku";
 
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     when(mockResourceNameGenerator.nextName(
             ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH))
         .thenReturn(POSTGRESQL_NAME);
@@ -92,7 +92,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID),
         Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
-    setupArmManagers(POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name());
+    setupArmManagersForDoStep(POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name());
 
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_ADMIN.name()))
@@ -109,7 +109,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
 
     verifyServerProperties(postgresAdminName, postgresPassword, postgresqlSku);
-    verifyBasicTags(postgresqlTagsCaptor, LANDING_ZONE_ID);
+    verifyBasicTags(postgresqlTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockServerDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockServerDefinitionStagesWithCreate);
   }
@@ -150,7 +150,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
-  private void setupArmManagers(
+  private void setupArmManagersForDoStep(
       String postgresqlId, String name, String region, String resourceGroup) {
     when(mockServer.id()).thenReturn(postgresqlId);
     when(mockServerDefinitionStagesWithCreate.create()).thenReturn(mockServer);

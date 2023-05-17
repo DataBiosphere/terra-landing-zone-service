@@ -85,7 +85,7 @@ class CreatePrivateEndpointStepTest extends BaseStepTest {
   private CreatePrivateEndpointStep createPrivateEndpointStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createPrivateEndpointStep =
         new CreatePrivateEndpointStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -99,7 +99,7 @@ class CreatePrivateEndpointStepTest extends BaseStepTest {
     final String postgresqlId = "postgresqlId";
     final String vnetId = "vnetId";
 
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -115,7 +115,7 @@ class CreatePrivateEndpointStepTest extends BaseStepTest {
             CreateVnetStep.VNET_ID,
             vnetId));
     setupResourceNameGenerator(endpointName, linkConnectionName);
-    setupArmManagers(
+    setupArmManagersForDoStep(
         PRIVATE_ENDPOINT_ID,
         endpointName,
         vnetId,
@@ -192,7 +192,7 @@ class CreatePrivateEndpointStepTest extends BaseStepTest {
     verify(mockPrivateEndpoints, never()).deleteById(anyString());
   }
 
-  private void setupArmManagers(
+  private void setupArmManagersForDoStep(
       String endpointId,
       String endpointName,
       String vnetId,

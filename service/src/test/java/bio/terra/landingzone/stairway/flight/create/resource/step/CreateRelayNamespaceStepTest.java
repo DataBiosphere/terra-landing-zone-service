@@ -59,7 +59,7 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
   private CreateRelayNamespaceStep createRelayNamespaceStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createRelayNamespaceStep =
         new CreateRelayNamespaceStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -67,7 +67,7 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
 
   @Test
   void doStepSuccess() throws InterruptedException {
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_RELAY_NS_NAME_LENGTH))
         .thenReturn(RELAY_NAMESPACE_NAME);
 
@@ -79,12 +79,12 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID),
         Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
-    setupArmManagers(RELAY_NAMESPACE_ID, RELAY_NAMESPACE_NAME, mrg.region(), mrg.name());
+    setupArmManagersForDoStep(RELAY_NAMESPACE_ID, RELAY_NAMESPACE_NAME, mrg.region(), mrg.name());
 
     StepResult stepResult = createRelayNamespaceStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
-    verifyBasicTags(relayNamespaceTagsCaptor, LANDING_ZONE_ID);
+    verifyBasicTags(relayNamespaceTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockRelayNamespaceDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockRelayNamespaceDefinitionStagesWithCreate);
   }
@@ -125,7 +125,7 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
-  private void setupArmManagers(
+  private void setupArmManagersForDoStep(
       String relayNamespaceId, String name, String region, String resourceGroup) {
     when(mockRelayNamespace.id()).thenReturn(relayNamespaceId);
     when(mockRelayNamespaceDefinitionStagesWithCreate.create()).thenReturn(mockRelayNamespace);

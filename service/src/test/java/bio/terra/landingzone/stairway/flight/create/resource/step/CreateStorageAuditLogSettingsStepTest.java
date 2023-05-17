@@ -58,7 +58,7 @@ public class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
   private CreateStorageAuditLogSettingsStep createStorageAuditLogSettingsStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createStorageAuditLogSettingsStep =
         new CreateStorageAuditLogSettingsStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -74,7 +74,7 @@ public class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
             ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
         .thenReturn(storageAuditLogSettingsName);
 
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -89,7 +89,7 @@ public class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
             logAnalyticsWorkspaceId,
             CreateStorageAccountStep.STORAGE_ACCOUNT_ID,
             storageAccountId));
-    setupArmManagers();
+    setupArmManagersForDoStep();
 
     StepResult stepResult = createStorageAuditLogSettingsStep.doStep(mockFlightContext);
 
@@ -144,7 +144,7 @@ public class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
                 "logAnalyticsWorkspaceId")));
   }
 
-  private void setupArmManagers() {
+  private void setupArmManagersForDoStep() {
     when(mockDiagnosticSetting.id()).thenReturn(RESOURCE_ID);
     when(mockWithCreate.create()).thenReturn(mockDiagnosticSetting);
     when(mockWithCreate.withLog("StorageRead", 0)).thenReturn(mockWithCreate);

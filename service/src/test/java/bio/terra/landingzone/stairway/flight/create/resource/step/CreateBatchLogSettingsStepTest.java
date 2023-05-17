@@ -58,7 +58,7 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
   private CreateBatchLogSettingsStep createBatchLogSettingsStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createBatchLogSettingsStep =
         new CreateBatchLogSettingsStep(
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
@@ -74,7 +74,7 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
             ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
         .thenReturn(batchLogSettingName);
 
-    TargetManagedResourceGroup mrg = new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -89,7 +89,7 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
             logAnalyticsWorkspaceId,
             CreateBatchAccountStep.BATCH_ACCOUNT_ID,
             batchAccountId));
-    setupArmManagers();
+    setupArmManagersForDoStep();
 
     StepResult stepResult = createBatchLogSettingsStep.doStep(mockFlightContext);
 
@@ -133,7 +133,7 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
         () -> createBatchLogSettingsStep.doStep(mockFlightContext));
   }
 
-  private void setupArmManagers() {
+  private void setupArmManagersForDoStep() {
     when(mockDiagnosticSetting.id()).thenReturn(RESOURCE_ID);
     when(mockWithCreate.create()).thenReturn(mockDiagnosticSetting);
     when(mockWithCreate.withLog("ServiceLogs", 0)).thenReturn(mockWithCreate);

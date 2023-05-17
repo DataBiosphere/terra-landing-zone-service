@@ -65,9 +65,7 @@ class BaseStepTest {
   }
 
   /** Verifies that following tags assigned - WLZ-ID, WLZ-PURPOSE */
-  protected void verifyBasicTags(
-      ArgumentCaptor<Map<String, String>> resourceTagsCaptor, UUID landingZoneId) {
-    var tags = resourceTagsCaptor.getValue();
+  protected void verifyBasicTags(Map<String, String> tags, UUID landingZoneId) {
     assertNotNull(tags);
     assertTrue(tags.containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString()));
     assertThat(

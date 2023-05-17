@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
-import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
@@ -50,7 +49,7 @@ class CreateVnetStepTest extends BaseStepTest {
   private CreateVnetStep createVnetStep;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createVnetStep =
         new CreateVnetStep(mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
   }
@@ -67,14 +66,12 @@ class CreateVnetStepTest extends BaseStepTest {
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID),
-        Map.of(
-            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            new TargetManagedResourceGroup("mgrName", "mrgRegion")));
+        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, ResourceStepFixture.createDefaultMrg()));
     setupParameterResolver();
 
     var network = mock(Network.class);
     when(network.id()).thenReturn(VNET_ID);
-    setupArmManagers(network);
+    setupArmManagersForDoStep(network);
 
     var stepResult = createVnetStep.doStep(mockFlightContext);
 
@@ -125,7 +122,7 @@ class CreateVnetStepTest extends BaseStepTest {
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
-  private void setupArmManagers(Network result) {
+  private void setupArmManagersForDoStep(Network result) {
     when(mockDefinitionStageWithCreateAndSubnet.withTags(vnetTagsCaptor.capture()))
         .thenReturn(mockDefinitionStageWithCreate);
     when(mockDefinitionStageWithCreateAndSubnet.withSubnet(anyString(), anyString()))
