@@ -33,6 +33,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     jacocoTestReport {
+        dependsOn(':service:compileTestJava')
         reports {
             // sonarqube requires XML coverage output to upload coverage data
             xml.required = true
