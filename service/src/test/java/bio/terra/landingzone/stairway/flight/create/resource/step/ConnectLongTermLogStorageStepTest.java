@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -24,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class ConnectLongTermLogStorageStepTest extends BaseStepTest {
+class ConnectLongTermLogStorageStepTest extends BaseStepTest {
 
   @Mock ProtectedDataAzureStorageHelper mockStorageHelper;
 
@@ -73,5 +74,7 @@ public class ConnectLongTermLogStorageStepTest extends BaseStepTest {
             mockStorageHelper);
 
     step.deleteResource("fake_resource");
+
+    verify(mockStorageHelper).deleteDataExport(anyString());
   }
 }

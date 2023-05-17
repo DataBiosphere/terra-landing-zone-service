@@ -16,12 +16,8 @@ import com.azure.resourcemanager.AzureResourceManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitionProvider {
-  private static final Logger logger =
-      LoggerFactory.getLogger(ProtectedDataStepsDefinitionProvider.class);
 
   @Override
   public List<Pair<Step, RetryRule>> get(
