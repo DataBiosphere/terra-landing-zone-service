@@ -3,15 +3,16 @@ landingzone:
 
   landingzone-database:
     initialize-on-start: true
-    password: landingzoneuser
+    password: landingzonepwd
     uri: jdbc:postgresql://127.0.0.1:5432/landingzone_db
-    username: landingzonepwd
+    username: landingzoneuser
 
   landingzone-stairway-database:
     initialize-on-start: true
     password: landingzonestairwaypwd
     uri: jdbc:postgresql://127.0.0.1:5432/landingzone_stairway_db
     username: landingzonestairwayuser
+
 
   stairway:
     cluster-name-suffix: workspace-stairway
