@@ -1,13 +1,12 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
-import com.azure.resourcemanager.AzureResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,57 +21,32 @@ import org.slf4j.LoggerFactory;
 public class FetchLongTermStorageAccountStep implements Step {
   private static final Logger logger =
       LoggerFactory.getLogger(FetchLongTermStorageAccountStep.class);
-  private final ArmManagers armManagers;
-  private final AzureResourceManager adminSubResourceManager;
-  private final String longTermStorageResourceGroupId;
+  private final ProtectedDataAzureStorageHelper azureStorageHelper;
 
-  public FetchLongTermStorageAccountStep(
-      ArmManagers armManagers,
-      AzureResourceManager adminSubResourceManager,
-      String longTermStorageResourceGroupName) {
-    this.armManagers = armManagers;
-    this.adminSubResourceManager = adminSubResourceManager;
-    this.longTermStorageResourceGroupId = longTermStorageResourceGroupName;
+  public FetchLongTermStorageAccountStep(ProtectedDataAzureStorageHelper azureStorageHelper) {
+
+    this.azureStorageHelper = azureStorageHelper;
   }
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    var resourceGroup =
-        armManagers
-            .azureResourceManager()
-            .resourceGroups()
-            .getByName(BaseResourceCreateStep.getMRGName(context));
-    var lzRegionName = resourceGroup.region();
+    var lzMrgName = BaseResourceCreateStep.getMRGName(context);
+    var filtered = azureStorageHelper.getMatchingAdminStorageAccounts(lzMrgName);
 
-    var storageAccounts =
-        adminSubResourceManager
-            .storageAccounts()
-            .listByResourceGroup(longTermStorageResourceGroupId)
-            .stream()
-            .filter(acct -> acct.region().equals(lzRegionName))
-            .toList();
-
-    if (storageAccounts.size() > 1) {
+    if (filtered.size() > 1) {
       logger.error(
-          "More than one protected data long term storage account found in target resource group {} for region {}",
-          longTermStorageResourceGroupId,
-          lzRegionName);
+          "More than one protected data long term storage account found in target resource group");
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL);
     }
 
-    if (storageAccounts.isEmpty()) {
-      logger.error(
-          "No protected data long term storage account found in target resource group {} for region {}",
-          longTermStorageResourceGroupId,
-          lzRegionName);
+    if (filtered.isEmpty()) {
+      logger.error("No protected data long term storage account found in target resource group");
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL);
     }
 
     context
         .getWorkingMap()
-        .put(
-            LandingZoneFlightMapKeys.PROTECTED_DATA_LTS_STORAGE_ACCT_ID,
-            storageAccounts.get(0).id());
+        .put(LandingZoneFlightMapKeys.PROTECTED_DATA_LTS_STORAGE_ACCT_ID, filtered.get(0).id());
 
     return StepResult.getStepResultSuccess();
   }

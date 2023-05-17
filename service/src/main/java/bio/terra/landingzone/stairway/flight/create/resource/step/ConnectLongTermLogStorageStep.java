@@ -7,11 +7,10 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
+import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.FlightContext;
-import com.azure.core.management.exception.ManagementException;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,16 +21,21 @@ import org.slf4j.LoggerFactory;
 public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(ConnectLongTermLogStorageStep.class);
   private static final int MAX_DATA_EXPORT_NAME_LENGTH = 63;
+  public static final String DATA_EXPORT_ID = "DATA_EXPORT_ID";
+  public static final String DATA_EXPORT_RESOURCE_KEY = "DATA_EXPORT";
 
   private final List<String> tableNames;
+  private final ProtectedDataAzureStorageHelper azureStorageHelper;
 
   public ConnectLongTermLogStorageStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
-      List<String> tableNames) {
+      List<String> tableNames,
+      ProtectedDataAzureStorageHelper azureStorageHelper) {
     super(armManagers, parametersResolver, resourceNameGenerator);
     this.tableNames = tableNames;
+    this.azureStorageHelper = azureStorageHelper;
 
     if (tableNames.isEmpty()) {
       throw new LandingZoneCreateException(
@@ -59,30 +63,30 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
             String.class);
 
     var exportName = resourceNameGenerator.nextName(MAX_DATA_EXPORT_NAME_LENGTH);
-    armManagers
-        .logAnalyticsManager()
-        .dataExports()
-        .define(exportName)
-        .withExistingWorkspace(getMRGName(context), logAnalyticsWorkspaceResourceName.get())
-        .withTableNames(tableNames)
-        .withResourceId(destinationStorageAccountResourceId)
-        .withEnable(true)
-        .create();
+    var result =
+        azureStorageHelper.createLogAnalyticsDataExport(
+            exportName,
+            getMRGName(context),
+            logAnalyticsWorkspaceResourceName.get(),
+            tableNames,
+            destinationStorageAccountResourceId);
+
+    context.getWorkingMap().put(DATA_EXPORT_ID, result.id());
+    context
+        .getWorkingMap()
+        .put(
+            DATA_EXPORT_RESOURCE_KEY,
+            LandingZoneResource.builder()
+                .resourceId(result.id())
+                .resourceType(result.type())
+                .resourceName(result.name())
+                .build());
+    logger.info(RESOURCE_CREATED, getResourceType(), result.id(), getMRGName(context));
   }
 
   @Override
   protected void deleteResource(String resourceId) {
-    try {
-      armManagers.logAnalyticsManager().dataExports().deleteById(resourceId);
-    } catch (ManagementException e) {
-      if (StringUtils.equals(e.getValue().getCode(), "ResourceNotFound")) {
-        logger.error(
-            "Log analytics data export doesn't exist or has been already deleted. Id={}",
-            resourceId);
-        return;
-      }
-      throw e;
-    }
+    azureStorageHelper.deleteDataExport(resourceId);
   }
 
   @Override
@@ -92,6 +96,6 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
 
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
-    return Optional.empty();
+    return Optional.ofNullable(context.getWorkingMap().get(DATA_EXPORT_ID, String.class));
   }
 }

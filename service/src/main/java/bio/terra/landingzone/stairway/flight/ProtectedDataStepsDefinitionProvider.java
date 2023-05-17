@@ -9,6 +9,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.ConnectLongTer
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelRunPlaybookAutomationRule;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.FetchLongTermStorageAccountStep;
+import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -29,6 +30,11 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
+    var storageHelper =
+        new ProtectedDataAzureStorageHelper(
+            lzArmManagers,
+            adminSubResourceManager,
+            landingZoneProtectedDataConfiguration.getLongTermStorageResourceGroupName());
     // inherit all cromwell steps and define specific below
     var protectedDataSteps =
         new ArrayList<>(
@@ -40,12 +46,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
                 landingZoneProtectedDataConfiguration));
 
     protectedDataSteps.add(
-        Pair.of(
-            new FetchLongTermStorageAccountStep(
-                lzArmManagers,
-                adminSubResourceManager,
-                landingZoneProtectedDataConfiguration.getLongTermStorageResourceGroupName()),
-            RetryRules.cloud()));
+        Pair.of(new FetchLongTermStorageAccountStep(storageHelper), RetryRules.cloud()));
 
     protectedDataSteps.add(
         Pair.of(
@@ -53,7 +54,8 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
                 lzArmManagers,
                 parametersResolver,
                 resourceNameGenerator,
-                landingZoneProtectedDataConfiguration.getLongTermStorageTableNames()),
+                landingZoneProtectedDataConfiguration.getLongTermStorageTableNames(),
+                storageHelper),
             RetryRules.cloud()));
 
     protectedDataSteps.add(
