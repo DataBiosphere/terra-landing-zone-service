@@ -37,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
+class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
   private static final String RESOURCE_ID = "storageAuditLogSettingId";
 
   @Mock private MonitorManager mockMonitorManager;
