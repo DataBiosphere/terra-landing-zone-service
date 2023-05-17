@@ -5,18 +5,27 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.stairway.flight.create.resource.step.ConnectLongTermLogStorageStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelRunPlaybookAutomationRule;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.FetchLongTermStorageAccountStep;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
+import com.azure.resourcemanager.AzureResourceManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitionProvider {
+  private static final Logger logger =
+      LoggerFactory.getLogger(ProtectedDataStepsDefinitionProvider.class);
+
   @Override
   public List<Pair<Step, RetryRule>> get(
-      ArmManagers armManagers,
+      ArmManagers lzArmManagers,
+      AzureResourceManager adminSubResourceManager,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
@@ -24,20 +33,38 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
     var protectedDataSteps =
         new ArrayList<>(
             super.get(
-                armManagers,
+                lzArmManagers,
+                adminSubResourceManager,
                 parametersResolver,
                 resourceNameGenerator,
                 landingZoneProtectedDataConfiguration));
 
     protectedDataSteps.add(
         Pair.of(
-            new CreateSentinelStep(armManagers, parametersResolver, resourceNameGenerator),
+            new FetchLongTermStorageAccountStep(
+                lzArmManagers,
+                adminSubResourceManager,
+                landingZoneProtectedDataConfiguration.getLongTermStorageResourceGroupName()),
+            RetryRules.cloud()));
+
+    protectedDataSteps.add(
+        Pair.of(
+            new ConnectLongTermLogStorageStep(
+                lzArmManagers,
+                parametersResolver,
+                resourceNameGenerator,
+                landingZoneProtectedDataConfiguration.getLongTermStorageTableNames()),
+            RetryRules.cloud()));
+
+    protectedDataSteps.add(
+        Pair.of(
+            new CreateSentinelStep(lzArmManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()));
 
     protectedDataSteps.add(
         Pair.of(
             new CreateSentinelRunPlaybookAutomationRule(
-                armManagers,
+                lzArmManagers,
                 parametersResolver,
                 resourceNameGenerator,
                 landingZoneProtectedDataConfiguration),

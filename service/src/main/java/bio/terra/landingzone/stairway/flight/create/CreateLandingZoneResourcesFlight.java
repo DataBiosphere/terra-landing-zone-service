@@ -23,6 +23,7 @@ import bio.terra.stairway.FlightMap;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.ClientSecretCredentialBuilder;
+import com.azure.resourcemanager.AzureResourceManager;
 import java.util.UUID;
 
 public class CreateLandingZoneResourcesFlight extends Flight {
@@ -66,13 +67,14 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     parametersResolver =
         new ParametersResolver(landingZoneRequest.parameters(), LandingZoneDefaultParameters.get());
 
-    addCreateSteps();
+    addCreateSteps(flightBeanBag.getAzureConfiguration());
   }
 
-  private void addCreateSteps() {
+  private void addCreateSteps(LandingZoneAzureConfiguration azureConfiguration) {
     stepsDefinitionProvider
         .get(
             armManagers,
+            initializeAdminSubscriptionArmManager(azureConfiguration),
             parametersResolver,
             resourceNameGenerator,
             landingZoneProtectedDataConfiguration)
@@ -99,6 +101,23 @@ public class CreateLandingZoneResourcesFlight extends Flight {
             .tenantId(azureConfiguration.getManagedAppTenantId())
             .build();
     return LandingZoneManager.createArmManagers(tokenCredentials, azureProfile);
+  }
+
+  private AzureResourceManager initializeAdminSubscriptionArmManager(
+      LandingZoneAzureConfiguration azureConfiguration) {
+    var azureProfile =
+        new AzureProfile(
+            landingZoneProtectedDataConfiguration.getTenantId(),
+            landingZoneProtectedDataConfiguration.getAdminSubscriptionId(),
+            AzureEnvironment.AZURE);
+    var tokenCredentials =
+        new ClientSecretCredentialBuilder()
+            .clientId(azureConfiguration.getManagedAppClientId())
+            .clientSecret(azureConfiguration.getManagedAppClientSecret())
+            .tenantId(azureConfiguration.getManagedAppTenantId())
+            .build();
+    return AzureResourceManager.authenticate(tokenCredentials, azureProfile)
+        .withDefaultSubscription();
   }
 
   private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {

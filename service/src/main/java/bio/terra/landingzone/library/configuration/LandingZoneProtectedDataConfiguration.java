@@ -1,5 +1,6 @@
 package bio.terra.landingzone.library.configuration;
 
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,23 @@ import org.springframework.context.annotation.Configuration;
 public class LandingZoneProtectedDataConfiguration {
   private String logicAppResourceId;
   private String tenantId;
+  private List<String> longTermStorageTableNames;
+  private String longTermStorageResourceGroupName;
+  private String adminSubscriptionId;
+
+  /**
+   * List of tables that will be exported from a protected data Landing Zone's log analytics
+   * workspace to a storage account in an administrative subscription
+   *
+   * @return List of log analytics workspace table names
+   */
+  public List<String> getLongTermStorageTableNames() {
+    return longTermStorageTableNames;
+  }
+
+  public void setLongTermStorageTableNames(List<String> longTermStorageTableNames) {
+    this.longTermStorageTableNames = longTermStorageTableNames;
+  }
 
   /**
    * Returns resource identifier of an Azure LogicApp.
@@ -41,5 +59,32 @@ public class LandingZoneProtectedDataConfiguration {
 
   public void setTenantId(String tenantId) {
     this.tenantId = tenantId;
+  }
+
+  /**
+   * Resource group name that provides storage accounts for long term storage of protected data
+   * logs.
+   *
+   * @return Resource group name
+   */
+  public String getLongTermStorageResourceGroupName() {
+    return longTermStorageResourceGroupName;
+  }
+
+  public void setLongTermStorageResourceGroupName(String longTermStorageResourceGroupName) {
+    this.longTermStorageResourceGroupName = longTermStorageResourceGroupName;
+  }
+
+  /**
+   * ID of the subscription where the long term storage account resource group resides
+   *
+   * @return Subscription ID
+   */
+  public String getAdminSubscriptionId() {
+    return adminSubscriptionId;
+  }
+
+  public void setAdminSubscriptionId(String adminSubscriptionId) {
+    this.adminSubscriptionId = adminSubscriptionId;
   }
 }

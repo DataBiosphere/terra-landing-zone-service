@@ -100,12 +100,12 @@ public abstract class BaseResourceCreateStep implements Step {
 
   protected abstract Optional<String> getResourceId(FlightContext context);
 
-  protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
+  public static <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
     FlightUtils.validateRequiredEntries(parameters, name);
     return parameters.get(name, clazz);
   }
 
-  protected String getMRGName(FlightContext context) {
+  public static String getMRGName(FlightContext context) {
     return getParameterOrThrow(
             context.getWorkingMap(),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
