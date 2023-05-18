@@ -95,18 +95,18 @@ jobs:
       - name: Test Service and Library with coverage
         run: ./gradlew --build-cache service:test jacocoTestReport --scan
 
-#      - name: Test Harness Tests with coverage
-#        run: ./gradlew --build-cache testharness:test jacocoTestReport --scan
+      - name: Test Harness Tests with coverage
+        run: ./gradlew --build-cache testharness:test jacocoTestReport --scan
 
-#      - name: Integration Test with coverage
-#        run: ./gradlew --build-cache service:integration jacocoTestReport --scan
-#
-#      - name: Upload Test Harness Test Reports
-#        uses: actions/upload-artifact@v1
-#        if: always()
-#        with:
-#          name: Test Harness Reports
-#          path: testharness/build/reports/tests
+      - name: Integration Test with coverage
+        run: ./gradlew --build-cache service:integration jacocoTestReport --scan
+
+      - name: Upload Test Harness Test Reports
+        uses: actions/upload-artifact@v1
+        if: always()
+        with:
+          name: Test Harness Reports
+          path: testharness/build/reports/tests
 
       - name: Upload Service Test Reports
         uses: actions/upload-artifact@v1
