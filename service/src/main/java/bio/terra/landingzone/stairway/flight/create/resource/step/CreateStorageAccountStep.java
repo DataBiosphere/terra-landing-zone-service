@@ -40,6 +40,7 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
             .define(storageAccountName)
             .withRegion(getMRGRegionName(context))
             .withExistingResourceGroup(getMRGName(context))
+            .disableBlobPublicAccess()
             .withTags(
                 Map.of(
                     LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
