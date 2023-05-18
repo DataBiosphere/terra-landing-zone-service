@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.utils;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import com.azure.core.management.exception.ManagementException;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.loganalytics.models.DataExport;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.azure.resourcemanager.storage.models.StorageAccount;
@@ -16,16 +15,12 @@ public class ProtectedDataAzureStorageHelper {
       LoggerFactory.getLogger(ProtectedDataAzureStorageHelper.class);
 
   private final ArmManagers armManagers;
-  private final AzureResourceManager adminSubResourceManager;
   private final String longTermStorageResourceGroupName;
 
   public ProtectedDataAzureStorageHelper(
-      ArmManagers armManagers,
-      AzureResourceManager adminSubresourceManager,
-      String longTermStorageResourceGroupName) {
+      ArmManagers armManagers, String longTermStorageResourceGroupName) {
 
     this.armManagers = armManagers;
-    this.adminSubResourceManager = adminSubresourceManager;
     this.longTermStorageResourceGroupName = longTermStorageResourceGroupName;
   }
 
@@ -34,8 +29,10 @@ public class ProtectedDataAzureStorageHelper {
         armManagers.azureResourceManager().resourceGroups().getByName(mrgResourceGroupName);
     var lzRegionName = resourceGroup.region();
 
+    // get the storage account from the admin subscription
     var storageAccounts =
-        adminSubResourceManager
+        armManagers
+            .adminResourceManager()
             .storageAccounts()
             .listByResourceGroup(longTermStorageResourceGroupName);
 

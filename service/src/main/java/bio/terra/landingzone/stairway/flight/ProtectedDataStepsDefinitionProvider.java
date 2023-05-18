@@ -12,7 +12,6 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.FetchLongTermS
 import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
-import com.azure.resourcemanager.AzureResourceManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,22 +20,19 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
 
   @Override
   public List<Pair<Step, RetryRule>> get(
-      ArmManagers lzArmManagers,
-      AzureResourceManager adminSubResourceManager,
+      ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     var storageHelper =
         new ProtectedDataAzureStorageHelper(
-            lzArmManagers,
-            adminSubResourceManager,
+            armManagers,
             landingZoneProtectedDataConfiguration.getLongTermStorageResourceGroupName());
     // inherit all cromwell steps and define specific below
     var protectedDataSteps =
         new ArrayList<>(
             super.get(
-                lzArmManagers,
-                adminSubResourceManager,
+                armManagers,
                 parametersResolver,
                 resourceNameGenerator,
                 landingZoneProtectedDataConfiguration));
@@ -47,7 +43,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
     protectedDataSteps.add(
         Pair.of(
             new ConnectLongTermLogStorageStep(
-                lzArmManagers,
+                armManagers,
                 parametersResolver,
                 resourceNameGenerator,
                 landingZoneProtectedDataConfiguration.getLongTermStorageTableNames(),
@@ -56,13 +52,13 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
 
     protectedDataSteps.add(
         Pair.of(
-            new CreateSentinelStep(lzArmManagers, parametersResolver, resourceNameGenerator),
+            new CreateSentinelStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()));
 
     protectedDataSteps.add(
         Pair.of(
             new CreateSentinelRunPlaybookAutomationRule(
-                lzArmManagers,
+                armManagers,
                 parametersResolver,
                 resourceNameGenerator,
                 landingZoneProtectedDataConfiguration),

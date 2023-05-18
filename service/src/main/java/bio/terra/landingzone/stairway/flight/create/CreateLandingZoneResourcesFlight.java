@@ -23,7 +23,6 @@ import bio.terra.stairway.FlightMap;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.ClientSecretCredentialBuilder;
-import com.azure.resourcemanager.AzureResourceManager;
 import java.util.UUID;
 
 public class CreateLandingZoneResourcesFlight extends Flight {
@@ -74,7 +73,6 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     stepsDefinitionProvider
         .get(
             armManagers,
-            initializeAdminSubscriptionArmManager(azureConfiguration),
             parametersResolver,
             resourceNameGenerator,
             landingZoneProtectedDataConfiguration)
@@ -89,35 +87,24 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     var billingProfile =
         inputParameters.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
-    var azureProfile =
+    var landingZoneProfile =
         new AzureProfile(
             landingZoneTarget.azureTenantId(),
             landingZoneTarget.azureSubscriptionId(),
             AzureEnvironment.AZURE);
-    var tokenCredentials =
-        new ClientSecretCredentialBuilder()
-            .clientId(azureConfiguration.getManagedAppClientId())
-            .clientSecret(azureConfiguration.getManagedAppClientSecret())
-            .tenantId(azureConfiguration.getManagedAppTenantId())
-            .build();
-    return LandingZoneManager.createArmManagers(tokenCredentials, azureProfile);
-  }
-
-  private AzureResourceManager initializeAdminSubscriptionArmManager(
-      LandingZoneAzureConfiguration azureConfiguration) {
-    var azureProfile =
+    var adminProfile =
         new AzureProfile(
             landingZoneProtectedDataConfiguration.getTenantId(),
             landingZoneProtectedDataConfiguration.getAdminSubscriptionId(),
             AzureEnvironment.AZURE);
+
     var tokenCredentials =
         new ClientSecretCredentialBuilder()
             .clientId(azureConfiguration.getManagedAppClientId())
             .clientSecret(azureConfiguration.getManagedAppClientSecret())
             .tenantId(azureConfiguration.getManagedAppTenantId())
             .build();
-    return AzureResourceManager.authenticate(tokenCredentials, azureProfile)
-        .withDefaultSubscription();
+    return LandingZoneManager.createArmManagers(tokenCredentials, landingZoneProfile, adminProfile);
   }
 
   private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {

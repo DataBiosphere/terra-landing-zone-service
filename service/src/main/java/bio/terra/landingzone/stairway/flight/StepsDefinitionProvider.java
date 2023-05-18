@@ -6,7 +6,6 @@ import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerat
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
-import com.azure.resourcemanager.AzureResourceManager;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -18,10 +17,7 @@ public interface StepsDefinitionProvider {
    * information for resource2 (using flight working map). So, step for resource1 should go first in
    * the list definition.
    *
-   * @param lzArmManagers Collection of Azure resource managers that are able to connect to the user
-   *     MRG
-   * @param adminSubResourceManager Azure resource manager that is able to connect to a Terra
-   *     administrative subscription
+   * @param armManagers Collection of Azure resource managers
    * @param parametersResolver parametersResolver Landing zone parameter resolver
    * @param resourceNameGenerator resourceNameGenerator Landing zone resource name generator
    * @param landingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration Protected
@@ -29,8 +25,7 @@ public interface StepsDefinitionProvider {
    * @return List of pairs of steps and step's retry rule
    */
   List<Pair<Step, RetryRule>> get(
-      ArmManagers lzArmManagers,
-      AzureResourceManager adminSubResourceManager,
+      ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration);

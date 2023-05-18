@@ -27,6 +27,7 @@ public class TestArmResourcesFactory {
   public static ArmManagers createArmManagers() {
     return new ArmManagers(
         createArmClient(),
+        createArmClient(),
         createRelayArmClient(),
         createBatchArmClient(),
         createPostgreSqlArmClient(),

@@ -37,7 +37,7 @@ class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
   void setUp() {
     landingZoneManager =
         LandingZoneManager.createLandingZoneManager(
-            tokenCredential, azureProfile, resourceGroup.name());
+            tokenCredential, azureProfile, azureProfile, resourceGroup.name());
   }
 
   @Test
