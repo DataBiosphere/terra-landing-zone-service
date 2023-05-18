@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public class AggregateLandingZoneResourcesStep implements Step {
   // TODO: only shared resources?
-  private List<String> deployedResourcesKeys =
+  public static List<String> deployedResourcesKeys =
       List.of(
           CreateVnetStep.VNET_RESOURCE_KEY,
           CreateBatchAccountStep.BATCH_ACCOUNT_RESOURCE_KEY,
