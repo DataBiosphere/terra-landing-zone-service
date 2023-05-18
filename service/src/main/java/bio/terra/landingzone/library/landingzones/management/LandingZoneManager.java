@@ -67,21 +67,17 @@ public class LandingZoneManager {
   }
 
   public static LandingZoneManager createLandingZoneManager(
-      TokenCredential credential,
-      AzureProfile landingZoneProfile,
-      AzureProfile adminProfile,
-      String resourceGroupName) {
+      TokenCredential credential, AzureProfile profile, String resourceGroupName) {
 
     Objects.requireNonNull(credential, "credential can't be null");
-    Objects.requireNonNull(landingZoneProfile, "landingZoneProfile can't be null");
-    Objects.requireNonNull(adminProfile, "adminProfile can't be null");
+    Objects.requireNonNull(profile, "profile can't be null");
 
     if (StringUtils.isBlank(resourceGroupName)) {
       throw logger.logExceptionAsError(
           new IllegalArgumentException("Resource group name can't be blank or null"));
     }
 
-    ArmManagers armManagers = createArmManagers(credential, landingZoneProfile, adminProfile);
+    ArmManagers armManagers = createArmManagers(credential, profile);
     ResourceGroup resourceGroup =
         armManagers.azureResourceManager().resourceGroups().getByName(resourceGroupName);
     DeleteRulesVerifier deleteRulesVerifier = new DeleteRulesVerifier(armManagers);
@@ -95,30 +91,23 @@ public class LandingZoneManager {
         new ResourcesDeleteManager(armManagers, deleteRulesVerifier));
   }
 
-  public static ArmManagers createArmManagers(
-      TokenCredential credential, AzureProfile landingZoneProfile, AzureProfile adminProfile) {
+  public static ArmManagers createArmManagers(TokenCredential credential, AzureProfile profile) {
     AzureResourceManager azureResourceManager =
-        AzureResourceManager.authenticate(credential, landingZoneProfile)
-            .withSubscription(landingZoneProfile.getSubscriptionId());
-    AzureResourceManager adminResourceManager =
-        AzureResourceManager.authenticate(credential, adminProfile)
-            .withSubscription(adminProfile.getSubscriptionId());
+        AzureResourceManager.authenticate(credential, profile)
+            .withSubscription(profile.getSubscriptionId());
 
-    RelayManager relayManager = RelayManager.authenticate(credential, landingZoneProfile);
-    BatchManager batchManager = BatchManager.authenticate(credential, landingZoneProfile);
-    PostgreSqlManager postgreSqlManager =
-        PostgreSqlManager.authenticate(credential, landingZoneProfile);
-    LogAnalyticsManager logAnalyticsManager =
-        LogAnalyticsManager.authenticate(credential, landingZoneProfile);
-    MonitorManager monitorManager = MonitorManager.authenticate(credential, landingZoneProfile);
+    RelayManager relayManager = RelayManager.authenticate(credential, profile);
+    BatchManager batchManager = BatchManager.authenticate(credential, profile);
+    PostgreSqlManager postgreSqlManager = PostgreSqlManager.authenticate(credential, profile);
+    LogAnalyticsManager logAnalyticsManager = LogAnalyticsManager.authenticate(credential, profile);
+    MonitorManager monitorManager = MonitorManager.authenticate(credential, profile);
     ApplicationInsightsManager applicationInsightsManager =
-        ApplicationInsightsManager.authenticate(credential, landingZoneProfile);
+        ApplicationInsightsManager.authenticate(credential, profile);
     SecurityInsightsManager securityInsightsManager =
-        SecurityInsightsManager.authenticate(credential, landingZoneProfile);
+        SecurityInsightsManager.authenticate(credential, profile);
 
     return new ArmManagers(
         azureResourceManager,
-        adminResourceManager,
         relayManager,
         batchManager,
         postgreSqlManager,

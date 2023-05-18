@@ -20,7 +20,6 @@ public class LandingZoneTestFixture {
     armManagers =
         new ArmManagers(
             TestArmResourcesFactory.createArmClient(),
-            TestArmResourcesFactory.createArmClient(),
             TestArmResourcesFactory.createRelayArmClient(),
             TestArmResourcesFactory.createBatchArmClient(),
             TestArmResourcesFactory.createPostgreSqlArmClient(),

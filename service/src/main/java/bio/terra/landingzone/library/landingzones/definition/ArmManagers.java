@@ -12,7 +12,6 @@ import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;
 /** Record with the ARM clients required for deployments */
 public record ArmManagers(
     AzureResourceManager azureResourceManager,
-    AzureResourceManager adminResourceManager,
     RelayManager relayManager,
     BatchManager batchManager,
     PostgreSqlManager postgreSqlManager,

@@ -8,7 +8,6 @@ import bio.terra.landingzone.library.landingzones.definition.factories.Parameter
 import bio.terra.landingzone.stairway.flight.create.resource.step.ConnectLongTermLogStorageStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelRunPlaybookAutomationRule;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.FetchLongTermStorageAccountStep;
 import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
@@ -24,10 +23,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    var storageHelper =
-        new ProtectedDataAzureStorageHelper(
-            armManagers,
-            landingZoneProtectedDataConfiguration.getLongTermStorageResourceGroupName());
+    var storageHelper = new ProtectedDataAzureStorageHelper(armManagers);
     // inherit all cromwell steps and define specific below
     var protectedDataSteps =
         new ArrayList<>(
@@ -38,16 +34,14 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
                 landingZoneProtectedDataConfiguration));
 
     protectedDataSteps.add(
-        Pair.of(new FetchLongTermStorageAccountStep(storageHelper), RetryRules.cloud()));
-
-    protectedDataSteps.add(
         Pair.of(
             new ConnectLongTermLogStorageStep(
                 armManagers,
                 parametersResolver,
                 resourceNameGenerator,
+                storageHelper,
                 landingZoneProtectedDataConfiguration.getLongTermStorageTableNames(),
-                storageHelper),
+                landingZoneProtectedDataConfiguration.getLongTermStorageAccountIds()),
             RetryRules.cloud()));
 
     protectedDataSteps.add(

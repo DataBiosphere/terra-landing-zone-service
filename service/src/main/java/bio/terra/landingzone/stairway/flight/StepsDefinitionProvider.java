@@ -17,11 +17,10 @@ public interface StepsDefinitionProvider {
    * information for resource2 (using flight working map). So, step for resource1 should go first in
    * the list definition.
    *
-   * @param armManagers Collection of Azure resource managers
-   * @param parametersResolver parametersResolver Landing zone parameter resolver
-   * @param resourceNameGenerator resourceNameGenerator Landing zone resource name generator
-   * @param landingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration Protected
-   *     data landing specific configuration
+   * @param ArmManagers armManagers
+   * @param ParametersResolver parametersResolver
+   * @param ResourceNameGenerator resourceNameGenerator
+   * @param LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration
    * @return List of pairs of steps and step's retry rule
    */
   List<Pair<Step, RetryRule>> get(

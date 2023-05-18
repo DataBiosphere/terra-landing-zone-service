@@ -32,7 +32,6 @@ public class BaseDependencyRuleFixture {
 
   @Mock protected BatchManager batchManager;
   @Mock protected AzureResourceManager azureResourceManager;
-  @Mock protected AzureResourceManager adminResourceManager;
   @Mock protected PostgreSqlManager postgreSqlManager;
   @Mock protected RelayManager relayManager;
   @Mock protected LogAnalyticsManager logAnalyticsManager;
@@ -48,7 +47,6 @@ public class BaseDependencyRuleFixture {
     armManagers =
         new ArmManagers(
             azureResourceManager,
-            adminResourceManager,
             relayManager,
             batchManager,
             postgreSqlManager,

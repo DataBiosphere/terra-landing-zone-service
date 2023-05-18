@@ -1,6 +1,7 @@
 package bio.terra.landingzone.library.configuration;
 
 import java.util.List;
+import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -18,22 +19,7 @@ public class LandingZoneProtectedDataConfiguration {
   private String logicAppResourceId;
   private String tenantId;
   private List<String> longTermStorageTableNames;
-  private String longTermStorageResourceGroupName;
-  private String adminSubscriptionId;
-
-  /**
-   * List of tables that will be exported from a protected data Landing Zone's log analytics
-   * workspace to a storage account in an administrative subscription
-   *
-   * @return List of log analytics workspace table names
-   */
-  public List<String> getLongTermStorageTableNames() {
-    return longTermStorageTableNames;
-  }
-
-  public void setLongTermStorageTableNames(List<String> longTermStorageTableNames) {
-    this.longTermStorageTableNames = longTermStorageTableNames;
-  }
+  private Map<String, String> longTermStorageAccountIds;
 
   /**
    * Returns resource identifier of an Azure LogicApp.
@@ -62,29 +48,29 @@ public class LandingZoneProtectedDataConfiguration {
   }
 
   /**
-   * Resource group name that provides storage accounts for long term storage of protected data
-   * logs.
+   * Map of region names to storage account IDs that may be used for long term storage of logs
    *
-   * @return Resource group name
+   * @return Map of regions to storage account IDs
    */
-  public String getLongTermStorageResourceGroupName() {
-    return longTermStorageResourceGroupName;
+  public Map<String, String> getLongTermStorageAccountIds() {
+    return longTermStorageAccountIds;
   }
 
-  public void setLongTermStorageResourceGroupName(String longTermStorageResourceGroupName) {
-    this.longTermStorageResourceGroupName = longTermStorageResourceGroupName;
+  public void setLongTermStorageAccountIds(Map<String, String> longTermStorageAccountIds) {
+    this.longTermStorageAccountIds = longTermStorageAccountIds;
   }
 
   /**
-   * ID of the subscription where the long term storage account resource group resides
+   * List of tables that will be exported from a protected data Landing Zone's log analytics
+   * workspace to a storage account in an administrative subscription
    *
-   * @return Subscription ID
+   * @return List of log analytics workspace table names
    */
-  public String getAdminSubscriptionId() {
-    return adminSubscriptionId;
+  public List<String> getLongTermStorageTableNames() {
+    return longTermStorageTableNames;
   }
 
-  public void setAdminSubscriptionId(String adminSubscriptionId) {
-    this.adminSubscriptionId = adminSubscriptionId;
+  public void setLongTermStorageTableNames(List<String> longTermStorageTableNames) {
+    this.longTermStorageTableNames = longTermStorageTableNames;
   }
 }

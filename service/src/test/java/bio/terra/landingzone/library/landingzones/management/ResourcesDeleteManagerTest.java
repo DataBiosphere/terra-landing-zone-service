@@ -65,7 +65,7 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
   static void setUpLandingZone() {
     LandingZoneManager landingZoneManager =
         LandingZoneManager.createLandingZoneManager(
-            tokenCredential, azureProfile, azureProfile, resourceGroup.name());
+            tokenCredential, azureProfile, resourceGroup.name());
 
     landingZoneId = UUID.randomUUID();
 

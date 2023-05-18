@@ -66,10 +66,10 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     parametersResolver =
         new ParametersResolver(landingZoneRequest.parameters(), LandingZoneDefaultParameters.get());
 
-    addCreateSteps(flightBeanBag.getAzureConfiguration());
+    addCreateSteps();
   }
 
-  private void addCreateSteps(LandingZoneAzureConfiguration azureConfiguration) {
+  private void addCreateSteps() {
     stepsDefinitionProvider
         .get(
             armManagers,
@@ -87,15 +87,10 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     var billingProfile =
         inputParameters.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
-    var landingZoneProfile =
+    var azureProfile =
         new AzureProfile(
             landingZoneTarget.azureTenantId(),
             landingZoneTarget.azureSubscriptionId(),
-            AzureEnvironment.AZURE);
-    var adminProfile =
-        new AzureProfile(
-            landingZoneProtectedDataConfiguration.getTenantId(),
-            landingZoneProtectedDataConfiguration.getAdminSubscriptionId(),
             AzureEnvironment.AZURE);
 
     var tokenCredentials =
@@ -104,7 +99,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
             .clientSecret(azureConfiguration.getManagedAppClientSecret())
             .tenantId(azureConfiguration.getManagedAppTenantId())
             .build();
-    return LandingZoneManager.createArmManagers(tokenCredentials, landingZoneProfile, adminProfile);
+    return LandingZoneManager.createArmManagers(tokenCredentials, azureProfile);
   }
 
   private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {

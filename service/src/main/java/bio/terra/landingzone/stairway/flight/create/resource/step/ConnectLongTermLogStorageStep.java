@@ -4,12 +4,12 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
-import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.FlightContext;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,17 +25,20 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   public static final String DATA_EXPORT_RESOURCE_KEY = "DATA_EXPORT";
 
   private final List<String> tableNames;
-  private final ProtectedDataAzureStorageHelper azureStorageHelper;
+  private ProtectedDataAzureStorageHelper storageHelper;
+  private Map<String, String> longTermStorageAccountIds;
 
   public ConnectLongTermLogStorageStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
+      ProtectedDataAzureStorageHelper storageHelper,
       List<String> tableNames,
-      ProtectedDataAzureStorageHelper azureStorageHelper) {
+      Map<String, String> longTermStorageAccountIds) {
     super(armManagers, parametersResolver, resourceNameGenerator);
     this.tableNames = tableNames;
-    this.azureStorageHelper = azureStorageHelper;
+    this.storageHelper = storageHelper;
+    this.longTermStorageAccountIds = longTermStorageAccountIds;
 
     if (tableNames.isEmpty()) {
       throw new LandingZoneCreateException(
@@ -56,15 +59,16 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
       throw new MissingRequiredFieldsException("LogAnalyticsWorkspace resource name is not set.");
     }
 
-    var destinationStorageAccountResourceId =
-        getParameterOrThrow(
-            context.getWorkingMap(),
-            LandingZoneFlightMapKeys.PROTECTED_DATA_LTS_STORAGE_ACCT_ID,
-            String.class);
+    var lzRegion = storageHelper.getResourceGroupRegion(getMRGName(context));
+    if (!longTermStorageAccountIds.containsKey(lzRegion)) {
+      throw new MissingRequiredFieldsException(
+          "No matching long term storage account for region " + lzRegion);
+    }
 
+    var destinationStorageAccountResourceId = longTermStorageAccountIds.get(lzRegion);
     var exportName = resourceNameGenerator.nextName(MAX_DATA_EXPORT_NAME_LENGTH);
     var result =
-        azureStorageHelper.createLogAnalyticsDataExport(
+        storageHelper.createLogAnalyticsDataExport(
             exportName,
             getMRGName(context),
             logAnalyticsWorkspaceResourceName.get(),
@@ -86,7 +90,7 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
 
   @Override
   protected void deleteResource(String resourceId) {
-    azureStorageHelper.deleteDataExport(resourceId);
+    storageHelper.deleteDataExport(resourceId);
   }
 
   @Override
