@@ -331,7 +331,6 @@ public class LandingZoneServiceTest {
             .version(DefinitionVersion.V5.toString())
             .parameters(null)
             .billingProfileId(billingProfileId)
-            .useStairwayPath(true)
             .build();
     Assertions.assertThrows(
         LandingZoneDefinitionNotFound.class,

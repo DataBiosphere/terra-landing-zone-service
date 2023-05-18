@@ -5,6 +5,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
@@ -20,6 +21,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageA
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
+import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import java.util.List;
@@ -52,6 +54,12 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
      * 14) AppInsights ~ 3)
      * */
     return List.of(
+        Pair.of(
+            new ValidateLandingZoneParametersStep(
+                InputParametersValidationFactory.buildValidators(
+                    StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE),
+                parametersResolver),
+            RetryRules.shortExponential()),
         Pair.of(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud()),
         Pair.of(
             new CreateVnetStep(armManagers, parametersResolver, resourceNameGenerator),

@@ -15,7 +15,6 @@ import bio.terra.landingzone.job.LandingZoneJobService.AsyncJobResult;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
-import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZonePurpose;
@@ -46,14 +45,12 @@ import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneResourcesFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import bio.terra.profile.model.ProfileModel;
-import com.azure.core.util.ExpandableStringEnum;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -558,33 +555,12 @@ public class LandingZoneService {
   }
 
   private void checkIfRequestedFactoryExists(LandingZoneRequest azureLandingZone) {
-    if (Boolean.TRUE.equals(azureLandingZone.useStairwayPath())) {
-      checkIfRequestedFactoryExists(azureLandingZone.definition());
-    } else {
-      Predicate<FactoryDefinitionInfo> requiredDefinition =
-          (FactoryDefinitionInfo f) ->
-              f.className().equals(azureLandingZone.definition())
-                  && f.versions().stream()
-                      .map(ExpandableStringEnum::toString)
-                      .toList()
-                      .contains(azureLandingZone.version());
-      var requestedFactory =
-          LandingZoneManager.listDefinitionFactories().stream()
-              .filter(requiredDefinition)
-              .findFirst();
-
-      if (requestedFactory.isEmpty()) {
-        throwIfFactoryDoesntExist(azureLandingZone.definition(), azureLandingZone.version());
-      }
-    }
-  }
-
-  private void checkIfRequestedFactoryExists(String definition) {
+    /*ignoring version for now*/
     var factoryExists =
         Arrays.stream(StepsDefinitionFactoryType.values())
-            .anyMatch(v -> StringUtils.equals(v.getValue(), definition));
+            .anyMatch(v -> StringUtils.equals(v.getValue(), azureLandingZone.definition()));
     if (!factoryExists) {
-      throwIfFactoryDoesntExist(definition, null /*ignoring version for now*/);
+      throwIfFactoryDoesntExist(azureLandingZone.definition(), azureLandingZone.version());
     }
   }
 

@@ -15,16 +15,13 @@ import org.apache.commons.lang3.StringUtils;
  * @param parameters Parameters used if we need to customize certain resource.
  * @param billingProfileId Unique identifier of a billing profile.
  * @param landingZoneId Optional value for unique identifier of a landing zone.
- * @param useStairwayPath When useStairwayPath parameter is explicitly set to True we initiate
- *     alternative way of Landing Zone resources creation.
  */
 public record LandingZoneRequest(
     String definition,
     String version,
     Map<String, String> parameters,
     UUID billingProfileId,
-    Optional<UUID> landingZoneId,
-    Boolean useStairwayPath) {
+    Optional<UUID> landingZoneId) {
 
   public static Builder builder() {
     return new Builder();
@@ -36,7 +33,6 @@ public record LandingZoneRequest(
     private Map<String, String> parameters;
     private UUID billingProfileId;
     private UUID landingZoneId;
-    private Boolean useStairwayPath;
 
     public Builder definition(String definition) {
       this.definition = definition;
@@ -63,11 +59,6 @@ public record LandingZoneRequest(
       return this;
     }
 
-    public Builder useStairwayPath(Boolean useStairwayPath) {
-      this.useStairwayPath = useStairwayPath;
-      return this;
-    }
-
     public LandingZoneRequest build() {
       if (StringUtils.isBlank(definition)) {
         throw new MissingRequiredFieldsException(
@@ -79,17 +70,8 @@ public record LandingZoneRequest(
             "Azure landing zone definition requires billing profile ID");
       }
 
-      if (useStairwayPath == null) {
-        useStairwayPath = false;
-      }
-
       return new LandingZoneRequest(
-          definition,
-          version,
-          parameters,
-          billingProfileId,
-          Optional.ofNullable(landingZoneId),
-          useStairwayPath);
+          definition, version, parameters, billingProfileId, Optional.ofNullable(landingZoneId));
     }
   }
 

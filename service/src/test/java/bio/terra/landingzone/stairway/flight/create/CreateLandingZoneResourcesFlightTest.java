@@ -55,7 +55,6 @@ class CreateLandingZoneResourcesFlightTest {
         "v1",
         Map.of(),
         UUID.randomUUID(),
-        Optional.empty(),
-        true);
+        Optional.empty());
   }
 }

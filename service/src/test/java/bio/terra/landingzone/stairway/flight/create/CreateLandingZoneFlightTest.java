@@ -31,41 +31,10 @@ class CreateLandingZoneFlightTest {
   @Mock private LandingZoneFlightBeanBag mockApplicationContext;
 
   @Test
-  void testDefaultPathSetExplicitly() {
-    Boolean stairwayPath = Boolean.FALSE;
-    LandingZoneRequest defaultLandingZoneRequest = createDefaultLandingZoneRequest(stairwayPath);
+  void testInitializationWhenIsNotAttaching() {
+    final boolean isAttaching = false;
+    LandingZoneRequest defaultLandingZoneRequest = createDefaultLandingZoneRequest(isAttaching);
 
-    FlightMap inputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, defaultLandingZoneRequest));
-
-    createLandingZoneFlight = new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
-
-    var steps = createLandingZoneFlight.getSteps();
-    assertThat(steps.size(), equalTo(4));
-    validateSteps(steps, stairwayPath);
-  }
-
-  @Test
-  void testDefaultPathSet() {
-    Boolean stairwayPath = null;
-    LandingZoneRequest defaultLandingZoneRequest = createDefaultLandingZoneRequest(stairwayPath);
-
-    FlightMap inputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, defaultLandingZoneRequest));
-
-    createLandingZoneFlight = new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
-
-    var steps = createLandingZoneFlight.getSteps();
-    assertThat(steps.size(), equalTo(4));
-    validateSteps(steps, stairwayPath);
-  }
-
-  @Test
-  void testStairwayPathSetExplicitly() {
-    Boolean stairwayPath = Boolean.TRUE;
-    LandingZoneRequest defaultLandingZoneRequest = createDefaultLandingZoneRequest(stairwayPath);
     FlightMap inputParameters =
         FlightTestUtils.prepareFlightInputParameters(
             Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, defaultLandingZoneRequest));
@@ -74,13 +43,29 @@ class CreateLandingZoneFlightTest {
 
     var steps = createLandingZoneFlight.getSteps();
     assertThat(steps.size(), equalTo(5));
-    validateSteps(steps, stairwayPath);
+    validateSteps(steps, isAttaching);
   }
 
-  void validateSteps(List<Step> steps, Boolean stairwayPath) {
+  @Test
+  void testInitializationWhenAttaching() {
+    final boolean isAttaching = true;
+    LandingZoneRequest defaultLandingZoneRequest = createDefaultLandingZoneRequest(isAttaching);
+
+    FlightMap inputParameters =
+        FlightTestUtils.prepareFlightInputParameters(
+            Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, defaultLandingZoneRequest));
+
+    createLandingZoneFlight = new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
+
+    var steps = createLandingZoneFlight.getSteps();
+    assertThat(steps.size(), equalTo(3));
+    validateSteps(steps, isAttaching);
+  }
+
+  void validateSteps(List<Step> steps, boolean isAttaching) {
     assertThat(steps.stream().filter(s -> s instanceof CreateSamResourceStep).count(), equalTo(1L));
     assertThat(steps.stream().filter(s -> s instanceof GetBillingProfileStep).count(), equalTo(1L));
-    if (Boolean.TRUE.equals(stairwayPath)) {
+    if (!isAttaching) {
       assertThat(
           steps.stream().filter(s -> s instanceof CreateLandingZoneResourcesFlightStep).count(),
           equalTo(1L));
@@ -89,22 +74,18 @@ class CreateLandingZoneFlightTest {
               .filter(s -> s instanceof AwaitCreateLandingResourcesZoneFlightStep)
               .count(),
           equalTo(1L));
-    } else {
-      assertThat(
-          steps.stream().filter(s -> s instanceof CreateAzureLandingZoneStep).count(), equalTo(1L));
     }
     assertThat(
         steps.stream().filter(s -> s instanceof CreateAzureLandingZoneDbRecordStep).count(),
         equalTo(1L));
   }
 
-  LandingZoneRequest createDefaultLandingZoneRequest(Boolean stairwayPath) {
+  LandingZoneRequest createDefaultLandingZoneRequest(boolean isAttaching) {
     return new LandingZoneRequest(
         StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue(),
         "v1",
-        Map.of(),
+        isAttaching ? Map.of(LandingZoneFlightMapKeys.ATTACH, "true") : Map.of(),
         BILLING_PROFILE_ID,
-        Optional.of(LANDING_ZONE_ID),
-        stairwayPath);
+        Optional.of(LANDING_ZONE_ID));
   }
 }
