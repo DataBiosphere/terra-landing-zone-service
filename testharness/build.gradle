@@ -9,7 +9,7 @@ dependencies {
         // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611
         exclude group: 'net.minidev', module: 'json-smart'
     }
-    implementation 'net.minidev:json-smart:2.4.10'
+    implementation 'net.minidev:json-smart:2.4.11'
 
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
