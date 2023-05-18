@@ -92,7 +92,6 @@ public class CreateLandingZoneResourcesFlight extends Flight {
             landingZoneTarget.azureTenantId(),
             landingZoneTarget.azureSubscriptionId(),
             AzureEnvironment.AZURE);
-
     var tokenCredentials =
         new ClientSecretCredentialBuilder()
             .clientId(azureConfiguration.getManagedAppClientId())

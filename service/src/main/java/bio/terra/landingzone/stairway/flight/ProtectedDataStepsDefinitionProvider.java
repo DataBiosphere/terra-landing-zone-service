@@ -16,7 +16,6 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitionProvider {
-
   @Override
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,

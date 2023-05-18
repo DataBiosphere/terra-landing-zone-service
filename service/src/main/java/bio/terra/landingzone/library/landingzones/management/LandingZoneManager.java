@@ -71,7 +71,6 @@ public class LandingZoneManager {
 
     Objects.requireNonNull(credential, "credential can't be null");
     Objects.requireNonNull(profile, "profile can't be null");
-
     if (StringUtils.isBlank(resourceGroupName)) {
       throw logger.logExceptionAsError(
           new IllegalArgumentException("Resource group name can't be blank or null"));
@@ -95,7 +94,6 @@ public class LandingZoneManager {
     AzureResourceManager azureResourceManager =
         AzureResourceManager.authenticate(credential, profile)
             .withSubscription(profile.getSubscriptionId());
-
     RelayManager relayManager = RelayManager.authenticate(credential, profile);
     BatchManager batchManager = BatchManager.authenticate(credential, profile);
     PostgreSqlManager postgreSqlManager = PostgreSqlManager.authenticate(credential, profile);
