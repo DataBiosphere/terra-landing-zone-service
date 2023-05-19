@@ -1,4 +1,6 @@
 #!/bin/bash
+# Note: for local develepment, use the service/render-test-config.sh instead.
+# I'm not 100% sure this isn't used anywhere, but I suspect this file is an artifact of a different project or some such
 #
 # write-config.sh extracts configuration information from vault and writes it to a set of files
 # in a directory. This simplifies access to the secrets from other scripts and applications.
