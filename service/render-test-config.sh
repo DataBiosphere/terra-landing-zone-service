@@ -5,7 +5,7 @@
 
 
 VAULT_TOKEN=${1:-$(cat $HOME/.vault-token)}
-DSDE_TOOLBOX_DOCKER_IMAGE=broadinstitute/dsde-toolbox:consul-0.20.0
+DSDE_TOOLBOX_DOCKER_IMAGE=broadinstitute/dsde-toolbox:dev
 VAULT_AZURE_MANAGED_APP_CLIENT_PATH=secret/dsde/terra/azure/common/managed-app-publisher
 AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH="$(dirname $0)"/src/test/resources/integration_azure_managed_app_client.json
 AZURE_PROPERTIES_OUTPUT_FILE_PATH="$(dirname $0)"/src/test/resources/integration_azure_env.properties

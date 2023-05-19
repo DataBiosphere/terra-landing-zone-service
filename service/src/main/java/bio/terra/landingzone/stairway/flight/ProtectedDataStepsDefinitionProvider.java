@@ -5,8 +5,10 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.stairway.flight.create.resource.step.ConnectLongTermLogStorageStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelRunPlaybookAutomationRule;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelStep;
+import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import java.util.ArrayList;
@@ -28,6 +30,17 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
                 parametersResolver,
                 resourceNameGenerator,
                 landingZoneProtectedDataConfiguration));
+
+    protectedDataSteps.add(
+        Pair.of(
+            new ConnectLongTermLogStorageStep(
+                armManagers,
+                parametersResolver,
+                resourceNameGenerator,
+                new ProtectedDataAzureStorageHelper(armManagers),
+                landingZoneProtectedDataConfiguration.getLongTermStorageTableNames(),
+                landingZoneProtectedDataConfiguration.getLongTermStorageAccountIds()),
+            RetryRules.cloud()));
 
     protectedDataSteps.add(
         Pair.of(

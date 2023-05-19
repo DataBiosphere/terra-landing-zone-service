@@ -1,5 +1,7 @@
 package bio.terra.landingzone.library.configuration;
 
+import java.util.List;
+import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,8 @@ import org.springframework.context.annotation.Configuration;
 public class LandingZoneProtectedDataConfiguration {
   private String logicAppResourceId;
   private String tenantId;
+  private List<String> longTermStorageTableNames;
+  private Map<String, String> longTermStorageAccountIds;
 
   /**
    * Returns resource identifier of an Azure LogicApp.
@@ -41,5 +45,32 @@ public class LandingZoneProtectedDataConfiguration {
 
   public void setTenantId(String tenantId) {
     this.tenantId = tenantId;
+  }
+
+  /**
+   * Map of region names to storage account IDs that may be used for long term storage of logs
+   *
+   * @return Map of regions to storage account IDs
+   */
+  public Map<String, String> getLongTermStorageAccountIds() {
+    return longTermStorageAccountIds;
+  }
+
+  public void setLongTermStorageAccountIds(Map<String, String> longTermStorageAccountIds) {
+    this.longTermStorageAccountIds = longTermStorageAccountIds;
+  }
+
+  /**
+   * List of tables that will be exported from a protected data Landing Zone's log analytics
+   * workspace to a storage account in an administrative subscription
+   *
+   * @return List of log analytics workspace table names
+   */
+  public List<String> getLongTermStorageTableNames() {
+    return longTermStorageTableNames;
+  }
+
+  public void setLongTermStorageTableNames(List<String> longTermStorageTableNames) {
+    this.longTermStorageTableNames = longTermStorageTableNames;
   }
 }
