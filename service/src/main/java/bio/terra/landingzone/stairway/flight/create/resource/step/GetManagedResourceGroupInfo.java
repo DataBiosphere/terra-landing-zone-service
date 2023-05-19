@@ -24,6 +24,7 @@ public class GetManagedResourceGroupInfo implements Step {
         context
             .getInputParameters()
             .get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+
     var resourceGroup =
         armManagers
             .azureResourceManager()

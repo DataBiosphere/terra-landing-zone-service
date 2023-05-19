@@ -8,10 +8,10 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
-import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
@@ -64,7 +64,7 @@ class CreateSentinelRunPlaybookAutomationRuleTest extends BaseStepTest {
   private CreateSentinelRunPlaybookAutomationRule createSentinelRunPlaybookAutomationRule;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createSentinelRunPlaybookAutomationRule =
         new CreateSentinelRunPlaybookAutomationRule(
             mockArmManagers,
@@ -86,7 +86,7 @@ class CreateSentinelRunPlaybookAutomationRuleTest extends BaseStepTest {
             LANDING_ZONE_ID),
         Map.of(
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            new TargetManagedResourceGroup("mgrName", "mrgRegion"),
+            ResourceStepFixture.createDefaultMrg(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             buildLandingZoneResource()));
     setupArmManagersForDoStep("ruleId");
@@ -120,6 +120,7 @@ class CreateSentinelRunPlaybookAutomationRuleTest extends BaseStepTest {
     assertThat(playBookAction.actionConfiguration().tenantId(), equalTo(tenantId));
 
     verify(mockAutomationRuleDefinitionStageWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockAutomationRuleDefinitionStageWithCreate);
   }
 
   @Test

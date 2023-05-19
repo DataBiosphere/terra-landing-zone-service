@@ -28,14 +28,15 @@ public class CreatePrivateEndpointStep extends BaseResourceCreateStep {
     String postgreSqlId =
         getParameterOrThrow(
             context.getWorkingMap(), CreatePostgresqlDbStep.POSTGRESQL_ID, String.class);
+    String vNetId =
+        getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
+
     String privateEndpointName =
         resourceNameGenerator.nextName(ResourceNameGenerator.MAX_PRIVATE_ENDPOINT_NAME_LENGTH);
     String privateLinkServiceConnectionName =
         resourceNameGenerator.nextName(
             ResourceNameGenerator.MAX_PRIVATE_LINK_CONNECTION_NAME_LENGTH);
 
-    String vNetId =
-        getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
     var vNetwork = armManagers.azureResourceManager().networks().getById(vNetId);
     var privateEndpoint =
         armManagers

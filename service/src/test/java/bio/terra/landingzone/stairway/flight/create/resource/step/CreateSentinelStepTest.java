@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -45,7 +46,7 @@ class CreateSentinelStepTest extends BaseStepTest {
   @Captor ArgumentCaptor<String> workspaceNameCaptor;
 
   @BeforeEach
-  void setUp() {
+  void setup() {
     createSentinelStep =
         new CreateSentinelStep(mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
   }
@@ -53,7 +54,7 @@ class CreateSentinelStepTest extends BaseStepTest {
   @Test
   void doStepSuccess() throws InterruptedException {
     var logAnalyticsLandingZoneResource = buildLandingZoneResource();
-    var resourceGroupName = "mrgName";
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -63,7 +64,7 @@ class CreateSentinelStepTest extends BaseStepTest {
             LANDING_ZONE_ID),
         Map.of(
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            new TargetManagedResourceGroup(resourceGroupName, "mrgRegion"),
+            mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             logAnalyticsLandingZoneResource));
     setupArmManagersForDoStep(RESOURCE_ID);
@@ -74,8 +75,9 @@ class CreateSentinelStepTest extends BaseStepTest {
     assertThat(
         workspaceNameCaptor.getValue(),
         equalTo(logAnalyticsLandingZoneResource.resourceName().get()));
-    assertThat(resourceGroupNameCaptor.getValue(), equalTo(resourceGroupName));
+    assertThat(resourceGroupNameCaptor.getValue(), equalTo(mrg.name()));
     verify(mockDefinitionStagesWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockDefinitionStagesWithCreate);
   }
 
   @Test
@@ -112,7 +114,7 @@ class CreateSentinelStepTest extends BaseStepTest {
 
     var stepResult = createSentinelStep.undoStep(mockFlightContext);
 
-    verify(mockSentinelOnboardingStages, never()).deleteById(VNET_ID);
+    verify(mockSentinelOnboardingStages, never()).deleteById(anyString());
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 

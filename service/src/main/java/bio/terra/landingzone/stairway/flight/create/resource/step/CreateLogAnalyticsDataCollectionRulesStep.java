@@ -79,13 +79,13 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-    var dataCollectionRulesName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DATA_COLLECTION_RULE_NAME_LENGTH);
     var logAnalyticsWorkspaceId =
         getParameterOrThrow(
             context.getWorkingMap(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
+    var dataCollectionRulesName =
+        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DATA_COLLECTION_RULE_NAME_LENGTH);
     var dataCollectionRules =
         armManagers
             .monitorManager()
