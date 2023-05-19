@@ -22,7 +22,6 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    var storageHelper = new ProtectedDataAzureStorageHelper(armManagers);
     // inherit all cromwell steps and define specific below
     var protectedDataSteps =
         new ArrayList<>(
@@ -38,7 +37,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
                 armManagers,
                 parametersResolver,
                 resourceNameGenerator,
-                storageHelper,
+                new ProtectedDataAzureStorageHelper(armManagers),
                 landingZoneProtectedDataConfiguration.getLongTermStorageTableNames(),
                 landingZoneProtectedDataConfiguration.getLongTermStorageAccountIds()),
             RetryRules.cloud()));
