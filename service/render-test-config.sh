@@ -15,11 +15,6 @@ docker run --rm --cap-add IPC_LOCK \
             vault read -format json ${VAULT_AZURE_MANAGED_APP_CLIENT_PATH} \
             | jq -r .data > ${AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH}
 
-# The docker image above doesn't have an image that will run on ARM architecture (such as the apple m1 chip)
-# The command below is an alternative with an installed version of vault
-# VAULT_ADDR="https://clotho.broadinstitute.org:8200"
-# vault read -format=json "${VAULT_AZURE_MANAGED_APP_CLIENT_PATH}" | jq -r .data > ${AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH}
-
 AZURE_MANAGED_APP_CLIENT_ID=$(jq -r '."client-id"' ${AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH})
 AZURE_MANAGED_APP_CLIENT_SECRET=$(jq -r '."client-secret"' ${AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH})
 AZURE_MANAGED_APP_TENANT_ID=$(jq -r '."tenant-id"' ${AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH})
