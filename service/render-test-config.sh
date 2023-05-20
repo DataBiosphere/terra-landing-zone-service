@@ -19,7 +19,7 @@ AZURE_MANAGED_APP_CLIENT_ID=$(jq -r '."client-id"' ${AZURE_MANAGED_APP_CLIENT_OU
 AZURE_MANAGED_APP_CLIENT_SECRET=$(jq -r '."client-secret"' ${AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH})
 AZURE_MANAGED_APP_TENANT_ID=$(jq -r '."tenant-id"' ${AZURE_MANAGED_APP_CLIENT_OUTPUT_FILE_PATH})
 cat > ${AZURE_PROPERTIES_OUTPUT_FILE_PATH} <<EOF
-integration.azure.admin.clientId=${AZURE_MANAGED_APP_CLIENT_ID}
-integration.azure.admin.clientSecret=${AZURE_MANAGED_APP_CLIENT_SECRET}
-integration.azure.admin.tenantId=${AZURE_MANAGED_APP_TENANT_ID}
+workspace.azure.managedAppClientId=${AZURE_MANAGED_APP_CLIENT_ID}
+workspace.azure.managedAppClientSecret=${AZURE_MANAGED_APP_CLIENT_SECRET}
+workspace.azure.managedAppTenantId=${AZURE_MANAGED_APP_TENANT_ID}
 EOF
