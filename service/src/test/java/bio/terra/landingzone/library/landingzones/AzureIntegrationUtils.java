@@ -13,10 +13,11 @@ import org.assertj.core.util.Strings;
 
 public class AzureIntegrationUtils {
   /** Path to Azure properties file. */
-  private static final String AZURE_PROPERTIES_PATH = "integration_azure_env.properties";
+  private static final String AZURE_PROPERTIES_PATH =
+      "application-integration_azure_env.properties";
 
   /** Property prefix for properties in {@link #AZURE_PROPERTIES_PATH}. */
-  private static final String AZURE_PROPERTY_PREFIX = "integration.azure";
+  private static final String AZURE_PROPERTY_PREFIX = "workspace.azure";
 
   private static final String CLIENT_ID_ENV_VAR = "AZURE_PUBLISHER_CLIENT_ID";
   private static final String CLIENT_SECRET_ENV_VAR = "AZURE_PUBLISHER_CLIENT_SECRET";
@@ -51,17 +52,17 @@ public class AzureIntegrationUtils {
 
       final String clientId =
           Preconditions.checkNotNull(
-              properties.getProperty(AZURE_PROPERTY_PREFIX + ".admin.clientId"),
+              properties.getProperty(AZURE_PROPERTY_PREFIX + "managedAppClientId"),
               "Unable to read Azure admin client id from " + AZURE_PROPERTIES_PATH);
 
       final String clientSecret =
           Preconditions.checkNotNull(
-              properties.getProperty(AZURE_PROPERTY_PREFIX + ".admin.clientSecret"),
+              properties.getProperty(AZURE_PROPERTY_PREFIX + "managedAppClientSecret"),
               "Unable to read Azure admin application secret from " + AZURE_PROPERTIES_PATH);
 
       final String tenantId =
           Preconditions.checkNotNull(
-              properties.getProperty(AZURE_PROPERTY_PREFIX + ".admin.tenantId"),
+              properties.getProperty(AZURE_PROPERTY_PREFIX + "managedAppTenantId"),
               "Unable to read Azure admin tenant id from " + AZURE_PROPERTIES_PATH);
 
       return new ClientSecretCredentialBuilder()
