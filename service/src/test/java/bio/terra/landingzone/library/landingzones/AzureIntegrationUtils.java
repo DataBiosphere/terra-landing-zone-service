@@ -14,8 +14,7 @@ import org.assertj.core.util.Strings;
 public class AzureIntegrationUtils {
 
   /** Path to Azure properties file. */
-  private static final String AZURE_PROPERTIES_PATH =
-      "integration_azure_env.properties";
+  private static final String AZURE_PROPERTIES_PATH = "integration_azure_env.properties";
 
   /** Property prefix for properties in {@link #AZURE_PROPERTIES_PATH}. */
   private static final String AZURE_PROPERTY_PREFIX = "workspace.azure.";
