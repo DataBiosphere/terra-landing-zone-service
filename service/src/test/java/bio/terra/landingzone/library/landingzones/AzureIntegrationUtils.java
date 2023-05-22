@@ -12,12 +12,13 @@ import java.util.Properties;
 import org.assertj.core.util.Strings;
 
 public class AzureIntegrationUtils {
+
   /** Path to Azure properties file. */
   private static final String AZURE_PROPERTIES_PATH =
-      "application-integration_azure_env.properties";
+      "integration_azure_env.properties";
 
   /** Property prefix for properties in {@link #AZURE_PROPERTIES_PATH}. */
-  private static final String AZURE_PROPERTY_PREFIX = "workspace.azure";
+  private static final String AZURE_PROPERTY_PREFIX = "workspace.azure.";
 
   private static final String CLIENT_ID_ENV_VAR = "AZURE_PUBLISHER_CLIENT_ID";
   private static final String CLIENT_SECRET_ENV_VAR = "AZURE_PUBLISHER_CLIENT_SECRET";
