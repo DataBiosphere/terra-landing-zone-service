@@ -14,7 +14,7 @@ dependencies {
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2:2.9.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:3.1.0'
-    implementation 'org.springframework.boot:spring-boot-starter-web:3.0.6'
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.1.0'
     implementation 'org.springframework.retry:spring-retry:2.0.1'
     implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6d19a41'
     implementation 'bio.terra:billing-profile-manager-client:0.1.29-SNAPSHOT'
