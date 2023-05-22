@@ -48,8 +48,6 @@ class CreateStorageAccountStepTest extends BaseStepTest {
   @Mock StorageAccount mockStorageAccount;
 
   @Captor ArgumentCaptor<Map<String, String>> storageAccountTagsCaptor;
-  //  @Captor ArgumentCaptor<String> resourceGroupNameCaptor;
-  //  @Captor ArgumentCaptor<String> resourceGroupRegionCaptor;
 
   private CreateStorageAccountStep createStorageAccountStep;
 
@@ -125,6 +123,8 @@ class CreateStorageAccountStepTest extends BaseStepTest {
     when(mockStorageAccount.id()).thenReturn(storageAccountId);
     when(mockStorageAccountDefinitionStagesWithCreate.create()).thenReturn(mockStorageAccount);
     when(mockStorageAccountDefinitionStagesWithCreate.withTags(storageAccountTagsCaptor.capture()))
+        .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
+    when(mockStorageAccountDefinitionStagesWithCreate.disableBlobPublicAccess())
         .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
     when(mockStorageAccountDefinitionStagesWithGroup.withExistingResourceGroup(resourceGroupName))
         .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
