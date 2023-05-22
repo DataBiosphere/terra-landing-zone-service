@@ -54,6 +54,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import com.azure.core.management.Region;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -167,39 +168,22 @@ public class LandingZoneServiceTest {
 
   @Test
   void startLandingZoneCreationJob_NoLandingZoneId_JobIsSubmitted() {
-    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
-    when(mockFactory1.availableVersions())
-        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
-
-    List<FactoryDefinitionInfo> factories =
-        List.of(
-            new FactoryDefinitionInfo(
-                mockFactory1.getClass().getName(),
-                "mockFactory",
-                mockFactory1.getClass().getName(),
-                mockFactory1.availableVersions()));
-
     LandingZoneJobBuilder mockJobBuilder = createMockJobBuilder(OperationType.CREATE);
     when(mockJobBuilder.landingZoneRequest(any())).thenReturn(mockJobBuilder);
     when(mockJobBuilder.addParameter(any(), any())).thenReturn(mockJobBuilder);
     when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
 
-    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
-        Mockito.mockStatic(LandingZoneManager.class)) {
-      staticMockLandingZoneManager
-          .when(LandingZoneManager::listDefinitionFactories)
-          .thenReturn(factories);
+    LandingZoneRequest landingZoneRequest =
+        LandingZoneRequest.builder()
+            .definition(
+                StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue())
+            .version("V1")
+            .parameters(null)
+            .billingProfileId(billingProfileId)
+            .build();
+    landingZoneService.startLandingZoneCreationJob(
+        bearerToken, "newJobId", landingZoneRequest, "create-result");
 
-      LandingZoneRequest landingZoneRequest =
-          LandingZoneRequest.builder()
-              .definition(mockFactory1.getClass().getName())
-              .version(DefinitionVersion.V1.toString())
-              .parameters(null)
-              .billingProfileId(billingProfileId)
-              .build();
-      landingZoneService.startLandingZoneCreationJob(
-          bearerToken, "newJobId", landingZoneRequest, "create-result");
-    }
     verify(mockJobBuilder, times(1))
         .addParameter(eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), captorLandingZoneId.capture());
     assertNotEquals(landingZoneId, captorLandingZoneId.getValue());
@@ -209,40 +193,23 @@ public class LandingZoneServiceTest {
 
   @Test
   void startLandingZoneCreationJob_WithLandingZoneId_JobIsSubmitted() {
-    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
-    when(mockFactory1.availableVersions())
-        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
-
-    List<FactoryDefinitionInfo> factories =
-        List.of(
-            new FactoryDefinitionInfo(
-                mockFactory1.getClass().getName(),
-                "mockFactory",
-                mockFactory1.getClass().getName(),
-                mockFactory1.availableVersions()));
-
     LandingZoneJobBuilder mockJobBuilder = createMockJobBuilder(OperationType.CREATE);
     when(mockJobBuilder.landingZoneRequest(any())).thenReturn(mockJobBuilder);
     when(mockJobBuilder.addParameter(any(), any())).thenReturn(mockJobBuilder);
     when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
 
-    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
-        Mockito.mockStatic(LandingZoneManager.class)) {
-      staticMockLandingZoneManager
-          .when(LandingZoneManager::listDefinitionFactories)
-          .thenReturn(factories);
+    LandingZoneRequest landingZoneRequest =
+        LandingZoneRequest.builder()
+            .definition(
+                StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue())
+            .version("V1")
+            .parameters(null)
+            .billingProfileId(billingProfileId)
+            .landingZoneId(landingZoneId)
+            .build();
+    landingZoneService.startLandingZoneCreationJob(
+        bearerToken, "newJobId", landingZoneRequest, "create-result");
 
-      LandingZoneRequest landingZoneRequest =
-          LandingZoneRequest.builder()
-              .definition(mockFactory1.getClass().getName())
-              .version(DefinitionVersion.V1.toString())
-              .parameters(null)
-              .billingProfileId(billingProfileId)
-              .landingZoneId(landingZoneId)
-              .build();
-      landingZoneService.startLandingZoneCreationJob(
-          bearerToken, "newJobId", landingZoneRequest, "create-result");
-    }
     verify(mockJobBuilder, times(1))
         .addParameter(eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), eq(landingZoneId));
     verify(landingZoneJobService, times(1)).newJob();
@@ -253,39 +220,22 @@ public class LandingZoneServiceTest {
   void startLandingZoneCreationJob_WithLandingZoneId_ErrorWithDuplicateId() {
     when(landingZoneDao.getLandingZoneIfExists(eq(landingZoneId)))
         .thenReturn(Optional.of(createLandingZoneRecord()));
-    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
-    when(mockFactory1.availableVersions())
-        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
 
-    List<FactoryDefinitionInfo> factories =
-        List.of(
-            new FactoryDefinitionInfo(
-                mockFactory1.getClass().getName(),
-                "mockFactory",
-                mockFactory1.getClass().getName(),
-                mockFactory1.availableVersions()));
+    LandingZoneRequest landingZoneRequest =
+        LandingZoneRequest.builder()
+            .definition(
+                StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue())
+            .version("V1")
+            .parameters(null)
+            .billingProfileId(billingProfileId)
+            .landingZoneId(landingZoneId)
+            .build();
 
-    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
-        Mockito.mockStatic(LandingZoneManager.class)) {
-      staticMockLandingZoneManager
-          .when(LandingZoneManager::listDefinitionFactories)
-          .thenReturn(factories);
-
-      LandingZoneRequest landingZoneRequest =
-          LandingZoneRequest.builder()
-              .definition(mockFactory1.getClass().getName())
-              .version(DefinitionVersion.V1.toString())
-              .parameters(null)
-              .billingProfileId(billingProfileId)
-              .landingZoneId(landingZoneId)
-              .build();
-
-      Assertions.assertThrows(
-          DuplicateLandingZoneException.class,
-          () ->
-              landingZoneService.startLandingZoneCreationJob(
-                  bearerToken, "newJobId", landingZoneRequest, "create-result"));
-    }
+    Assertions.assertThrows(
+        DuplicateLandingZoneException.class,
+        () ->
+            landingZoneService.startLandingZoneCreationJob(
+                bearerToken, "newJobId", landingZoneRequest, "create-result"));
   }
 
   @Test
@@ -342,38 +292,22 @@ public class LandingZoneServiceTest {
   @Test
   void startLandingZoneCreationJob_ThrowsErrorWhenAttachingInvalidConfiguration() {
     when(testingConfiguration.isAllowAttach()).thenReturn(false);
-    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
-    when(mockFactory1.availableVersions())
-        .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
-
-    List<FactoryDefinitionInfo> factories =
-        List.of(
-            new FactoryDefinitionInfo(
-                mockFactory1.getClass().getName(),
-                "mockFactory",
-                mockFactory1.getClass().getName(),
-                mockFactory1.availableVersions()));
 
     LandingZoneRequest landingZoneRequest =
         LandingZoneRequest.builder()
-            .definition(mockFactory1.getClass().getName())
+            .definition(
+                StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue())
             .version(DefinitionVersion.V1.toString())
             .parameters(Map.of(LandingZoneFlightMapKeys.ATTACH, "true"))
             .billingProfileId(billingProfileId)
             .landingZoneId(landingZoneId)
             .build();
 
-    try (MockedStatic<LandingZoneManager> staticMockLandingZoneManager =
-        Mockito.mockStatic(LandingZoneManager.class)) {
-      staticMockLandingZoneManager
-          .when(LandingZoneManager::listDefinitionFactories)
-          .thenReturn(factories);
-      Assertions.assertThrows(
-          BadRequestException.class,
-          () ->
-              landingZoneService.startLandingZoneCreationJob(
-                  bearerToken, "newJobId", landingZoneRequest, "create-result"));
-    }
+    Assertions.assertThrows(
+        BadRequestException.class,
+        () ->
+            landingZoneService.startLandingZoneCreationJob(
+                bearerToken, "newJobId", landingZoneRequest, "create-result"));
   }
 
   @Test
