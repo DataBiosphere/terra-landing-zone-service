@@ -124,6 +124,8 @@ class CreateStorageAccountStepTest extends BaseStepTest {
       String storageAccountId, String storageAccountName, String region, String resourceGroupName) {
     when(mockStorageAccount.id()).thenReturn(storageAccountId);
     when(mockStorageAccountDefinitionStagesWithCreate.create()).thenReturn(mockStorageAccount);
+    when(mockStorageAccountDefinitionStagesWithCreate.disableBlobPublicAccess())
+        .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
     when(mockStorageAccountDefinitionStagesWithCreate.withTags(storageAccountTagsCaptor.capture()))
         .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
     when(mockStorageAccountDefinitionStagesWithGroup.withExistingResourceGroup(resourceGroupName))
