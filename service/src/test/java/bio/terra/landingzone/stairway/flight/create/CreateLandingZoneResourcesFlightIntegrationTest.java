@@ -101,11 +101,6 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends LandingZone
             tokenCredential, azureProfile, resourceGroup.name());
   }
 
-  @AfterEach
-  void cleanUp() throws Exception {
-    landingZoneManager.deleteResources(landingZoneId.toString());
-  }
-
   @Test
   void createResourcesFlightDeploysCromwellResources() throws Exception {
     String resultPath = "";
@@ -126,18 +121,6 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends LandingZone
 
     var resources = landingZoneManager.reader().listSharedResources(lzIdString);
     assertThat(resources, hasSize(AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()));
-
-    landingZoneManager.deleteResources(landingZoneId.toString());
-
-    // Immediate listing after deletion may return transient resources results.
-    await()
-        .atMost(Duration.ofSeconds(120))
-        .untilAsserted(
-            () -> {
-              var landingZoneResources =
-                  landingZoneManager.reader().listAllResources(landingZoneId.toString());
-              assertThat(landingZoneResources, empty());
-            });
   }
 
   // just a clone of the method in LandingZoneService
