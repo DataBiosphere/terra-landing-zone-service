@@ -96,8 +96,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends LandingZone
             "v1",
             Map.of(),
             profile.getId(),
-            Optional.of(landingZoneId),
-            true);
+            Optional.of(landingZoneId));
     landingZoneManager =
         LandingZoneManager.createLandingZoneManager(
             tokenCredential, azureProfile, resourceGroup.name());
