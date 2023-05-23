@@ -6,20 +6,17 @@ import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.StairwayProperties;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneStairwayProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class LandingZoneStairwayConfiguration {
   @Bean
-  @ConfigurationProperties(prefix = "landingzone.stairway")
   public LandingZoneStairwayProperties getLandingZoneStairwayProperties() {
     return new LandingZoneStairwayProperties();
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "workspace.azure")
   public LandingZoneAzureConfiguration getLandingZoneAzureConfiguration() {
     return new LandingZoneAzureConfiguration();
   }
