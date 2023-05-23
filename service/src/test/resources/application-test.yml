@@ -40,3 +40,9 @@ terra.common:
     in-kubernetes: false
   tracing:
     stackdriverExportEnabled: false
+
+workspace:
+  azure:
+    managedAppClientId: ${AZURE_PUBLISHER_CLIENT_ID}
+    managedAppClientSecret: ${AZURE_PUBLISHER_CLIENT_SECRET}
+    managedAppTenantId: ${AZURE_PUBLISHER_TENANT_ID}

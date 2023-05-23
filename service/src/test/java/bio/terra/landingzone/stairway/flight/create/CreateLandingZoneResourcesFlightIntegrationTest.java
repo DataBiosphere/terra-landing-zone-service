@@ -33,15 +33,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Tag("integration")
 @ActiveProfiles("test")
-@TestPropertySource("classpath:integration_azure_env.properties")
+@PropertySource(value = "classpath:integration_azure_env.properties", ignoreResourceNotFound = true)
 @ExtendWith(SpringExtension.class)
 @SpringBootTest()
 @SpringBootApplication(
