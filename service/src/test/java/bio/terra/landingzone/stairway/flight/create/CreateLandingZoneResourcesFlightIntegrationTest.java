@@ -117,7 +117,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends LandingZone
               assertThat(flightState.getFlightStatus(), not(FlightStatus.RUNNING));
             });
     var flightState = retrieveFlightState(jobId.toString());
-    assertThat(flightState.getFlightStatus(), oneOf(FlightStatus.READY, FlightStatus.SUCCESS));
+    assertThat(flightState.getFlightStatus(), is(FlightStatus.SUCCESS));
 
     var lzIdString = landingZoneId.toString();
 
