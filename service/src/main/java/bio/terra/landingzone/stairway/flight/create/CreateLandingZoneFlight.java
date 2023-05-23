@@ -47,20 +47,14 @@ public class CreateLandingZoneFlight extends Flight {
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     if (!requestedLandingZone.isAttaching()) {
-      if (Boolean.TRUE.equals(requestedLandingZone.useStairwayPath())) {
-        addStep(
-            new CreateLandingZoneResourcesFlightStep(
-                flightBeanBag.getLandingZoneService(),
-                requestedLandingZone,
-                LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
-        addStep(
-            new AwaitCreateLandingResourcesZoneFlightStep(
-                LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
-      } else {
-        addStep(
-            new CreateAzureLandingZoneStep(flightBeanBag.getAzureLandingZoneManagerProvider()),
-            RetryRules.cloud());
-      }
+      addStep(
+          new CreateLandingZoneResourcesFlightStep(
+              flightBeanBag.getLandingZoneService(),
+              requestedLandingZone,
+              LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
+      addStep(
+          new AwaitCreateLandingResourcesZoneFlightStep(
+              LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
     }
 
     addStep(
