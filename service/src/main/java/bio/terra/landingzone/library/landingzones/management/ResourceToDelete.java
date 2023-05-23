@@ -2,6 +2,7 @@ package bio.terra.landingzone.library.landingzones.management;
 
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.resources.models.GenericResource;
+import java.util.List;
 
 /**
  * Represents a generic resource to be deleted and its private endpoint, if it exists.
@@ -10,4 +11,4 @@ import com.azure.resourcemanager.resources.models.GenericResource;
  * @param privateEndpoint private endpoint associated with the resource.
  */
 public record ResourceToDelete(
-    GenericResource resource, PrivateEndpoint privateEndpoint, GenericResource solution) {}
+    GenericResource resource, PrivateEndpoint privateEndpoint, List<GenericResource> solutions) {}

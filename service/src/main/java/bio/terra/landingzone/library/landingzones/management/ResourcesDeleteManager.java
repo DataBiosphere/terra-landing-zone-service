@@ -87,7 +87,7 @@ public class ResourcesDeleteManager {
       List<GenericResource> solutions) {
 
     PrivateEndpoint privateEndPoint = null;
-    GenericResource solution = null;
+    List<GenericResource> resourceRelatedSolutions = null;
     if (privateEndPoints != null) {
       privateEndPoint =
           privateEndPoints.stream()
@@ -102,14 +102,11 @@ public class ResourcesDeleteManager {
     }
 
     if (solutions != null) {
-      solution =
-          solutions.stream()
-              .filter(s -> s.name().contains(genericResource.name()))
-              .findFirst()
-              .orElse(null);
+      resourceRelatedSolutions =
+          solutions.stream().filter(s -> s.name().contains(genericResource.name())).toList();
     }
 
-    return new ResourceToDelete(genericResource, privateEndPoint, solution);
+    return new ResourceToDelete(genericResource, privateEndPoint, resourceRelatedSolutions);
   }
 
   private List<GenericResource> deleteLandingZoneResourcesInOrder(
@@ -148,18 +145,20 @@ public class ResourcesDeleteManager {
       logger.info("Resource deleted. id:{}", resourceToDelete.privateEndpoint().id());
     }
 
-    if (resourceToDelete.solution() != null) {
-      logger.info(
-          "Deleting landing zone solution {} for resource: {}",
-          resourceToDelete.solution().id(),
-          resourceToDelete.resource().id());
+    if (resourceToDelete.solutions() != null && !resourceToDelete.solutions().isEmpty()) {
+      resourceToDelete
+          .solutions()
+          .forEach(
+              solution -> {
+                logger.info(
+                    "Deleting landing zone solution {} for resource: {}",
+                    solution.id(),
+                    resourceToDelete.resource().id());
 
-      armManagers
-          .azureResourceManager()
-          .genericResources()
-          .deleteById(resourceToDelete.solution().id());
+                armManagers.azureResourceManager().genericResources().deleteById(solution.id());
 
-      logger.info("Resource deleted. id:{}", resourceToDelete.solution().id());
+                logger.info("Resource deleted. id:{}", solution.id());
+              });
     }
 
     armManagers
