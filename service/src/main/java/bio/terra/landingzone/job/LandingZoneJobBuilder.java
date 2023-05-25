@@ -125,7 +125,8 @@ public class LandingZoneJobBuilder {
     // Always add the MDC logging and tracing span parameters for the mdc hook
     addParameter(LandingZoneMdcHook.MDC_FLIGHT_MAP_KEY, mdcHook.getSerializedCurrentContext());
     addParameter(
-        MonitoringHook.SUBMISSION_SPAN_CONTEXT_MAP_KEY, MonitoringHook.serializeCurrentTracingContext());
+        MonitoringHook.SUBMISSION_SPAN_CONTEXT_MAP_KEY,
+        MonitoringHook.serializeCurrentTracingContext());
 
     // Convert any other members that were set into parameters. However, if they were
     // explicitly added with addParameter during construction, we do not overwrite them.
