@@ -7,8 +7,8 @@ import static bio.terra.stairway.FlightStatus.FATAL;
 import bio.terra.common.db.DataSourceInitializer;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.logging.LoggingUtils;
+import bio.terra.common.stairway.MonitoringHook;
 import bio.terra.common.stairway.StairwayComponent;
-import bio.terra.common.stairway.TracingHook;
 import bio.terra.landingzone.common.utils.ErrorReportUtils;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.job.exception.DuplicateJobIdException;
@@ -173,7 +173,7 @@ public class LandingZoneJobService {
             .dataSource(DataSourceInitializer.initializeDataSource(stairwayDatabaseConfiguration))
             .context(flightBeanBag)
             .addHook(mdcHook)
-            .addHook(new TracingHook())
+            .addHook(new MonitoringHook())
             .exceptionSerializer(new StairwayExceptionSerializer(objectMapper)));
   }
 
