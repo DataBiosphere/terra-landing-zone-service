@@ -54,6 +54,7 @@ landingzone:
       eastus: ltslogsdeveastus
       centralus: ltslogsdevcentralus
       eastus2: ltslogsdeveastus2
+      westus2: ltslogsdevwestus2
 
 terra.common:
   kubernetes:

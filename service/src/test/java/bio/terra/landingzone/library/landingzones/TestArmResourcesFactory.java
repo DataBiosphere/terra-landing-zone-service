@@ -83,7 +83,7 @@ public class TestArmResourcesFactory {
     return azureResourceManager
         .resourceGroups()
         .define("test-" + resourceGroupId)
-        .withRegion(Region.US_WEST2)
+        .withRegion(Region.US_EAST2)
         .create();
   }
 
