@@ -32,8 +32,8 @@ landingzone:
     timeout-seconds: 1800
 
   protected-data:
-    logic-app-resource-id: [ PUT VALUE HERE ]
-    tenant-id: [ PUT VALUE HERE ]
+    logic-app-resource-id: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-audit-logs-rg/providers/Microsoft.Logic/workflows/terra-protected-data-slack-notification
+    tenant-id: fad90753-2022-4456-9b0a-c7e5b934e408
 
 terra.common:
   kubernetes:
