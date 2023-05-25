@@ -1,6 +1,6 @@
 package bio.terra.landingzone.stairway.flight.utils;
 
-import bio.terra.common.stairway.TracingHook;
+import bio.terra.common.stairway.MonitoringHook;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.model.ErrorReport;
@@ -28,7 +28,7 @@ public class FlightUtils {
           String.class,
           LandingZoneMdcHook.MDC_FLIGHT_MAP_KEY,
           Object.class,
-          TracingHook.SUBMISSION_SPAN_CONTEXT_MAP_KEY,
+          MonitoringHook.SUBMISSION_SPAN_CONTEXT_MAP_KEY,
           Object.class);
 
   private FlightUtils() {}
