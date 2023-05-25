@@ -50,6 +50,10 @@ landingzone:
       - SentinelHealth
       - StorageBlobLogs
       - Syslog
+    longTermStorageAccountIds:
+      eastus: ltslogsdeveastus
+      centralus: ltslogsdevcentralus
+      eastus2: ltslogsdeveastus2
 
 terra.common:
   kubernetes:
