@@ -51,10 +51,8 @@ landingzone:
       - StorageBlobLogs
       - Syslog
     longTermStorageAccountIds:
-      eastus: ltslogsdeveastus
-      centralus: ltslogsdevcentralus
-      eastus2: ltslogsdeveastus2
-      westus2: ltslogsdevwestus2
+      #extend configuration in case mrg is in different region; resource id should be fully qualified
+      eastus2: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdeveastus2
 
 terra.common:
   kubernetes:
