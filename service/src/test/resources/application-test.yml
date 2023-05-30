@@ -32,8 +32,27 @@ landingzone:
     timeout-seconds: 1800
 
   protected-data:
-    logic-app-resource-id: [ PUT VALUE HERE ]
-    tenant-id: [ PUT VALUE HERE ]
+    logic-app-resource-id: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-audit-logs-rg/providers/Microsoft.Logic/workflows/terra-protected-data-slack-notification
+    tenant-id: ***REMOVED***
+    long-term-storage-table-names:
+      - Alert
+      - AlertEvidence
+      - AlertInfo
+      - Anomalies
+      - CommonSecurityLog
+      - ContainerLog
+      - ContainerLogV2
+      - ContainerNodeInventory
+      - ContainerServiceLog
+      - Operation
+      - SecurityAlert
+      - SecurityIncident
+      - SentinelHealth
+      - StorageBlobLogs
+      - Syslog
+    longTermStorageAccountIds:
+      #extend configuration in case mrg is in different region; resource id should be fully qualified
+      eastus2: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdeveastus2
 
 terra.common:
   kubernetes:
