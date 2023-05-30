@@ -29,7 +29,7 @@ dependencies {
         exclude group: 'net.minidev', module: 'json-smart'
     }
     implementation group: 'net.minidev', 'name': 'json-smart', version: '2.4.10'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.26.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.27.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.27.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.26.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
