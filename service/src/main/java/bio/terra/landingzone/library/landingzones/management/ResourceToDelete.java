@@ -9,6 +9,9 @@ import java.util.List;
  *
  * @param resource resource to delete.
  * @param privateEndpoint private endpoint associated with the resource.
+ * @param solutions solutions associated with the resource. Currently, there are two types of
+ *     solutions might be associated with the resource - ContainerInsights, SecurityInsights. Both
+ *     have type 'Solution'.
  */
 public record ResourceToDelete(
     GenericResource resource, PrivateEndpoint privateEndpoint, List<GenericResource> solutions) {}
