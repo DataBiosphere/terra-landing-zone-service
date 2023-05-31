@@ -66,7 +66,7 @@ public class CreateLandingZoneIdentityStep extends BaseResourceCreateStep {
 
   @Override
   protected void deleteResource(String resourceId) {
-    armManagers.postgreSqlManager().servers().deleteById(resourceId);
+    armManagers.azureResourceManager().identities().deleteById(resourceId);
   }
 
   @Override

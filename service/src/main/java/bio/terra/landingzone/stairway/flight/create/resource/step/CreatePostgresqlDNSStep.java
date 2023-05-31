@@ -18,6 +18,7 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDNSStep.class);
   public static final String POSTGRESQL_DNS_ID = "POSTGRESQL_DNS_ID";
   public static final String POSTGRESQL_DNS_RESOURCE_KEY = "POSTGRESQL_DNS";
+  public static final String POSTGRES_DNS_SUFFIX = ".private.postgres.database.azure.com";
 
   public CreatePostgresqlDNSStep(
       ArmManagers armManagers,
@@ -39,7 +40,7 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
         armManagers
             .azureResourceManager()
             .privateDnsZones()
-            .define(dnsZoneName + ".private.postgres.database.azure.com")
+            .define(dnsZoneName + POSTGRES_DNS_SUFFIX)
             .withExistingResourceGroup(getMRGName(context))
             .withTags(
                 Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString()))
@@ -62,7 +63,7 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
 
   @Override
   protected void deleteResource(String resourceId) {
-    armManagers.postgreSqlManager().servers().deleteById(resourceId);
+    armManagers.azureResourceManager().privateDnsZones().deleteById(resourceId);
   }
 
   @Override
