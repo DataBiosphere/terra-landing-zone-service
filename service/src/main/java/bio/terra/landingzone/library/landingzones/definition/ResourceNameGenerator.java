@@ -55,6 +55,7 @@ public class ResourceNameGenerator {
     sequence = sequence + 1;
     return name;
   }
+
   /** Resets the sequence number back to zero. */
   public synchronized void resetSequence() {
     sequence = 0;
