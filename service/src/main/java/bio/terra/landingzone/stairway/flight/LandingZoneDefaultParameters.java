@@ -9,6 +9,9 @@ import static bio.terra.landingzone.library.landingzones.definition.factories.Cr
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.StorageAccountBlobCorsParametersNames;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
+import com.azure.resourcemanager.resources.fluentcore.arm.AvailabilityZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +28,22 @@ public class LandingZoneDefaultParameters {
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD.name(),
         UUID.randomUUID().toString());
     defaultValues.put(
-        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name(), "GP_Gen5_2");
+        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name(), "Standard_B2s");
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name(),
+        SkuTier.BURSTABLE.toString());
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name(),
+        ServerVersion.ONE_FOUR.toString());
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_AVAILABILITY_ZONE.name(),
+        AvailabilityZoneId.ZONE_1.toString());
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS.name(),
+        "28");
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name(), "128");
+
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.VNET_ADDRESS_SPACE.name(), "10.1.0.0/27");
     defaultValues.put(CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name(), "10.1.0.0/29");

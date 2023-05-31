@@ -39,10 +39,8 @@ import com.azure.resourcemanager.monitor.models.PerfCounterDataSource;
 import com.azure.resourcemanager.monitor.models.SyslogDataSource;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateLinkSubResourceName;
-import com.azure.resourcemanager.postgresql.models.PublicNetworkAccessEnum;
-import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCreate;
-import com.azure.resourcemanager.postgresql.models.ServerVersion;
-import com.azure.resourcemanager.postgresql.models.Sku;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.azure.resourcemanager.storage.models.CorsRule;
 import com.azure.resourcemanager.storage.models.CorsRuleAllowedMethodsItem;
@@ -89,6 +87,11 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     POSTGRES_DB_ADMIN,
     POSTGRES_DB_PASSWORD,
     POSTGRES_SERVER_SKU,
+    POSTGRES_SERVER_SKU_TIER,
+    POSTGRES_SERVER_VERSION,
+    POSTGRES_SERVER_AVAILABILITY_ZONE,
+    POSTGRES_SERVER_BACKUP_RETENTION_DAYS,
+    POSTGRES_SERVER_STORAGE_SIZE_GB,
     VNET_ADDRESS_SPACE,
     AUDIT_LOG_RETENTION_DAYS,
     AKS_NODE_COUNT,
@@ -186,18 +189,19 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                   nameGenerator.nextName(ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH))
               .withRegion(resourceGroup.region())
               .withExistingResourceGroup(resourceGroup.name())
-              .withProperties(
-                  new ServerPropertiesForDefaultCreate()
-                      .withAdministratorLogin(
-                          parametersResolver.getValue(ParametersNames.POSTGRES_DB_ADMIN.name()))
-                      .withAdministratorLoginPassword(
-                          parametersResolver.getValue(ParametersNames.POSTGRES_DB_PASSWORD.name()))
-                      .withVersion(ServerVersion.ONE_ONE)
-                      .withPublicNetworkAccess(PublicNetworkAccessEnum.DISABLED))
+              .withVersion(ServerVersion.ONE_FOUR)
+              .withAdministratorLogin(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_ADMIN.name()))
+              .withAdministratorLoginPassword(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD.name()))
               .withSku(
                   new Sku()
                       .withName(
-                          parametersResolver.getValue(ParametersNames.POSTGRES_SERVER_SKU.name())));
+                          parametersResolver.getValue(
+                              CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU
+                                  .name())));
 
       String storageAccountName =
           nameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH);

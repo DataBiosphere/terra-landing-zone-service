@@ -16,6 +16,9 @@ public class ResourceNameGenerator {
   public static final int MAX_BATCH_ACCOUNT_NAME_LENGTH = 24;
   public static final int MAX_RELAY_NS_NAME_LENGTH = 50;
   public static final int MAX_POSTGRESQL_SERVER_NAME_LENGTH = 63;
+  public static final int MAX_PRIVATE_DNS_ZONE_NAME_LENGTH = 63;
+  public static final int UAMI_NAME_LENGTH = 20;
+  public static final int MAX_PRIVATE_VNET_LINK_NAME_LENGTH = 80;
   public static final int MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH = 63;
   public static final int MAX_PRIVATE_ENDPOINT_NAME_LENGTH = 23; // TODO verify this
   public static final int MAX_PRIVATE_LINK_CONNECTION_NAME_LENGTH = 10; // TODO verify this

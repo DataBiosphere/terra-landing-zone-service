@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.azure.resourcemanager.postgresql.models.Database;
-import com.azure.resourcemanager.postgresql.models.Databases;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Database;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Databases;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;

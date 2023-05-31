@@ -9,6 +9,10 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
+import com.azure.resourcemanager.network.models.Delegation;
+import com.azure.resourcemanager.network.models.Network;
+import com.azure.resourcemanager.network.models.ServiceEndpointPropertiesFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -73,6 +77,8 @@ public class CreateVnetStep extends BaseResourceCreateStep {
                     CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name()))
             .create();
 
+    setupPostgresSubnet(context, armManagers, vNet);
+
     context.getWorkingMap().put(VNET_ID, vNet.id());
     context
         .getWorkingMap()
@@ -86,6 +92,37 @@ public class CreateVnetStep extends BaseResourceCreateStep {
                 .resourceName(vNet.name())
                 .build());
     logger.info(RESOURCE_CREATED, getResourceType(), vNet.id(), getMRGName(context));
+  }
+
+  /**
+   * https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-manage-virtual-network-portal
+   */
+  private void setupPostgresSubnet(FlightContext context, ArmManagers armManagers, Network vNet) {
+    var postgresSubnet =
+        vNet.subnets()
+            .get(CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name())
+            .innerModel();
+
+    armManagers
+        .azureResourceManager()
+        .networks()
+        .manager()
+        .serviceClient()
+        .getSubnets()
+        .createOrUpdate(
+            getMRGName(context),
+            vNet.name(),
+            CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name(),
+            postgresSubnet
+                .withDelegations(
+                    List.of(
+                        new Delegation()
+                            .withName("dlg-Microsoft.DBforPostgreSQL-flexibleServers")
+                            .withType("Microsoft.Network/virtualNetworks/subnets/delegations")
+                            .withServiceName("Microsoft.DBforPostgreSQL/flexibleServers")))
+                .withServiceEndpoints(
+                    List.of(
+                        new ServiceEndpointPropertiesFormat().withService("Microsoft.storage"))));
   }
 
   @Override

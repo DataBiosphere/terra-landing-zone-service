@@ -28,8 +28,8 @@ import com.azure.resourcemanager.compute.models.VirtualMachine;
 import com.azure.resourcemanager.compute.models.VirtualMachineSizeTypes;
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import com.azure.resourcemanager.network.models.Network;
-import com.azure.resourcemanager.postgresql.models.Database;
-import com.azure.resourcemanager.postgresql.models.Server;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Database;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
 import com.azure.resourcemanager.relay.models.HybridConnection;
 import com.azure.resourcemanager.relay.models.RelayNamespace;
 import com.azure.resourcemanager.storage.models.BlobContainer;
@@ -216,7 +216,7 @@ class ResourcesDeleteManagerTest extends LandingZoneTestFixture {
             .postgreSqlManager()
             .databases()
             .define("mydb")
-            .withExistingServer(resourceGroup.name(), postgresServer.name())
+            .withExistingFlexibleServer(resourceGroup.name(), postgresServer.name())
             .create();
     return db;
   }
