@@ -289,6 +289,7 @@ public class LandingZoneService {
     return createLandingZoneManagerAndCheckListPermission(bearerToken, landingZoneId)
         .resourceQuota(landingZoneId.toString(), resourceId);
   }
+
   /**
    * Lists all landing zone resources with a provided ResourcePurpose.
    *
