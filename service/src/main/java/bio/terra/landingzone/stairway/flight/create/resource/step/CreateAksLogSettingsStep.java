@@ -9,7 +9,6 @@ import bio.terra.landingzone.library.landingzones.definition.factories.Parameter
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
-import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksLogSettingsStep.class);
 
+  // 365 is the max value; this is the limitation of Azure
   private static final int RETENTION_DAYS = 365;
   private static final Map<String, Integer> AKS_LOGS_TO_CAPTURE =
       Map.ofEntries(
@@ -35,6 +35,7 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
           entry("csi-snapshot-controller", RETENTION_DAYS));
   private static final Map<String, Integer> AKS_METRICS_TO_CAPTURE =
       Map.ofEntries(entry("AllMetrics", RETENTION_DAYS));
+  private static final int METRICS_GRANULARITY_SECONDS = 30;
 
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
@@ -51,9 +52,7 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   protected void createResource(FlightContext context, ArmManagers armManagers) {
     var aksId = getParameterOrThrow(context.getWorkingMap(), CreateAksStep.AKS_ID, String.class);
 
-    ResourceGroup resourceGroup =
-        armManagers.azureResourceManager().resourceGroups().getByName(getMRGName(context));
-    String lzRegion = resourceGroup.region().name();
+    String lzRegion = getMRGRegionName(context);
     if (!landingZoneProtectedDataConfiguration
         .getLongTermStorageAccountIds()
         .containsKey(lzRegion)) {
@@ -93,7 +92,8 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
       DiagnosticSetting.DefinitionStages.WithCreate aksPartiallySetup) {
     for (Map.Entry<String, Integer> pair : AKS_METRICS_TO_CAPTURE.entrySet()) {
       aksPartiallySetup =
-          aksPartiallySetup.withMetric(pair.getKey(), Duration.ofSeconds(300), pair.getValue());
+          aksPartiallySetup.withMetric(
+              pair.getKey(), Duration.ofSeconds(METRICS_GRANULARITY_SECONDS), pair.getValue());
     }
     return aksPartiallySetup;
   }
@@ -105,7 +105,7 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
 
   @Override
   protected String getResourceType() {
-    return "AksLogSettings";
+    return "AKSLogSettings";
   }
 
   @Override
