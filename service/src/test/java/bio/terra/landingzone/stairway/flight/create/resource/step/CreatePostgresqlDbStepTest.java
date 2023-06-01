@@ -120,10 +120,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
         .thenReturn(skuTier.toString());
-    final String availabilityZone = "1";
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_AVAILABILITY_ZONE.name()))
-        .thenReturn(availabilityZone);
     final String backupRetention = "10";
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
@@ -138,8 +134,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
 
-    verifyServerProperties(
-        postgresqlSku, skuTier, availabilityZone, backupRetention, storageSize, serverVersion);
+    verifyServerProperties(postgresqlSku, skuTier, backupRetention, storageSize, serverVersion);
     verifyBasicTags(postgresqlTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockServerDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockServerDefinitionStagesWithCreate);
@@ -234,7 +229,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   private void verifyServerProperties(
       String sku,
       SkuTier skuTier,
-      String availabilityZone,
       String backupRetention,
       String storageSize,
       ServerVersion serverVersion) {
@@ -242,7 +236,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     assertNotNull(skuCaptor.getValue());
     assertThat(skuCaptor.getValue().name(), equalTo(sku));
     assertThat(skuCaptor.getValue().tier(), equalTo(skuTier));
-    assertThat(availabilityZoneCaptor.getValue(), equalTo(availabilityZone));
     assertThat(
         backupCaptor.getValue().backupRetentionDays(), equalTo(Integer.parseInt(backupRetention)));
     assertThat(storageCaptor.getValue().storageSizeGB(), equalTo(Integer.parseInt(storageSize)));

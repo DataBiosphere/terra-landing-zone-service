@@ -8,6 +8,7 @@ import static org.mockito.Mockito.*;
 
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
+import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -88,6 +89,9 @@ public class CreateLandingZoneIdentityStepTest extends BaseStepTest {
     assertThat(
         tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()),
         equalTo(LANDING_ZONE_ID.toString()));
+    assertThat(
+        tags.get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()),
+        equalTo(ResourcePurpose.POSTGRES_ADMIN.toString()));
   }
 
   @ParameterizedTest

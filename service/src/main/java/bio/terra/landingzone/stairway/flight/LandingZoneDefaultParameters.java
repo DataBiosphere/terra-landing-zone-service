@@ -11,7 +11,6 @@ import bio.terra.landingzone.library.landingzones.definition.factories.parameter
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
-import com.azure.resourcemanager.resources.fluentcore.arm.AvailabilityZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -35,9 +34,6 @@ public class LandingZoneDefaultParameters {
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name(),
         ServerVersion.ONE_FOUR.toString());
-    defaultValues.put(
-        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_AVAILABILITY_ZONE.name(),
-        AvailabilityZoneId.ZONE_1.toString());
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS.name(),
         "28");

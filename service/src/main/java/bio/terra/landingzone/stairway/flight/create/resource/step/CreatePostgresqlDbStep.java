@@ -77,10 +77,6 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                 new AuthConfig()
                     .withPasswordAuth(PasswordAuthEnum.DISABLED)
                     .withActiveDirectoryAuth(ActiveDirectoryAuthEnum.ENABLED))
-            .withAvailabilityZone(
-                parametersResolver.getValue(
-                    CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_AVAILABILITY_ZONE
-                        .name()))
             .withBackup(
                 new Backup()
                     .withGeoRedundantBackup(GeoRedundantBackupEnum.DISABLED)

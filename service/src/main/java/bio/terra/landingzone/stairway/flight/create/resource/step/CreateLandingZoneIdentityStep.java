@@ -6,6 +6,7 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
+import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
@@ -45,7 +46,11 @@ public class CreateLandingZoneIdentityStep extends BaseResourceCreateStep {
             .withRegion(getMRGRegionName(context))
             .withExistingResourceGroup(getMRGName(context))
             .withTags(
-                Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString()))
+                Map.of(
+                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                    landingZoneId.toString(),
+                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                    ResourcePurpose.POSTGRES_ADMIN.toString()))
             .create();
 
     context.getWorkingMap().put(LANDING_ZONE_IDENTITY_PRINCIPAL_ID, uami.principalId());
