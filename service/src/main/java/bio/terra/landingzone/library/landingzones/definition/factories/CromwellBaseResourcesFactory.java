@@ -195,12 +195,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
               .withAdministratorLoginPassword(
                   parametersResolver.getValue(
                       CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD.name()))
-              .withSku(
-                  new Sku()
-                      .withName(
-                          parametersResolver.getValue(
-                              CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU
-                                  .name())));
+              .withSku(new Sku().withName("GP_Gen5_2"));
 
       String storageAccountName =
           nameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH);
@@ -245,8 +240,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       String logAnalyticsWorkspaceId =
           getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_LOG_ANALYTICS_WORKSPACE_TYPE);
       String vNetId = getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_VNET_TYPE);
-      String postgreSqlId =
-          getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_POSTGRESQL_SERVER_TYPE);
+      String postgreSqlId = getResourceId(prerequisites, "Microsoft.DBforPostgreSQL/servers");
       String storageAccountId =
           getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_STORAGE_ACCOUNT_TYPE);
       String batchAccountId = getResourceId(prerequisites, AzureResourceTypeUtils.AZURE_BATCH_TYPE);
