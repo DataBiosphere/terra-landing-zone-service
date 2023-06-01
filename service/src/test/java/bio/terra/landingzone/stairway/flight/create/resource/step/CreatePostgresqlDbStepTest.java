@@ -198,9 +198,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
         .thenReturn(mockServerDefinitionStagesWithCreate);
     when(mockServerDefinitionStagesWithCreate.withAuthConfig(authConfigCaptor.capture()))
         .thenReturn(mockServerDefinitionStagesWithCreate);
-    when(mockServerDefinitionStagesWithCreate.withAvailabilityZone(
-            availabilityZoneCaptor.capture()))
-        .thenReturn(mockServerDefinitionStagesWithCreate);
     when(mockServerDefinitionStagesWithCreate.withBackup(backupCaptor.capture()))
         .thenReturn(mockServerDefinitionStagesWithCreate);
     when(mockServerDefinitionStagesWithCreate.withCreateMode(createModeCaptor.capture()))
