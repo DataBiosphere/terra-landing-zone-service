@@ -6,6 +6,7 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ConnectLongTermLogStorageStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelAlertRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelRunPlaybookAutomationRule;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelStep;
 import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
@@ -50,6 +51,15 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
     protectedDataSteps.add(
         Pair.of(
             new CreateSentinelRunPlaybookAutomationRule(
+                armManagers,
+                parametersResolver,
+                resourceNameGenerator,
+                landingZoneProtectedDataConfiguration),
+            RetryRules.cloud()));
+
+    protectedDataSteps.add(
+        Pair.of(
+            new CreateSentinelAlertRulesStep(
                 armManagers,
                 parametersResolver,
                 resourceNameGenerator,

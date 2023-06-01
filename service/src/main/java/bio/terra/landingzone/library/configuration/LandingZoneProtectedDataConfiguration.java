@@ -20,6 +20,8 @@ public class LandingZoneProtectedDataConfiguration {
   private String tenantId;
   private List<String> longTermStorageTableNames;
   private Map<String, String> longTermStorageAccountIds;
+  private List<String> sentinelScheduledAlertRuleTemplates;
+  private List<String> sentinelMlRuleTemplates;
 
   /**
    * Returns resource identifier of an Azure LogicApp.
@@ -72,5 +74,22 @@ public class LandingZoneProtectedDataConfiguration {
 
   public void setLongTermStorageTableNames(List<String> longTermStorageTableNames) {
     this.longTermStorageTableNames = longTermStorageTableNames;
+  }
+
+  public List<String> getSentinelScheduledAlertRuleTemplates() {
+    return sentinelScheduledAlertRuleTemplates;
+  }
+
+  public void setSentinelScheduledAlertRuleTemplates(
+      List<String> sentinelScheduledAlertRuleTemplates) {
+    this.sentinelScheduledAlertRuleTemplates = sentinelScheduledAlertRuleTemplates;
+  }
+
+  public List<String> getSentinelMlRuleTemplates() {
+    return sentinelMlRuleTemplates;
+  }
+
+  public void setSentinelMlRuleTemplates(List<String> sentinelMlRuleTemplates) {
+    this.sentinelMlRuleTemplates = sentinelMlRuleTemplates;
   }
 }
