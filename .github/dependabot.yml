@@ -4,7 +4,9 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      time: "06:00"
+      timezone: "America/New_York"
     target-branch: "main"
     reviewers:
       - "@DataBiosphere/broadworkspaces"
@@ -16,4 +18,3 @@ updates:
     ignore:
       - dependency-name: "org.springframework.boot:spring-boot-gradle-plugin"
         update-types: ["version-update:semver-major"]
-
