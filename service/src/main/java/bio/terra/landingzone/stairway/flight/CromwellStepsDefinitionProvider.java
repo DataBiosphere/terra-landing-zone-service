@@ -1,9 +1,5 @@
 package bio.terra.landingzone.stairway.flight;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.List;
-
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
@@ -30,6 +26,8 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedReso
 import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
+import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider {
   // TODO: this doesn't take into account versioning

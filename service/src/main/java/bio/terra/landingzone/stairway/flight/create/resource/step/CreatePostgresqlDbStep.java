@@ -1,5 +1,14 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
+import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
+import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.stairway.FlightContext;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.ActiveDirectoryAuthEnum;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.AuthConfig;
@@ -16,24 +25,12 @@ import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
-import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
-import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.stairway.FlightContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDbStep.class);
