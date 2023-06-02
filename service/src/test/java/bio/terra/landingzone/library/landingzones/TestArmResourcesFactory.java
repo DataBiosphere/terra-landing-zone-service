@@ -8,7 +8,7 @@ import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
 import com.azure.resourcemanager.batch.BatchManager;
 import com.azure.resourcemanager.loganalytics.LogAnalyticsManager;
 import com.azure.resourcemanager.monitor.MonitorManager;
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
+import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
 import com.azure.resourcemanager.relay.RelayManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;

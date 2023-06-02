@@ -20,8 +20,12 @@ import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsExce
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
-import com.azure.resourcemanager.network.models.Network;
-import com.azure.resourcemanager.network.models.Networks;
+import com.azure.resourcemanager.network.NetworkManager;
+import com.azure.resourcemanager.network.fluent.NetworkManagementClient;
+import com.azure.resourcemanager.network.fluent.SubnetsClient;
+import com.azure.resourcemanager.network.fluent.models.SubnetInner;
+import com.azure.resourcemanager.network.models.*;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,8 +49,15 @@ class CreateVnetStepTest extends BaseStepTest {
   @Mock private Network.DefinitionStages.WithCreateAndSubnet mockDefinitionStageWithCreateAndSubnet;
 
   @Captor private ArgumentCaptor<Map<String, String>> vnetTagsCaptor;
+  @Captor private ArgumentCaptor<List<Delegation>> delegationsArgumentCaptor;
+
+  @Captor
+  private ArgumentCaptor<List<ServiceEndpointPropertiesFormat>> serviceEndpointsArgumentCaptor;
 
   private CreateVnetStep createVnetStep;
+  @Mock private NetworkManager mockNetworkManager;
+  @Mock private NetworkManagementClient mockServiceClient;
+  @Mock private SubnetsClient mockSubnets;
 
   @BeforeEach
   void setup() {
@@ -70,7 +81,17 @@ class CreateVnetStepTest extends BaseStepTest {
     setupParameterResolver();
 
     var network = mock(Network.class);
+    var postgresSubnet = mock(Subnet.class);
+    var postgresSubnetInner = mock(SubnetInner.class);
     when(network.id()).thenReturn(VNET_ID);
+    when(network.subnets())
+        .thenReturn(
+            Map.of(CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name(), postgresSubnet));
+    when(postgresSubnet.innerModel()).thenReturn(postgresSubnetInner);
+    when(postgresSubnetInner.withDelegations(delegationsArgumentCaptor.capture()))
+        .thenReturn(postgresSubnetInner);
+    when(postgresSubnetInner.withServiceEndpoints(serviceEndpointsArgumentCaptor.capture()))
+        .thenReturn(postgresSubnetInner);
     setupArmManagersForDoStep(network);
 
     var stepResult = createVnetStep.doStep(mockFlightContext);
@@ -79,6 +100,12 @@ class CreateVnetStepTest extends BaseStepTest {
     assertThat(
         mockFlightContext.getWorkingMap().get(CreateVnetStep.VNET_ID, String.class),
         equalTo(VNET_ID));
+
+    assertThat(
+        delegationsArgumentCaptor.getValue().get(0).serviceName(),
+        equalTo("Microsoft.DBforPostgreSQL/flexibleServers"));
+    assertThat(
+        serviceEndpointsArgumentCaptor.getValue().get(0).service(), equalTo("Microsoft.storage"));
     // verifyBasicTags(vnetTagsCaptor, LANDING_ZONE_ID);
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
     verify(mockDefinitionStageWithCreate, times(1)).create();
@@ -136,6 +163,10 @@ class CreateVnetStepTest extends BaseStepTest {
     when(mockAzureResourceManager.networks()).thenReturn(mockNetworks);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
     when(mockDefinitionStageWithCreate.create()).thenReturn(result);
+
+    when(mockNetworks.manager()).thenReturn(mockNetworkManager);
+    when(mockNetworkManager.serviceClient()).thenReturn(mockServiceClient);
+    when(mockServiceClient.getSubnets()).thenReturn(mockSubnets);
   }
 
   private void setupParameterResolver() {

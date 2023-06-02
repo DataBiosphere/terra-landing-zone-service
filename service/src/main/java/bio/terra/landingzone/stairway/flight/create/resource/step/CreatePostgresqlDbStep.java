@@ -9,15 +9,28 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
-import com.azure.resourcemanager.postgresql.models.PublicNetworkAccessEnum;
-import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCreate;
-import com.azure.resourcemanager.postgresql.models.ServerVersion;
-import com.azure.resourcemanager.postgresql.models.Sku;
+import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.ActiveDirectoryAuthEnum;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.AuthConfig;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Backup;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.CreateMode;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.GeoRedundantBackupEnum;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.HighAvailability;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.HighAvailabilityMode;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Network;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.PasswordAuthEnum;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.PrincipalType;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDbStep.class);
@@ -33,44 +46,12 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
-    var landingZoneId =
-        getParameterOrThrow(
-            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-
     var postgresName =
         resourceNameGenerator.nextName(ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH);
 
-    var postgres =
-        armManagers
-            .postgreSqlManager()
-            .servers()
-            .define(postgresName)
-            .withRegion(getMRGRegionName(context))
-            .withExistingResourceGroup(getMRGName(context))
-            .withProperties(
-                new ServerPropertiesForDefaultCreate()
-                    .withAdministratorLogin(
-                        parametersResolver.getValue(
-                            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_ADMIN.name()))
-                    .withAdministratorLoginPassword(
-                        parametersResolver.getValue(
-                            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD
-                                .name()))
-                    .withVersion(ServerVersion.ONE_ONE)
-                    .withPublicNetworkAccess(PublicNetworkAccessEnum.DISABLED))
-            .withSku(
-                new Sku()
-                    .withName(
-                        parametersResolver.getValue(
-                            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU
-                                .name())))
-            .withTags(
-                Map.of(
-                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-                    landingZoneId.toString(),
-                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                    ResourcePurpose.SHARED_RESOURCE.toString()))
-            .create();
+    var postgres = createServer(context, armManagers, postgresName);
+
+    createAdminUser(context, armManagers, postgresName);
 
     context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
     context
@@ -85,6 +66,110 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                 .resourceName(postgres.name())
                 .build());
     logger.info(RESOURCE_CREATED, getResourceType(), postgres.id(), getMRGName(context));
+  }
+
+  private Server createServer(FlightContext context, ArmManagers armManagers, String postgresName) {
+    try {
+      var landingZoneId =
+          getParameterOrThrow(
+              context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+
+      var vNetId =
+          getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
+      var dnsId =
+          getParameterOrThrow(
+              context.getWorkingMap(), CreatePostgresqlDNSStep.POSTGRESQL_DNS_ID, String.class);
+
+      return armManagers
+          .postgreSqlManager()
+          .servers()
+          .define(postgresName)
+          .withRegion(getMRGRegionName(context))
+          .withExistingResourceGroup(getMRGName(context))
+          .withVersion(
+              ServerVersion.fromString(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name())))
+          .withSku(
+              new Sku()
+                  .withName(
+                      parametersResolver.getValue(
+                          CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name()))
+                  .withTier(
+                      SkuTier.fromString(
+                          parametersResolver.getValue(
+                              CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER
+                                  .name()))))
+          .withNetwork(
+              new Network()
+                  .withDelegatedSubnetResourceId(
+                      vNetId + "/subnets/" + CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET)
+                  .withPrivateDnsZoneArmResourceId(dnsId))
+          .withAuthConfig(
+              new AuthConfig()
+                  .withPasswordAuth(PasswordAuthEnum.DISABLED)
+                  .withActiveDirectoryAuth(ActiveDirectoryAuthEnum.ENABLED))
+          .withBackup(
+              new Backup()
+                  .withGeoRedundantBackup(GeoRedundantBackupEnum.DISABLED)
+                  .withBackupRetentionDays(
+                      Integer.parseInt(
+                          parametersResolver.getValue(
+                              CromwellBaseResourcesFactory.ParametersNames
+                                  .POSTGRES_SERVER_BACKUP_RETENTION_DAYS
+                                  .name()))))
+          .withCreateMode(CreateMode.DEFAULT)
+          .withHighAvailability(new HighAvailability().withMode(HighAvailabilityMode.DISABLED))
+          .withStorage(
+              new Storage()
+                  .withStorageSizeGB(
+                      Integer.parseInt(
+                          parametersResolver.getValue(
+                              CromwellBaseResourcesFactory.ParametersNames
+                                  .POSTGRES_SERVER_STORAGE_SIZE_GB
+                                  .name()))))
+          .withTags(
+              Map.of(
+                  LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                  landingZoneId.toString(),
+                  LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                  ResourcePurpose.SHARED_RESOURCE.toString()))
+          .create();
+    } catch (ManagementException e) {
+      // resource may already exist if this step is being retried
+      if (e.getResponse() != null
+          && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
+        return armManagers
+            .postgreSqlManager()
+            .servers()
+            .getByResourceGroup(getMRGName(context), postgresName);
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  private void createAdminUser(
+      FlightContext context, ArmManagers armManagers, String postgresName) {
+    var uami =
+        context
+            .getWorkingMap()
+            .get(
+                CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
+                LandingZoneResource.class);
+    var uamiPrincipalId =
+        context
+            .getWorkingMap()
+            .get(CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_PRINCIPAL_ID, String.class);
+
+    armManagers
+        .postgreSqlManager()
+        .administrators()
+        .define(uamiPrincipalId)
+        .withExistingFlexibleServer(getMRGName(context), postgresName)
+        .withPrincipalName(uami.resourceName().orElseThrow())
+        .withPrincipalType(PrincipalType.SERVICE_PRINCIPAL)
+        .create();
   }
 
   @Override
