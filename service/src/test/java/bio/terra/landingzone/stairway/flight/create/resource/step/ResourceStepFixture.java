@@ -8,7 +8,7 @@ public class ResourceStepFixture {
   private ResourceStepFixture() {}
 
   public static TargetManagedResourceGroup createDefaultMrg() {
-    return new TargetManagedResourceGroup("mgrName", "mrgRegion");
+    return new TargetManagedResourceGroup("mgrName", "eastus");
   }
 
   public static ProfileModel createDefaultProfileModel() {
