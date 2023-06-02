@@ -90,6 +90,9 @@ public class DeleteLandingZoneResourcesStep implements Step {
             DeletedLandingZone.emptyLandingZone(
                 landingZoneId, landingZoneRecord.billingProfileId()));
         return StepResult.getStepResultSuccess();
+      } else {
+        logger.error("Failed to delete the landing zone due to Azure error.", e);
+        return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
       }
     } catch (LandingZoneRuleDeleteException e) {
       logger.error("Failed to delete the landing zone due to delete rules.", e);

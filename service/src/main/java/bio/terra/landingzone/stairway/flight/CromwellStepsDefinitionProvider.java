@@ -10,15 +10,17 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePrivateEndpointStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
@@ -69,6 +71,17 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
                 armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
+            new CreatePostgresqlDNSStep(armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateVirtualNetworkLinkStep(
+                armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateLandingZoneIdentityStep(
+                armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
             new CreatePostgresqlDbStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
@@ -84,9 +97,6 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(
             new CreateLogAnalyticsDataCollectionRulesStep(
                 armManagers, parametersResolver, resourceNameGenerator),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreatePrivateEndpointStep(armManagers, parametersResolver, resourceNameGenerator),
             RetryRules.cloud()),
         Pair.of(
             new CreateAksStep(armManagers, parametersResolver, resourceNameGenerator),

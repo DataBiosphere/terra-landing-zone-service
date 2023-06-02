@@ -4,6 +4,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import bio.terra.common.iam.BearerToken;
@@ -16,7 +17,12 @@ import bio.terra.landingzone.job.exception.InternalStairwayException;
 import bio.terra.landingzone.job.exception.JobNotFoundException;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.landingzones.TestArmResourcesFactory;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
+import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
+import bio.terra.landingzone.library.landingzones.management.DeleteRulesVerifier;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
+import bio.terra.landingzone.library.landingzones.management.ResourcesDeleteManager;
+import bio.terra.landingzone.library.landingzones.management.deleterules.*;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
@@ -26,9 +32,15 @@ import bio.terra.stairway.FlightState;
 import bio.terra.stairway.FlightStatus;
 import bio.terra.stairway.exception.FlightNotFoundException;
 import bio.terra.stairway.exception.StairwayException;
+import com.azure.resourcemanager.batch.models.*;
+import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
+import com.azure.resourcemanager.compute.models.VirtualMachineSizeTypes;
+import com.azure.resourcemanager.storage.models.PublicAccess;
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 import org.awaitility.Awaitility;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -139,6 +151,188 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
 
     var resources = landingZoneManager.reader().listSharedResources(lzIdString);
     assertThat(resources, hasSize(AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()));
+
+    testCannotDeleteLandingZoneWithDependencies();
+  }
+
+  private void testCannotDeleteLandingZoneWithDependencies() {
+    createBlobContainer();
+    createHybridConnection();
+    createDatabase();
+    scaleNodePool();
+    createVirtualMachine();
+    createBatchPool();
+
+    var deleteManager =
+        new ResourcesDeleteManager(armManagers, new DeleteRulesVerifier(armManagers));
+    Exception exception =
+        assertThrows(
+            LandingZoneRuleDeleteException.class,
+            () ->
+                deleteManager.deleteLandingZoneResources(
+                    landingZoneId.toString(), resourceGroup.name()));
+
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(StorageAccountHasContainers.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(AzureRelayHasHybridConnections.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(PostgreSQLServerHasDBs.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(AKSAgentPoolHasMoreThanOneNode.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(VmsAreAttachedToVnet.class.getSimpleName()));
+    assertThat(
+        exception.getMessage(),
+        containsStringIgnoringCase(BatchAccountHasNodePools.class.getSimpleName()));
+  }
+
+  private void createBlobContainer() {
+    var storageAccount =
+        armManagers
+            .azureResourceManager()
+            .storageAccounts()
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(sa -> inLandingZone(landingZoneId, sa.tags()))
+            .findFirst()
+            .orElseThrow();
+
+    armManagers
+        .azureResourceManager()
+        .storageBlobContainers()
+        .defineContainer("temp")
+        .withExistingStorageAccount(storageAccount)
+        .withPublicAccess(PublicAccess.NONE)
+        .create();
+  }
+
+  private void createHybridConnection() {
+    var azureRelay =
+        armManagers.relayManager().namespaces().listByResourceGroup(resourceGroup.name()).stream()
+            .filter(n -> inLandingZone(landingZoneId, n.tags()))
+            .findFirst()
+            .orElseThrow();
+
+    armManagers
+        .relayManager()
+        .hybridConnections()
+        .define("myhc")
+        .withExistingNamespace(resourceGroup.name(), azureRelay.name())
+        .create();
+  }
+
+  private void createDatabase() {
+    var postgresServer =
+        armManagers.postgreSqlManager().servers().listByResourceGroup(resourceGroup.name()).stream()
+            .filter(pg -> inLandingZone(landingZoneId, pg.tags()))
+            .findFirst()
+            .orElseThrow();
+
+    armManagers
+        .postgreSqlManager()
+        .databases()
+        .define("mydb")
+        .withExistingFlexibleServer(resourceGroup.name(), postgresServer.name())
+        .create();
+  }
+
+  private void scaleNodePool() {
+    var aksCluster =
+        armManagers
+            .azureResourceManager()
+            .kubernetesClusters()
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(kc -> inLandingZone(landingZoneId, kc.tags()))
+            .findFirst()
+            .orElseThrow();
+
+    var nodePoolName = aksCluster.agentPools().values().stream().findFirst().orElseThrow();
+
+    aksCluster
+        .update()
+        .updateAgentPool(nodePoolName.name())
+        .withAgentPoolVirtualMachineCount(2)
+        .parent()
+        .apply();
+  }
+
+  private void createVirtualMachine() {
+    var deployedSubnet =
+        landingZoneManager
+            .reader()
+            .listSubnetsBySubnetPurpose(
+                landingZoneId.toString(), SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
+            .stream()
+            .findFirst()
+            .orElseThrow();
+    var vNet = armManagers.azureResourceManager().networks().getById(deployedSubnet.vNetId());
+
+    armManagers
+        .azureResourceManager()
+        .virtualMachines()
+        .define("myvm")
+        .withRegion(resourceGroup.regionName())
+        .withExistingResourceGroup(resourceGroup)
+        .withExistingPrimaryNetwork(vNet)
+        .withSubnet(deployedSubnet.name())
+        .withPrimaryPrivateIPAddressDynamic()
+        .withoutPrimaryPublicIPAddress()
+        .withPopularLinuxImage(KnownLinuxVirtualMachineImage.UBUNTU_SERVER_16_04_LTS)
+        .withRootUsername("username")
+        .withRootPassword(UUID.randomUUID().toString())
+        .withSize(VirtualMachineSizeTypes.STANDARD_D2_V3)
+        .create();
+  }
+
+  private void createBatchPool() {
+    var batch =
+        armManagers
+            .batchManager()
+            .batchAccounts()
+            .listByResourceGroup(resourceGroup.name())
+            .stream()
+            .filter(ba -> inLandingZone(landingZoneId, ba.tags()))
+            .findFirst()
+            .orElseThrow();
+
+    var pool =
+        armManagers
+            .batchManager()
+            .pools()
+            .define("poolName")
+            .withExistingBatchAccount(resourceGroup.name(), batch.name())
+            .withVmSize("Standard_D2as_v4")
+            .withDeploymentConfiguration(
+                new DeploymentConfiguration()
+                    .withVirtualMachineConfiguration(
+                        new VirtualMachineConfiguration()
+                            .withImageReference(
+                                new ImageReference()
+                                    .withPublisher("Canonical")
+                                    .withOffer("UbuntuServer")
+                                    .withSku("18.04-LTS")
+                                    .withVersion("latest"))
+                            .withNodeAgentSkuId("batch.node.ubuntu 18.04")))
+            .withScaleSettings(
+                new ScaleSettings()
+                    .withAutoScale(
+                        new AutoScaleSettings()
+                            .withFormula("$TargetDedicatedNodes=1")
+                            .withEvaluationInterval(Duration.parse("PT5M"))))
+            .create();
+  }
+
+  @NotNull
+  private static Boolean inLandingZone(UUID landingZoneId, Map<String, String> tags) {
+    return tags.getOrDefault(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), "")
+        .equalsIgnoreCase(landingZoneId.toString());
   }
 
   @Test

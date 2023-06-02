@@ -18,12 +18,10 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 @Tag("integration")
+@Disabled("we don't create landing zones this way anymore")
 class CromwellBaseResourcesFactoryTest extends LandingZoneTestFixture {
 
   private LandingZoneManager landingZoneManager;
