@@ -3,7 +3,6 @@ package bio.terra.landingzone.stairway.flight.utils;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.loganalytics.models.DataExport;
-import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.List;
 import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
@@ -17,12 +16,6 @@ public class ProtectedDataAzureStorageHelper {
 
   public ProtectedDataAzureStorageHelper(ArmManagers armManagers) {
     this.armManagers = armManagers;
-  }
-
-  public String getResourceGroupRegion(String resourceGroupName) {
-    ResourceGroup resourceGroup =
-        armManagers.azureResourceManager().resourceGroups().getByName(resourceGroupName);
-    return resourceGroup.region().name();
   }
 
   public DataExport createLogAnalyticsDataExport(

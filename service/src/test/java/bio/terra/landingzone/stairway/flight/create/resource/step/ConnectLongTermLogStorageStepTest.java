@@ -33,6 +33,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
 
   @Test
   void doStepSuccess() throws InterruptedException {
+    var matchingRegionName = "eastus";
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -42,7 +43,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
             LANDING_ZONE_ID),
         Map.of(
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            new TargetManagedResourceGroup("fake_mrg", "fake_mrg_region"),
+            new TargetManagedResourceGroup("fake_mrg", matchingRegionName),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             buildLandingZoneResource()));
     var mockDataExport = mock(DataExport.class);
@@ -50,7 +51,6 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
     when(mockStorageHelper.createLogAnalyticsDataExport(
             anyString(), anyString(), anyString(), anyList(), anyString()))
         .thenReturn(mockDataExport);
-    when(mockStorageHelper.getResourceGroupRegion(anyString())).thenReturn("eastus");
     var step =
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
@@ -58,7 +58,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
             mockResourceNameGenerator,
             mockStorageHelper,
             List.of("FakeTableName"),
-            Map.of("eastus", "exampleaccount"));
+            Map.of(matchingRegionName, "exampleaccount"));
 
     var result = step.doStep(mockFlightContext);
 
@@ -66,7 +66,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
   }
 
   @Test
-  void doStep_failureNoMatchingStorageAcct() throws InterruptedException {
+  void doStep_failureNoMatchingStorageAcct() {
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -76,11 +76,10 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
             LANDING_ZONE_ID),
         Map.of(
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            new TargetManagedResourceGroup("fake_mrg", "fake_mrg_region"),
+            new TargetManagedResourceGroup("fake_mrg", "NON_MATCHING_REGION_NAME"),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             buildLandingZoneResource()));
 
-    when(mockStorageHelper.getResourceGroupRegion(anyString())).thenReturn("eastus");
     var step =
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
