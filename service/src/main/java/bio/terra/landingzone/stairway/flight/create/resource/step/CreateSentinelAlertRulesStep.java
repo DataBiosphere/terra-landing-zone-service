@@ -11,6 +11,8 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.securityinsights.fluent.models.AlertRuleInner;
 import com.azure.resourcemanager.securityinsights.implementation.AlertRuleTemplateImpl;
 import com.azure.resourcemanager.securityinsights.models.MLBehaviorAnalyticsAlertRule;
+import com.azure.resourcemanager.securityinsights.models.NrtAlertRule;
+import com.azure.resourcemanager.securityinsights.models.NrtAlertRuleTemplate;
 import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRule;
 import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRuleTemplate;
 import java.time.Duration;
@@ -50,6 +52,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
     var lawName = logAnalyticsWorkspaceResourceName.get();
     createScheduledAlertRules(mrgName, lawName);
     createMlAlertRules(mrgName, lawName);
+    createNrtAlertRules(mrgName, lawName);
   }
 
   @Override
@@ -69,7 +72,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
 
   private void createScheduledAlertRules(String mrgName, String workspaceName) {
     landingZoneProtectedDataConfiguration
-        .getSentinelScheduledAlertRuleTemplates()
+        .getSentinelScheduledAlertRuleTemplateIds()
         .forEach(
             ruleTemplateId -> {
               logger.info("Creating alert rule from source template {}...", ruleTemplateId);
@@ -80,7 +83,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   }
 
   private void createMlAlertRules(String mrgName, String workspaceName) {
-    var mlRules = landingZoneProtectedDataConfiguration.getSentinelMlRuleTemplates();
+    var mlRules = landingZoneProtectedDataConfiguration.getSentinelMlRuleTemplateIds();
     mlRules.forEach(
         ruleTemplateId -> {
           logger.info("Creating alert rule from source template {}...", ruleTemplateId);
@@ -88,6 +91,16 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
               new MLBehaviorAnalyticsAlertRule()
                   .withAlertRuleTemplateName(ruleTemplateId)
                   .withEnabled(true);
+          createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
+        });
+  }
+
+  private void createNrtAlertRules(String mrgName, String workspaceName) {
+    var ruleIds = landingZoneProtectedDataConfiguration.getSentinelNrtRuleTemplateIds();
+    ruleIds.forEach(
+        ruleTemplateId -> {
+          logger.info("Creating alert rule from source template {}...", ruleTemplateId);
+          var rule = buildNrtAlertRuleFromTemplate(mrgName, workspaceName, ruleTemplateId);
           createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
         });
   }
@@ -139,5 +152,31 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
         .withTemplateVersion(scheduledtemplate.version())
         .withEnabled(true)
         .withSeverity(scheduledtemplate.severity());
+  }
+
+  private NrtAlertRule buildNrtAlertRuleFromTemplate(
+      String mrgName, String workspaceName, String ruleTemplateId) {
+    var securityInsightsManager = armManagers.securityInsightsManager();
+    var template =
+        (AlertRuleTemplateImpl)
+            securityInsightsManager
+                .alertRuleTemplates()
+                .get(mrgName, workspaceName, ruleTemplateId);
+    var nrtTemplate = (NrtAlertRuleTemplate) template.innerModel();
+    return new NrtAlertRule()
+        .withQuery(nrtTemplate.query())
+        .withAlertRuleTemplateName(nrtTemplate.name())
+        .withDisplayName(nrtTemplate.displayName())
+        .withSuppressionEnabled(false)
+        .withSuppressionDuration(Duration.parse("PT1H"))
+        .withTactics(nrtTemplate.tactics())
+        .withTechniques(nrtTemplate.techniques())
+        .withAlertDetailsOverride(nrtTemplate.alertDetailsOverride())
+        .withCustomDetails(nrtTemplate.customDetails())
+        .withEntityMappings(nrtTemplate.entityMappings())
+        .withEventGroupingSettings(nrtTemplate.eventGroupingSettings())
+        .withTemplateVersion(nrtTemplate.version())
+        .withEnabled(true)
+        .withSeverity(nrtTemplate.severity());
   }
 }
