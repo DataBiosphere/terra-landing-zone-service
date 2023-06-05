@@ -18,11 +18,3 @@ updates:
     ignore:
       - dependency-name: "org.springframework.boot:spring-boot-gradle-plugin"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "com.azure.resourcemanager:azure-resourcemanager-containerinstance"
-        update-types: [ "version-update:semver-minor" ]
-      - dependency-name: "com.azure.resourcemanager:azure-resourcemanager-monitor"
-        update-types: [ "version-update:semver-minor" ]
-      - dependency-name: "com.azure.resourcemanager:azure-resourcemanager"
-        update-types: [ "version-update:semver-minor" ]
-      - dependency-name: "org.springframework.boot-spring-boot-starter-data-jdbc"
-        update-types: [ "version-update:semver-patch" ]
