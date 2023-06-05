@@ -7,6 +7,8 @@ public final class LandingZoneBaseResourceType
     extends ExpandableStringEnum<LandingZoneBaseResourceType> {
   public static final LandingZoneBaseResourceType AZURE_VNET =
       fromString("microsoft.network/virtualnetworks");
+  public static final LandingZoneBaseResourceType AZURE_PRIVATE_DNS_ZONE =
+      fromString("microsoft.network/privatednszones");
 
   public static LandingZoneBaseResourceType fromString(String name) {
     return fromString(name, LandingZoneBaseResourceType.class);

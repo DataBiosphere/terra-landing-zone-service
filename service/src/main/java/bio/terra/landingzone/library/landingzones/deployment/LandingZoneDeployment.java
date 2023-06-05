@@ -6,7 +6,7 @@ import com.azure.resourcemanager.loganalytics.models.Workspace;
 import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
-import com.azure.resourcemanager.postgresql.models.Server;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
 import com.azure.resourcemanager.relay.models.RelayNamespace;
 import com.azure.resourcemanager.resources.fluentcore.arm.models.Resource.DefinitionWithTags;
 import com.azure.resourcemanager.resources.fluentcore.model.Creatable;

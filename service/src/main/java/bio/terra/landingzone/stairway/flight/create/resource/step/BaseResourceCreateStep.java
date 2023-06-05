@@ -24,7 +24,7 @@ public abstract class BaseResourceCreateStep implements Step {
   private static final Logger logger = LoggerFactory.getLogger(BaseResourceCreateStep.class);
 
   protected static final String FAILED_TO_CREATE_RESOURCE =
-      "Failed to create landing zone {} resource. landingZoneId={}.";
+      "Failed to create landing zone {} resource. landingZoneId={}: {}";
   protected static final String RESOURCE_ALREADY_EXISTS =
       "{} resource in managed resource group {} already exists.";
   protected static final String RESOURCE_CREATED =
@@ -67,7 +67,8 @@ public abstract class BaseResourceCreateStep implements Step {
             RESOURCE_ALREADY_EXISTS, getResourceType(), billingProfile.getManagedResourceGroupId());
         return StepResult.getStepResultSuccess();
       }
-      logger.error(FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId.toString());
+      logger.error(
+          FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId.toString(), e.toString());
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     }
     return StepResult.getStepResultSuccess();

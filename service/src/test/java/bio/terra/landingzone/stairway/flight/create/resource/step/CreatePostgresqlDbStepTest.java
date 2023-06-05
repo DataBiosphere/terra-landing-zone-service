@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -21,14 +22,8 @@ import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
-import com.azure.resourcemanager.postgresql.PostgreSqlManager;
-import com.azure.resourcemanager.postgresql.models.PublicNetworkAccessEnum;
-import com.azure.resourcemanager.postgresql.models.Server;
-import com.azure.resourcemanager.postgresql.models.ServerPropertiesForCreate;
-import com.azure.resourcemanager.postgresql.models.ServerPropertiesForDefaultCreate;
-import com.azure.resourcemanager.postgresql.models.ServerVersion;
-import com.azure.resourcemanager.postgresql.models.Servers;
-import com.azure.resourcemanager.postgresql.models.Sku;
+import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
+import com.azure.resourcemanager.postgresqlflexibleserver.models.*;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,15 +51,24 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   @Mock
   private Server.DefinitionStages.WithResourceGroup mockServerDefinitionStagesWithResourceGroup;
 
-  @Mock private Server.DefinitionStages.WithProperties mockServerDefinitionStagesWithProperties;
   @Mock private Server.DefinitionStages.WithCreate mockServerDefinitionStagesWithCreate;
   @Mock private Server mockServer;
+  @Mock private Administrators mockAdministrators;
 
-  @Captor private ArgumentCaptor<ServerPropertiesForCreate> serverPropertiesForCreateCaptor;
+  @Captor private ArgumentCaptor<ServerVersion> versionCaptor;
   @Captor private ArgumentCaptor<Sku> skuCaptor;
+  @Captor private ArgumentCaptor<Network> networkCaptor;
+  @Captor private ArgumentCaptor<AuthConfig> authConfigCaptor;
+  @Captor private ArgumentCaptor<String> availabilityZoneCaptor;
+  @Captor private ArgumentCaptor<Backup> backupCaptor;
+  @Captor private ArgumentCaptor<CreateMode> createModeCaptor;
+  @Captor private ArgumentCaptor<HighAvailability> highAvailabilityCaptor;
+  @Captor private ArgumentCaptor<Storage> storageCaptor;
   @Captor private ArgumentCaptor<Map<String, String>> postgresqlTagsCaptor;
 
   private CreatePostgresqlDbStep createPostgresqlDbStep;
+  @Mock private ActiveDirectoryAdministrator.DefinitionStages.Blank mockAdministrator;
+  @Mock private ActiveDirectoryAdministrator.DefinitionStages.WithCreate mockAdminWithCreate;
 
   @BeforeEach
   void setup() {
@@ -75,8 +79,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
   @Test
   void doStepSuccess() throws InterruptedException {
-    var postgresAdminName = "dbAdmin";
-    var postgresPassword = "password";
     var postgresqlSku = "psqlSku";
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
@@ -84,6 +86,8 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH))
         .thenReturn(POSTGRESQL_NAME);
 
+    final String adminName = "adminName";
+    final String adminPrincipalId = "adminPrincipalId";
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -91,24 +95,46 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
-    setupArmManagersForDoStep(POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name());
+        Map.of(
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateVnetStep.VNET_ID,
+            "vnetId",
+            CreatePostgresqlDNSStep.POSTGRESQL_DNS_ID,
+            "dnsId",
+            CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
+            LandingZoneResource.builder().resourceName(adminName).build(),
+            CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_PRINCIPAL_ID,
+            adminPrincipalId));
+    setupArmManagersForDoStep(
+        POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name(), adminPrincipalId, adminName);
 
+    final ServerVersion serverVersion = ServerVersion.ONE_ONE;
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_ADMIN.name()))
-        .thenReturn(postgresAdminName);
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD.name()))
-        .thenReturn(postgresPassword);
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name()))
+        .thenReturn(serverVersion.toString());
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name()))
         .thenReturn(postgresqlSku);
+    final SkuTier skuTier = SkuTier.BURSTABLE;
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
+        .thenReturn(skuTier.toString());
+    final String backupRetention = "10";
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
+                .name()))
+        .thenReturn(backupRetention);
+    final String storageSize = "100";
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name()))
+        .thenReturn(storageSize);
 
     StepResult stepResult = createPostgresqlDbStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
 
-    verifyServerProperties(postgresAdminName, postgresPassword, postgresqlSku);
+    verifyServerProperties(postgresqlSku, skuTier, backupRetention, storageSize, serverVersion);
     verifyBasicTags(postgresqlTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockServerDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockServerDefinitionStagesWithCreate);
@@ -151,40 +177,68 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   }
 
   private void setupArmManagersForDoStep(
-      String postgresqlId, String name, String region, String resourceGroup) {
+      String postgresqlId,
+      String name,
+      String region,
+      String resourceGroup,
+      String adminPrinicipalId,
+      String adminName) {
     when(mockServer.id()).thenReturn(postgresqlId);
     when(mockServerDefinitionStagesWithCreate.create()).thenReturn(mockServer);
     when(mockServerDefinitionStagesWithCreate.withTags(postgresqlTagsCaptor.capture()))
         .thenReturn(mockServerDefinitionStagesWithCreate);
     when(mockServerDefinitionStagesWithCreate.withSku(skuCaptor.capture()))
         .thenReturn(mockServerDefinitionStagesWithCreate);
-    when(mockServerDefinitionStagesWithProperties.withProperties(
-            serverPropertiesForCreateCaptor.capture()))
+    when(mockServerDefinitionStagesWithCreate.withVersion(versionCaptor.capture()))
         .thenReturn(mockServerDefinitionStagesWithCreate);
     when(mockServerDefinitionStagesWithResourceGroup.withExistingResourceGroup(resourceGroup))
-        .thenReturn(mockServerDefinitionStagesWithProperties);
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+
+    when(mockServerDefinitionStagesWithCreate.withNetwork(networkCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withAuthConfig(authConfigCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withBackup(backupCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withCreateMode(createModeCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withHighAvailability(
+            highAvailabilityCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withStorage(storageCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+
     when(mockServerDefinitionStagesBlank.withRegion(region))
         .thenReturn(mockServerDefinitionStagesWithResourceGroup);
     when(mockServers.define(name)).thenReturn(mockServerDefinitionStagesBlank);
     when(mockPostgreSqlManager.servers()).thenReturn(mockServers);
     when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
+
+    when(mockPostgreSqlManager.administrators()).thenReturn(mockAdministrators);
+    when(mockAdministrators.define(adminPrinicipalId)).thenReturn(mockAdministrator);
+    when(mockAdministrator.withExistingFlexibleServer(resourceGroup, name))
+        .thenReturn(mockAdminWithCreate);
+    when(mockAdminWithCreate.withPrincipalName(adminName)).thenReturn(mockAdminWithCreate);
+    when(mockAdminWithCreate.withPrincipalType(PrincipalType.SERVICE_PRINCIPAL))
+        .thenReturn(mockAdminWithCreate);
   }
 
-  private void verifyServerProperties(String adminName, String adminPassword, String sku) {
-    // verifyProperties
-    assertNotNull(serverPropertiesForCreateCaptor.getValue());
-    assertThat(
-        serverPropertiesForCreateCaptor.getValue().getClass(),
-        equalTo(ServerPropertiesForDefaultCreate.class));
-    ServerPropertiesForDefaultCreate properties =
-        (ServerPropertiesForDefaultCreate) serverPropertiesForCreateCaptor.getValue();
-    assertThat(properties.administratorLogin(), equalTo(adminName));
-    assertThat(properties.administratorLoginPassword(), equalTo(adminPassword));
-    assertThat(properties.version(), equalTo(ServerVersion.ONE_ONE));
-    assertThat(properties.publicNetworkAccess(), equalTo(PublicNetworkAccessEnum.DISABLED));
-
-    // verify sku
+  private void verifyServerProperties(
+      String sku,
+      SkuTier skuTier,
+      String backupRetention,
+      String storageSize,
+      ServerVersion serverVersion) {
+    assertThat(versionCaptor.getValue(), equalTo(serverVersion));
     assertNotNull(skuCaptor.getValue());
     assertThat(skuCaptor.getValue().name(), equalTo(sku));
+    assertThat(skuCaptor.getValue().tier(), equalTo(skuTier));
+    assertThat(
+        backupCaptor.getValue().backupRetentionDays(), equalTo(Integer.parseInt(backupRetention)));
+    assertThat(storageCaptor.getValue().storageSizeGB(), equalTo(Integer.parseInt(storageSize)));
+    assertThat(authConfigCaptor.getValue().passwordAuth(), equalTo(PasswordAuthEnum.DISABLED));
+    assertThat(
+        authConfigCaptor.getValue().activeDirectoryAuth(),
+        equalTo(ActiveDirectoryAuthEnum.ENABLED));
   }
 }
