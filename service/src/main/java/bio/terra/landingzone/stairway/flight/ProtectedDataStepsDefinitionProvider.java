@@ -10,6 +10,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksLogSe
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelAlertRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelRunPlaybookAutomationRule;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateSentinelStep;
+import bio.terra.landingzone.stairway.flight.utils.AlertRulesHelper;
 import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
@@ -57,12 +58,14 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
                 resourceNameGenerator,
                 landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
+
     protectedDataSteps.add(
         Pair.of(
             new CreateSentinelAlertRulesStep(
                 armManagers,
                 parametersResolver,
                 resourceNameGenerator,
+                new AlertRulesHelper(armManagers.securityInsightsManager()),
                 landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
     protectedDataSteps.add(
