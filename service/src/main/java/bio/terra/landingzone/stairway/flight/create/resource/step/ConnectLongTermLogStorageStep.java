@@ -59,7 +59,7 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
       throw new MissingRequiredFieldsException("LogAnalyticsWorkspace resource name is not set.");
     }
 
-    var lzRegion = storageHelper.getResourceGroupRegion(getMRGName(context));
+    var lzRegion = getMRGRegionName(context);
     if (!longTermStorageAccountIds.containsKey(lzRegion)) {
       throw new MissingRequiredFieldsException(
           "No matching long term storage account for region " + lzRegion);
