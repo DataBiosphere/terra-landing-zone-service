@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 
 public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateSentinelAlertRulesStep.class);
-  private AlertRulesHelper alertRuleAdapter;
-  private LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
+  private final AlertRulesHelper alertRulesHelper;
+  private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   public CreateSentinelAlertRulesStep(
       ArmManagers armManagers,
@@ -25,7 +25,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
       AlertRulesHelper alertRuleAdapter,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     super(armManagers, parametersResolver, resourceNameGenerator);
-    this.alertRuleAdapter = alertRuleAdapter;
+    this.alertRulesHelper = alertRuleAdapter;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 
@@ -73,9 +73,9 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
         .forEach(
             ruleTemplateId -> {
               var rule =
-                  alertRuleAdapter.buildScheduledAlertRuleFromTemplate(
+                  alertRulesHelper.buildScheduledAlertRuleFromTemplate(
                       mrgName, workspaceName, ruleTemplateId);
-              alertRuleAdapter.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
+              alertRulesHelper.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
             });
   }
 
@@ -88,7 +88,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
                   new MLBehaviorAnalyticsAlertRule()
                       .withAlertRuleTemplateName(ruleTemplateId)
                       .withEnabled(true);
-              alertRuleAdapter.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
+              alertRulesHelper.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
             });
   }
 
@@ -98,9 +98,9 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
         .forEach(
             ruleTemplateId -> {
               var rule =
-                  alertRuleAdapter.buildNrtAlertRuleFromTemplate(
+                  alertRulesHelper.buildNrtAlertRuleFromTemplate(
                       mrgName, workspaceName, ruleTemplateId);
-              alertRuleAdapter.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
+              alertRulesHelper.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
             });
   }
 }
