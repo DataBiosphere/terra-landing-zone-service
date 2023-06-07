@@ -117,7 +117,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
             .withQuery(
                 """
                                       StorageBlobLogs\s
-                                      | where StatusCode in (401, 403)
+                                      | where StatusCode in (403)
                                       | extend CallerIpAddress = tostring(split(CallerIpAddress, ":")[0]),
                                                Identity = coalesce(parse_urlquery(Uri)["Query Parameters"]["rscd"], AuthenticationHash, AuthenticationType)
                                       | summarize
@@ -131,7 +131,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
             .withQueryPeriod(Duration.ofDays(1))
             .withQueryFrequency(Duration.ofDays(1))
             .withEnabled(true)
-            .withSeverity(AlertSeverity.LOW)
+            .withSeverity(AlertSeverity.INFORMATIONAL)
             .withTriggerOperator(TriggerOperator.GREATER_THAN)
             .withTriggerThreshold(0);
     alertRulesHelper.createAlertRule(
