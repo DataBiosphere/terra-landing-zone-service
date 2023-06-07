@@ -8,7 +8,11 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.landingzone.stairway.flight.utils.AlertRulesHelper;
 import bio.terra.stairway.FlightContext;
+import com.azure.resourcemanager.securityinsights.models.AlertSeverity;
 import com.azure.resourcemanager.securityinsights.models.MLBehaviorAnalyticsAlertRule;
+import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRule;
+import com.azure.resourcemanager.securityinsights.models.TriggerOperator;
+import java.time.Duration;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +51,11 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
     logger.info("Creating sentinel alert rules...");
     var mrgName = getMRGName(context);
     var lawName = logAnalyticsWorkspaceResourceName.get();
+
     createScheduledAlertRules(mrgName, lawName);
     createMlAlertRules(mrgName, lawName);
     createNrtAlertRules(mrgName, lawName);
+    createCustomRules(mrgName, lawName);
   }
 
   @Override
@@ -102,5 +108,33 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
                       mrgName, workspaceName, ruleTemplateId);
               alertRulesHelper.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
             });
+  }
+
+  private void createCustomRules(String mrgName, String workspaceName) {
+    var fileAccessAttemptsRule =
+        new ScheduledAlertRule()
+            .withDisplayName("File access attempts by unauthorized user accounts")
+            .withQuery(
+                """
+                                      StorageBlobLogs\s
+                                      | where StatusCode in (401, 403)
+                                      | extend CallerIpAddress = tostring(split(CallerIpAddress, ":")[0]),
+                                               Identity = coalesce(parse_urlquery(Uri)["Query Parameters"]["rscd"], AuthenticationHash, AuthenticationType)
+                                      | summarize
+                                          Attempts = count(), TimeStart = min(TimeGenerated), TimeEnd = max(TimeGenerated)
+                                          by AccountName, CallerIpAddress, Identity, bin(TimeGenerated, 10m)
+                                      | where Attempts > 10
+                                      | project TimeStart, TimeEnd, Attempts, CallerIpAddress, AccountName, Identity
+                                    """)
+            .withSuppressionEnabled(false)
+            .withSuppressionDuration(Duration.parse("PT1H"))
+            .withQueryPeriod(Duration.ofDays(1))
+            .withQueryFrequency(Duration.ofDays(1))
+            .withEnabled(true)
+            .withSeverity(AlertSeverity.LOW)
+            .withTriggerOperator(TriggerOperator.GREATER_THAN)
+            .withTriggerThreshold(0);
+    alertRulesHelper.createAlertRule(
+        fileAccessAttemptsRule, "UnauthorizedFileAccessAttempts", mrgName, workspaceName);
   }
 }
