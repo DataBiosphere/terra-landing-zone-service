@@ -76,29 +76,4 @@ public class LandingZoneProtectedDataConfiguration {
   public void setLongTermStorageTableNames(List<String> longTermStorageTableNames) {
     this.longTermStorageTableNames = longTermStorageTableNames;
   }
-
-  public List<String> getSentinelScheduledAlertRuleTemplateIds() {
-    return sentinelScheduledAlertRuleTemplateIds;
-  }
-
-  public void setSentinelScheduledAlertRuleTemplateIds(
-      List<String> sentinelScheduledAlertRuleTemplateIds) {
-    this.sentinelScheduledAlertRuleTemplateIds = sentinelScheduledAlertRuleTemplateIds;
-  }
-
-  public List<String> getSentinelMlRuleTemplateIds() {
-    return sentinelMlRuleTemplateIds;
-  }
-
-  public void setSentinelMlRuleTemplateIds(List<String> sentinelMlRuleTemplateIds) {
-    this.sentinelMlRuleTemplateIds = sentinelMlRuleTemplateIds;
-  }
-
-  public List<String> getSentinelNrtRuleTemplateIds() {
-    return sentinelNrtRuleTemplateIds;
-  }
-
-  public void setSentinelNrtRuleTemplateIds(List<String> sentinelNrtRuleTemplateIds) {
-    this.sentinelNrtRuleTemplateIds = sentinelNrtRuleTemplateIds;
-  }
 }

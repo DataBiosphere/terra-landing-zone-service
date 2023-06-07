@@ -18,7 +18,6 @@ import bio.terra.landingzone.stairway.flight.utils.AlertRulesHelper;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.StepResult;
 import com.azure.resourcemanager.securityinsights.fluent.models.AlertRuleInner;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
@@ -48,15 +47,6 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
             ResourceStepFixture.createDefaultMrg(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             buildLandingZoneResource()));
-    var scheduledRuleIds = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-    var mlRuleIds = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-    var nrtRuleIds = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-    when(mockLandingZoneProtectedDataConfiguration.getSentinelScheduledAlertRuleTemplateIds())
-        .thenReturn(scheduledRuleIds);
-    when(mockLandingZoneProtectedDataConfiguration.getSentinelMlRuleTemplateIds())
-        .thenReturn(mlRuleIds);
-    when(mockLandingZoneProtectedDataConfiguration.getSentinelNrtRuleTemplateIds())
-        .thenReturn(nrtRuleIds);
     var mockRule = mock(AlertRuleInner.class);
     when(mockAlertRuleAdapter.buildScheduledAlertRuleFromTemplate(
             anyString(), anyString(), anyString()))
@@ -67,24 +57,26 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
             mockArmManagers,
             mockParametersResolver,
             mockResourceNameGenerator,
-            mockAlertRuleAdapter,
-            mockLandingZoneProtectedDataConfiguration);
+            mockAlertRuleAdapter);
 
     var result = createSentinelAlertRulesStep.doStep(mockFlightContext);
 
     assertThat(result, equalTo(StepResult.getStepResultSuccess()));
-    scheduledRuleIds.forEach(
-        u ->
-            verify(mockAlertRuleAdapter, times(1))
-                .createAlertRule(any(), eq(u), anyString(), anyString()));
-    nrtRuleIds.forEach(
-        u ->
-            verify(mockAlertRuleAdapter, times(1))
-                .createAlertRule(any(), eq(u), anyString(), anyString()));
-    mlRuleIds.forEach(
-        u ->
-            verify(mockAlertRuleAdapter, times(1))
-                .createAlertRule(any(), eq(u), anyString(), anyString()));
+    AlertRuleTemplates.getSentinelScheduledAlertRuleTemplateIds()
+        .forEach(
+            u ->
+                verify(mockAlertRuleAdapter, times(1))
+                    .createAlertRule(any(), eq(u), anyString(), anyString()));
+    AlertRuleTemplates.getSentinelMlRuleTemplateIds()
+        .forEach(
+            u ->
+                verify(mockAlertRuleAdapter, times(1))
+                    .createAlertRule(any(), eq(u), anyString(), anyString()));
+    AlertRuleTemplates.getSentinelNrtRuleTemplateIds()
+        .forEach(
+            u ->
+                verify(mockAlertRuleAdapter, times(1))
+                    .createAlertRule(any(), eq(u), anyString(), anyString()));
   }
 
   @Test
@@ -103,8 +95,7 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
             mockArmManagers,
             mockParametersResolver,
             mockResourceNameGenerator,
-            mockAlertRuleAdapter,
-            mockLandingZoneProtectedDataConfiguration);
+            mockAlertRuleAdapter);
 
     assertThrows(
         MissingRequiredFieldsException.class,

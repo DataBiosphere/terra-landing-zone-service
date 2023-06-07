@@ -1,6 +1,5 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -20,17 +19,14 @@ import org.slf4j.LoggerFactory;
 public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateSentinelAlertRulesStep.class);
   private final AlertRulesHelper alertRulesHelper;
-  private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   public CreateSentinelAlertRulesStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameGenerator resourceNameGenerator,
-      AlertRulesHelper alertRuleAdapter,
-      LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
+      AlertRulesHelper alertRuleAdapter) {
     super(armManagers, parametersResolver, resourceNameGenerator);
     this.alertRulesHelper = alertRuleAdapter;
-    this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 
   @Override
@@ -74,8 +70,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   }
 
   private void createScheduledAlertRules(String mrgName, String workspaceName) {
-    landingZoneProtectedDataConfiguration
-        .getSentinelScheduledAlertRuleTemplateIds()
+    AlertRuleTemplates.getSentinelScheduledAlertRuleTemplateIds()
         .forEach(
             ruleTemplateId -> {
               var rule =
@@ -86,8 +81,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   }
 
   private void createMlAlertRules(String mrgName, String workspaceName) {
-    landingZoneProtectedDataConfiguration
-        .getSentinelMlRuleTemplateIds()
+    AlertRuleTemplates.getSentinelMlRuleTemplateIds()
         .forEach(
             ruleTemplateId -> {
               var rule =
@@ -99,8 +93,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   }
 
   private void createNrtAlertRules(String mrgName, String workspaceName) {
-    landingZoneProtectedDataConfiguration
-        .getSentinelNrtRuleTemplateIds()
+    AlertRuleTemplates.getSentinelNrtRuleTemplateIds()
         .forEach(
             ruleTemplateId -> {
               var rule =
