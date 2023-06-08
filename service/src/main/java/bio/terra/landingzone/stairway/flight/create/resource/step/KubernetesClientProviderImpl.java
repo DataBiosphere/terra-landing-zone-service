@@ -7,6 +7,7 @@ import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.KubeConfig;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +23,10 @@ public class KubernetesClientProviderImpl implements KubernetesClientProvider {
             .setSslCaCert(
                 new ByteArrayInputStream(
                     Base64.getDecoder()
-                        .decode(kubeConfig.getCertificateAuthorityData().getBytes())));
+                        .decode(
+                            kubeConfig
+                                .getCertificateAuthorityData()
+                                .getBytes(StandardCharsets.UTF_8))));
     return new CoreV1Api(client);
   }
 
@@ -43,7 +47,8 @@ public class KubernetesClientProviderImpl implements KubernetesClientProvider {
             .orElseThrow(() -> new RuntimeException("No kubeconfig found"));
     var kubeConfig =
         KubeConfig.loadKubeConfig(
-            new InputStreamReader(new ByteArrayInputStream(rawKubeConfig.value())));
+            new InputStreamReader(
+                new ByteArrayInputStream(rawKubeConfig.value()), StandardCharsets.UTF_8));
     return kubeConfig;
   }
 }
