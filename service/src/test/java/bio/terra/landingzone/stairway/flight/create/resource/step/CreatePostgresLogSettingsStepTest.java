@@ -149,8 +149,8 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
     when(mockWithCreate.withMetric("AllMetrics", Duration.ofMinutes(1), 0))
         .thenReturn(mockWithCreate);
     when(mockWithCreate.withLog("PostgreSQLLogs", 0)).thenReturn(mockWithCreate);
-    when(mockWithCreate.withLog("QueryStoreRuntimeStatistics", 0)).thenReturn(mockWithCreate);
-    when(mockWithCreate.withLog("QueryStoreWaitStatistics", 0)).thenReturn(mockWithCreate);
+    when(mockWithCreate.withLog("PostgreSQLFlexQueryStoreRuntime", 0)).thenReturn(mockWithCreate);
+    when(mockWithCreate.withLog("PostgreSQLFlexQueryStoreWaitStats", 0)).thenReturn(mockWithCreate);
     when(mockWithDiagnosticLogRecipient.withLogAnalytics(logAnalyticsWorkspaceIdCaptor.capture()))
         .thenReturn(mockWithCreate);
     when(mockWithBlank.withResource(postgreSqlIdCaptor.capture()))
