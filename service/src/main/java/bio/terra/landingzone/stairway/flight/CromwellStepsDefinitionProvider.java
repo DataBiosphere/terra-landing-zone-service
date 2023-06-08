@@ -10,6 +10,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneFederatedIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
@@ -23,6 +24,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageA
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
+import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
@@ -100,6 +102,10 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.cloud()),
         Pair.of(
             new CreateAksStep(armManagers, parametersResolver, resourceNameGenerator),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateLandingZoneFederatedIdentityStep(
+                armManagers, new KubernetesClientProviderImpl()),
             RetryRules.cloud()),
         Pair.of(
             new CreateRelayNamespaceStep(armManagers, parametersResolver, resourceNameGenerator),

@@ -11,7 +11,11 @@ import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
+import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +27,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksStep.class);
   public static final String AKS_ID = "AKS_ID";
   public static final String AKS_RESOURCE_KEY = "AKS";
+  public static final String AKS_OIDC_ISSUER_URL = "AKS_OIDC_ISSUER_URL";
 
   public CreateAksStep(
       ArmManagers armManagers,
@@ -48,7 +53,12 @@ public class CreateAksStep extends BaseResourceCreateStep {
         "omsagent",
         new ManagedClusterAddonProfile()
             .withEnabled(true)
-            .withConfig(Map.of("logAnalyticsWorkspaceResourceID", logAnalyticsWorkspaceId)));
+            .withConfig(
+                Map.of(
+                    "logAnalyticsWorkspaceResourceID",
+                    logAnalyticsWorkspaceId,
+                    "useAADAuth", // if this parameter is not here, workload identity doesn't work
+                    "True")));
 
     var aksName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH);
     var aksPartial =
@@ -102,7 +112,13 @@ public class CreateAksStep extends BaseResourceCreateStep {
                     LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                     ResourcePurpose.SHARED_RESOURCE.toString()))
             .create();
+
+    enableWorkloadIdentity(aks);
+
     context.getWorkingMap().put(AKS_ID, aks.id());
+    context
+        .getWorkingMap()
+        .put(AKS_OIDC_ISSUER_URL, aks.innerModel().oidcIssuerProfile().issuerUrl());
     context
         .getWorkingMap()
         .put(
@@ -115,6 +131,23 @@ public class CreateAksStep extends BaseResourceCreateStep {
                 .resourceName(aks.name())
                 .build());
     logger.info(RESOURCE_CREATED, getResourceType(), aks.id(), getMRGName(context));
+  }
+
+  /** see https://github.com/Azure/azure-sdk-for-java/issues/31271 */
+  private static void enableWorkloadIdentity(KubernetesCluster aks) {
+    KubernetesCluster.Update update = aks.update();
+
+    var securityProfile = aks.innerModel().securityProfile();
+    if (securityProfile == null) {
+      securityProfile = new ManagedClusterSecurityProfile();
+      aks.innerModel().withSecurityProfile(securityProfile);
+    }
+    securityProfile.withWorkloadIdentity(
+        new ManagedClusterSecurityProfileWorkloadIdentity().withEnabled(true));
+    aks.innerModel().withOidcIssuerProfile(new ManagedClusterOidcIssuerProfile().withEnabled(true));
+
+    update.apply();
+    aks.refresh();
   }
 
   @Override
