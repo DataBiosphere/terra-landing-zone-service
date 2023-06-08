@@ -41,8 +41,8 @@ public class CreatePostgresLogSettingsStep extends BaseResourceCreateStep {
             .withResource(postgreSqlId)
             .withLogAnalytics(logAnalyticsWorkspaceId)
             .withLog("PostgreSQLLogs", 0) // retention is handled by the log analytics workspace
-            .withLog("QueryStoreRuntimeStatistics", 0)
-            .withLog("QueryStoreWaitStatistics", 0)
+            .withLog("PostgreSQLFlexQueryStoreRuntime", 0)
+            .withLog("PostgreSQLFlexQueryStoreWaitStats", 0)
             .withMetric("AllMetrics", Duration.ofMinutes(1), 0)
             .create();
     logger.info(RESOURCE_CREATED, getResourceType(), postgresLogSettings.id(), getMRGName(context));
