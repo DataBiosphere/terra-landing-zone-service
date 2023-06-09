@@ -22,6 +22,7 @@ public class CreateLandingZoneIdentityStep extends BaseResourceCreateStep {
   public static final String LANDING_ZONE_IDENTITY_PRINCIPAL_ID =
       "LANDING_ZONE_IDENTITY_PRINCIPAL_ID";
   public static final String LANDING_ZONE_IDENTITY_RESOURCE_KEY = "LANDING_ZONE_IDENTITY";
+  public static final String LANDING_ZONE_IDENTITY_CLIENT_ID = "LANDING_ZONE_IDENTITY_CLIENT_ID";
 
   public CreateLandingZoneIdentityStep(
       ArmManagers armManagers,
@@ -54,6 +55,7 @@ public class CreateLandingZoneIdentityStep extends BaseResourceCreateStep {
             .create();
 
     context.getWorkingMap().put(LANDING_ZONE_IDENTITY_PRINCIPAL_ID, uami.principalId());
+    context.getWorkingMap().put(LANDING_ZONE_IDENTITY_CLIENT_ID, uami.clientId());
     context.getWorkingMap().put(LANDING_ZONE_IDENTITY_ID, uami.id());
     context
         .getWorkingMap()
