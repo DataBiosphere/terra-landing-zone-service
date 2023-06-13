@@ -39,6 +39,7 @@ import com.azure.resourcemanager.monitor.models.PerfCounterDataSource;
 import com.azure.resourcemanager.monitor.models.SyslogDataSource;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.network.models.PrivateLinkSubResourceName;
+import com.azure.resourcemanager.network.models.ServiceEndpointType;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
@@ -170,9 +171,11 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
                   parametersResolver.getValue(ParametersNames.VNET_ADDRESS_SPACE.name()))
               .withSubnet(
                   Subnet.AKS_SUBNET.name(), parametersResolver.getValue(Subnet.AKS_SUBNET.name()))
-              .withSubnet(
-                  Subnet.BATCH_SUBNET.name(),
-                  parametersResolver.getValue(Subnet.BATCH_SUBNET.name()))
+              .defineSubnet(Subnet.BATCH_SUBNET.name())
+                  .withAddressPrefix(parametersResolver.getValue(Subnet.BATCH_SUBNET.name()))
+                  .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
+                  .withAccessFromService(ServiceEndpointType.MICROSOFT_SQL)
+                  .attach()
               .withSubnet(
                   Subnet.POSTGRESQL_SUBNET.name(),
                   parametersResolver.getValue(Subnet.POSTGRESQL_SUBNET.name()))
