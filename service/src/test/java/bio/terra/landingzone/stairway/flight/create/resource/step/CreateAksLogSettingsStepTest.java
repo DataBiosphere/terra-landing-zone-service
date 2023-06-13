@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -68,7 +67,7 @@ public class CreateAksLogSettingsStepTest extends BaseStepTest {
         new CreateAksLogSettingsStep(
             mockArmManagers,
             mockParametersResolver,
-            mockResourceNameGenerator,
+            mockResourceNameProvider,
             mockLandingZoneProtectedDataConfiguration);
   }
 
@@ -79,8 +78,7 @@ public class CreateAksLogSettingsStepTest extends BaseStepTest {
     final Map<String, String> storageAccountIds = Map.of("eastus", "ltsAccountEastUs");
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createAksLogSettingsStep.getResourceType()))
         .thenReturn(aksDiagnosticSettingName);
     when(mockLandingZoneProtectedDataConfiguration.getLongTermStorageAccountIds())
         .thenReturn(storageAccountIds);

@@ -1,9 +1,10 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.landingzone.stairway.flight.utils.ProtectedDataAzureStorageHelper;
@@ -31,11 +32,11 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   public ConnectLongTermLogStorageStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator,
+      ResourceNameProvider resourceNameProvider,
       ProtectedDataAzureStorageHelper storageHelper,
       List<String> tableNames,
       Map<String, String> longTermStorageAccountIds) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+    super(armManagers, parametersResolver, resourceNameProvider);
     this.tableNames = tableNames;
     this.storageHelper = storageHelper;
     this.longTermStorageAccountIds = longTermStorageAccountIds;
@@ -66,7 +67,7 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
     }
 
     var destinationStorageAccountResourceId = longTermStorageAccountIds.get(lzRegion);
-    var exportName = resourceNameGenerator.nextName(MAX_DATA_EXPORT_NAME_LENGTH);
+    var exportName = resourceNameProvider.getName(getResourceType());
     var result =
         storageHelper.createLogAnalyticsDataExport(
             exportName,
@@ -101,5 +102,10 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(DATA_EXPORT_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(new ResourceNameRequirements(getResourceType(), MAX_DATA_EXPORT_NAME_LENGTH));
   }
 }

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -44,15 +43,14 @@ public class CreateLandingZoneIdentityStepTest extends BaseStepTest {
   void setup() {
     testStep =
         new CreateLandingZoneIdentityStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
   void doStepSuccess() throws InterruptedException {
     final String uamiName = "uami-name";
 
-    when(mockResourceNameGenerator.nextName(ResourceNameGenerator.UAMI_NAME_LENGTH))
-        .thenReturn(uamiName);
+    when(mockResourceNameProvider.getName(testStep.getResourceType())).thenReturn(uamiName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(

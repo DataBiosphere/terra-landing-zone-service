@@ -6,8 +6,11 @@ import bio.terra.landingzone.library.landingzones.definition.factories.Parameter
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,8 +24,8 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
   public CreateAppInsightsStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -36,9 +39,7 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
 
-    var appInsightsName =
-        resourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH);
+    var appInsightsName = resourceNameProvider.getName(getResourceType());
     var appInsight =
         armManagers
             .applicationInsightsManager()
@@ -73,5 +74,12 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(APP_INSIGHT_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH));
   }
 }

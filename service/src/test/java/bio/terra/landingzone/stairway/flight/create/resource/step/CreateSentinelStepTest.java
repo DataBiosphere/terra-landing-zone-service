@@ -48,7 +48,7 @@ class CreateSentinelStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createSentinelStep =
-        new CreateSentinelStep(mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+        new CreateSentinelStep(mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test

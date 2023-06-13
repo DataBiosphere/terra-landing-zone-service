@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -62,13 +61,12 @@ class CreateVnetStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createVnetStep =
-        new CreateVnetStep(mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+        new CreateVnetStep(mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
   void doStepSuccess() throws InterruptedException {
-    when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_VNET_NAME_LENGTH))
-        .thenReturn(VNET_NAME);
+    when(mockResourceNameProvider.getName(createVnetStep.getResourceType())).thenReturn(VNET_NAME);
 
     setupFlightContext(
         mockFlightContext,
