@@ -6,8 +6,10 @@ import bio.terra.landingzone.library.landingzones.definition.factories.Parameter
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,8 +25,8 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
   public CreatePostgresqlDNSStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -33,8 +35,7 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
-    var dnsZoneName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_PRIVATE_DNS_ZONE_NAME_LENGTH);
+    var dnsZoneName = resourceNameProvider.getName(getResourceType());
 
     var dns =
         armManagers
@@ -74,5 +75,12 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(POSTGRESQL_DNS_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_PRIVATE_DNS_ZONE_NAME_LENGTH));
   }
 }

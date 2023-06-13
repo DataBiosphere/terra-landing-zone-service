@@ -3,7 +3,6 @@ package bio.terra.landingzone.stairway.flight;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ConnectLongTermLogStorageStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksLogSettingsStep;
@@ -23,7 +22,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator,
+      ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     // inherit all cromwell steps and define specific below
     var protectedDataSteps =
@@ -31,7 +30,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
             super.get(
                 armManagers,
                 parametersResolver,
-                resourceNameGenerator,
+                resourceNameProvider,
                 landingZoneProtectedDataConfiguration));
 
     protectedDataSteps.add(
@@ -39,7 +38,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
             new ConnectLongTermLogStorageStep(
                 armManagers,
                 parametersResolver,
-                resourceNameGenerator,
+                resourceNameProvider,
                 new ProtectedDataAzureStorageHelper(armManagers),
                 landingZoneProtectedDataConfiguration.getLongTermStorageTableNames(),
                 landingZoneProtectedDataConfiguration.getLongTermStorageAccountIds()),
@@ -47,7 +46,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
 
     protectedDataSteps.add(
         Pair.of(
-            new CreateSentinelStep(armManagers, parametersResolver, resourceNameGenerator),
+            new CreateSentinelStep(armManagers, parametersResolver, resourceNameProvider),
             RetryRules.cloud()));
 
     protectedDataSteps.add(
@@ -55,7 +54,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
             new CreateSentinelRunPlaybookAutomationRule(
                 armManagers,
                 parametersResolver,
-                resourceNameGenerator,
+                resourceNameProvider,
                 landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
 
@@ -64,7 +63,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
             new CreateSentinelAlertRulesStep(
                 armManagers,
                 parametersResolver,
-                resourceNameGenerator,
+                resourceNameProvider,
                 new AlertRulesHelper(armManagers.securityInsightsManager()),
                 landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
@@ -73,7 +72,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
             new CreateAksLogSettingsStep(
                 armManagers,
                 parametersResolver,
-                resourceNameGenerator,
+                resourceNameProvider,
                 landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
 

@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -68,7 +67,7 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
   void setup() {
     createLogAnalyticsWorkspaceStep =
         new CreateLogAnalyticsWorkspaceStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -76,8 +75,7 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
     final String logAnalyticsWorkspaceName = "logAnalyticsWorkspaceName";
     final int retentionInDays = 30;
 
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createLogAnalyticsWorkspaceStep.getResourceType()))
         .thenReturn(logAnalyticsWorkspaceName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();

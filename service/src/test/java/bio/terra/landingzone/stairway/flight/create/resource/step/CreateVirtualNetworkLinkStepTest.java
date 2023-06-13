@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -52,7 +51,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
   void setup() {
     testStep =
         new CreateVirtualNetworkLinkStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -61,9 +60,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
     final String dnsZoneName = UUID.randomUUID().toString();
     final String vnetId = UUID.randomUUID().toString();
 
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_PRIVATE_VNET_LINK_NAME_LENGTH))
-        .thenReturn(resourceName);
+    when(mockResourceNameProvider.getName(testStep.getResourceType())).thenReturn(resourceName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(

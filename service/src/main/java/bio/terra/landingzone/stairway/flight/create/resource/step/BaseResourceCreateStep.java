@@ -1,10 +1,11 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
@@ -14,6 +15,7 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.exception.ManagementException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
@@ -36,16 +38,17 @@ public abstract class BaseResourceCreateStep implements Step {
   private static final String RESOURCE_DELETED = "{} resource with id={} deleted.";
 
   protected final ArmManagers armManagers;
-  protected final ResourceNameGenerator resourceNameGenerator;
+  protected final ResourceNameProvider resourceNameProvider;
   protected final ParametersResolver parametersResolver;
 
   protected BaseResourceCreateStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
+      ResourceNameProvider resourceNameProvider) {
     this.armManagers = armManagers;
     this.parametersResolver = parametersResolver;
-    this.resourceNameGenerator = resourceNameGenerator;
+    this.resourceNameProvider = resourceNameProvider;
+    registerForNameGeneration(resourceNameProvider, this);
   }
 
   @Override
@@ -93,6 +96,8 @@ public abstract class BaseResourceCreateStep implements Step {
     return StepResult.getStepResultSuccess();
   }
 
+  public abstract List<ResourceNameRequirements> getResourceNameRequirements();
+
   protected abstract void createResource(FlightContext context, ArmManagers armManagers);
 
   protected abstract void deleteResource(String resourceId);
@@ -120,5 +125,10 @@ public abstract class BaseResourceCreateStep implements Step {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             TargetManagedResourceGroup.class)
         .region();
+  }
+
+  private <T extends BaseResourceCreateStep> void registerForNameGeneration(
+      ResourceNameProvider resourceNameProvider, T step) {
+    resourceNameProvider.registerStep(step);
   }
 }

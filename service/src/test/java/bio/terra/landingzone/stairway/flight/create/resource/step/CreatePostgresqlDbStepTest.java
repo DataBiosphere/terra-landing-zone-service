@@ -11,7 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -74,7 +73,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   void setup() {
     createPostgresqlDbStep =
         new CreatePostgresqlDbStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -82,8 +81,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     var postgresqlSku = "psqlSku";
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_POSTGRESQL_SERVER_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createPostgresqlDbStep.getResourceType()))
         .thenReturn(POSTGRESQL_NAME);
 
     final String adminName = "adminName";

@@ -7,13 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
@@ -35,7 +35,7 @@ class BaseStepTest {
   @Mock protected ArmManagers mockArmManagers;
   @Mock protected AzureResourceManager mockAzureResourceManager;
   @Mock protected ParametersResolver mockParametersResolver;
-  @Mock protected ResourceNameGenerator mockResourceNameGenerator;
+  @Mock protected ResourceNameProvider mockResourceNameProvider;
   @Mock protected FlightContext mockFlightContext;
 
   @Captor protected ArgumentCaptor<Map<String, String>> tagsCaptor;
