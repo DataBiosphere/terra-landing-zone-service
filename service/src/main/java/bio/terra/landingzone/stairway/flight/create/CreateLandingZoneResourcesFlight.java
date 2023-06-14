@@ -56,15 +56,15 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     landingZoneProtectedDataConfiguration =
         flightBeanBag.getLandingZoneProtectedDataConfiguration();
 
+    var landingZoneId = getLandingZoneId(inputParameters, landingZoneRequest);
+    resourceNameProvider = new ResourceNameProvider(landingZoneId);
+
     stepsDefinitionProvider =
         LandingZoneStepsDefinitionProviderFactory.create(
             StepsDefinitionFactoryType.fromString(landingZoneRequest.definition()));
     armManagers = initializeArmManagers(inputParameters, flightBeanBag.getAzureConfiguration());
     parametersResolver =
         new ParametersResolver(landingZoneRequest.parameters(), LandingZoneDefaultParameters.get());
-
-    var landingZoneId = getLandingZoneId(inputParameters, landingZoneRequest);
-    resourceNameProvider = new ResourceNameProvider(landingZoneId);
 
     addCreateSteps();
   }
