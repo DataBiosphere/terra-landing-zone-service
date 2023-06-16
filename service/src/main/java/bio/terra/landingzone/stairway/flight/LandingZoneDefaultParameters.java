@@ -11,6 +11,7 @@ import bio.terra.landingzone.library.landingzones.definition.factories.parameter
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
+import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -75,6 +76,9 @@ public class LandingZoneDefaultParameters {
     defaultValues.put(
         StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
         STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT);
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name(),
+        StorageAccountSkuType.STANDARD_LRS.name().toString());
     return defaultValues;
   }
 }
