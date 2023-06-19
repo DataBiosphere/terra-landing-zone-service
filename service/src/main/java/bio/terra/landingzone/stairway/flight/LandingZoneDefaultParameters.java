@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-// TODO: spread parameters among flight steps
 public class LandingZoneDefaultParameters {
   private LandingZoneDefaultParameters() {}
 
