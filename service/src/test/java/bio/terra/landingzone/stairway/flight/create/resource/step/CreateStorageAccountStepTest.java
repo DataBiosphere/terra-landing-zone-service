@@ -25,11 +25,13 @@ import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import com.azure.resourcemanager.storage.models.StorageAccounts;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -61,14 +63,15 @@ class CreateStorageAccountStepTest extends BaseStepTest {
             mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
   }
 
-  @Test
-  void doStepSuccess() throws InterruptedException {
+  @ParameterizedTest
+  @MethodSource("storageAccountTypeProvider")
+  void doStepSuccess(StorageAccountSkuType storageAccountSkuType) throws InterruptedException {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
         .thenReturn(STORAGE_ACCOUNT_NAME);
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name()))
-        .thenReturn("STANDARD_LRS" /*SkuName.STANDARD_LRS.toString()*/);
+        .thenReturn(storageAccountSkuType.name().toString());
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -85,7 +88,7 @@ class CreateStorageAccountStepTest extends BaseStepTest {
     verifyBasicTags(storageAccountTagsCaptor.getValue(), LANDING_ZONE_ID);
     assertThat(
         storageAccountSkuTypeCaptor.getValue().name().toString(),
-        equalTo(StorageAccountSkuType.STANDARD_LRS.name().toString()));
+        equalTo(storageAccountSkuType.name().toString()));
     verify(mockStorageAccountDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockStorageAccountDefinitionStagesWithCreate);
   }
@@ -147,5 +150,14 @@ class CreateStorageAccountStepTest extends BaseStepTest {
         .thenReturn(mockStorageAccountDefinitionStagesBlank);
     when(mockAzureResourceManager.storageAccounts()).thenReturn(mockStorageAccounts);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
+  }
+
+  private static Stream<Arguments> storageAccountTypeProvider() {
+    return Stream.of(
+        Arguments.of(StorageAccountSkuType.STANDARD_LRS),
+        Arguments.of(StorageAccountSkuType.STANDARD_GRS),
+        Arguments.of(StorageAccountSkuType.STANDARD_RAGRS),
+        Arguments.of(StorageAccountSkuType.STANDARD_ZRS),
+        Arguments.of(StorageAccountSkuType.PREMIUM_LRS));
   }
 }
