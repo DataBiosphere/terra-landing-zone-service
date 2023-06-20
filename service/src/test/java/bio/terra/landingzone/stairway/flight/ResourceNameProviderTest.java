@@ -88,7 +88,7 @@ class ResourceNameProviderTest {
 
       @Override
       protected String getResourceType() {
-        return resourceNameRequirements.resource();
+        return resourceNameRequirements.resourceType();
       }
 
       @Override
