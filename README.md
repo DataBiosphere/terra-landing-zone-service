@@ -309,12 +309,15 @@ The table below describes the current Landing Zone Definitions available in the 
             <strong>AKS_AUTOSCALING_ENABLED:</strong> Flag to enabled autoscaling for the AKS nodepool <br/>Default value: <i>false</i><br/><br/>
             <strong>AKS_AUTOSCALING_MIN:</strong> Minimum number of nodes in nodepool when autoscaling is enabled <br/>Default value: <i>1</i><br/><br/>
             <strong>AKS_AUTOSCALING_MAX:</strong> Maximum number of nodes in nodepool when autoscaling is enabled <br/>Default value: <i>3</i><br/><br/>
+            <strong>Azure storage account overview:</strong> <a href="https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview">documentation</a><br/><br/>
             <strong>Azure storage CORS configuration:</strong> <a href="https://learn.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services">documentation</a><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS:</strong> The origin domains that are permitted to make a request against the storage service via CORS <br/>Default value: <i>*</i><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS:</strong> The methods (HTTP request verbs) that the origin domain may use for a CORS request <br/>Default value: <i>GET,HEAD,OPTIONS,PUT,PATCH,POST,MERGE,DELETE</i><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS:</strong> The request headers that the origin domain may specify on the CORS request <br/>Default value: <i>authorization,content-type,x-app-id,Referer,x-ms-blob-type,x-ms-copy-source,content-length</i><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS:</strong> The response headers that may be sent in the response to the CORS request and exposed by the browser to the request issuer <br/>Default value: <i>Empty string</i><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE:</strong> The maximum amount time that a browser should cache the preflight OPTIONS request (in seconds) <br/>Default value: <i>0</i><br/><br/>
+            <strong>Azure storage SKU types:</strong> <a href="https://learn.microsoft.com/en-us/rest/api/storagerp/srp_sku_types">documentation</a><br/><br/>
+            <strong>STORAGE_ACCOUNT_SKU_TYPE:</strong> Type of storage account <br/>Default value: <i>Standard_LRS</i>; <br/>Accepted values: <i>Standard_LRS</i>, <i>Standard_GRS</i>, <i>Standard_RAGRS</i>, <i>Standard_ZRS</i>, <i>Premium_LRS;</i> Please see StorageAccountSkuType;<br/><br/>
         </td>
     </tr>
 <tr>
