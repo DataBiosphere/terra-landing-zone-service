@@ -6,8 +6,6 @@ import bio.terra.landingzone.library.landingzones.definition.factories.exception
 import java.util.Optional;
 
 public class AksParametersValidator implements InputParameterValidator {
-  static final String WRONG_PARAMETER_VALUE_MESSAGE = "Value of the '%s' parameter is not valid.";
-
   private final StringBuilder sbErrors = new StringBuilder();
 
   @Override
@@ -59,13 +57,5 @@ public class AksParametersValidator implements InputParameterValidator {
     }
 
     return Optional.empty();
-  }
-
-  private <E extends Enum<E>> String buildErrorMessage(E p, String details) {
-    return wrongParameterMessage(p) + details;
-  }
-
-  private <E extends Enum<E>> String wrongParameterMessage(E p) {
-    return String.format(WRONG_PARAMETER_VALUE_MESSAGE, p.name());
   }
 }

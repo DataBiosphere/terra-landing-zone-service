@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
+import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -20,6 +21,7 @@ import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.storage.models.StorageAccount;
+import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import com.azure.resourcemanager.storage.models.StorageAccounts;
 import java.util.Map;
 import java.util.UUID;
@@ -48,6 +50,7 @@ class CreateStorageAccountStepTest extends BaseStepTest {
   @Mock StorageAccount mockStorageAccount;
 
   @Captor ArgumentCaptor<Map<String, String>> storageAccountTagsCaptor;
+  @Captor ArgumentCaptor<StorageAccountSkuType> storageAccountSkuTypeCaptor;
 
   private CreateStorageAccountStep createStorageAccountStep;
 
@@ -63,7 +66,9 @@ class CreateStorageAccountStepTest extends BaseStepTest {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
         .thenReturn(STORAGE_ACCOUNT_NAME);
-
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name()))
+        .thenReturn(StorageAccountSkuType.STANDARD_LRS.name().toString());
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -78,6 +83,9 @@ class CreateStorageAccountStepTest extends BaseStepTest {
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
     verifyBasicTags(storageAccountTagsCaptor.getValue(), LANDING_ZONE_ID);
+    assertThat(
+        storageAccountSkuTypeCaptor.getValue().name().toString(),
+        equalTo(StorageAccountSkuType.STANDARD_LRS.name().toString()));
     verify(mockStorageAccountDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockStorageAccountDefinitionStagesWithCreate);
   }
@@ -127,6 +135,9 @@ class CreateStorageAccountStepTest extends BaseStepTest {
     when(mockStorageAccountDefinitionStagesWithCreate.withTags(storageAccountTagsCaptor.capture()))
         .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
     when(mockStorageAccountDefinitionStagesWithCreate.disableBlobPublicAccess())
+        .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
+    when(mockStorageAccountDefinitionStagesWithCreate.withSku(
+            storageAccountSkuTypeCaptor.capture()))
         .thenReturn(mockStorageAccountDefinitionStagesWithCreate);
     when(mockStorageAccountDefinitionStagesWithGroup.withExistingResourceGroup(resourceGroupName))
         .thenReturn(mockStorageAccountDefinitionStagesWithCreate);

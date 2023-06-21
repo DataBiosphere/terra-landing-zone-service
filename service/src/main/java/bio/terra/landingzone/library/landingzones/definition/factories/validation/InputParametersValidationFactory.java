@@ -14,10 +14,16 @@ public class InputParametersValidationFactory {
   }
 
   private static List<InputParameterValidator> buildCromwellLandingZoneValidators() {
-    return List.of(new AksParametersValidator(), new BlobCorsParametersValidator());
+    return List.of(
+        new AksParametersValidator(),
+        new BlobCorsParametersValidator(),
+        new StorageAccountSkuTypeValidator());
   }
 
   private static List<InputParameterValidator> buildProtectedDataLandingZoneValidators() {
-    return List.of(new AksParametersValidator(), new BlobCorsParametersValidator());
+    return List.of(
+        new AksParametersValidator(),
+        new BlobCorsParametersValidator(),
+        new StorageAccountSkuTypeValidator());
   }
 }

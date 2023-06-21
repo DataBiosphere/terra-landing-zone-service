@@ -97,7 +97,8 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     AKS_MACHINE_TYPE,
     AKS_AUTOSCALING_ENABLED,
     AKS_AUTOSCALING_MIN,
-    AKS_AUTOSCALING_MAX
+    AKS_AUTOSCALING_MAX,
+    STORAGE_ACCOUNT_SKU_TYPE
   }
 
   CromwellBaseResourcesFactory() {}

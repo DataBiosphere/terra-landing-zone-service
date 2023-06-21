@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class BlobCorsParametersValidator implements InputParameterValidator {
-  static final String WRONG_PARAMETER_VALUE_MESSAGE = "Value of the '%s' parameter is not valid.";
   static final String HEADERS_INVALID_CHARACTERS = "[@(){}\\[\\]<>;:/\\\\]";
 
   private final Pattern headersInvalidCharactersPattern =
@@ -108,14 +107,6 @@ public class BlobCorsParametersValidator implements InputParameterValidator {
                   HEADERS_INVALID_CHARACTERS)));
     }
     return Optional.empty();
-  }
-
-  private String buildErrorMessage(StorageAccountBlobCorsParametersNames p, String details) {
-    return wrongParameterMessage(p) + details;
-  }
-
-  private String wrongParameterMessage(StorageAccountBlobCorsParametersNames p) {
-    return String.format(WRONG_PARAMETER_VALUE_MESSAGE, p.name());
   }
 
   private String getCsvListOfAllowedMethodValues() {
