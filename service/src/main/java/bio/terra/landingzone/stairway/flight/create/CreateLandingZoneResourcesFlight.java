@@ -5,7 +5,6 @@ import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
@@ -13,6 +12,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.LandingZoneStepsDefinitionProviderFactory;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.landingzone.stairway.flight.StepsDefinitionProvider;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
@@ -30,7 +30,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
   private final StepsDefinitionProvider stepsDefinitionProvider;
   private final LandingZoneRequest landingZoneRequest;
   private final ArmManagers armManagers;
-  private final ResourceNameGenerator resourceNameGenerator;
+  private final ResourceNameProvider resourceNameProvider;
   private final ParametersResolver parametersResolver;
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
@@ -57,7 +57,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
         flightBeanBag.getLandingZoneProtectedDataConfiguration();
 
     var landingZoneId = getLandingZoneId(inputParameters, landingZoneRequest);
-    resourceNameGenerator = new ResourceNameGenerator(landingZoneId.toString());
+    resourceNameProvider = new ResourceNameProvider(landingZoneId);
 
     stepsDefinitionProvider =
         LandingZoneStepsDefinitionProviderFactory.create(
@@ -74,7 +74,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
         .get(
             armManagers,
             parametersResolver,
-            resourceNameGenerator,
+            resourceNameProvider,
             landingZoneProtectedDataConfiguration)
         .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
 

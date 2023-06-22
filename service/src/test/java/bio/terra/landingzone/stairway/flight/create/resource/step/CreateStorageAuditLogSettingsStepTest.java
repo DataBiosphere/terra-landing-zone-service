@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -61,7 +60,7 @@ class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
   void setup() {
     createStorageAuditLogSettingsStep =
         new CreateStorageAuditLogSettingsStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -70,8 +69,7 @@ class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
     final String storageAccountId = "storageAccountId";
     final String storageAuditLogSettingsName = "storageAuditLogSettingsName";
 
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createStorageAuditLogSettingsStep.getResourceType()))
         .thenReturn(storageAuditLogSettingsName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();

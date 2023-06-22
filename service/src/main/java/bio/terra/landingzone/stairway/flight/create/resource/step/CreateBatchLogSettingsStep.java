@@ -3,8 +3,11 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +18,8 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   public CreateBatchLogSettingsStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -36,8 +39,7 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
 
-    var batchLogSettingsName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH);
+    var batchLogSettingsName = resourceNameProvider.getName(getResourceType());
     var batchLogSettings =
         armManagers
             .monitorManager()
@@ -65,5 +67,12 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.empty();
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH));
   }
 }

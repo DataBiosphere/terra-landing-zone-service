@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -44,15 +43,14 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
   void setup() {
     testStep =
         new CreatePostgresqlDNSStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
   void doStepSuccess() throws InterruptedException {
     final String resourceName = UUID.randomUUID().toString();
 
-    when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_PRIVATE_DNS_ZONE_NAME_LENGTH))
-        .thenReturn(resourceName);
+    when(mockResourceNameProvider.getName(testStep.getResourceType())).thenReturn(resourceName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(

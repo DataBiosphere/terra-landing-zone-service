@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -61,13 +60,13 @@ class CreateBatchAccountStepTest extends BaseStepTest {
   void setup() {
     createBatchAccountStep =
         new CreateBatchAccountStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
   void doStepSuccess() throws InterruptedException {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createBatchAccountStep.getResourceType()))
         .thenReturn(BATCH_ACCOUNT_NAME);
 
     setupFlightContext(

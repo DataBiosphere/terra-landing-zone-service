@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -62,7 +61,7 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
   void setup() {
     createPostgresLogSettingsStep =
         new CreatePostgresLogSettingsStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -71,8 +70,7 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
     final String postgreSqlId = "postgreSqlId";
     final String postgresLogSettingsName = "postgresLogSettingsName";
 
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createPostgresLogSettingsStep.getResourceType()))
         .thenReturn(postgresLogSettingsName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();

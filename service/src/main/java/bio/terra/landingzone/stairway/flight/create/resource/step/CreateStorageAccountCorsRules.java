@@ -1,11 +1,12 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.ParametersExtractor;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.StorageAccountBlobCorsParametersNames;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.storage.models.CorsRule;
 import com.azure.resourcemanager.storage.models.CorsRuleAllowedMethodsItem;
@@ -22,8 +23,8 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   public CreateStorageAccountCorsRules(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -57,6 +58,11 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.empty();
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of();
   }
 
   /**

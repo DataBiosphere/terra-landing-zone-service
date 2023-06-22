@@ -8,6 +8,8 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
@@ -17,6 +19,7 @@ import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssue
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,13 +30,15 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksStep.class);
   public static final String AKS_ID = "AKS_ID";
   public static final String AKS_RESOURCE_KEY = "AKS";
+  private static final String DNS_SUFFIX_KEY = "_DNS";
+  private static final String POOL_SUFFIX_KEY = "_POOL";
   public static final String AKS_OIDC_ISSUER_URL = "AKS_OIDC_ISSUER_URL";
 
   public CreateAksStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -60,7 +65,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
                     "useAADAuth", // if this parameter is not here, workload identity doesn't work
                     "True")));
 
-    var aksName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH);
+    var aksName = resourceNameProvider.getName(getResourceType());
     var aksPartial =
         armManagers
             .azureResourceManager()
@@ -70,9 +75,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .withExistingResourceGroup(getMRGName(context))
             .withDefaultVersion()
             .withSystemAssignedManagedServiceIdentity()
-            .defineAgentPool(
-                resourceNameGenerator.nextName(
-                    ResourceNameGenerator.MAX_AKS_AGENT_POOL_NAME_LENGTH))
+            .defineAgentPool(resourceNameProvider.getName(getResourceType() + POOL_SUFFIX_KEY))
             .withVirtualMachineSize(
                 ContainerServiceVMSizeTypes.fromString(
                     parametersResolver.getValue(
@@ -101,9 +104,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
     var aks =
         aksPartial
             .attach()
-            .withDnsPrefix(
-                resourceNameGenerator.nextName(
-                    ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH))
+            .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
             .withAddOnProfiles(addonProfileMap)
             .withTags(
                 Map.of(
@@ -163,5 +164,18 @@ public class CreateAksStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(AKS_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType() /*main*/, ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH),
+        new ResourceNameRequirements(
+            getResourceType() + POOL_SUFFIX_KEY,
+            ResourceNameGenerator.MAX_AKS_AGENT_POOL_NAME_LENGTH),
+        new ResourceNameRequirements(
+            getResourceType() + DNS_SUFFIX_KEY,
+            ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH));
   }
 }

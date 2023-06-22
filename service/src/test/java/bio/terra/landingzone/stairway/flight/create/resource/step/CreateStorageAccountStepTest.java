@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -58,13 +57,13 @@ class CreateStorageAccountStepTest extends BaseStepTest {
   void setup() {
     createStorageAccountStep =
         new CreateStorageAccountStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
   void doStepSuccess() throws InterruptedException {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    when(mockResourceNameGenerator.nextName(ResourceNameGenerator.MAX_BATCH_ACCOUNT_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createStorageAccountStep.getResourceType()))
         .thenReturn(STORAGE_ACCOUNT_NAME);
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name()))

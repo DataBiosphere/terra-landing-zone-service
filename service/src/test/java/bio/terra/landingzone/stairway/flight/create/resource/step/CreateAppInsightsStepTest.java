@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -74,7 +73,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
   void setup() {
     createAppInsightsStep =
         new CreateAppInsightsStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -82,8 +81,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
     final String logAnalyticsWorkspaceId = "logAnalyticsWorkspaceId";
     final String appInsightName = "appInsightName";
 
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_APP_INSIGHTS_COMPONENT_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createAppInsightsStep.getResourceType()))
         .thenReturn(appInsightName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();

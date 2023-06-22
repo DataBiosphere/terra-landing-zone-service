@@ -3,7 +3,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -47,7 +46,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
             buildLandingZoneResource()));
     var mockDataExport = mock(DataExport.class);
-    when(mockResourceNameGenerator.nextName(anyInt())).thenReturn("fake");
+    when(mockResourceNameProvider.getName(anyString())).thenReturn("fake");
     when(mockStorageHelper.createLogAnalyticsDataExport(
             anyString(), anyString(), anyString(), anyList(), anyString()))
         .thenReturn(mockDataExport);
@@ -55,7 +54,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
             mockParametersResolver,
-            mockResourceNameGenerator,
+            mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
             Map.of(matchingRegionName, "exampleaccount"));
@@ -84,7 +83,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
             mockParametersResolver,
-            mockResourceNameGenerator,
+            mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
             Map.of("westus", "exampleaccount"));
@@ -98,7 +97,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
             mockParametersResolver,
-            mockResourceNameGenerator,
+            mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
             Map.of());

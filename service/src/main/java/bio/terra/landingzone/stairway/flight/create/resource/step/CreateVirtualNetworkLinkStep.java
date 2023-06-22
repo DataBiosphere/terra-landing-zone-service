@@ -1,16 +1,17 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import static bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator.MAX_PRIVATE_VNET_LINK_NAME_LENGTH;
-
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.core.management.SubResource;
 import com.azure.resourcemanager.privatedns.fluent.models.VirtualNetworkLinkInner;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,8 +26,8 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
   public CreateVirtualNetworkLinkStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -52,7 +53,7 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
             .createOrUpdate(
                 getMRGName(context),
                 dns.resourceName().orElseThrow(),
-                resourceNameGenerator.nextName(MAX_PRIVATE_VNET_LINK_NAME_LENGTH),
+                resourceNameProvider.getName(getResourceType()),
                 new VirtualNetworkLinkInner()
                     .withLocation("global")
                     .withTags(
@@ -98,11 +99,18 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
 
   @Override
   protected String getResourceType() {
-    return "PrivateDnsZone";
+    return "VirtualNetworkLink";
   }
 
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(VNET_LINK_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_PRIVATE_VNET_LINK_NAME_LENGTH));
   }
 }

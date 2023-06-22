@@ -6,10 +6,13 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.monitor.models.DiagnosticSetting;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -42,9 +45,9 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   public CreateAksLogSettingsStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator,
+      ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+    super(armManagers, parametersResolver, resourceNameProvider);
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 
@@ -62,8 +65,7 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
     // get long-term storage account based on region
     var storageAccountId =
         landingZoneProtectedDataConfiguration.getLongTermStorageAccountIds().get(lzRegion);
-    var aksLogSettingsName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH);
+    var aksLogSettingsName = resourceNameProvider.getName(getResourceType());
     var aksDiagnosticSettingsConfiguration =
         armManagers
             .monitorManager()
@@ -111,5 +113,12 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.empty();
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH));
   }
 }
