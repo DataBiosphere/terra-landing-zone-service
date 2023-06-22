@@ -2,9 +2,10 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.landingzone.stairway.flight.utils.AlertRulesHelper;
 import bio.terra.stairway.FlightContext;
@@ -13,6 +14,7 @@ import com.azure.resourcemanager.securityinsights.models.MLBehaviorAnalyticsAler
 import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRule;
 import com.azure.resourcemanager.securityinsights.models.TriggerOperator;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +27,10 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   public CreateSentinelAlertRulesStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator,
+      ResourceNameProvider resourceNameProvider,
       AlertRulesHelper alertRuleAdapter,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+    super(armManagers, parametersResolver, resourceNameProvider);
     this.alertRulesHelper = alertRuleAdapter;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
@@ -136,5 +138,10 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
             .withTriggerThreshold(0);
     alertRulesHelper.createAlertRule(
         fileAccessAttemptsRule, "UnauthorizedFileAccessAttempts", mrgName, workspaceName);
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of();
   }
 }

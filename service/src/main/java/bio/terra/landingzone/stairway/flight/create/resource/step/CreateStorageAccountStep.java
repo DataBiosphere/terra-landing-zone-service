@@ -8,9 +8,12 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.storage.models.SkuName;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,8 +28,8 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
   public CreateStorageAccountStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -34,8 +37,7 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-    String storageAccountName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH);
+    String storageAccountName = resourceNameProvider.getName(getResourceType());
     var storage =
         armManagers
             .azureResourceManager()
@@ -87,5 +89,12 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(STORAGE_ACCOUNT_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_STORAGE_ACCOUNT_NAME_LENGTH));
   }
 }

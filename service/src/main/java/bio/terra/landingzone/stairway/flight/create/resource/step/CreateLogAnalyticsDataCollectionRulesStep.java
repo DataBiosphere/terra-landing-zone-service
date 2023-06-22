@@ -6,6 +6,8 @@ import bio.terra.landingzone.library.landingzones.definition.factories.Parameter
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
@@ -39,8 +41,8 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   public CreateLogAnalyticsDataCollectionRulesStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -84,8 +86,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
             context.getWorkingMap(),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
-    var dataCollectionRulesName =
-        resourceNameGenerator.nextName(ResourceNameGenerator.MAX_DATA_COLLECTION_RULE_NAME_LENGTH);
+    var dataCollectionRulesName = resourceNameProvider.getName(getResourceType());
     var dataCollectionRules =
         armManagers
             .monitorManager()
@@ -162,5 +163,12 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.empty();
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_DATA_COLLECTION_RULE_NAME_LENGTH));
   }
 }

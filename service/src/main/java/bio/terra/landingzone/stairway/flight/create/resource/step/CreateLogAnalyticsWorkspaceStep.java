@@ -9,10 +9,13 @@ import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.management.exception.ManagementException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,8 +33,8 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
   public CreateLogAnalyticsWorkspaceStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -89,9 +92,7 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-    var logAnalyticsName =
-        resourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH);
+    var logAnalyticsName = resourceNameProvider.getName(getResourceType());
 
     var logAnalyticsWorkspace =
         armManagers
@@ -145,5 +146,12 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(
         context.getWorkingMap().get(LOG_ANALYTICS_WORKSPACE_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH));
   }
 }

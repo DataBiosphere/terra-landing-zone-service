@@ -8,6 +8,8 @@ import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.network.models.Delegation;
@@ -29,13 +31,13 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   public CreateVnetStep(
       ArmManagers armManagers,
       ParametersResolver parametersResolver,
-      ResourceNameGenerator resourceNameGenerator) {
-    super(armManagers, parametersResolver, resourceNameGenerator);
+      ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
   }
 
   @Override
   public void createResource(FlightContext context, ArmManagers armManagers) {
-    String vNetName = resourceNameGenerator.nextName(ResourceNameGenerator.MAX_VNET_NAME_LENGTH);
+    String vNetName = resourceNameProvider.getName(getResourceType());
     Network vNet = createVnetAndSubnets(context, armManagers, vNetName);
 
     setupPostgresSubnet(context, armManagers, vNet);
@@ -156,5 +158,12 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(VNET_ID, String.class));
+  }
+
+  @Override
+  public List<ResourceNameRequirements> getResourceNameRequirements() {
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_VNET_NAME_LENGTH));
   }
 }

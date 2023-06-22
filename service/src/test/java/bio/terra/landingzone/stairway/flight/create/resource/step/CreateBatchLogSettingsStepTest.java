@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -61,7 +60,7 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
   void setup() {
     createBatchLogSettingsStep =
         new CreateBatchLogSettingsStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -70,8 +69,7 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
     final String batchAccountId = "batchAccountId";
     final String batchLogSettingName = "batchLogSettingName";
 
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_DIAGNOSTIC_SETTING_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(createBatchLogSettingsStep.getResourceType()))
         .thenReturn(batchLogSettingName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();

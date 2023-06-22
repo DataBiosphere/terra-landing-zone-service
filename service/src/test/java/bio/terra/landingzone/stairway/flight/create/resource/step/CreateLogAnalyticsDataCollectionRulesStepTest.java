@@ -11,7 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -71,7 +70,7 @@ class CreateLogAnalyticsDataCollectionRulesStepTest extends BaseStepTest {
   void setup() {
     createLogAnalyticsDataCollectionRulesStep =
         new CreateLogAnalyticsDataCollectionRulesStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameGenerator);
+            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
   }
 
   @Test
@@ -79,8 +78,8 @@ class CreateLogAnalyticsDataCollectionRulesStepTest extends BaseStepTest {
     final String logAnalyticsWorkspaceId = "logAnalyticsWorkspaceId";
     final String dataCollectionRuleName = "storageAuditLogSettingsName";
 
-    when(mockResourceNameGenerator.nextName(
-            ResourceNameGenerator.MAX_DATA_COLLECTION_RULE_NAME_LENGTH))
+    when(mockResourceNameProvider.getName(
+            createLogAnalyticsDataCollectionRulesStep.getResourceType()))
         .thenReturn(dataCollectionRuleName);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
