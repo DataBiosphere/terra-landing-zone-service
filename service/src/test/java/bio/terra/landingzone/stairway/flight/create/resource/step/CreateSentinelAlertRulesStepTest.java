@@ -105,7 +105,7 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
             mockResourceNameProvider,
             mockAlertRuleAdapter,
             mockLandingZoneProtectedDataConfiguration);
-
+    // noop
     assertThrows(
         MissingRequiredFieldsException.class,
         () -> createSentinelAlertRulesStep.doStep(mockFlightContext));
