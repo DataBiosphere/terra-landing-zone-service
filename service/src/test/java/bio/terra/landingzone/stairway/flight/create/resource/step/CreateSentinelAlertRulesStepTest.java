@@ -146,6 +146,6 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
 
     var result = createSentinelAlertRulesStep.doStep(mockFlightContext);
 
-    assertEquals(result.getStepStatus(), StepStatus.STEP_RESULT_FAILURE_RETRY);
+    assertEquals(StepStatus.STEP_RESULT_FAILURE_RETRY, result.getStepStatus());
   }
 }
