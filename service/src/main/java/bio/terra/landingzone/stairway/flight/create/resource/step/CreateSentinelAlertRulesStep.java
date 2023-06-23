@@ -51,6 +51,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
     // create the alert rules -- note we do not handle 409s for these rules as the underlying API
     // call is an upsert rather than a create and should succeed in the event of a step retry
     logger.info("Creating sentinel alert rules...");
+
     var mrgName = getMRGName(context);
     var lawName = logAnalyticsWorkspaceResourceName.get();
 

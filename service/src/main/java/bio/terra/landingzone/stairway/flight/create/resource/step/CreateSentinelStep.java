@@ -44,7 +44,6 @@ public class CreateSentinelStep extends BaseResourceCreateStep {
             .define("default")
             .withExistingWorkspace(getMRGName(context), logAnalyticsWorkspaceResourceName.get())
             .create();
-
     context.getWorkingMap().put(SENTINEL_ID, state.id());
     context
         .getWorkingMap()

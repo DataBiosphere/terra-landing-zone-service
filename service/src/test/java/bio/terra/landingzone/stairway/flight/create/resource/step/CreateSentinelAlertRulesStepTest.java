@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -17,6 +18,9 @@ import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsExce
 import bio.terra.landingzone.stairway.flight.utils.AlertRulesHelper;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.StepResult;
+import bio.terra.stairway.StepStatus;
+import com.azure.core.management.exception.ManagementError;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.securityinsights.fluent.models.AlertRuleInner;
 import java.util.List;
 import java.util.Map;
@@ -109,5 +113,39 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
     assertThrows(
         MissingRequiredFieldsException.class,
         () -> createSentinelAlertRulesStep.doStep(mockFlightContext));
+  }
+
+  @Test
+  void doStep_retriesOnBadRequest() throws InterruptedException {
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID),
+        Map.of(
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            ResourceStepFixture.createDefaultMrg(),
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
+            buildLandingZoneResource()));
+    var scheduledRuleIds = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+    when(mockLandingZoneProtectedDataConfiguration.getSentinelScheduledAlertRuleTemplateIds())
+        .thenReturn(scheduledRuleIds);
+    when(mockAlertRuleAdapter.buildScheduledAlertRuleFromTemplate(
+            anyString(), anyString(), anyString()))
+        .thenThrow(
+            new ManagementException("error", null, new ManagementError("BadRequest", "error")));
+    var createSentinelAlertRulesStep =
+        new CreateSentinelAlertRulesStep(
+            mockArmManagers,
+            mockParametersResolver,
+            mockResourceNameProvider,
+            mockAlertRuleAdapter,
+            mockLandingZoneProtectedDataConfiguration);
+
+    var result = createSentinelAlertRulesStep.doStep(mockFlightContext);
+
+    assertEquals(result.getStepStatus(), StepStatus.STEP_RESULT_FAILURE_RETRY);
   }
 }

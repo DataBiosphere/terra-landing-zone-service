@@ -1,7 +1,6 @@
 package bio.terra.landingzone.library.landingzones;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import com.azure.core.management.Region;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
@@ -79,12 +78,13 @@ public class TestArmResourcesFactory {
   }
 
   public static ResourceGroup createTestResourceGroup(AzureResourceManager azureResourceManager) {
-    String resourceGroupId = UUID.randomUUID().toString();
-    return azureResourceManager
-        .resourceGroups()
-        .define("test-" + resourceGroupId)
-        .withRegion(Region.US_EAST2)
-        .create();
+    return azureResourceManager.resourceGroups().getByName("arh_law_testing4");
+    //  String resourceGroupId = UUID.randomUUID().toString();
+    //    return azureResourceManager
+    //        .resourceGroups()
+    //        .define("test-" + resourceGroupId)
+    //        .withRegion(Region.US_EAST2)
+    //        .create();
   }
 
   public static String createUniqueAzureResourceName() {

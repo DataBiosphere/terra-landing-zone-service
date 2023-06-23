@@ -26,8 +26,10 @@ public class AzureIntegrationUtils {
   // 8201558-terra-dev
   public static final AzureProfile TERRA_DEV_AZURE_PROFILE =
       new AzureProfile(
-          "0cb7a640-45a2-4ed6-be9f-63519f86e04b",
-          "c5f8eca3-f512-48cb-b01f-f19f1af9014c",
+          "fad90753-2022-4456-9b0a-c7e5b934e408",
+          // "0cb7a640-45a2-4ed6-be9f-63519f86e04b",
+          "df547342-9cfd-44ef-a6dd-df0ede32f1e3",
+          //  "c5f8eca3-f512-48cb-b01f-f19f1af9014c",
           AzureEnvironment.AZURE);
 
   /**
