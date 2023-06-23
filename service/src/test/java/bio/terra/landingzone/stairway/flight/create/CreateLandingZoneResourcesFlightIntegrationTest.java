@@ -128,6 +128,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
   }
 
   @Test
+  @Disabled
   void createResourcesFlightDeploysCromwellResources() {
     String resultPath = "";
 

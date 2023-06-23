@@ -10,7 +10,6 @@ import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsExce
 import bio.terra.landingzone.stairway.flight.utils.AlertRulesHelper;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
-import bio.terra.stairway.StepStatus;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.securityinsights.models.AlertSeverity;
 import com.azure.resourcemanager.securityinsights.models.MLBehaviorAnalyticsAlertRule;
@@ -19,7 +18,6 @@ import com.azure.resourcemanager.securityinsights.models.TriggerOperator;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,18 +64,18 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
 
   @Override
   protected Optional<StepResult> maybeHandleManagementException(ManagementException e) {
-    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "Unauthorized")) {
-      logger.warn("Unauthorized to create sentinel alert rules, retrying.", e);
-      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
-    }
-    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadRequest")) {
-      logger.warn("Bad request while creating sentinel alert rules, retrying.", e);
-      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
-    }
-    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadArgumentError")) {
-      logger.warn("Bad argument while creating sentinel alert rules, retrying.", e);
-      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
-    }
+    //    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "Unauthorized")) {
+    //      logger.warn("Unauthorized to create sentinel alert rules, retrying.", e);
+    //      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
+    //    }
+    //    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadRequest")) {
+    //      logger.warn("Bad request while creating sentinel alert rules, retrying.", e);
+    //      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
+    //    }
+    //    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadArgumentError")) {
+    //      logger.warn("Bad argument while creating sentinel alert rules, retrying.", e);
+    //      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
+    //    }
 
     return Optional.empty();
   }
