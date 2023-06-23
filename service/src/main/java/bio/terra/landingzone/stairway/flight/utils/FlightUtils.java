@@ -187,4 +187,24 @@ public class FlightUtils {
     } while (Instant.now().isBefore(endTime));
     throw new FlightWaitTimedOutException("Timed out waiting for flight to complete.");
   }
+
+  /**
+   * An InterruptedException encountered by the Azure SDK is wrapped in a
+   * reactor.core.Exceptions.ReactiveException which is not a public class. Stairway will treat it
+   * as a failure. We need to unwrap it and rethrow the InterruptedException so that Stairway will
+   * resume.
+   *
+   * @param e possible wrapped interrupted exception
+   * @return e if e does not wrap an interrupted exception so it can be rethrown
+   * @throws InterruptedException if e wraps an interrupted exception
+   */
+  public static RuntimeException maybeThrowAzureInterruptedException(RuntimeException e)
+      throws InterruptedException {
+    if (e.getCause() != null && e.getCause() instanceof InterruptedException) {
+      Thread.currentThread().interrupt(); // not 100% sure this is necessary, but it can't hurt
+      throw (InterruptedException) e.getCause();
+    } else {
+      return e;
+    }
+  }
 }

@@ -1,5 +1,7 @@
 package bio.terra.landingzone.stairway.flight.delete;
 
+import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
+
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
@@ -38,7 +40,7 @@ public class DeleteLandingZoneResourcesStep implements Step {
   }
 
   @Override
-  public StepResult doStep(FlightContext context) throws RetryException {
+  public StepResult doStep(FlightContext context) throws RetryException, InterruptedException {
     // Read input parameters
     FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_ID);
@@ -76,6 +78,7 @@ public class DeleteLandingZoneResourcesStep implements Step {
           deletedLandingZone.landingZoneId(),
           deletedResources);
 
+      return StepResult.getStepResultSuccess();
     } catch (ManagementException e) {
       // Azure returns AuthorizationFailed when an MRG is deleted or otherwise inaccessible. Since
       // the user is unable to change the IAM permissions on an MRG due to deny assignments, we
@@ -97,11 +100,11 @@ public class DeleteLandingZoneResourcesStep implements Step {
     } catch (LandingZoneRuleDeleteException e) {
       logger.error("Failed to delete the landing zone due to delete rules.", e);
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
-    } catch (Exception e) {
-      logger.error("Unexpected exception while deleting the landing zone.", e);
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
+    } catch (RuntimeException maybeInterrupt) {
+      var notInterrupt = maybeThrowAzureInterruptedException(maybeInterrupt);
+      logger.error("Unexpected exception while deleting the landing zone.", notInterrupt);
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, notInterrupt);
     }
-    return StepResult.getStepResultSuccess();
   }
 
   @Override
