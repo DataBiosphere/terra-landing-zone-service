@@ -1,5 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
+import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
+
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -73,6 +75,8 @@ public abstract class BaseResourceCreateStep implements Step {
       logger.error(
           FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId.toString(), e.toString());
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
+    } catch (RuntimeException e) {
+      throw maybeThrowAzureInterruptedException(e);
     }
     return StepResult.getStepResultSuccess();
   }

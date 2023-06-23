@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,8 @@ public class DeleteLandingZoneResourcesStepTest {
   }
 
   @Test
-  void doStep_deletesLandingZoneResources() throws LandingZoneRuleDeleteException {
+  void doStep_deletesLandingZoneResources()
+      throws LandingZoneRuleDeleteException, InterruptedException {
     var landingZoneRecord = buildLandingZoneRecord(Collections.emptyMap());
     var deleteStep = new DeleteLandingZoneResourcesStep(landingZoneManagerProvider, landingZoneDao);
     var deletedResources = List.of("deletedResource1", "deletedResource2");
@@ -84,8 +86,25 @@ public class DeleteLandingZoneResourcesStepTest {
   }
 
   @Test
+  void doStep_handlesInterrupted() throws LandingZoneRuleDeleteException, InterruptedException {
+    var landingZoneRecord = buildLandingZoneRecord(Collections.emptyMap());
+    var deleteStep = new DeleteLandingZoneResourcesStep(landingZoneManagerProvider, landingZoneDao);
+    when(flightContext.getInputParameters()).thenReturn(inputMap);
+    inputMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneRecord.landingZoneId());
+    when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
+        .thenReturn(landingZoneManager);
+    when(landingZoneDao.getLandingZoneRecord(eq(landingZoneRecord.landingZoneId())))
+        .thenReturn(landingZoneRecord);
+    when(landingZoneManager.deleteResources(eq(landingZoneRecord.landingZoneId().toString())))
+        .thenThrow(new RuntimeException("Interrupted", new InterruptedException()));
+
+    Assertions.assertThrows(InterruptedException.class, () -> deleteStep.doStep(flightContext));
+    assertThat(Thread.currentThread().isInterrupted(), equalTo(true));
+  }
+
+  @Test
   void doStep_deletesDbRecordWhenCloudResourcesAreInaccessible()
-      throws LandingZoneRuleDeleteException {
+      throws LandingZoneRuleDeleteException, InterruptedException {
     var landingZoneRecord = buildLandingZoneRecord(Collections.emptyMap());
     var deleteStep = new DeleteLandingZoneResourcesStep(landingZoneManagerProvider, landingZoneDao);
     when(flightContext.getInputParameters()).thenReturn(inputMap);
@@ -113,7 +132,8 @@ public class DeleteLandingZoneResourcesStepTest {
   }
 
   @Test
-  void doStep_doesNotDeleteResourcesForAttachedLandingZone() throws LandingZoneRuleDeleteException {
+  void doStep_doesNotDeleteResourcesForAttachedLandingZone()
+      throws LandingZoneRuleDeleteException, InterruptedException {
     var landingZoneRecord = buildLandingZoneRecord(Map.of(LandingZoneFlightMapKeys.ATTACH, "true"));
     var deleteStep = new DeleteLandingZoneResourcesStep(landingZoneManagerProvider, landingZoneDao);
     when(flightContext.getInputParameters()).thenReturn(inputMap);
@@ -138,7 +158,7 @@ public class DeleteLandingZoneResourcesStepTest {
   }
 
   @Test
-  void doStep_failsIfLzNotFound() {
+  void doStep_failsIfLzNotFound() throws InterruptedException {
     var lzId = UUID.randomUUID();
     var deleteStep = new DeleteLandingZoneResourcesStep(landingZoneManagerProvider, landingZoneDao);
     when(flightContext.getInputParameters()).thenReturn(inputMap);
