@@ -65,18 +65,15 @@ public abstract class BaseResourceCreateStep implements Step {
     try {
       createResource(context, armManagers);
     } catch (ManagementException e) {
+      var handled = maybeHandleManagementException(e);
+      if (handled.isPresent()) {
+        return handled.get();
+      }
+
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
         logger.info(
             RESOURCE_ALREADY_EXISTS, getResourceType(), billingProfile.getManagedResourceGroupId());
         return StepResult.getStepResultSuccess();
-      }
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "Unauthorized")) {
-        logger.info("Unauthorized to create resource, retrying.");
-        return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY);
-      }
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadRequest")) {
-        logger.info("Bad request while creating resource, retrying.");
-        return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY);
       }
       logger.error(
           FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId.toString(), e.toString());
@@ -85,7 +82,7 @@ public abstract class BaseResourceCreateStep implements Step {
     return StepResult.getStepResultSuccess();
   }
 
-  protected Optional<StepResult> handleException(Exception e) {
+  protected Optional<StepResult> maybeHandleManagementException(ManagementException e) {
     return Optional.empty();
   }
 
