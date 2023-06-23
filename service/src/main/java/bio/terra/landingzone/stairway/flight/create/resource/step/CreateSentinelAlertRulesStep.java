@@ -74,6 +74,10 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
       logger.warn("Bad request while creating sentinel alert rules, retrying.", e);
       return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
     }
+    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadArgumentError")) {
+      logger.warn("Bad argument while creating sentinel alert rules, retrying.", e);
+      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
+    }
 
     return Optional.empty();
   }
