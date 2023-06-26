@@ -67,6 +67,11 @@ public abstract class BaseResourceCreateStep implements Step {
     try {
       createResource(context, armManagers);
     } catch (ManagementException e) {
+      var handled = maybeHandleManagementException(e);
+      if (handled.isPresent()) {
+        return handled.get();
+      }
+
       if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
         logger.info(
             RESOURCE_ALREADY_EXISTS, getResourceType(), billingProfile.getManagedResourceGroupId());
@@ -79,6 +84,10 @@ public abstract class BaseResourceCreateStep implements Step {
       throw maybeThrowAzureInterruptedException(e);
     }
     return StepResult.getStepResultSuccess();
+  }
+
+  protected Optional<StepResult> maybeHandleManagementException(ManagementException e) {
+    return Optional.empty();
   }
 
   @Override
