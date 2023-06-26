@@ -61,7 +61,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .withConfig(Map.of("logAnalyticsWorkspaceResourceID", logAnalyticsWorkspaceId)));
 
     var aksName = resourceNameProvider.getName(getResourceType());
-    var aksPartial =
+    var aksWithCreate =
         armManagers
             .azureResourceManager()
             .kubernetesClusters()
@@ -69,7 +69,17 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .withRegion(getMRGRegionName(context))
             .withExistingResourceGroup(getMRGName(context))
             .withDefaultVersion()
-            .withSystemAssignedManagedServiceIdentity()
+            .withSystemAssignedManagedServiceIdentity();
+
+    if (armManagers.azureResourceManager().tenantId().equalsIgnoreCase(parametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_TARGET_TENANT.name())))
+    {
+      aksWithCreate = aksWithCreate.withAzureActiveDirectoryGroup(parametersResolver.getValue(
+              CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_ADMIN_GROUP_ID.name()));
+    }
+
+    var aksPartial =
+          aksWithCreate
             .defineAgentPool(resourceNameProvider.getName(getResourceType() + POOL_SUFFIX_KEY))
             .withVirtualMachineSize(
                 ContainerServiceVMSizeTypes.fromString(
