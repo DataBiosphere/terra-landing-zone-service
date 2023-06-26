@@ -66,16 +66,17 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
 
   @Override
   protected Optional<StepResult> maybeHandleManagementException(ManagementException e) {
-    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "Unauthorized")) {
-      logger.warn("Unauthorized to create sentinel alert rules, retrying.", e);
-      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
-    }
+    // alert rule creation fails intermittently but not consistently with these errors
     if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadRequest")) {
       logger.warn("Bad request while creating sentinel alert rules, retrying.", e);
       return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
     }
     if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadArgumentError")) {
       logger.warn("Bad argument while creating sentinel alert rules, retrying.", e);
+      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
+    }
+    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "SemanticError")) {
+      logger.warn("Semantic error when creating sentinel alert rules, retrying.", e);
       return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
     }
 

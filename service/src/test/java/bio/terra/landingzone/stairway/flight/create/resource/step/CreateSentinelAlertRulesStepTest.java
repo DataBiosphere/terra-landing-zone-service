@@ -28,6 +28,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -115,8 +117,9 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
         () -> createSentinelAlertRulesStep.doStep(mockFlightContext));
   }
 
-  @Test
-  void doStep_retriesOnBadRequest() throws InterruptedException {
+  @ParameterizedTest
+  @ValueSource(strings = {"BadRequest", "BadArgumentError", "SemanticError"})
+  void doStep_retriesOnManagementException(String errorCode) throws InterruptedException {
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -134,8 +137,7 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
         .thenReturn(scheduledRuleIds);
     when(mockAlertRuleAdapter.buildScheduledAlertRuleFromTemplate(
             anyString(), anyString(), anyString()))
-        .thenThrow(
-            new ManagementException("error", null, new ManagementError("BadRequest", "error")));
+        .thenThrow(new ManagementException("error", null, new ManagementError(errorCode, "error")));
     var createSentinelAlertRulesStep =
         new CreateSentinelAlertRulesStep(
             mockArmManagers,
