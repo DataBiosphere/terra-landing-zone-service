@@ -3,7 +3,9 @@ package bio.terra.landingzone.stairway.flight.create;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -24,8 +26,10 @@ import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesDeleteManager;
 import bio.terra.landingzone.library.landingzones.management.deleterules.*;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDiagnosticSetting;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.profile.model.CloudPlatform;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightState;
@@ -35,6 +39,7 @@ import bio.terra.stairway.exception.StairwayException;
 import com.azure.resourcemanager.batch.models.*;
 import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
 import com.azure.resourcemanager.compute.models.VirtualMachineSizeTypes;
+import com.azure.resourcemanager.monitor.models.LogSettings;
 import com.azure.resourcemanager.storage.models.PublicAccess;
 import java.time.Duration;
 import java.util.Map;
@@ -143,16 +148,43 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
             () -> {
               var flightState = retrieveFlightState(jobId.toString());
               assertThat(flightState.getFlightStatus(), not(FlightStatus.RUNNING));
+              var resources =
+                  landingZoneManager.reader().listSharedResources(landingZoneId.toString());
+              assertThat(
+                  resources,
+                  hasSize(AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()));
             });
     var flightState = retrieveFlightState(jobId.toString());
     assertThat(flightState.getFlightStatus(), is(FlightStatus.SUCCESS));
 
-    var lzIdString = landingZoneId.toString();
-
-    var resources = landingZoneManager.reader().listSharedResources(lzIdString);
-    assertThat(resources, hasSize(AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()));
+    // verify that we have our diagnostic settings setup as expected
+    // (these can silently fail to create, so we are making a explicit check here)
+    assertDiagnosticSettings(
+        CreateStorageAuditLogSettingsStep.STORAGE_AUDIT_LOG_SETTINGS_KEY, flightState);
 
     testCannotDeleteLandingZoneWithDependencies();
+  }
+
+  void assertDiagnosticSettings(String settingsResultKey, FlightState flightState) {
+    var results = flightState.getResultMap().orElseThrow();
+    var expectedDiagnosticSettings =
+        results.get(settingsResultKey, LandingZoneDiagnosticSetting.class);
+    assertNotNull(expectedDiagnosticSettings);
+
+    var diagnosticSettings =
+        armManagers
+            .monitorManager()
+            .diagnosticSettings()
+            .listByResource(expectedDiagnosticSettings.resourceId())
+            .stream()
+            .toList();
+
+    assertThat(diagnosticSettings.size(), equalTo(1));
+    var actualLogCategories =
+        diagnosticSettings.get(0).logs().stream().map(LogSettings::category).toList();
+    var expectedLogCategories =
+        expectedDiagnosticSettings.logs().stream().map(LogSettings::category).toList();
+    assertEquals(actualLogCategories, expectedLogCategories);
   }
 
   private void testCannotDeleteLandingZoneWithDependencies() {
