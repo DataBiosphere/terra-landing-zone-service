@@ -54,7 +54,7 @@ dependencies {
     liquibaseRuntime 'org.liquibase:liquibase-core:4.22.0'
     liquibaseRuntime 'info.picocli:picocli:4.7.4'
     liquibaseRuntime 'org.postgresql:postgresql:42.6.0'
-    liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.7'
+    liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.8'
 
     // Spotbugs dependencies
     compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
