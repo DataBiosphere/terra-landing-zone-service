@@ -98,8 +98,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     AKS_AUTOSCALING_ENABLED,
     AKS_AUTOSCALING_MIN,
     AKS_AUTOSCALING_MAX,
-    AKS_AAD_PROFILE_TARGET_TENANT,
-    AKS_AAD_PROFILE_ADMIN_GROUP_ID,
+    AKS_AAD_PROFILE_USER_GROUP_ID,
     STORAGE_ACCOUNT_SKU_TYPE
   }
 
@@ -419,8 +418,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       defaultValues.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
           STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT);
-      defaultValues.put(ParametersNames.AKS_AAD_PROFILE_TARGET_TENANT.name(), "72f988bf-86f1-41af-91ab-2d7cd011db47");
-      defaultValues.put(ParametersNames.AKS_AAD_PROFILE_ADMIN_GROUP_ID.name(), "00000000-0000-0000-0000-000000000000");
+      defaultValues.put(ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name(), "00000000-0000-0000-0000-000000000000");
 
       return defaultValues;
     }

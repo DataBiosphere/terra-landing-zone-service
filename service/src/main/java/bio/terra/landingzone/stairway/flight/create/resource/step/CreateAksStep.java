@@ -71,7 +71,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .withDefaultVersion()
             .withSystemAssignedManagedServiceIdentity()
             .withAzureActiveDirectoryGroup(parametersResolver.getValue(
-              CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_ADMIN_GROUP_ID.name()))
+              CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
             .defineAgentPool(resourceNameProvider.getName(getResourceType() + POOL_SUFFIX_KEY))
             .withVirtualMachineSize(
                 ContainerServiceVMSizeTypes.fromString(
