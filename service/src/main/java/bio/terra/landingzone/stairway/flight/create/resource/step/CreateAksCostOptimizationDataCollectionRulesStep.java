@@ -38,12 +38,12 @@ import org.springframework.http.HttpStatus;
  * https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-cost-config?tabs=create-CLI
  *
  * <p>There are 3 main parameters which can be set up to tune optimization: interval - This value
- * determines how often the agent collects data. namespaceFilteringMode - Choosing Include collects
- * only data from the values in the namespaces field. namespaces - Array of comma separated
- * Kubernetes namespaces for which inventory and perf data will be included or excluded based on the
- * namespaceFilteringMode. This parameter is not included into current configuration since
- * namespaceFilteringMode is set to Off. But can be added later by adding 'namespaces' field into
- * DataCollectionSettings.
+ * determines how often the agent collects data. namespaceFilteringMode - If it is set to "Include"
+ * then only data from namespaces which are set in the namespaces' field would be collected.
+ * namespaces - Array of comma separated Kubernetes namespaces for which inventory and perf data
+ * will be included or excluded based on the namespaceFilteringMode. This parameter is not included
+ * into current configuration since namespaceFilteringMode is set to Off. But can be added later by
+ * adding 'namespaces' field into DataCollectionSettings.
  */
 public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResourceCreateStep {
   public static final String AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID =
@@ -60,8 +60,8 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
 
   static class ExtensionSettings {
     static class DataCollectionSettings {
-      private String interval;
-      private String namespaceFilteringMode;
+      private final String interval;
+      private final String namespaceFilteringMode;
 
       public DataCollectionSettings(String interval, String namespaceFilteringMode) {
         this.interval = interval;
@@ -77,7 +77,7 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
       }
     }
 
-    private DataCollectionSettings dataCollectionSettings;
+    private final DataCollectionSettings dataCollectionSettings;
 
     public ExtensionSettings(DataCollectionSettings dataCollectionSettings) {
       this.dataCollectionSettings = dataCollectionSettings;
@@ -110,10 +110,6 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
     var dataCollectionRuleId = createRule(landingZoneId, logAnalyticsWorkspaceId, context);
     // associate rule with aks resource.
     createRuleAssociation(aksId, dataCollectionRuleId);
-
-    context
-        .getWorkingMap()
-        .put(AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID, dataCollectionRuleId);
     logger.info(RESOURCE_CREATED, getResourceType(), dataCollectionRuleId, getMRGName(context));
   }
 
@@ -141,67 +137,23 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
 
   private String createRule(
       UUID landingZoneId, String logAnalyticsWorkspaceId, FlightContext context) {
-    final String DESTINATION_NAME = "lz_workspace";
-
-    var dataCollectionRulesName = resourceNameProvider.getName(getResourceType());
-
+    var dataCollectionRuleName = resourceNameProvider.getName(getResourceType());
     try {
-      var dataCollectionRules =
+      var dataCollectionRule =
           armManagers
               .monitorManager()
               .serviceClient()
               .getDataCollectionRules()
               .createWithResponse(
                   getMRGName(context),
-                  dataCollectionRulesName,
-                  new DataCollectionRuleResourceInner()
-                      .withDataSources(
-                          new DataCollectionRuleDataSources()
-                              .withExtensions(
-                                  List.of(
-                                      new ExtensionDataSource()
-                                          .withName("ContainerInsightsExtension")
-                                          .withStreams(
-                                              List.of(
-                                                  KnownExtensionDataSourceStreams
-                                                      .MICROSOFT_INSIGHTS_METRICS))
-                                          .withExtensionName("ContainerInsights")
-                                          .withExtensionSettings(defaultExtensionSettings)))
-                              .withSyslog(
-                                  List.of(
-                                      new SyslogDataSource()
-                                          .withName("sysLogsDataSource")
-                                          .withFacilityNames(
-                                              List.of(KnownSyslogDataSourceFacilityNames.ASTERISK))
-                                          .withLogLevels(
-                                              List.of(KnownSyslogDataSourceLogLevels.ASTERISK))
-                                          .withStreams(
-                                              List.of(
-                                                  KnownSyslogDataSourceStreams.MICROSOFT_SYSLOG)))))
-                      .withDestinations(
-                          new DataCollectionRuleDestinations()
-                              .withLogAnalytics(
-                                  List.of(
-                                      new LogAnalyticsDestination()
-                                          .withName(DESTINATION_NAME)
-                                          .withWorkspaceResourceId(logAnalyticsWorkspaceId))))
-                      .withDataFlows(
-                          List.of(
-                              new DataFlow()
-                                  .withStreams(
-                                      List.of(
-                                          KnownDataFlowStreams.MICROSOFT_INSIGHTS_METRICS,
-                                          KnownDataFlowStreams.MICROSOFT_SYSLOG))
-                                  .withDestinations(List.of(DESTINATION_NAME))))
-                      .withLocation(getMRGRegionName(context))
-                      .withTags(
-                          Map.of(
-                              LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-                              landingZoneId.toString(),
-                              LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                              ResourcePurpose.SHARED_RESOURCE.toString())),
+                  dataCollectionRuleName,
+                  configureDataCollectionRule(
+                      landingZoneId, logAnalyticsWorkspaceId, getMRGRegionName(context)),
                   Context.NONE);
-      return dataCollectionRules.getValue().id();
+      context
+          .getWorkingMap()
+          .put(AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID, dataCollectionRule.getValue().id());
+      return dataCollectionRule.getValue().id();
     } catch (ManagementException e) {
       if (e.getResponse() != null
           && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
@@ -209,7 +161,7 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
             .monitorManager()
             .serviceClient()
             .getDataCollectionRules()
-            .getByResourceGroup(getMRGName(context), dataCollectionRulesName)
+            .getByResourceGroup(getMRGName(context), dataCollectionRuleName)
             .id();
       } else {
         throw e;
@@ -237,5 +189,66 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
         dataCollectionRuleId,
         aksId,
         ruleAssociation.getValue().id());
+  }
+
+  private DataCollectionRuleResourceInner configureDataCollectionRule(
+      UUID landingZoneId, String logAnalyticsWorkspaceId, String regionName) {
+    final String DESTINATION_NAME = "lz_workspace";
+    return new DataCollectionRuleResourceInner()
+        .withDataSources(
+            new DataCollectionRuleDataSources()
+                .withExtensions(
+                    List.of(
+                        new ExtensionDataSource()
+                            .withName("ContainerInsightsExtension")
+                            .withStreams(
+                                List.of(KnownExtensionDataSourceStreams.MICROSOFT_INSIGHTS_METRICS))
+                            .withExtensionName("ContainerInsights")
+                            .withExtensionSettings(defaultExtensionSettings)))
+                .withSyslog(
+                    List.of(
+                        new SyslogDataSource()
+                            .withName("sysLogsDataSource")
+                            .withFacilityNames(getSyslogFacilityNames())
+                            .withLogLevels(getSyslogLogLevels())
+                            .withStreams(List.of(KnownSyslogDataSourceStreams.MICROSOFT_SYSLOG)))))
+        .withDestinations(
+            new DataCollectionRuleDestinations()
+                .withLogAnalytics(
+                    List.of(
+                        new LogAnalyticsDestination()
+                            .withName(DESTINATION_NAME)
+                            .withWorkspaceResourceId(logAnalyticsWorkspaceId))))
+        .withDataFlows(
+            List.of(
+                new DataFlow()
+                    .withStreams(
+                        List.of(
+                            KnownDataFlowStreams.MICROSOFT_INSIGHTS_METRICS,
+                            KnownDataFlowStreams.MICROSOFT_SYSLOG))
+                    .withDestinations(List.of(DESTINATION_NAME))))
+        .withLocation(regionName)
+        .withTags(
+            Map.of(
+                LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                landingZoneId.toString(),
+                LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                ResourcePurpose.SHARED_RESOURCE.toString()));
+  }
+
+  private List<KnownSyslogDataSourceLogLevels> getSyslogLogLevels() {
+    // attempt to use just ASTERISK for everything leads to an error on UI
+    // which shows that logLevel is not specified
+    return KnownSyslogDataSourceLogLevels.values().stream()
+        .filter(v -> !v.equals(KnownSyslogDataSourceLogLevels.ASTERISK))
+        .toList();
+  }
+
+  private List<KnownSyslogDataSourceFacilityNames> getSyslogFacilityNames() {
+    // when such rule is created using Azure portal this parameter is also set explicitly
+    // so, applying the same behavior here as well
+    return KnownSyslogDataSourceFacilityNames.values().stream()
+        .filter(v -> !v.equals(KnownSyslogDataSourceFacilityNames.ASTERISK))
+        .toList();
   }
 }

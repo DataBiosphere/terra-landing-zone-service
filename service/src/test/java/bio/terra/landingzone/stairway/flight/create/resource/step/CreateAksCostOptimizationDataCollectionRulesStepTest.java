@@ -323,8 +323,12 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
             .anyMatch(
                 e ->
                     e.name().equals("sysLogsDataSource")
-                        && e.facilityNames().contains(KnownSyslogDataSourceFacilityNames.ASTERISK)
-                        && e.logLevels().contains(KnownSyslogDataSourceLogLevels.ASTERISK)
+                        /* excluding KnownSyslogDataSourceFacilityNames.ASTERISK*/
+                        && e.facilityNames().size()
+                            == (KnownSyslogDataSourceFacilityNames.values().size() - 1)
+                        /*excluding KnownSyslogDataSourceLogLevels.ASTERISK*/
+                        && e.logLevels().size()
+                            == (KnownSyslogDataSourceLogLevels.values().size() - 1)
                         && e.streams().contains(KnownSyslogDataSourceStreams.MICROSOFT_SYSLOG)));
 
     var destinations = dataCollectionRuleResourceInner.destinations();
