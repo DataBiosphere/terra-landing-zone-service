@@ -27,9 +27,12 @@ import bio.terra.landingzone.library.landingzones.management.ResourcesDeleteMana
 import bio.terra.landingzone.library.landingzones.management.deleterules.*;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDiagnosticSetting;
+import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.profile.model.CloudPlatform;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightState;
@@ -39,9 +42,11 @@ import bio.terra.stairway.exception.StairwayException;
 import com.azure.resourcemanager.batch.models.*;
 import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
 import com.azure.resourcemanager.compute.models.VirtualMachineSizeTypes;
+import com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner;
 import com.azure.resourcemanager.monitor.models.LogSettings;
 import com.azure.resourcemanager.storage.models.PublicAccess;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.awaitility.Awaitility;
@@ -152,7 +157,9 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
                   landingZoneManager.reader().listSharedResources(landingZoneId.toString());
               assertThat(
                   resources,
-                  hasSize(AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()));
+                  hasSize(
+                      AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()
+                          + 2 /*magic number which represents data collection rules which probably should not be tagged as shared resources*/));
             });
     var flightState = retrieveFlightState(jobId.toString());
     assertThat(flightState.getFlightStatus(), is(FlightStatus.SUCCESS));
@@ -161,6 +168,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
     // (these can silently fail to create, so we are making a explicit check here)
     assertDiagnosticSettings(
         CreateStorageAuditLogSettingsStep.STORAGE_AUDIT_LOG_SETTINGS_KEY, flightState);
+    assertAksCostOptimizedDataCollectionRule(flightState);
 
     testCannotDeleteLandingZoneWithDependencies();
   }
@@ -185,6 +193,55 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
     var expectedLogCategories =
         expectedDiagnosticSettings.logs().stream().map(LogSettings::category).toList();
     assertEquals(actualLogCategories, expectedLogCategories);
+  }
+
+  void assertAksCostOptimizedDataCollectionRule(FlightState flightState) {
+    var results = flightState.getResultMap().orElseThrow();
+    var dataCollectionRuleId =
+        results.get(
+            CreateAksCostOptimizationDataCollectionRulesStep
+                .AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID,
+            String.class);
+    assertNotNull(dataCollectionRuleId);
+    var mrg =
+        results.get(GetManagedResourceGroupInfo.TARGET_MRG_KEY, TargetManagedResourceGroup.class);
+    assertNotNull(mrg);
+
+    var dataCollectionRuleIdParts = dataCollectionRuleId.split("/");
+    var dataCollectionRuleName = dataCollectionRuleIdParts[dataCollectionRuleIdParts.length - 1];
+    DataCollectionRuleResourceInner rule =
+        armManagers
+            .monitorManager()
+            .serviceClient()
+            .getDataCollectionRules()
+            .getByResourceGroup(mrg.name(), dataCollectionRuleName);
+    assertNotNull(rule);
+    var ruleDataSources = rule.dataSources();
+    assertNotNull(ruleDataSources);
+    var ruleDataSourcesExtensions = ruleDataSources.extensions();
+    assertNotNull(ruleDataSourcesExtensions);
+    assertThat(ruleDataSourcesExtensions.size(), equalTo(1));
+    var extensionDataSource = ruleDataSourcesExtensions.get(0);
+    assertThat(extensionDataSource.extensionName(), equalTo("ContainerInsights"));
+    assertThat(extensionDataSource.name(), equalTo("ContainerInsightsExtension"));
+    var containerInsightsExtensionSettings = extensionDataSource.extensionSettings();
+    assertNotNull(containerInsightsExtensionSettings);
+    var dataCollectionSettings =
+        ((LinkedHashMap) containerInsightsExtensionSettings).get("dataCollectionSettings");
+    assertNotNull(dataCollectionSettings);
+    var interval = ((LinkedHashMap) dataCollectionSettings).get("interval");
+    assertNotNull(interval);
+    assertThat(
+        interval,
+        equalTo(CreateAksCostOptimizationDataCollectionRulesStep.DATA_COLLECTION_INTERVAL));
+    var namespaceFilteringMode =
+        ((LinkedHashMap) dataCollectionSettings).get("namespaceFilteringMode");
+    assertNotNull(namespaceFilteringMode);
+    assertThat(
+        namespaceFilteringMode,
+        equalTo(
+            CreateAksCostOptimizationDataCollectionRulesStep
+                .DATA_COLLECTION_NAMESPACE_FILTERING_MODE));
   }
 
   private void testCannotDeleteLandingZoneWithDependencies() {

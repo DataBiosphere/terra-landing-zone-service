@@ -5,6 +5,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
@@ -38,24 +39,6 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
       ParametersResolver parametersResolver,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    /*
-     * ~ - depends on
-     * 1) VNet step
-     * 2) Log analytics step
-     * 3) Postgres
-     * 4) Storage account
-     * 5) Batch account
-     *
-     * 6) Cors rules ~  4)
-     * 7) Data collection rules ~ 2)
-     * 8) Private endpoint ~ 1), 2)
-     * 9) AKS ~ 1)
-     * 10) Relay
-     * 11) Storage audit log settings ~ 3), 4)
-     * 12) Batch log settings ~ 3), 5)
-     * 13) Postgres log settings ~ 2), 3)
-     * 14) AppInsights ~ 3)
-     * */
     return List.of(
         Pair.of(
             new ValidateLandingZoneParametersStep(
@@ -117,6 +100,10 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.cloud()),
         Pair.of(
             new CreatePostgresLogSettingsStep(
+                armManagers, parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateAksCostOptimizationDataCollectionRulesStep(
                 armManagers, parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
