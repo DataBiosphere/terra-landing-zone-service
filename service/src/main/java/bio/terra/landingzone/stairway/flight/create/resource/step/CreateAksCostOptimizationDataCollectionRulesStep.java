@@ -5,6 +5,7 @@ import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerat
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -106,8 +107,17 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
     var aksId = getParameterOrThrow(context.getWorkingMap(), CreateAksStep.AKS_ID, String.class);
+    var aks =
+        getParameterOrThrow(
+            context.getWorkingMap(), CreateAksStep.AKS_RESOURCE_KEY, LandingZoneResource.class);
 
-    var dataCollectionRuleId = createRule(landingZoneId, logAnalyticsWorkspaceId, context);
+    var dataCollectionRuleId =
+        createRule(
+            landingZoneId,
+            logAnalyticsWorkspaceId,
+            aks.region(),
+            aks.resourceName().get(),
+            context);
     // associate rule with aks resource.
     createRuleAssociation(aksId, dataCollectionRuleId);
     logger.info(RESOURCE_CREATED, getResourceType(), dataCollectionRuleId, getMRGName(context));
@@ -136,8 +146,13 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
   }
 
   private String createRule(
-      UUID landingZoneId, String logAnalyticsWorkspaceId, FlightContext context) {
-    var dataCollectionRuleName = resourceNameProvider.getName(getResourceType());
+      UUID landingZoneId,
+      String logAnalyticsWorkspaceId,
+      String aksRegion,
+      String aksName,
+      FlightContext context) {
+    var dataCollectionRuleName = String.format("MSCI-%s-%s", aksRegion, aksName);
+    // var dataCollectionRuleName = resourceNameProvider.getName(getResourceType());
     try {
       var dataCollectionRule =
           armManagers
