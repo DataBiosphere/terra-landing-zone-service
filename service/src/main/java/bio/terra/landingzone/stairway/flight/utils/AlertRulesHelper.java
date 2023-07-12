@@ -27,6 +27,7 @@ public class AlertRulesHelper {
 
     return new ScheduledAlertRule()
         .withQuery(scheduledtemplate.query())
+        .withDescription(scheduledtemplate.description())
         .withAlertRuleTemplateName(scheduledtemplate.name())
         .withDisplayName(scheduledtemplate.displayName())
         .withSuppressionEnabled(false)
@@ -56,6 +57,7 @@ public class AlertRulesHelper {
     var nrtTemplate = (NrtAlertRuleTemplate) template.innerModel();
     return new NrtAlertRule()
         .withQuery(nrtTemplate.query())
+        .withDescription(nrtTemplate.description())
         .withAlertRuleTemplateName(nrtTemplate.name())
         .withDisplayName(nrtTemplate.displayName())
         .withSuppressionEnabled(false)
