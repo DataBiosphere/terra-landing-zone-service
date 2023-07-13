@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Simple test that allows rapid iteration on resource steps in a real Azure resource group
  *
- * <p>This is useful to exercise a particular resource step or steps, and if you do not want to run the full
- * LZ definition integration test suite.
+ * <p>This is useful to exercise a particular resource step or steps, and if you do not want to run
+ * the full LZ definition integration test suite.
  */
 @Tag("integration")
 public class AdHocIntegrationTest extends LandingZoneTestFixture {
