@@ -129,7 +129,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
             .id(UUID.randomUUID());
     landingZoneManager =
         LandingZoneManager.createLandingZoneManager(
-            tokenCredential, azureProfile, resourceGroup.name());
+            tokenCredential, azureProfile, resourceGroup.name(), "" /*ignore this value in test*/);
   }
 
   @AfterEach

@@ -23,7 +23,7 @@ class ManagedNetworkWithSharedResourcesFactoryTest extends LandingZoneTestFixtur
   void setUp() {
     landingZoneManager =
         LandingZoneManager.createLandingZoneManager(
-            tokenCredential, azureProfile, resourceGroup.name());
+            tokenCredential, azureProfile, resourceGroup.name(), "" /*ignore this value in test*/);
   }
 
   @Test
