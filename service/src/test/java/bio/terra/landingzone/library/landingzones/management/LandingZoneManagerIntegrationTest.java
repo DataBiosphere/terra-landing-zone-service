@@ -53,7 +53,7 @@ class LandingZoneManagerIntegrationTest {
             AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
             AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE,
             resourceGroup.name(),
-            "" /*ignore this value in test*/);
+            null /*ignore this value in test*/);
   }
 
   @AfterEach
