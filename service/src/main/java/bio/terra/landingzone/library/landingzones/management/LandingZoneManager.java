@@ -33,6 +33,7 @@ import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -96,34 +97,50 @@ public class LandingZoneManager {
 
   public static ArmManagers createArmManagers(
       TokenCredential credential, AzureProfile profile, String azureCustomerUsageAttribute) {
-    final UserAgentPolicy resourceUsagePolicy = new UserAgentPolicy(azureCustomerUsageAttribute);
+    final Optional<UserAgentPolicy> resourceUsagePolicy =
+        getUserAgentPolicy(azureCustomerUsageAttribute);
+    AzureResourceManager.Configurable azureResourceManagerConfigurable =
+        AzureResourceManager.configure();
+    resourceUsagePolicy.ifPresent(azureResourceManagerConfigurable::withPolicy);
     AzureResourceManager azureResourceManager =
-        AzureResourceManager.authenticate(credential, profile)
+        azureResourceManagerConfigurable
+            .authenticate(credential, profile)
             .withSubscription(profile.getSubscriptionId());
-    RelayManager relayManager =
-        RelayManager.configure().withPolicy(resourceUsagePolicy).authenticate(credential, profile);
-    BatchManager batchManager =
-        BatchManager.configure().withPolicy(resourceUsagePolicy).authenticate(credential, profile);
+
+    RelayManager.Configurable relayManagerConfigurable = RelayManager.configure();
+    resourceUsagePolicy.ifPresent(relayManagerConfigurable::withPolicy);
+    RelayManager relayManager = relayManagerConfigurable.authenticate(credential, profile);
+
+    BatchManager.Configurable batchManagerConfigurable = BatchManager.configure();
+    resourceUsagePolicy.ifPresent(batchManagerConfigurable::withPolicy);
+    BatchManager batchManager = batchManagerConfigurable.authenticate(credential, profile);
+
+    PostgreSqlManager.Configurable postgreSqlManagerConfigurable = PostgreSqlManager.configure();
+    resourceUsagePolicy.ifPresent(postgreSqlManagerConfigurable::withPolicy);
     PostgreSqlManager postgreSqlManager =
-        PostgreSqlManager.configure()
-            .withPolicy(resourceUsagePolicy)
-            .authenticate(credential, profile);
+        postgreSqlManagerConfigurable.authenticate(credential, profile);
+
+    LogAnalyticsManager.Configurable logAnalyticsManagerConfigurable =
+        LogAnalyticsManager.configure();
+    resourceUsagePolicy.ifPresent(logAnalyticsManagerConfigurable::withPolicy);
     LogAnalyticsManager logAnalyticsManager =
-        LogAnalyticsManager.configure()
-            .withPolicy(resourceUsagePolicy)
-            .authenticate(credential, profile);
-    MonitorManager monitorManager =
-        MonitorManager.configure()
-            .withPolicy(resourceUsagePolicy)
-            .authenticate(credential, profile);
+        logAnalyticsManagerConfigurable.authenticate(credential, profile);
+
+    MonitorManager.Configurable monitorManagerConfigurable = MonitorManager.configure();
+    resourceUsagePolicy.ifPresent(monitorManagerConfigurable::withPolicy);
+    MonitorManager monitorManager = monitorManagerConfigurable.authenticate(credential, profile);
+
+    ApplicationInsightsManager.Configurable applicationInsightsManagerConfigurable =
+        ApplicationInsightsManager.configure();
+    resourceUsagePolicy.ifPresent(applicationInsightsManagerConfigurable::withPolicy);
     ApplicationInsightsManager applicationInsightsManager =
-        ApplicationInsightsManager.configure()
-            .withPolicy(resourceUsagePolicy)
-            .authenticate(credential, profile);
+        applicationInsightsManagerConfigurable.authenticate(credential, profile);
+
+    SecurityInsightsManager.Configurable securityInsightsManagerConfigurable =
+        SecurityInsightsManager.configure();
+    resourceUsagePolicy.ifPresent(securityInsightsManagerConfigurable::withPolicy);
     SecurityInsightsManager securityInsightsManager =
-        SecurityInsightsManager.configure()
-            .withPolicy(resourceUsagePolicy)
-            .authenticate(credential, profile);
+        securityInsightsManagerConfigurable.authenticate(credential, profile);
 
     return new ArmManagers(
         azureResourceManager,
@@ -241,5 +258,11 @@ public class LandingZoneManager {
 
   public Region getLandingZoneRegion() {
     return resourceGroup.region();
+  }
+
+  private static Optional<UserAgentPolicy> getUserAgentPolicy(String azureCustomerUsageAttribute) {
+    return azureCustomerUsageAttribute != null
+        ? Optional.of(new UserAgentPolicy(azureCustomerUsageAttribute))
+        : Optional.empty();
   }
 }
