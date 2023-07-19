@@ -261,7 +261,7 @@ public class LandingZoneManager {
   }
 
   private static Optional<UserAgentPolicy> getUserAgentPolicy(String azureCustomerUsageAttribute) {
-    return azureCustomerUsageAttribute != null
+    return StringUtils.isNotEmpty(azureCustomerUsageAttribute)
         ? Optional.of(new UserAgentPolicy(azureCustomerUsageAttribute))
         : Optional.empty();
   }
