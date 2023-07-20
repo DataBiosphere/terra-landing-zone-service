@@ -16,6 +16,7 @@ import bio.terra.landingzone.library.landingzones.management.deleterules.Landing
 import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
 import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
 import com.azure.core.credential.TokenCredential;
+import com.azure.core.http.policy.UserAgentPolicy;
 import com.azure.core.management.Region;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.core.util.logging.ClientLogger;
@@ -32,6 +33,7 @@ import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -67,7 +69,10 @@ public class LandingZoneManager {
   }
 
   public static LandingZoneManager createLandingZoneManager(
-      TokenCredential credential, AzureProfile profile, String resourceGroupName) {
+      TokenCredential credential,
+      AzureProfile profile,
+      String resourceGroupName,
+      String azureCustomerUsageAttribute) {
 
     Objects.requireNonNull(credential, "credential can't be null");
     Objects.requireNonNull(profile, "profile can't be null");
@@ -76,7 +81,7 @@ public class LandingZoneManager {
           new IllegalArgumentException("Resource group name can't be blank or null"));
     }
 
-    ArmManagers armManagers = createArmManagers(credential, profile);
+    ArmManagers armManagers = createArmManagers(credential, profile, azureCustomerUsageAttribute);
     ResourceGroup resourceGroup =
         armManagers.azureResourceManager().resourceGroups().getByName(resourceGroupName);
     DeleteRulesVerifier deleteRulesVerifier = new DeleteRulesVerifier(armManagers);
@@ -90,19 +95,52 @@ public class LandingZoneManager {
         new ResourcesDeleteManager(armManagers, deleteRulesVerifier));
   }
 
-  public static ArmManagers createArmManagers(TokenCredential credential, AzureProfile profile) {
+  public static ArmManagers createArmManagers(
+      TokenCredential credential, AzureProfile profile, String azureCustomerUsageAttribute) {
+    final Optional<UserAgentPolicy> resourceUsagePolicy =
+        getUserAgentPolicy(azureCustomerUsageAttribute);
+    AzureResourceManager.Configurable azureResourceManagerConfigurable =
+        AzureResourceManager.configure();
+    resourceUsagePolicy.ifPresent(azureResourceManagerConfigurable::withPolicy);
     AzureResourceManager azureResourceManager =
-        AzureResourceManager.authenticate(credential, profile)
+        azureResourceManagerConfigurable
+            .authenticate(credential, profile)
             .withSubscription(profile.getSubscriptionId());
-    RelayManager relayManager = RelayManager.authenticate(credential, profile);
-    BatchManager batchManager = BatchManager.authenticate(credential, profile);
-    PostgreSqlManager postgreSqlManager = PostgreSqlManager.authenticate(credential, profile);
-    LogAnalyticsManager logAnalyticsManager = LogAnalyticsManager.authenticate(credential, profile);
-    MonitorManager monitorManager = MonitorManager.authenticate(credential, profile);
+
+    RelayManager.Configurable relayManagerConfigurable = RelayManager.configure();
+    resourceUsagePolicy.ifPresent(relayManagerConfigurable::withPolicy);
+    RelayManager relayManager = relayManagerConfigurable.authenticate(credential, profile);
+
+    BatchManager.Configurable batchManagerConfigurable = BatchManager.configure();
+    resourceUsagePolicy.ifPresent(batchManagerConfigurable::withPolicy);
+    BatchManager batchManager = batchManagerConfigurable.authenticate(credential, profile);
+
+    PostgreSqlManager.Configurable postgreSqlManagerConfigurable = PostgreSqlManager.configure();
+    resourceUsagePolicy.ifPresent(postgreSqlManagerConfigurable::withPolicy);
+    PostgreSqlManager postgreSqlManager =
+        postgreSqlManagerConfigurable.authenticate(credential, profile);
+
+    LogAnalyticsManager.Configurable logAnalyticsManagerConfigurable =
+        LogAnalyticsManager.configure();
+    resourceUsagePolicy.ifPresent(logAnalyticsManagerConfigurable::withPolicy);
+    LogAnalyticsManager logAnalyticsManager =
+        logAnalyticsManagerConfigurable.authenticate(credential, profile);
+
+    MonitorManager.Configurable monitorManagerConfigurable = MonitorManager.configure();
+    resourceUsagePolicy.ifPresent(monitorManagerConfigurable::withPolicy);
+    MonitorManager monitorManager = monitorManagerConfigurable.authenticate(credential, profile);
+
+    ApplicationInsightsManager.Configurable applicationInsightsManagerConfigurable =
+        ApplicationInsightsManager.configure();
+    resourceUsagePolicy.ifPresent(applicationInsightsManagerConfigurable::withPolicy);
     ApplicationInsightsManager applicationInsightsManager =
-        ApplicationInsightsManager.authenticate(credential, profile);
+        applicationInsightsManagerConfigurable.authenticate(credential, profile);
+
+    SecurityInsightsManager.Configurable securityInsightsManagerConfigurable =
+        SecurityInsightsManager.configure();
+    resourceUsagePolicy.ifPresent(securityInsightsManagerConfigurable::withPolicy);
     SecurityInsightsManager securityInsightsManager =
-        SecurityInsightsManager.authenticate(credential, profile);
+        securityInsightsManagerConfigurable.authenticate(credential, profile);
 
     return new ArmManagers(
         azureResourceManager,
@@ -220,5 +258,11 @@ public class LandingZoneManager {
 
   public Region getLandingZoneRegion() {
     return resourceGroup.region();
+  }
+
+  private static Optional<UserAgentPolicy> getUserAgentPolicy(String azureCustomerUsageAttribute) {
+    return StringUtils.isNotEmpty(azureCustomerUsageAttribute)
+        ? Optional.of(new UserAgentPolicy(azureCustomerUsageAttribute))
+        : Optional.empty();
   }
 }

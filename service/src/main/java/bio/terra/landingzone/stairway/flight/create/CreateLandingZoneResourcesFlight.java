@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
+import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
@@ -62,7 +63,11 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     stepsDefinitionProvider =
         LandingZoneStepsDefinitionProviderFactory.create(
             StepsDefinitionFactoryType.fromString(landingZoneRequest.definition()));
-    armManagers = initializeArmManagers(inputParameters, flightBeanBag.getAzureConfiguration());
+    armManagers =
+        initializeArmManagers(
+            inputParameters,
+            flightBeanBag.getAzureConfiguration(),
+            flightBeanBag.getAzureCustomerUsageConfiguration());
     parametersResolver =
         new ParametersResolver(landingZoneRequest.parameters(), LandingZoneDefaultParameters.get());
 
@@ -83,7 +88,9 @@ public class CreateLandingZoneResourcesFlight extends Flight {
   }
 
   private ArmManagers initializeArmManagers(
-      FlightMap inputParameters, LandingZoneAzureConfiguration azureConfiguration) {
+      FlightMap inputParameters,
+      LandingZoneAzureConfiguration azureConfiguration,
+      AzureCustomerUsageConfiguration azureCustomerUsageConfiguration) {
     var billingProfile =
         inputParameters.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
@@ -98,7 +105,8 @@ public class CreateLandingZoneResourcesFlight extends Flight {
             .clientSecret(azureConfiguration.getManagedAppClientSecret())
             .tenantId(azureConfiguration.getManagedAppTenantId())
             .build();
-    return LandingZoneManager.createArmManagers(tokenCredentials, azureProfile);
+    return LandingZoneManager.createArmManagers(
+        tokenCredentials, azureProfile, azureCustomerUsageConfiguration.getUsageAttribute());
   }
 
   private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {
