@@ -79,3 +79,8 @@ workspace:
     managedAppClientId: ${AZURE_PUBLISHER_CLIENT_ID}
     managedAppClientSecret: ${AZURE_PUBLISHER_CLIENT_SECRET}
     managedAppTenantId: ${AZURE_PUBLISHER_TENANT_ID}
+
+azure:
+  customer:
+    #track azure resource usage
+    usage-attribute: [REAL VALUE COMES FROM WSM]

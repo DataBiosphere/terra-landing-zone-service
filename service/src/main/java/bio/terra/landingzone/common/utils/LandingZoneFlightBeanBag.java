@@ -2,6 +2,7 @@ package bio.terra.landingzone.common.utils;
 
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
+import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
@@ -24,6 +25,7 @@ public class LandingZoneFlightBeanBag {
   private final LandingZoneBillingProfileManagerService bpmService;
   private final ObjectMapper objectMapper;
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
+  private final AzureCustomerUsageConfiguration azureCustomerUsageConfiguration;
 
   @Lazy
   @Autowired
@@ -36,6 +38,7 @@ public class LandingZoneFlightBeanBag {
       LandingZoneSamService samService,
       LandingZoneBillingProfileManagerService bpmService,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration,
+      AzureCustomerUsageConfiguration azureCustomerUsageConfiguration,
       ObjectMapper objectMapper) {
     this.landingZoneService = landingZoneService;
     this.landingZoneDao = landingZoneDao;
@@ -45,6 +48,7 @@ public class LandingZoneFlightBeanBag {
     this.samService = samService;
     this.bpmService = bpmService;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
+    this.azureCustomerUsageConfiguration = azureCustomerUsageConfiguration;
     this.objectMapper = objectMapper;
   }
 
@@ -86,5 +90,9 @@ public class LandingZoneFlightBeanBag {
 
   public LandingZoneProtectedDataConfiguration getLandingZoneProtectedDataConfiguration() {
     return landingZoneProtectedDataConfiguration;
+  }
+
+  public AzureCustomerUsageConfiguration getAzureCustomerUsageConfiguration() {
+    return azureCustomerUsageConfiguration;
   }
 }
