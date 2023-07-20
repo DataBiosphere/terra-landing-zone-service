@@ -58,12 +58,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
         "omsagent",
         new ManagedClusterAddonProfile()
             .withEnabled(true)
-            .withConfig(
-                Map.of(
-                    "logAnalyticsWorkspaceResourceID",
-                    logAnalyticsWorkspaceId,
-                    "useAADAuth",
-                    "true")));
+            .withConfig(Map.of("logAnalyticsWorkspaceResourceID", logAnalyticsWorkspaceId)));
 
     var aksName = resourceNameProvider.getName(getResourceType());
     var aksPartial =

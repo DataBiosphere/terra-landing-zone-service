@@ -45,6 +45,15 @@ import org.springframework.http.HttpStatus;
  * into current configuration since namespaceFilteringMode is set to Off. But can be added later by
  * adding 'namespaces' field into DataCollectionSettings.
  */
+
+/**
+ * **********************************!!! WARNING !!!**********************************
+ *
+ * <p>This step is currently excluded from LZ flight because it breaks K8s monitoring. The cost
+ * optimization settings required setting 'useAADAuth' parameter to true, but at the same time
+ * setting this value breaks K8s monitoring. This step is temporarily disabled until we find
+ * workaround or proper resolution.
+ */
 public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResourceCreateStep {
   public static final String AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID =
       "AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID";
