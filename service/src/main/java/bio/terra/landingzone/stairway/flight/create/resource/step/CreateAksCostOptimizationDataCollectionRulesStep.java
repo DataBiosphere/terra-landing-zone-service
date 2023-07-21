@@ -50,7 +50,7 @@ import org.springframework.http.HttpStatus;
  * **********************************!!! WARNING !!!**********************************
  *
  * <p>This step is currently excluded from LZ flight because it breaks K8s monitoring. The cost
- * optimization settings required setting 'useAADAuth' parameter to true, but at the same time
+ * optimization settings requires following parameter 'useAADAuth' set to true, but at the same time
  * setting this value breaks K8s monitoring. This step is temporarily disabled until we find
  * workaround or proper resolution.
  */
