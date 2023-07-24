@@ -162,7 +162,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
                   resources,
                   hasSize(
                       AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()
-                          + 2 /*magic number which represents data collection rules which probably should not be tagged as shared resources*/));
+                          + 1 /*magic number which represents data collection rules which probably should not be tagged as shared resources*/));
             });
     var flightState = retrieveFlightState(jobId.toString());
     assertThat(flightState.getFlightStatus(), is(FlightStatus.SUCCESS));
@@ -171,7 +171,9 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
     // (these can silently fail to create, so we are making a explicit check here)
     assertDiagnosticSettings(
         CreateStorageAuditLogSettingsStep.STORAGE_AUDIT_LOG_SETTINGS_KEY, flightState);
-    assertAksCostOptimizedDataCollectionRule(flightState);
+    // disabling this validation because current data collection rule is currently disabled
+    // due to k8s monitoring issue. Jira - WOR-1147
+    // assertAksCostOptimizedDataCollectionRule(flightState);
 
     testCannotDeleteLandingZoneWithDependencies();
   }
