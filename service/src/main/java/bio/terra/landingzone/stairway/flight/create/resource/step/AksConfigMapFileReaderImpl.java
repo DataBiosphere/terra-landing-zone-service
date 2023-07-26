@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public class AksConfigMapFileReader implements AksConfigMapReader {
+public class AksConfigMapFileReaderImpl implements AksConfigMapReader {
   private final String filePath;
 
-  public AksConfigMapFileReader(String filePath) {
+  public AksConfigMapFileReaderImpl(String filePath) {
     this.filePath = filePath;
   }
 

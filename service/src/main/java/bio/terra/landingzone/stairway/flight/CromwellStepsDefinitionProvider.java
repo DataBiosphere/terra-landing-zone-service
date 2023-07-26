@@ -5,7 +5,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
-import bio.terra.landingzone.stairway.flight.create.resource.step.AksConfigMapFileReader;
+import bio.terra.landingzone.stairway.flight.create.resource.step.AksConfigMapFileReaderImpl;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
@@ -110,7 +110,7 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             new EnableAksContainerLogV2Step(
                 armManagers,
                 new KubernetesClientProviderImpl(),
-                new AksConfigMapFileReader(EnableAksContainerLogV2Step.CONFIG_MAP_PATH)),
+                new AksConfigMapFileReaderImpl(EnableAksContainerLogV2Step.CONFIG_MAP_PATH)),
             RetryRules.cloud()));
   }
 }
