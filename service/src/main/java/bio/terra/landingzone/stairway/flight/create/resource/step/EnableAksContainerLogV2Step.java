@@ -3,6 +3,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
+import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
 import bio.terra.stairway.StepResult;
@@ -15,37 +16,60 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
+/**
+ * This class implements functionality to apply specific ConfigMap to AKS to enable ContainerLogV2
+ * schema.
+ *
+ * <p>https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-logging-v2#enable-the-containerlogv2-schema
+ */
 public class EnableAksContainerLogV2Step implements Step {
+  public static final String CONFIG_MAP_PATH = "landingzone/aks/configmap/ContainerLogV2.yaml";
+
   private static final Logger logger = LoggerFactory.getLogger(EnableAksContainerLogV2Step.class);
 
   private final ArmManagers armManagers;
   private final KubernetesClientProvider kubernetesClientProvider;
+  private final AksConfigMapReader aksConfigMapReader;
 
   public EnableAksContainerLogV2Step(
-      ArmManagers armManagers, KubernetesClientProvider kubernetesClientProvider) {
+      ArmManagers armManagers,
+      KubernetesClientProvider kubernetesClientProvider,
+      AksConfigMapReader aksConfigMapReader) {
     this.armManagers = armManagers;
     this.kubernetesClientProvider = kubernetesClientProvider;
+    this.aksConfigMapReader = aksConfigMapReader;
   }
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     var aks =
-        context.getInputParameters().get(CreateAksStep.AKS_RESOURCE_KEY, LandingZoneResource.class);
+        FlightUtils.getRequired(
+            context.getInputParameters(),
+            CreateAksStep.AKS_RESOURCE_KEY,
+            LandingZoneResource.class);
     var mrg =
-        context
-            .getWorkingMap()
-            .get(GetManagedResourceGroupInfo.TARGET_MRG_KEY, TargetManagedResourceGroup.class);
-
+        FlightUtils.getRequired(
+            context.getWorkingMap(),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            TargetManagedResourceGroup.class);
     try {
-      //TODO: is it possible to pass comman separated list of namespaces?
-      createContainerLogV2ConfigMap(mrg.name(), aks.resourceName().get(), "default");
+      var containerLogV2ConfigMap = aksConfigMapReader.read();
+      createContainerLogV2ConfigMap(
+          containerLogV2ConfigMap, mrg.name(), aks.resourceName().get(), "default");
     } catch (ApiException e) {
-      logger.info("Failed to create k8s config map for ContainerLogV2", e);
+      logger.info(
+          String.format(
+              "Failed to apply ContainerLogV2 configmap to AKS cluster. AKS id: '%s'",
+              aks.resourceId()),
+          e);
       if (isK8sApiRetryableError(e.getCode())) {
         return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
       } else {
         return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
       }
+    } catch (AksConfigMapReaderException e) {
+      logger.info("Failed to initialize k8s config map for ContainerLogV2", e);
+      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     }
 
     return StepResult.getStepResultSuccess();
@@ -53,7 +77,21 @@ public class EnableAksContainerLogV2Step implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    return null;
+    // no need to remove configmap. it will be deleted together with k8s.
+    return StepResult.getStepResultSuccess();
+  }
+
+  private void createContainerLogV2ConfigMap(
+      V1ConfigMap containerLogV2ConfigMap,
+      String managedResourceGroupName,
+      String aksResourceName,
+      String aksNamespace)
+      throws ApiException {
+    CoreV1Api k8sApiClient =
+        kubernetesClientProvider.createCoreApiClient(
+            armManagers, managedResourceGroupName, aksResourceName);
+    k8sApiClient.createNamespacedConfigMap(
+        aksNamespace, containerLogV2ConfigMap, null, null, null, null);
   }
 
   private boolean isK8sApiRetryableError(int httpStatusCode) {
@@ -61,24 +99,5 @@ public class EnableAksContainerLogV2Step implements Step {
         || httpStatusCode == HttpStatus.BAD_GATEWAY.value()
         || httpStatusCode == HttpStatus.SERVICE_UNAVAILABLE.value()
         || httpStatusCode == HttpStatus.GATEWAY_TIMEOUT.value();
-  }
-
-  private void createContainerLogV2ConfigMap(
-      String managedResourceGroupName, String aksResourceName, String aksNamespace)
-      throws ApiException {
-    CoreV1Api k8sApiClient =
-        kubernetesClientProvider.createCoreApiClient(
-            armManagers, managedResourceGroupName, aksResourceName);
-    var containerLogV2ConfigMap = buildContainerLogV2ConfigMap();
-
-    k8sApiClient.createNamespacedConfigMap(
-        aksNamespace, containerLogV2ConfigMap, null, null, null, null);
-  }
-
-  private V1ConfigMap buildContainerLogV2ConfigMap() {
-    V1ConfigMap containerLogV2ConfigMap = new V1ConfigMap();
-      containerLogV2ConfigMap.
-    // containerLogV2ConfigMap.
-    return containerLogV2ConfigMap;
   }
 }
