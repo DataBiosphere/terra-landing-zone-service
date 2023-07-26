@@ -42,11 +42,15 @@ public class EnableAksContainerLogV2Step implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    FlightUtils.validateRequiredEntries(
+        context.getInputParameters(), CreateAksStep.AKS_RESOURCE_KEY);
     var aks =
         FlightUtils.getRequired(
             context.getInputParameters(),
             CreateAksStep.AKS_RESOURCE_KEY,
             LandingZoneResource.class);
+    FlightUtils.validateRequiredEntries(
+        context.getWorkingMap(), GetManagedResourceGroupInfo.TARGET_MRG_KEY);
     var mrg =
         FlightUtils.getRequired(
             context.getWorkingMap(),
