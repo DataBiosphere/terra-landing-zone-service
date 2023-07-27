@@ -157,7 +157,7 @@ public class ResourcesDeleteManager {
 
                 armManagers.azureResourceManager().genericResources().deleteById(solution.id());
 
-                logger.info("Resource deleted. id:{}", solution.id());
+                logger.info("IGNORE Resource deleted. id:{}", solution.id());
               });
     }
 
