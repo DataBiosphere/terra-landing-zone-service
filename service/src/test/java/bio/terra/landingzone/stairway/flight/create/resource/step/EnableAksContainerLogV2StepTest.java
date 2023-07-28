@@ -87,7 +87,7 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     verify(mockAksConfigMapReader, times(1)).read();
     verify(mockCoreV1Api, times(1))
         .createNamespacedConfigMap(anyString(), any(), eq(null), eq(null), eq(null), eq(null));
-    assertThat(aksNamespaceCaptor.getValue(), equalTo("default"));
+    assertThat(aksNamespaceCaptor.getValue(), equalTo("kube-system"));
   }
 
   @ParameterizedTest
