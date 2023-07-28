@@ -1,4 +1,4 @@
-package bio.terra.landingzone.stairway.flight.create.resource.step;
+package bio.terra.landingzone.common.k8s.configmap.reader;
 
 public class AksConfigMapReaderException extends Exception {
   public AksConfigMapReaderException(String message) {

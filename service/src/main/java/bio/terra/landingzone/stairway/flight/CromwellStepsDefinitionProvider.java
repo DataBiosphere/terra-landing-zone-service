@@ -1,11 +1,11 @@
 package bio.terra.landingzone.stairway.flight;
 
+import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapFileReaderImpl;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
-import bio.terra.landingzone.stairway.flight.create.resource.step.AksConfigMapFileReaderImpl;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
