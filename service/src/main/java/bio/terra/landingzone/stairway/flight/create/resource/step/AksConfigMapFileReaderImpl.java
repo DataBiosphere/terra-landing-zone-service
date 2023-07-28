@@ -2,10 +2,11 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.util.Yaml;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class AksConfigMapFileReaderImpl implements AksConfigMapReader {
   private final String filePath;
@@ -16,9 +17,10 @@ public class AksConfigMapFileReaderImpl implements AksConfigMapReader {
 
   @Override
   public V1ConfigMap read() throws AksConfigMapReaderException {
-    File file = getFileFromResource();
+    var inputStream = getFileFromResourceAsStream();
     try {
-      Object value = Yaml.load(file);
+      Object value =
+          Yaml.load(new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)));
       if (value instanceof V1ConfigMap v1ConfigMap) {
         return v1ConfigMap;
       } else {
@@ -28,25 +30,18 @@ public class AksConfigMapFileReaderImpl implements AksConfigMapReader {
     } catch (IOException ex) {
       throw new AksConfigMapReaderException(
           String.format(
-              "Failed to initialize config map from resource file. File name: '%s'", filePath),
+              "Failed to initialize ConfigMap from resource file. File name: '%s'.", filePath),
           ex);
     }
   }
 
-  private File getFileFromResource() throws AksConfigMapReaderException {
+  private InputStream getFileFromResourceAsStream() throws AksConfigMapReaderException {
     ClassLoader classLoader = getClass().getClassLoader();
-    URL resource = classLoader.getResource(filePath);
-    if (resource == null) {
-      throw new AksConfigMapReaderException(String.format("File '%s' not found.", filePath));
-    }
-    File file;
-    try {
-      file = new File(resource.toURI());
-    } catch (URISyntaxException e) {
+    InputStream inputStream = classLoader.getResourceAsStream(filePath);
+    if (inputStream == null) {
       throw new AksConfigMapReaderException(
-          String.format(
-              "Failed to initialize file from resource. Resource file name: '%s'", filePath));
+          String.format("File '%s' not found or access is denied.", filePath));
     }
-    return file;
+    return inputStream;
   }
 }

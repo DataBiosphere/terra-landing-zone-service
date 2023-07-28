@@ -42,13 +42,10 @@ public class EnableAksContainerLogV2Step implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    FlightUtils.validateRequiredEntries(
-        context.getInputParameters(), CreateAksStep.AKS_RESOURCE_KEY);
+    FlightUtils.validateRequiredEntries(context.getWorkingMap(), CreateAksStep.AKS_RESOURCE_KEY);
     var aks =
         FlightUtils.getRequired(
-            context.getInputParameters(),
-            CreateAksStep.AKS_RESOURCE_KEY,
-            LandingZoneResource.class);
+            context.getWorkingMap(), CreateAksStep.AKS_RESOURCE_KEY, LandingZoneResource.class);
     FlightUtils.validateRequiredEntries(
         context.getWorkingMap(), GetManagedResourceGroupInfo.TARGET_MRG_KEY);
     var mrg =
@@ -60,19 +57,20 @@ public class EnableAksContainerLogV2Step implements Step {
       var containerLogV2ConfigMap = aksConfigMapReader.read();
       createContainerLogV2ConfigMap(
           containerLogV2ConfigMap, mrg.name(), aks.resourceName().get(), "default");
-    } catch (ApiException e) {
       logger.info(
+          "ContainerLogV2 ConfigMap has been successfully applied to AKS with id='{}'",
+          aks.resourceId());
+    } catch (ApiException e) {
+      logger.error(
           String.format(
-              "Failed to apply ContainerLogV2 configmap to AKS cluster. AKS id: '%s'",
+              "Failed to apply ContainerLogV2 ConfigMap to AKS cluster. AKS id: '%s'.",
               aks.resourceId()),
           e);
-      if (isK8sApiRetryableError(e.getCode())) {
-        return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
-      } else {
-        return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
-      }
+      return isK8sApiRetryableError(e.getCode())
+          ? new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e)
+          : new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     } catch (AksConfigMapReaderException e) {
-      logger.info("Failed to initialize k8s config map for ContainerLogV2", e);
+      logger.error("Failed to initialize k8s ConfigMap for ContainerLogV2.", e);
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
     }
 

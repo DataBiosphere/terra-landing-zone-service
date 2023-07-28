@@ -62,10 +62,12 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     final TargetManagedResourceGroup targetMrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
+        null,
         Map.of(
             CreateAksStep.AKS_RESOURCE_KEY,
-            LandingZoneResource.builder().resourceName(aksClusterName).build()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, targetMrg));
+            LandingZoneResource.builder().resourceName(aksClusterName).build(),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            targetMrg));
 
     var v1ConfigMap = mock(V1ConfigMap.class);
     when(mockAksConfigMapReader.read()).thenReturn(v1ConfigMap);
@@ -89,26 +91,10 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
   }
 
   @ParameterizedTest
-  @MethodSource("parametersProvider")
-  void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
-
-    assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
-  }
-
-  @ParameterizedTest
-  @MethodSource("parametersProvider")
+  @MethodSource("workingParametersProvider")
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(
-                CreateAksStep.AKS_RESOURCE_KEY,
-                LandingZoneResource.builder().resourceId("aksId").build()));
     FlightMap flightMapWorkingParameters =
         FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
     when(mockFlightContext.getWorkingMap()).thenReturn(flightMapWorkingParameters);
 
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
@@ -121,10 +107,12 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     final TargetManagedResourceGroup targetMrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
+        null,
         Map.of(
             CreateAksStep.AKS_RESOURCE_KEY,
-            LandingZoneResource.builder().resourceId("aksId").resourceName(aksClusterName).build()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, targetMrg));
+            LandingZoneResource.builder().resourceId("aksId").resourceName(aksClusterName).build(),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            targetMrg));
 
     var v1ConfigMap = mock(V1ConfigMap.class);
     when(mockAksConfigMapReader.read()).thenReturn(v1ConfigMap);
@@ -149,10 +137,12 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     final TargetManagedResourceGroup targetMrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
         mockFlightContext,
+        null,
         Map.of(
             CreateAksStep.AKS_RESOURCE_KEY,
-            LandingZoneResource.builder().resourceId("aksId").resourceName(aksClusterName).build()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, targetMrg));
+            LandingZoneResource.builder().resourceId("aksId").resourceName(aksClusterName).build(),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            targetMrg));
 
     doThrow(AksConfigMapReaderException.class).when(mockAksConfigMapReader).read();
 
@@ -160,11 +150,15 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_FAILURE_FATAL));
   }
 
-  // input and working maps require single value
-  // providing empty map in both cases allows checking validation
-  private static Stream<Arguments> parametersProvider() {
+  private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
-        // intentionally return empty map, to check required parameter validation
-        Arguments.of(Map.of()));
+        Arguments.of(
+            Map.of(
+                CreateAksStep.AKS_RESOURCE_KEY,
+                LandingZoneResource.builder().resourceName("aksClusterName").build())),
+        Arguments.of(
+            Map.of(
+                GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+                ResourceStepFixture.createDefaultMrg())));
   }
 }
