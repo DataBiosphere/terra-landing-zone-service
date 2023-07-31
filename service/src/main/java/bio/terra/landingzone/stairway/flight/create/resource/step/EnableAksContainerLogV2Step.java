@@ -58,7 +58,7 @@ public class EnableAksContainerLogV2Step implements Step {
     try {
       var containerLogV2ConfigMap = aksConfigMapReader.read();
       createContainerLogV2ConfigMap(
-          containerLogV2ConfigMap, mrg.name(), aks.resourceName().get(), "kube-system");
+          containerLogV2ConfigMap, mrg.name(), aks.resourceName().orElseThrow(), "kube-system");
       logger.info(
           "ContainerLogV2 ConfigMap has been successfully applied to AKS with id='{}'",
           aks.resourceId());
