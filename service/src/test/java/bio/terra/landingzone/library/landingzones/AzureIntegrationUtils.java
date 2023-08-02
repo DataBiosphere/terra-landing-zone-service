@@ -23,11 +23,11 @@ public class AzureIntegrationUtils {
   private static final String CLIENT_SECRET_ENV_VAR = "AZURE_PUBLISHER_CLIENT_SECRET";
   private static final String TENANT_ID_ENV_VAR = "AZURE_PUBLISHER_TENANT_ID";
 
-  // 8201558-terra-dev
+  // 8201558-dsp-azure-testing
   public static final AzureProfile TERRA_DEV_AZURE_PROFILE =
       new AzureProfile(
-          "0cb7a640-45a2-4ed6-be9f-63519f86e04b",
-          "c5f8eca3-f512-48cb-b01f-f19f1af9014c",
+          "***REMOVED***",
+          "f557c728-871d-408c-a28b-eb6b2141a087",
           AzureEnvironment.AZURE);
 
   /**
