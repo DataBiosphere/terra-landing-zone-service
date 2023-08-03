@@ -1,5 +1,6 @@
 package bio.terra.landingzone.stairway.flight;
 
+import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapFileReaderImpl;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
@@ -22,6 +23,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageA
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerLogV2Step;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
@@ -103,6 +105,12 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.cloud()),
         Pair.of(
             new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(
+            new EnableAksContainerLogV2Step(
+                armManagers,
+                new KubernetesClientProviderImpl(),
+                new AksConfigMapFileReaderImpl(EnableAksContainerLogV2Step.CONFIG_MAP_PATH)),
             RetryRules.cloud()));
   }
 }
