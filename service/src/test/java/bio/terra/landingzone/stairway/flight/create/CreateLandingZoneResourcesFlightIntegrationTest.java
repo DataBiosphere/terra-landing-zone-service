@@ -7,10 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.stairway.StairwayComponent;
+import bio.terra.landingzone.common.k8s.configmap.reader.ContainerLogV2ConfigMapValidator;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
@@ -33,6 +35,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandi
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
+import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
 import bio.terra.profile.model.CloudPlatform;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightState;
@@ -45,6 +48,9 @@ import com.azure.resourcemanager.compute.models.VirtualMachineSizeTypes;
 import com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner;
 import com.azure.resourcemanager.monitor.models.LogSettings;
 import com.azure.resourcemanager.storage.models.PublicAccess;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -174,8 +180,41 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
     // disabling this validation because current data collection rule is currently disabled
     // due to k8s monitoring issue. Jira - WOR-1147
     // assertAksCostOptimizedDataCollectionRule(flightState);
-
+    assertContainerLogV2();
     testCannotDeleteLandingZoneWithDependencies();
+  }
+
+  void assertContainerLogV2() {
+    // names below correspond to what we have in ContainerLogV2.yaml
+    String containerLogV2ConfigMapName = "container-azm-ms-agentconfig";
+    String containerLogV2ConfigMapNamespace = "kube-system";
+    var resources = landingZoneManager.reader().listSharedResources(landingZoneId.toString());
+    String aksResourceId =
+        resources.stream()
+            .filter(r -> r.resourceType().contains("Microsoft.ContainerService/managedClusters"))
+            .findFirst()
+            .orElseThrow()
+            .resourceId();
+    String[] aksResourceNameParts = aksResourceId.split("/");
+    CoreV1Api k8sApiClient =
+        new KubernetesClientProviderImpl()
+            .createCoreApiClient(
+                armManagers,
+                resourceGroup.name(),
+                aksResourceNameParts[aksResourceNameParts.length - 1] /* aks cluster name*/);
+    try {
+      // validate that corresponding ConfigMap exists and contains required value
+      V1ConfigMap configMap =
+          k8sApiClient.readNamespacedConfigMap(
+              containerLogV2ConfigMapName, containerLogV2ConfigMapNamespace, null);
+      ContainerLogV2ConfigMapValidator.validate(configMap);
+    } catch (ApiException ex) {
+      fail(
+          String.format(
+              "Failed to find ConfigMap with name '%s'. ConfigMap is required to enable ContainerLogV2.",
+              containerLogV2ConfigMapName),
+          ex);
+    }
   }
 
   void assertDiagnosticSettings(String settingsResultKey, FlightState flightState) {

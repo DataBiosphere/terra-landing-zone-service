@@ -51,7 +51,6 @@ data:
           # fluent-bit based multiline log collection for go (stacktrace), dotnet (stacktrace)
           # if enabled will also stitch together container logs split by docker/cri due to size limits(16KB per log line)
           # enabled = "false"
-
 metadata:
   name: container-azm-ms-agentconfig
   namespace: kube-system
