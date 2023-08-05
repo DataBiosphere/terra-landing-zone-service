@@ -5,6 +5,7 @@ import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerat
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -17,6 +18,7 @@ import com.azure.resourcemanager.monitor.models.DataCollectionRuleDataSources;
 import com.azure.resourcemanager.monitor.models.DataCollectionRuleDestinations;
 import com.azure.resourcemanager.monitor.models.DataFlow;
 import com.azure.resourcemanager.monitor.models.ExtensionDataSource;
+import com.azure.resourcemanager.monitor.models.KnownDataCollectionRuleResourceKind;
 import com.azure.resourcemanager.monitor.models.KnownDataFlowStreams;
 import com.azure.resourcemanager.monitor.models.KnownExtensionDataSourceStreams;
 import com.azure.resourcemanager.monitor.models.KnownSyslogDataSourceFacilityNames;
@@ -44,15 +46,6 @@ import org.springframework.http.HttpStatus;
  * will be included or excluded based on the namespaceFilteringMode. This parameter is not included
  * into current configuration since namespaceFilteringMode is set to Off. But can be added later by
  * adding 'namespaces' field into DataCollectionSettings.
- */
-
-/**
- * **********************************!!! WARNING !!!**********************************
- *
- * <p>This step is currently excluded from LZ flight because it breaks K8s monitoring. The cost
- * optimization settings requires following parameter 'useAADAuth' set to true, but at the same time
- * setting this value breaks K8s monitoring. This step is temporarily disabled until we find
- * workaround or proper resolution.
  */
 public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResourceCreateStep {
   public static final String AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID =
@@ -150,7 +143,12 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
     // "MSCI-k8sRegion-k8sName"
     // but this behavior looks like Azure portal limitation since this rule is created implicitly
     // and user doesn't set it.
-    var dataCollectionRuleName = resourceNameProvider.getName(getResourceType());
+    var aksResource =
+        getParameterOrThrow(
+            context.getWorkingMap(), CreateAksStep.AKS_RESOURCE_KEY, LandingZoneResource.class);
+    // var dataCollectionRuleName = resourceNameProvider.getName(getResourceType());
+    var dataCollectionRuleName =
+        getRuleName(aksResource.region(), aksResource.resourceName().orElseThrow());
     try {
       var dataCollectionRule =
           armManagers
@@ -166,6 +164,9 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
       context
           .getWorkingMap()
           .put(AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID, dataCollectionRule.getValue().id());
+      logger.info(
+          "Data collection rule for cost optimization settings created. Rule id={}",
+          dataCollectionRule.getValue().id());
       return dataCollectionRule.getValue().id();
     } catch (ManagementException e) {
       if (e.getResponse() != null
@@ -215,7 +216,9 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
                         new ExtensionDataSource()
                             .withName("ContainerInsightsExtension")
                             .withStreams(
-                                List.of(KnownExtensionDataSourceStreams.MICROSOFT_INSIGHTS_METRICS))
+                                List.of(
+                                    KnownExtensionDataSourceStreams.fromString(
+                                        "Microsoft-ContainerInsights-Group-Default")))
                             .withExtensionName("ContainerInsights")
                             .withExtensionSettings(defaultExtensionSettings)))
                 .withSyslog(
@@ -237,10 +240,12 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
                 new DataFlow()
                     .withStreams(
                         List.of(
-                            KnownDataFlowStreams.MICROSOFT_INSIGHTS_METRICS,
+                            KnownDataFlowStreams.fromString(
+                                "Microsoft-ContainerInsights-Group-Default"),
                             KnownDataFlowStreams.MICROSOFT_SYSLOG))
                     .withDestinations(List.of(DESTINATION_NAME))))
         .withLocation(regionName)
+        .withKind(KnownDataCollectionRuleResourceKind.LINUX)
         .withTags(
             Map.of(
                 LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
@@ -263,5 +268,9 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
     return KnownSyslogDataSourceFacilityNames.values().stream()
         .filter(v -> !v.equals(KnownSyslogDataSourceFacilityNames.ASTERISK))
         .toList();
+  }
+
+  private static String getRuleName(String aksRegion, String aksName) {
+    return String.format("MSCI-%s-%s", aksRegion, aksName);
   }
 }

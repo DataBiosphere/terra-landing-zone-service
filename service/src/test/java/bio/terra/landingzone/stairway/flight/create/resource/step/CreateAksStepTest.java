@@ -2,14 +2,13 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -29,7 +28,6 @@ import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeT
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool;
 import com.azure.resourcemanager.containerservice.models.KubernetesClusters;
-import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import java.util.Map;
@@ -75,7 +73,6 @@ class CreateAksStepTest extends BaseStepTest {
   @Mock private KubernetesCluster.Definition mockK8sDefinition;
   @Mock private KubernetesCluster mockKubernetesCluster;
 
-  @Captor private ArgumentCaptor<Map<String, ManagedClusterAddonProfile>> addonProfileCaptor;
   @Captor private ArgumentCaptor<Map<String, String>> tagsCaptor;
 
   private CreateAksStep testStep;
@@ -112,7 +109,7 @@ class CreateAksStepTest extends BaseStepTest {
     verify(mockK8sDefinitionStageWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
-    verifyAddonProfile(addonProfileCaptor.getValue());
+    verifyOmsAgentAddonProfileNotSet();
   }
 
   @ParameterizedTest
@@ -143,15 +140,8 @@ class CreateAksStepTest extends BaseStepTest {
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 
-  // verify that we don't use useAADAuth. When this parameter exists it breaks K8s monitoring.
-  // At the same time cost optimization settings doesn't work properly without it
-  // WOR-1147 to find a workaround or fix and get this option back.
-  private void verifyAddonProfile(Map<String, ManagedClusterAddonProfile> addonProfile) {
-    ManagedClusterAddonProfile profile = addonProfile.get("omsagent");
-    assertNotNull(profile);
-    assertFalse(
-        profile.config().containsKey("useAADAuth"),
-        "'useAADAuth' breaks k8s monitoring and should not be used.");
+  private void verifyOmsAgentAddonProfileNotSet() {
+    verify(mockK8sDefinitionStageWithCreate, never()).withAddOnProfiles(any());
   }
 
   private void setupParameterResolver() {
@@ -171,8 +161,6 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockKubernetesCluster.id()).thenReturn(RESOURCE_ID);
     when(mockK8sDefinitionStageWithCreate.create()).thenReturn(mockKubernetesCluster);
     when(mockK8sDefinitionStageWithCreate.withTags(tagsCaptor.capture()))
-        .thenReturn(mockK8sDefinitionStageWithCreate);
-    when(mockK8sDefinitionStageWithCreate.withAddOnProfiles(addonProfileCaptor.capture()))
         .thenReturn(mockK8sDefinitionStageWithCreate);
     when(mockK8sDefinition.withDnsPrefix(anyString())).thenReturn(mockK8sDefinitionStageWithCreate);
     when(mockK8sAPDefinitionStagesWithAttach.attach()).thenReturn(mockK8sDefinition);

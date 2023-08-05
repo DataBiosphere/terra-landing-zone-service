@@ -14,11 +14,9 @@ import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
-import com.azure.resourcemanager.containerservice.models.ManagedClusterAddonProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,13 +50,6 @@ public class CreateAksStep extends BaseResourceCreateStep {
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             String.class);
     var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
-
-    final Map<String, ManagedClusterAddonProfile> addonProfileMap = new HashMap<>();
-    addonProfileMap.put(
-        "omsagent",
-        new ManagedClusterAddonProfile()
-            .withEnabled(true)
-            .withConfig(Map.of("logAnalyticsWorkspaceResourceID", logAnalyticsWorkspaceId)));
 
     var aksName = resourceNameProvider.getName(getResourceType());
     var aksPartial =
@@ -100,7 +91,6 @@ public class CreateAksStep extends BaseResourceCreateStep {
         aksPartial
             .attach()
             .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
-            .withAddOnProfiles(addonProfileMap)
             .withTags(
                 Map.of(
                     LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
