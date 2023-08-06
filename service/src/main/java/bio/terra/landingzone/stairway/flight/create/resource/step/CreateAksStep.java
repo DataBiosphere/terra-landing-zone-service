@@ -44,11 +44,6 @@ public class CreateAksStep extends BaseResourceCreateStep {
     UUID landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-    var logAnalyticsWorkspaceId =
-        getParameterOrThrow(
-            context.getWorkingMap(),
-            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            String.class);
     var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
 
     var aksName = resourceNameProvider.getName(getResourceType());

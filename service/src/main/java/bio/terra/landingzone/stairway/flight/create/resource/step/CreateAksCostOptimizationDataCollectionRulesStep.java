@@ -139,14 +139,13 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
 
   private String createRule(
       UUID landingZoneId, String logAnalyticsWorkspaceId, FlightContext context) {
-    // if this is created via portal name of the rule has the following format by default:
-    // "MSCI-k8sRegion-k8sName"
-    // but this behavior looks like Azure portal limitation since this rule is created implicitly
-    // and user doesn't set it.
     var aksResource =
         getParameterOrThrow(
             context.getWorkingMap(), CreateAksStep.AKS_RESOURCE_KEY, LandingZoneResource.class);
-    // var dataCollectionRuleName = resourceNameProvider.getName(getResourceType());
+    // Following convention for rule name as described here at the limitation section
+    // https://learn.microsoft.com/en-us/azure/azure-monitor/containers/container-insights-enable-aks?tabs=azure-cli
+    // if this is created via portal name of the rule has the following format by default:
+    // "MSCI-k8sRegion-k8sName".
     var dataCollectionRuleName =
         getRuleName(aksResource.region(), aksResource.resourceName().orElseThrow());
     try {

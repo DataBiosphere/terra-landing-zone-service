@@ -59,13 +59,10 @@ public class EnableAksContainerInsightsStep implements Step {
                     logAnalyticsWorkspaceId,
                     "useAADAuth",
                     "true")));
-
     try {
       var aks = armManagers.azureResourceManager().kubernetesClusters().getById(aksId);
       KubernetesCluster.Update aksToUpdate = aks.update();
       aksToUpdate.withAddOnProfiles(addonProfileMap).apply();
-      // aksToUpdate.apply();
-      // aks.refresh();
       logger.info("Container insights for AKS with id='{}' has been enabled.", aksId);
     } catch (ManagementException e) {
       if (HttpResponseUtils.isRetryable(e.getResponse().getStatusCode())) {
@@ -81,7 +78,7 @@ public class EnableAksContainerInsightsStep implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-    // no need disable container insights
+    // no need to disable container insights
     return StepResult.getStepResultSuccess();
   }
 }

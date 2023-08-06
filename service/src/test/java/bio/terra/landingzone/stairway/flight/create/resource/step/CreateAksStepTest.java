@@ -206,10 +206,6 @@ class CreateAksStepTest extends BaseStepTest {
   private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
         // intentionally return empty map, to check required parameter validation
-        Arguments.of(
-            Map.of(
-                CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-                "logAnalyticsWorkspaceId")),
-        Arguments.of(Map.of(CreateVnetStep.VNET_ID, "vNetId")));
+        Arguments.of(Map.of()));
   }
 }
