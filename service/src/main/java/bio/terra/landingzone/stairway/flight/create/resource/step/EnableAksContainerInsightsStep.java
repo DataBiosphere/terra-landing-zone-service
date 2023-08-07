@@ -17,13 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This step turns on Container insights (monitoring) for AKS by applying specific profile. We know
- * that earlier ContainerInsight was created as a result of enabling monitoring feature in AKS. And
- * usage of the following option "useAADAuth=true" results in AKS monitoring/logging issue as
- * ContainerInsight wasn't created in a specific MRG. So, that ContainerInsight was part of legacy
- * solution, and now we need to use "useAADAuth=true" option instead. But we need to enable
- * container insight separately from AKS creation. Also, container insight should be enabled as a
- * last step once all the logging configuration/rules are ready.
+ * This step turns on Container insights (monitoring) for AKS by applying the specific add-on
+ * profile, specifying "useAADAuth=true". Container insights must be enabled after AKS creation, and
+ * after the AKS monitoring configuration is created (for instance data collection rule and rule
+ * association in case of cost optimization settings or ContainerLogV2). Attempting to enable
+ * container insights at the time of AKS creation resulted in broken AKS monitoring.
  */
 public class EnableAksContainerInsightsStep implements Step {
   private static final Logger logger =
