@@ -13,6 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -59,7 +60,6 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
 
   private static final String LOG_ANALYTICS_WORKSPACE_ID = "logAnalyticsWorkspaceId";
   private static final String AKS_ID = "aksId";
-  private static final String DATA_COLLECTION_RULE_NAME = "aksCostOptimizationDataCollectionRule";
 
   @Mock private MonitorManager mockMonitorManager;
   @Mock private MonitorClient mockServiceClient;
@@ -103,11 +103,10 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
 
   @Test
   void doStepSuccess() throws InterruptedException {
-    when(mockResourceNameProvider.getName(testStep.getResourceType()))
-        .thenReturn(DATA_COLLECTION_RULE_NAME);
-
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    setupFlightContextForSuccessfulFlight(mrg);
+    LandingZoneResource aksResource =
+        ResourceStepFixture.createAksLandingZoneResource(AKS_ID, "aksName");
+    setupFlightContextForSuccessfulFlight(mrg, aksResource);
     setupArmManagersForDoStep();
 
     StepResult stepResult = testStep.doStep(mockFlightContext);
@@ -127,7 +126,11 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
             any(Context.class));
 
     assertThat(resourceGroupNameCaptor.getValue(), equalTo(mrg.name()));
-    assertThat(dataCollectionRuleNameCaptor.getValue(), equalTo(DATA_COLLECTION_RULE_NAME));
+    assertThat(
+        dataCollectionRuleNameCaptor.getValue(),
+        equalTo(
+            String.format(
+                "MSCI-%s-%s", aksResource.region(), aksResource.resourceName().orElseThrow())));
     assertThat(contextCaptor.getAllValues().get(0), equalTo(Context.NONE));
     validateCreateRuleRequest(dataCollectionRuleResourceInnerCaptor.getValue(), mrg.region());
 
@@ -140,11 +143,10 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
 
   @Test
   void doStepWhenRuleAlreadyExistsSuccess() throws InterruptedException {
-    when(mockResourceNameProvider.getName(testStep.getResourceType()))
-        .thenReturn(DATA_COLLECTION_RULE_NAME);
-
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    setupFlightContextForSuccessfulFlight(mrg);
+    LandingZoneResource aksResource =
+        ResourceStepFixture.createAksLandingZoneResource(AKS_ID, "aksName");
+    setupFlightContextForSuccessfulFlight(mrg, aksResource);
     setupArmManagersWhenRuleExists();
 
     StepResult stepResult = testStep.doStep(mockFlightContext);
@@ -156,8 +158,10 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
             anyString(),
             any(DataCollectionRuleResourceInner.class),
             any(Context.class));
+    String dataCollectionRuleName =
+        String.format("MSCI-%s-%s", aksResource.region(), aksResource.resourceName().orElseThrow());
     verify(mockDataCollectionRulesClient, times(1))
-        .getByResourceGroup(mrg.name(), DATA_COLLECTION_RULE_NAME);
+        .getByResourceGroup(mrg.name(), dataCollectionRuleName);
     verify(mockDataCollectionRuleAssociationsClient, times(1))
         .createWithResponse(
             anyString(),
@@ -166,7 +170,7 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
             any(Context.class));
 
     assertThat(resourceGroupNameCaptor.getValue(), equalTo(mrg.name()));
-    assertThat(dataCollectionRuleNameCaptor.getValue(), equalTo(DATA_COLLECTION_RULE_NAME));
+    assertThat(dataCollectionRuleNameCaptor.getValue(), equalTo(dataCollectionRuleName));
     assertThat(contextCaptor.getAllValues().get(0), equalTo(Context.NONE));
     validateCreateRuleRequest(dataCollectionRuleResourceInnerCaptor.getValue(), mrg.region());
 
@@ -205,7 +209,8 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 
-  private void setupFlightContextForSuccessfulFlight(TargetManagedResourceGroup mrg) {
+  private void setupFlightContextForSuccessfulFlight(
+      TargetManagedResourceGroup mrg, LandingZoneResource aksResource) {
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -219,7 +224,9 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             LOG_ANALYTICS_WORKSPACE_ID,
             CreateAksStep.AKS_ID,
-            AKS_ID));
+            AKS_ID,
+            CreateAksStep.AKS_RESOURCE_KEY,
+            aksResource));
   }
 
   private void setupArmManagersForDoStep() {
@@ -349,7 +356,10 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
         dataFlows.stream()
             .anyMatch(
                 e ->
-                    e.streams().contains(KnownDataFlowStreams.MICROSOFT_INSIGHTS_METRICS)
+                    e.streams()
+                            .contains(
+                                KnownDataFlowStreams.fromString(
+                                    "Microsoft-ContainerInsights-Group-Default"))
                         && e.destinations().contains(destination)));
     assertTrue(
         dataFlows.stream()

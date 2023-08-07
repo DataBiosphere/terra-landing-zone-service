@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapReader;
 import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapReaderException;
+import bio.terra.landingzone.common.utils.HttpResponseUtils;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -16,7 +17,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 
 /**
  * This class implements functionality to apply specific ConfigMap to AKS to enable ContainerLogV2
@@ -99,9 +99,6 @@ public class EnableAksContainerLogV2Step implements Step {
   }
 
   private boolean isK8sApiRetryableError(int httpStatusCode) {
-    return httpStatusCode == HttpStatus.INTERNAL_SERVER_ERROR.value()
-        || httpStatusCode == HttpStatus.BAD_GATEWAY.value()
-        || httpStatusCode == HttpStatus.SERVICE_UNAVAILABLE.value()
-        || httpStatusCode == HttpStatus.GATEWAY_TIMEOUT.value();
+    return HttpResponseUtils.isRetryable(httpStatusCode);
   }
 }

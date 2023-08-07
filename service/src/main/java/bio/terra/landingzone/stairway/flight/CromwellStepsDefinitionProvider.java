@@ -6,6 +6,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
@@ -23,6 +24,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageA
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerLogV2Step;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
@@ -107,10 +109,15 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
+            new CreateAksCostOptimizationDataCollectionRulesStep(
+                armManagers, parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(
             new EnableAksContainerLogV2Step(
                 armManagers,
                 new KubernetesClientProviderImpl(),
                 new AksConfigMapFileReaderImpl(EnableAksContainerLogV2Step.CONFIG_MAP_PATH)),
-            RetryRules.cloud()));
+            RetryRules.cloud()),
+        Pair.of(new EnableAksContainerInsightsStep(armManagers), RetryRules.cloud()));
   }
 }
