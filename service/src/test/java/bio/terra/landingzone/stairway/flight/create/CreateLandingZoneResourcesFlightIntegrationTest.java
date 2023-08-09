@@ -3,12 +3,16 @@ package bio.terra.landingzone.stairway.flight.create;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.stairway.StairwayComponent;
+import bio.terra.landingzone.common.k8s.configmap.reader.ContainerLogV2ConfigMapValidator;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
@@ -24,8 +28,14 @@ import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesDeleteManager;
 import bio.terra.landingzone.library.landingzones.management.deleterules.*;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDiagnosticSetting;
+import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
+import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
 import bio.terra.profile.model.CloudPlatform;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightState;
@@ -35,8 +45,14 @@ import bio.terra.stairway.exception.StairwayException;
 import com.azure.resourcemanager.batch.models.*;
 import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
 import com.azure.resourcemanager.compute.models.VirtualMachineSizeTypes;
+import com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner;
+import com.azure.resourcemanager.monitor.models.LogSettings;
 import com.azure.resourcemanager.storage.models.PublicAccess;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.awaitility.Awaitility;
@@ -119,7 +135,10 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
             .id(UUID.randomUUID());
     landingZoneManager =
         LandingZoneManager.createLandingZoneManager(
-            tokenCredential, azureProfile, resourceGroup.name());
+            tokenCredential,
+            azureProfile,
+            resourceGroup.name(),
+            null /*ignore this value in test*/);
   }
 
   @AfterEach
@@ -143,16 +162,128 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
             () -> {
               var flightState = retrieveFlightState(jobId.toString());
               assertThat(flightState.getFlightStatus(), not(FlightStatus.RUNNING));
+              var resources =
+                  landingZoneManager.reader().listSharedResources(landingZoneId.toString());
+              assertThat(
+                  resources,
+                  hasSize(
+                      AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()
+                          + 2 /*magic number which represents data collection rules which probably should not be tagged as shared resources*/));
             });
     var flightState = retrieveFlightState(jobId.toString());
     assertThat(flightState.getFlightStatus(), is(FlightStatus.SUCCESS));
 
-    var lzIdString = landingZoneId.toString();
-
-    var resources = landingZoneManager.reader().listSharedResources(lzIdString);
-    assertThat(resources, hasSize(AggregateLandingZoneResourcesStep.deployedResourcesKeys.size()));
-
+    // verify that we have our diagnostic settings setup as expected
+    // (these can silently fail to create, so we are making a explicit check here)
+    assertDiagnosticSettings(
+        CreateStorageAuditLogSettingsStep.STORAGE_AUDIT_LOG_SETTINGS_KEY, flightState);
+    assertAksCostOptimizedDataCollectionRule(flightState);
+    assertContainerLogV2();
     testCannotDeleteLandingZoneWithDependencies();
+  }
+
+  void assertContainerLogV2() {
+    // names below correspond to what we have in ContainerLogV2.yaml
+    String containerLogV2ConfigMapName = "container-azm-ms-agentconfig";
+    String containerLogV2ConfigMapNamespace = "kube-system";
+    var resources = landingZoneManager.reader().listSharedResources(landingZoneId.toString());
+    String aksResourceId =
+        resources.stream()
+            .filter(r -> r.resourceType().contains("Microsoft.ContainerService/managedClusters"))
+            .findFirst()
+            .orElseThrow()
+            .resourceId();
+    String[] aksResourceNameParts = aksResourceId.split("/");
+    CoreV1Api k8sApiClient =
+        new KubernetesClientProviderImpl()
+            .createCoreApiClient(
+                armManagers,
+                resourceGroup.name(),
+                aksResourceNameParts[aksResourceNameParts.length - 1] /* aks cluster name*/);
+    try {
+      // validate that corresponding ConfigMap exists and contains required value
+      V1ConfigMap configMap =
+          k8sApiClient.readNamespacedConfigMap(
+              containerLogV2ConfigMapName, containerLogV2ConfigMapNamespace, null);
+      ContainerLogV2ConfigMapValidator.validate(configMap);
+    } catch (ApiException ex) {
+      fail(
+          String.format(
+              "Failed to find ConfigMap with name '%s'. ConfigMap is required to enable ContainerLogV2.",
+              containerLogV2ConfigMapName),
+          ex);
+    }
+  }
+
+  void assertDiagnosticSettings(String settingsResultKey, FlightState flightState) {
+    var results = flightState.getResultMap().orElseThrow();
+    var expectedDiagnosticSettings =
+        results.get(settingsResultKey, LandingZoneDiagnosticSetting.class);
+    assertNotNull(expectedDiagnosticSettings);
+
+    var diagnosticSettings =
+        armManagers
+            .monitorManager()
+            .diagnosticSettings()
+            .listByResource(expectedDiagnosticSettings.resourceId())
+            .stream()
+            .toList();
+
+    assertThat(diagnosticSettings.size(), equalTo(1));
+    var actualLogCategories =
+        diagnosticSettings.get(0).logs().stream().map(LogSettings::category).toList();
+    var expectedLogCategories =
+        expectedDiagnosticSettings.logs().stream().map(LogSettings::category).toList();
+    assertEquals(actualLogCategories, expectedLogCategories);
+  }
+
+  void assertAksCostOptimizedDataCollectionRule(FlightState flightState) {
+    var results = flightState.getResultMap().orElseThrow();
+    var dataCollectionRuleId =
+        results.get(
+            CreateAksCostOptimizationDataCollectionRulesStep
+                .AKS_COST_OPTIMIZATION_DATA_COLLECTION_RULE_ID,
+            String.class);
+    assertNotNull(dataCollectionRuleId);
+    var mrg =
+        results.get(GetManagedResourceGroupInfo.TARGET_MRG_KEY, TargetManagedResourceGroup.class);
+    assertNotNull(mrg);
+
+    var dataCollectionRuleIdParts = dataCollectionRuleId.split("/");
+    var dataCollectionRuleName = dataCollectionRuleIdParts[dataCollectionRuleIdParts.length - 1];
+    DataCollectionRuleResourceInner rule =
+        armManagers
+            .monitorManager()
+            .serviceClient()
+            .getDataCollectionRules()
+            .getByResourceGroup(mrg.name(), dataCollectionRuleName);
+    assertNotNull(rule);
+    var ruleDataSources = rule.dataSources();
+    assertNotNull(ruleDataSources);
+    var ruleDataSourcesExtensions = ruleDataSources.extensions();
+    assertNotNull(ruleDataSourcesExtensions);
+    assertThat(ruleDataSourcesExtensions.size(), equalTo(1));
+    var extensionDataSource = ruleDataSourcesExtensions.get(0);
+    assertThat(extensionDataSource.extensionName(), equalTo("ContainerInsights"));
+    assertThat(extensionDataSource.name(), equalTo("ContainerInsightsExtension"));
+    var containerInsightsExtensionSettings = extensionDataSource.extensionSettings();
+    assertNotNull(containerInsightsExtensionSettings);
+    var dataCollectionSettings =
+        ((LinkedHashMap) containerInsightsExtensionSettings).get("dataCollectionSettings");
+    assertNotNull(dataCollectionSettings);
+    var interval = ((LinkedHashMap) dataCollectionSettings).get("interval");
+    assertNotNull(interval);
+    assertThat(
+        interval,
+        equalTo(CreateAksCostOptimizationDataCollectionRulesStep.DATA_COLLECTION_INTERVAL));
+    var namespaceFilteringMode =
+        ((LinkedHashMap) dataCollectionSettings).get("namespaceFilteringMode");
+    assertNotNull(namespaceFilteringMode);
+    assertThat(
+        namespaceFilteringMode,
+        equalTo(
+            CreateAksCostOptimizationDataCollectionRulesStep
+                .DATA_COLLECTION_NAMESPACE_FILTERING_MODE));
   }
 
   private void testCannotDeleteLandingZoneWithDependencies() {

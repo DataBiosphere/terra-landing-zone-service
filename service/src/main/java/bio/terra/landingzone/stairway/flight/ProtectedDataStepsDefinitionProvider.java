@@ -66,7 +66,7 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
                 resourceNameProvider,
                 new AlertRulesHelper(armManagers.securityInsightsManager()),
                 landingZoneProtectedDataConfiguration),
-            RetryRules.cloud()));
+            RetryRules.cloudLongRunning()));
     protectedDataSteps.add(
         Pair.of(
             new CreateAksLogSettingsStep(

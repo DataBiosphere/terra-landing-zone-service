@@ -1,10 +1,12 @@
 package bio.terra.landingzone.stairway.flight;
 
+import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapFileReaderImpl;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
@@ -22,6 +24,8 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageA
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerInsightsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerLogV2Step;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
@@ -38,24 +42,6 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
       ParametersResolver parametersResolver,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    /*
-     * ~ - depends on
-     * 1) VNet step
-     * 2) Log analytics step
-     * 3) Postgres
-     * 4) Storage account
-     * 5) Batch account
-     *
-     * 6) Cors rules ~  4)
-     * 7) Data collection rules ~ 2)
-     * 8) Private endpoint ~ 1), 2)
-     * 9) AKS ~ 1)
-     * 10) Relay
-     * 11) Storage audit log settings ~ 3), 4)
-     * 12) Batch log settings ~ 3), 5)
-     * 13) Postgres log settings ~ 2), 3)
-     * 14) AppInsights ~ 3)
-     * */
     return List.of(
         Pair.of(
             new ValidateLandingZoneParametersStep(
@@ -121,6 +107,17 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.cloud()),
         Pair.of(
             new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()));
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateAksCostOptimizationDataCollectionRulesStep(
+                armManagers, parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(
+            new EnableAksContainerLogV2Step(
+                armManagers,
+                new KubernetesClientProviderImpl(),
+                new AksConfigMapFileReaderImpl(EnableAksContainerLogV2Step.CONFIG_MAP_PATH)),
+            RetryRules.cloud()),
+        Pair.of(new EnableAksContainerInsightsStep(armManagers), RetryRules.cloud()));
   }
 }

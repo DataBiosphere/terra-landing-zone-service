@@ -73,3 +73,8 @@ landingzone:
 terra.common:
   kubernetes:
     in-kubernetes: false
+
+azure:
+  customer:
+    #track azure resource usage
+    usage-attribute: [REAL VALUE COMES FROM WSM]
