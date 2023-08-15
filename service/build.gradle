@@ -49,9 +49,9 @@ dependencies {
 
     implementation group: "io.kubernetes", name: "client-java", version: "18.0.1"
     // io.kubernetes:client-java brings in snakeyaml 2.0 which breaks whatever version of liquibase was pulled in before
-    implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.23.0'
+    implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.23.1'
 
-    liquibaseRuntime 'org.liquibase:liquibase-core:4.23.0'
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.23.1'
     liquibaseRuntime 'info.picocli:picocli:4.7.4'
     liquibaseRuntime 'org.postgresql:postgresql:42.6.0'
     liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.9'
