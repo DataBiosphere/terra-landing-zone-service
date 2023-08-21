@@ -27,10 +27,10 @@ public class LandingZoneDefaultParameters {
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_DB_PASSWORD.name(),
         UUID.randomUUID().toString());
     defaultValues.put(
-        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name(), "Standard_B2s");
+        CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name(), "Standard_D2ds_v5");
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name(),
-        SkuTier.BURSTABLE.toString());
+        SkuTier.GENERAL_PURPOSE.toString());
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name(),
         ServerVersion.ONE_FOUR.toString());
