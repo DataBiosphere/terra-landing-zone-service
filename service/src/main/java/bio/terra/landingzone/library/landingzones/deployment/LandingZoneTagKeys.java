@@ -7,6 +7,7 @@ import java.util.Collection;
 public final class LandingZoneTagKeys extends ExpandableStringEnum<LandingZoneTagKeys> {
   public static final LandingZoneTagKeys LANDING_ZONE_ID = fromString("WLZ-ID");
   public static final LandingZoneTagKeys LANDING_ZONE_PURPOSE = fromString("WLZ-PURPOSE");
+  public static final LandingZoneTagKeys PGBOUNCER_ENABLED = fromString("pgbouncer-enabled");
 
   /**
    * Creates or finds a {@link LandingZoneTagKeys} from its string representation.
