@@ -53,6 +53,32 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
     var postgres = createServer(context, armManagers, postgresName);
 
+    //TODO can this be done with one call - or even better, in the same call as creating the server?
+    //Enable pg-bouncer
+    armManagers
+        .postgreSqlManager()
+        .configurations()
+        .define("pgbouncer.enabled")
+        .withExistingFlexibleServer(getMRGName(context), postgresName)
+        .withValue("true")
+        .withSource("user-override")
+        .create();
+    armManagers
+            .postgreSqlManager()
+            .configurations()
+            .define("metrics.pgbouncer_diagnostics")
+            .withExistingFlexibleServer(getMRGName(context), postgresName)
+            .withValue("on")
+            .withSource("user-override")
+            .create();
+    armManagers
+            .postgreSqlManager()
+            .configurations()
+            .define("pgbouncer.ignore_startup_parameters")
+            .withExistingFlexibleServer(getMRGName(context), postgresName)
+            .withValue("extra_float_digits")
+            .withSource("user-override")
+            .create();
     createAdminUser(context, armManagers, postgresName);
 
     context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
@@ -135,7 +161,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
                   landingZoneId.toString(),
                   LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                  ResourcePurpose.SHARED_RESOURCE.toString()))
+                  ResourcePurpose.SHARED_RESOURCE.toString(),
+                      LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(), "true"))
           .create();
     } catch (ManagementException e) {
       // resource may already exist if this step is being retried
