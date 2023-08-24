@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -44,6 +46,12 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   private static final String POSTGRESQL_ID = "postgresqlId";
 
   @Mock private PostgreSqlManager mockPostgreSqlManager;
+  @Mock private Configurations mockConfigurations;
+  @Mock private Configuration.DefinitionStages.Blank mockConfigurationsDefinitionStagesBlank;
+
+  @Mock
+  private Configuration.DefinitionStages.WithCreate mockConfigurationDefinitionStagesWithCreate;
+
   @Mock private Servers mockServers;
   @Mock private Server.DefinitionStages.Blank mockServerDefinitionStagesBlank;
 
@@ -92,7 +100,9 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID),
+            LANDING_ZONE_ID,
+            LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(),
+            "true"),
         Map.of(
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
@@ -106,7 +116,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             adminPrincipalId));
     setupArmManagersForDoStep(
         POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name(), adminPrincipalId, adminName);
-
     final ServerVersion serverVersion = ServerVersion.ONE_ONE;
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name()))
@@ -114,7 +123,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name()))
         .thenReturn(postgresqlSku);
-    final SkuTier skuTier = SkuTier.BURSTABLE;
+    final SkuTier skuTier = SkuTier.GENERAL_PURPOSE;
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
         .thenReturn(skuTier.toString());
@@ -210,6 +219,14 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
         .thenReturn(mockServerDefinitionStagesWithResourceGroup);
     when(mockServers.define(name)).thenReturn(mockServerDefinitionStagesBlank);
     when(mockPostgreSqlManager.servers()).thenReturn(mockServers);
+    when(mockConfigurationDefinitionStagesWithCreate.withValue(any()))
+        .thenReturn(mockConfigurationDefinitionStagesWithCreate);
+    when(mockConfigurationDefinitionStagesWithCreate.withSource(any()))
+        .thenReturn(mockConfigurationDefinitionStagesWithCreate);
+    when(mockConfigurationsDefinitionStagesBlank.withExistingFlexibleServer(resourceGroup, name))
+        .thenReturn(mockConfigurationDefinitionStagesWithCreate);
+    when(mockConfigurations.define(any())).thenReturn(mockConfigurationsDefinitionStagesBlank);
+    when(mockPostgreSqlManager.configurations()).thenReturn(mockConfigurations);
     when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
 
     when(mockPostgreSqlManager.administrators()).thenReturn(mockAdministrators);
