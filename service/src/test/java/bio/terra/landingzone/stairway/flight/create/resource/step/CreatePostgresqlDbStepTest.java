@@ -2,8 +2,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -136,6 +135,9 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name()))
         .thenReturn(storageSize);
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))
+        .thenReturn("true");
 
     StepResult stepResult = createPostgresqlDbStep.doStep(mockFlightContext);
 
@@ -143,6 +145,14 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
     verifyServerProperties(postgresqlSku, skuTier, backupRetention, storageSize, serverVersion);
     verifyBasicTags(postgresqlTagsCaptor.getValue(), LANDING_ZONE_ID);
+    // This assertion cannot go in veryBasicTags as it only applies to PostgresqlDb
+    assertTrue(
+        postgresqlTagsCaptor
+            .getValue()
+            .containsKey(LandingZoneTagKeys.PGBOUNCER_ENABLED.toString()));
+    assertThat(
+        postgresqlTagsCaptor.getValue().get(LandingZoneTagKeys.PGBOUNCER_ENABLED.toString()),
+        equalTo("true"));
     verify(mockServerDefinitionStagesWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockServerDefinitionStagesWithCreate);
   }

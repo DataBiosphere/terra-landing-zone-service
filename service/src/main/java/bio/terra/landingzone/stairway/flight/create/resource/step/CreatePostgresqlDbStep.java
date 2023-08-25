@@ -27,6 +27,7 @@ import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,33 +54,29 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
     var postgres = createServer(context, armManagers, postgresName);
 
-    // TODO can this be done with one call - or even better, in the same call as creating the
-    // server?
+    // Note: azure sdk does not allow this to be done with one call, let alone while creating the
+    // server
     // Enable pg-bouncer
-    armManagers
-        .postgreSqlManager()
-        .configurations()
-        .define("pgbouncer.enabled")
-        .withExistingFlexibleServer(getMRGName(context), postgresName)
-        .withValue("true")
-        .withSource("user-override")
-        .create();
-    armManagers
-        .postgreSqlManager()
-        .configurations()
-        .define("metrics.pgbouncer_diagnostics")
-        .withExistingFlexibleServer(getMRGName(context), postgresName)
-        .withValue("on")
-        .withSource("user-override")
-        .create();
-    armManagers
-        .postgreSqlManager()
-        .configurations()
-        .define("pgbouncer.ignore_startup_parameters")
-        .withExistingFlexibleServer(getMRGName(context), postgresName)
-        .withValue("extra_float_digits")
-        .withSource("user-override")
-        .create();
+    if ("true"
+        .equalsIgnoreCase(
+            parametersResolver.getValue(
+                CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))) {
+      LinkedHashMap<String, String> params = new LinkedHashMap<>();
+      params.put("pgbouncer.enabled", "true");
+      params.put("metrics.pgbouncer_diagnostics", "on");
+      params.put("pgbouncer.ignore_startup_parameters", "extra_float_digits");
+
+      params.forEach(
+          (key, value) ->
+              armManagers
+                  .postgreSqlManager()
+                  .configurations()
+                  .define(key)
+                  .withExistingFlexibleServer(getMRGName(context), postgresName)
+                  .withValue(value)
+                  .withSource("user-override")
+                  .create());
+    }
     createAdminUser(context, armManagers, postgresName);
 
     context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
@@ -164,7 +161,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                   ResourcePurpose.SHARED_RESOURCE.toString(),
                   LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(),
-                  "true"))
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name())))
           .create();
     } catch (ManagementException e) {
       // resource may already exist if this step is being retried
