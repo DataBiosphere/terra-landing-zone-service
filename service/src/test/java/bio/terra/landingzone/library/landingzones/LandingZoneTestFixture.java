@@ -35,6 +35,7 @@ public class LandingZoneTestFixture {
 
   @AfterAll
   static void cleanUpAfterAll() {
-    armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
+    // TODO UNCOMMENT THIS IS FOR VERIFICATION OF AKS LOG RETENTION SETTINGS
+    //armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
   }
 }
