@@ -89,11 +89,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableRetry
 @EnableTransactionManagement
 public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegrationTest {
-  private static final int LANDING_ZONE_RESOURCES_DELETED_AWAIT_TIMEOUT_MINUTES = 5;
-  private static final int LANDING_ZONE_RESOURCES_AVAILABLE_AWAIT_TIMEOUT_MINUTES = 5;
+  private static final int LANDING_ZONE_RESOURCES_DELETED_AWAIT_TIMEOUT_MINUTES = 2;
+  private static final int LANDING_ZONE_RESOURCES_AVAILABLE_AWAIT_TIMEOUT_MINUTES = 2;
   // includes time for rollback too in case of any issues
-  private static final int LZ_CREATED_AWAIT_TIMEOUT_MINUTES = 40;
-  private static final int LZ_DELETED_AWAIT_TIMEOUT_MINUTES = 30;
+  private static final int LZ_CREATED_AWAIT_TIMEOUT_MINUTES = 30;
+  private static final int LZ_DELETED_AWAIT_TIMEOUT_MINUTES = 20;
 
   @Mock private BearerToken bearerToken;
   @MockBean private LandingZoneDao landingZoneDao;
