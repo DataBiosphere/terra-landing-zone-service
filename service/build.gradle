@@ -52,7 +52,7 @@ dependencies {
     implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.23.1'
 
     liquibaseRuntime 'org.liquibase:liquibase-core:4.23.1'
-    liquibaseRuntime 'info.picocli:picocli:4.7.4'
+    liquibaseRuntime 'info.picocli:picocli:4.7.5'
     liquibaseRuntime 'org.postgresql:postgresql:42.6.0'
     liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.11'
 
