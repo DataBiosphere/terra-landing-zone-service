@@ -22,7 +22,8 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksLogSettingsStep.class);
 
   // set the retention days to zero to handle azure API deprecation
-  // see https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/migrate-to-azure-storage-lifecycle-policy
+  // see
+  // https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/migrate-to-azure-storage-lifecycle-policy
   private static final int RETENTION_DAYS = 0;
   private static final Map<String, Integer> AKS_LOGS_TO_CAPTURE =
       Map.ofEntries(
