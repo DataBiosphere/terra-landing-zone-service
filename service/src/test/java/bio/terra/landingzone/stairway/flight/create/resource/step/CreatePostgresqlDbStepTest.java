@@ -145,7 +145,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
     verifyServerProperties(postgresqlSku, skuTier, backupRetention, storageSize, serverVersion);
     verifyBasicTags(postgresqlTagsCaptor.getValue(), LANDING_ZONE_ID);
-    // This assertion cannot go in veryBasicTags as it only applies to PostgresqlDb
+    // This assertion cannot go in verifyBasicTags as it only applies to PostgresqlDb
     assertTrue(
         postgresqlTagsCaptor
             .getValue()

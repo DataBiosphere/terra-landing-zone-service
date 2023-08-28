@@ -57,10 +57,9 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
     // Note: azure sdk does not allow this to be done with one call, let alone while creating the
     // server
     // Enable pg-bouncer
-    if ("true"
-        .equalsIgnoreCase(
-            parametersResolver.getValue(
-                CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))) {
+    if (Boolean.parseBoolean(
+        parametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))) {
       LinkedHashMap<String, String> params = new LinkedHashMap<>();
       params.put("pgbouncer.enabled", "true");
       params.put("metrics.pgbouncer_diagnostics", "on");
