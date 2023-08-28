@@ -298,7 +298,8 @@ The table below describes the current Landing Zone Definitions available in the 
         <td valign="top">
             <strong>POSTGRES_DB_ADMIN:</strong> Username of the DB admin<br/>Default value: <i>db_admin</i><br/><br/>
             <strong>POSTGRES_DB_PASSWORD:</strong> DB admin password <br/>Default value: <i>UUID.randomUUID().toString()</i><br/><br/>
-            <strong>POSTGRES_SERVER_SKU:</strong> PostgreSQL Server SKU <br/>Default value: <i>GP_Gen5_2</i><br/><br/>
+            <strong>POSTGRES_SERVER_SKU:</strong> PostgreSQL Server SKU <br/>Default value: <i>Standard_D2ds_v5</i><br/><br/>
+            <strong>POSTGRES_SERVER_SKU_TIER:</strong> PostgreSQL Server Compute Tier <br/>Default value: <i>General Purpose</i><br/><br/>
             <strong>VNET_ADDRESS_SPACE:</strong> Virtual network address space <br/>Default value: <i>10.1.0.0/27</i><br/><br/>
             <strong>AKS_SUBNET:</strong> AKS subnet address space <br/>Default value: <i>10.1.0.0/29</i><br/><br/>
             <strong>BATCH_SUBNET:</strong> Batch subnet address space <br/>Default value: <i>10.1.0.8/29</i><br/><br/>
@@ -318,6 +319,7 @@ The table below describes the current Landing Zone Definitions available in the 
             <strong>STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE:</strong> The maximum amount time that a browser should cache the preflight OPTIONS request (in seconds) <br/>Default value: <i>0</i><br/><br/>
             <strong>Azure storage SKU types:</strong> <a href="https://learn.microsoft.com/en-us/rest/api/storagerp/srp_sku_types">documentation</a><br/><br/>
             <strong>STORAGE_ACCOUNT_SKU_TYPE:</strong> Type of storage account <br/>Default value: <i>Standard_LRS</i>; <br/>Accepted values: <i>Standard_LRS</i>, <i>Standard_GRS</i>, <i>Standard_RAGRS</i>, <i>Standard_ZRS</i>, <i>Premium_LRS;</i> Please see StorageAccountSkuType;<br/><br/>
+            <strong>ENABLE_PGBOUNCER:</strong> Whether to have pgbouncer enabled on postgresql server <br/>Default value: <i>true</i>;
         </td>
     </tr>
 <tr>
