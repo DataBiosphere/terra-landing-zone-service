@@ -27,6 +27,7 @@ import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.SkuTier;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Storage;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +54,28 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
     var postgres = createServer(context, armManagers, postgresName);
 
+    // Note: azure sdk does not allow this to be done with one call, let alone while creating the
+    // server
+    // Enable pg-bouncer
+    if (Boolean.parseBoolean(
+        parametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))) {
+      LinkedHashMap<String, String> params = new LinkedHashMap<>();
+      params.put("pgbouncer.enabled", "true");
+      params.put("metrics.pgbouncer_diagnostics", "on");
+      params.put("pgbouncer.ignore_startup_parameters", "extra_float_digits");
+
+      params.forEach(
+          (key, value) ->
+              armManagers
+                  .postgreSqlManager()
+                  .configurations()
+                  .define(key)
+                  .withExistingFlexibleServer(getMRGName(context), postgresName)
+                  .withValue(value)
+                  .withSource("user-override")
+                  .create());
+    }
     createAdminUser(context, armManagers, postgresName);
 
     context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
@@ -135,7 +158,10 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
                   landingZoneId.toString(),
                   LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                  ResourcePurpose.SHARED_RESOURCE.toString()))
+                  ResourcePurpose.SHARED_RESOURCE.toString(),
+                  LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(),
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name())))
           .create();
     } catch (ManagementException e) {
       // resource may already exist if this step is being retried
