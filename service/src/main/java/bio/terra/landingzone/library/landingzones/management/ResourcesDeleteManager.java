@@ -1,6 +1,5 @@
 package bio.terra.landingzone.library.landingzones.management;
 
-import bio.terra.landingzone.common.VirtualNetworkLinkResourceHelper;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
@@ -162,15 +161,11 @@ public class ResourcesDeleteManager {
               });
     }
 
-    if (resourceToDelete.resource().id().contains("virtualNetworkLinks")) {
-      // this is temporary solution since generic deletion is failing for this type of resource
-      VirtualNetworkLinkResourceHelper.delete(armManagers, resourceToDelete.resource().id());
-    } else {
-      armManagers
-          .azureResourceManager()
-          .genericResources()
-          .deleteById(resourceToDelete.resource().id());
-    }
+    armManagers
+        .azureResourceManager()
+        .genericResources()
+        .deleteById(resourceToDelete.resource().id());
+
     logger.info("Resource deleted. id:{}", resourceToDelete.resource().id());
 
     return resourceToDelete.resource();
