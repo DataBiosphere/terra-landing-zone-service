@@ -98,6 +98,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     AKS_AUTOSCALING_ENABLED,
     AKS_AUTOSCALING_MIN,
     AKS_AUTOSCALING_MAX,
+    AKS_AAD_PROFILE_USER_GROUP_ID,
     STORAGE_ACCOUNT_SKU_TYPE,
     ENABLE_PGBOUNCER
   }

@@ -79,6 +79,9 @@ public class LandingZoneDefaultParameters {
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name(),
         StorageAccountSkuType.STANDARD_LRS.name().toString());
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name(),
+        "00000000-0000-0000-0000-000000000000");
     defaultValues.put(CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name(), "true");
     return defaultValues;
   }

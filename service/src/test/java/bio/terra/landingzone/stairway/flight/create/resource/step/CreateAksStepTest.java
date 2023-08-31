@@ -154,6 +154,9 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
         .thenReturn("false");
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
+        .thenReturn("00000000-0000-0000-0000-000000000000");
   }
 
   private void setupArmManagersForDoStep() {
@@ -166,6 +169,8 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockK8sAPDefinitionStagesWithAttach.attach()).thenReturn(mockK8sDefinition);
     when(mockK8sAPDefinitionStagesWithAttach.withVirtualNetwork(anyString(), anyString()))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sDefinitionStageWithCreate.withAzureActiveDirectoryGroup(anyString()))
+        .thenReturn(mockK8sDefinitionStageWithCreate);
     when(mockK8sAPDefinitionStagesWithAttach.withAgentPoolMode(eq(AgentPoolMode.SYSTEM)))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesMachineCount.withAgentPoolVirtualMachineCount(anyInt()))
