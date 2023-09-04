@@ -31,20 +31,20 @@ dependencies {
     implementation group: 'net.minidev', 'name': 'json-smart', version: '2.4.10'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.30.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.29.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0-beta.7'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0-beta.3'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.29.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.30.0'
 
     // at commit time, azure-resourcemanager-monitor v2.20.0 is the latest but starting with v2.19.0
     // attributes of com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner
     // are missing making creation of DataCollectionRules impossible via java client lib
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0-beta.5'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.29.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
     implementation group: "io.kubernetes", name: "client-java", version: "18.0.1"
