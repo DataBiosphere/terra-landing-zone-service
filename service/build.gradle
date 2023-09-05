@@ -44,7 +44,7 @@ dependencies {
     // are missing making creation of DataCollectionRules impossible via java client lib
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0-beta.5'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.29.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
     implementation group: "io.kubernetes", name: "client-java", version: "18.0.1"
