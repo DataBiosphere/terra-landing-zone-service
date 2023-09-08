@@ -87,7 +87,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                 .resourceId(postgres.id())
                 .resourceType(postgres.type())
                 .tags(postgres.tags())
-                .region(postgres.regionName())
+                .region(postgres.region().name())
                 .resourceName(postgres.name())
                 .build());
     logger.info(RESOURCE_CREATED, getResourceType(), postgres.id(), getMRGName(context));
