@@ -71,7 +71,7 @@ class CreateLandingZoneFlightTest {
           equalTo(1L));
       assertThat(
           steps.stream()
-              .filter(s -> s instanceof AwaitCreateLandingResourcesZoneFlightStep)
+              .filter(s -> s instanceof AwaitCreateLandingZoneResourcesFlightStep)
               .count(),
           equalTo(1L));
     }
