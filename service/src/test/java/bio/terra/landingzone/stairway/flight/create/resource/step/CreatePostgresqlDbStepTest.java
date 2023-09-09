@@ -22,12 +22,12 @@ import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
+import com.azure.core.management.Region;
 import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.*;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,7 +85,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   }
 
   @Test
-  @Disabled
   void doStepSuccess() throws InterruptedException {
     var postgresqlSku = "psqlSku";
 
@@ -203,6 +202,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
       String adminPrinicipalId,
       String adminName) {
     when(mockServer.id()).thenReturn(postgresqlId);
+    when(mockServer.region()).thenReturn(Region.US_SOUTH_CENTRAL);
     when(mockServerDefinitionStagesWithCreate.create()).thenReturn(mockServer);
     when(mockServerDefinitionStagesWithCreate.withTags(postgresqlTagsCaptor.capture()))
         .thenReturn(mockServerDefinitionStagesWithCreate);
