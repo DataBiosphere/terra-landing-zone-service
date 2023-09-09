@@ -79,7 +79,7 @@ public class TestArmResourcesFactory {
   }
 
   public static ResourceGroup createTestResourceGroup(AzureResourceManager azureResourceManager) {
-    String resourceGroupId = UUID.randomUUID().toString().replace("-","");
+    String resourceGroupId = UUID.randomUUID().toString().replace("-", "");
     return azureResourceManager
         .resourceGroups()
         .define("rg" + resourceGroupId)
