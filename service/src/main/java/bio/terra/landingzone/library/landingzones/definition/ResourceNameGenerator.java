@@ -26,7 +26,7 @@ public class ResourceNameGenerator {
   // errors as the cluster name is added to the node pool resource group name.
   // The node pool name resource group name can't be longer than 80 characters,
   // and follows this pattern: MC_resourceGroupName_resourceName_AzureRegion.
-  public static final int MAX_AKS_CLUSTER_NAME_LENGTH = 25;
+  public static final int MAX_AKS_CLUSTER_NAME_LENGTH = 18;
   public static final int MAX_VNET_NAME_LENGTH = 64;
   public static final int MAX_AKS_AGENT_POOL_NAME_LENGTH = 11;
   public static final int MAX_AKS_DNS_PREFIX_NAME_LENGTH = 54;
