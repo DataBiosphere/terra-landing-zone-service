@@ -54,6 +54,7 @@ landingzone:
       #extend configuration in case mrg is in different region; resource id should be fully qualified
       eastus2: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdeveastus2
       eastus: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdeveastus
+      southcentralus: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdevsthcntrlus
     sentinelScheduledAlertRuleTemplateIds:
       - 0b9ae89d-8cad-461c-808f-0494f70ad5c4
       - 8ee967a2-a645-4832-85f4-72b635bcb3a6
