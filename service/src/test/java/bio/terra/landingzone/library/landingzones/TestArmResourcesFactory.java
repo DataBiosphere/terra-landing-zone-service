@@ -79,11 +79,11 @@ public class TestArmResourcesFactory {
   }
 
   public static ResourceGroup createTestResourceGroup(AzureResourceManager azureResourceManager) {
-    String resourceGroupId = UUID.randomUUID().toString();
+    String resourceGroupId = UUID.randomUUID().toString().replace("-", "");
     return azureResourceManager
         .resourceGroups()
-        .define("test-" + resourceGroupId)
-        .withRegion(Region.US_EAST)
+        .define("rg" + resourceGroupId)
+        .withRegion(Region.US_SOUTH_CENTRAL)
         .create();
   }
 
