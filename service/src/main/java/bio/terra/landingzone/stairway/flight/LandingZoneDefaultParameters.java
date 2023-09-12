@@ -28,7 +28,7 @@ public class LandingZoneDefaultParameters {
         UUID.randomUUID().toString());
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name(),
-        "Standard_D2ds_v5");
+        "Standard_D2ds_v4");
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name(),
         SkuTier.GENERAL_PURPOSE.toString());
