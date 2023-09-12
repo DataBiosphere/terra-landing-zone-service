@@ -191,16 +191,24 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
       params.put("metrics.pgbouncer_diagnostics", "on");
       params.put("pgbouncer.ignore_startup_parameters", "extra_float_digits");
 
-      params.forEach(
-          (key, value) ->
-              armManagers
-                  .postgreSqlManager()
-                  .configurations()
-                  .define(key)
-                  .withExistingFlexibleServer(mrgName, postgresName)
-                  .withValue(value)
-                  .withSource("user-override")
-                  .create());
+      try {
+        params.forEach(
+            (key, value) ->
+                armManagers
+                    .postgreSqlManager()
+                    .configurations()
+                    .define(key)
+                    .withExistingFlexibleServer(mrgName, postgresName)
+                    .withValue(value)
+                    .withSource("user-override")
+                    .create());
+      } catch (ManagementException e) {
+        // resource may already exist if this step is being retried
+        if (e.getResponse() != null
+            && HttpStatus.CONFLICT.value() != e.getResponse().getStatusCode()) {
+          throw e;
+        }
+      }
     }
   }
 
