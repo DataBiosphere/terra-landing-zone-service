@@ -54,28 +54,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
     var postgres = createServer(context, armManagers, postgresName);
 
-    // Note: azure sdk does not allow this to be done with one call, let alone while creating the
-    // server
-    // Enable pg-bouncer
-    if (Boolean.parseBoolean(
-        parametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))) {
-      LinkedHashMap<String, String> params = new LinkedHashMap<>();
-      params.put("pgbouncer.enabled", "true");
-      params.put("metrics.pgbouncer_diagnostics", "on");
-      params.put("pgbouncer.ignore_startup_parameters", "extra_float_digits");
+    enablePgBouncer(getMRGName(context), postgresName);
 
-      params.forEach(
-          (key, value) ->
-              armManagers
-                  .postgreSqlManager()
-                  .configurations()
-                  .define(key)
-                  .withExistingFlexibleServer(getMRGName(context), postgresName)
-                  .withValue(value)
-                  .withSource("user-override")
-                  .create());
-    }
     createAdminUser(context, armManagers, postgresName);
 
     context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
@@ -198,6 +178,38 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
         .withPrincipalName(uami.resourceName().orElseThrow())
         .withPrincipalType(PrincipalType.SERVICE_PRINCIPAL)
         .create();
+  }
+
+  private void enablePgBouncer(String mrgName, String postgresName) {
+    // Note: azure sdk does not allow this to be done with one call, let alone while creating the
+    // server
+    if (Boolean.parseBoolean(
+        parametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))) {
+      LinkedHashMap<String, String> params = new LinkedHashMap<>();
+      params.put("pgbouncer.enabled", "true");
+      params.put("metrics.pgbouncer_diagnostics", "on");
+      params.put("pgbouncer.ignore_startup_parameters", "extra_float_digits");
+
+      try {
+        params.forEach(
+            (key, value) ->
+                armManagers
+                    .postgreSqlManager()
+                    .configurations()
+                    .define(key)
+                    .withExistingFlexibleServer(mrgName, postgresName)
+                    .withValue(value)
+                    .withSource("user-override")
+                    .create());
+      } catch (ManagementException e) {
+        // resource may already exist if this step is being retried
+        if (e.getResponse() != null
+            && HttpStatus.CONFLICT.value() != e.getResponse().getStatusCode()) {
+          throw e;
+        }
+      }
+    }
   }
 
   @Override

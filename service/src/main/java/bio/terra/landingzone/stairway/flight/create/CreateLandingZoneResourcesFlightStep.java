@@ -56,7 +56,7 @@ public class CreateLandingZoneResourcesFlightStep implements Step {
     var billingProfile =
         context.getWorkingMap().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
-    // this parameter should be read in AwaitCreateLandingResourcesZoneFlightStep
+    // this parameter should be read in AwaitCreateLandingZoneResourcesFlightStep
     context.getWorkingMap().put(jobIdKey, subflightId);
 
     // create sub-flight, which is supposed to create all required Azure resources
