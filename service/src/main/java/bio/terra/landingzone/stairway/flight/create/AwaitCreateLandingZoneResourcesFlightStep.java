@@ -13,16 +13,16 @@ import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import java.util.Optional;
 
-public class AwaitCreateLandingResourcesZoneFlightStep implements Step {
-  public static final int FLIGHT_POLL_SECONDS = 5;
-  // successful flight takes 10 min to deploy all resources,
+public class AwaitCreateLandingZoneResourcesFlightStep implements Step {
   // in case last step failed we need to delete all the resources
-  // let's limit such scenario with 30 min.
-  public static final int FLIGHT_POLL_CYCLES = 360;
+  // landing zone creation time increased recently up to 18-20 minutes.
+  // adjusting timeout to be 60 minutes.
+  public static final int FLIGHT_POLL_SECONDS = 5;
+  public static final int FLIGHT_POLL_CYCLES = 720;
 
   private final String jobIdKey;
 
-  public AwaitCreateLandingResourcesZoneFlightStep(String jobIdKey) {
+  public AwaitCreateLandingZoneResourcesFlightStep(String jobIdKey) {
     this.jobIdKey = jobIdKey;
   }
 
