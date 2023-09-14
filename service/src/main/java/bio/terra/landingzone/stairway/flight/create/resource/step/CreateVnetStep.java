@@ -130,7 +130,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
     return armManagers
         .azureResourceManager()
         .networkSecurityGroups()
-        .define(vnetName + "-nsg")
+        .define(vnetName + "-default-nsg")
         .withRegion(getMRGRegionName(context))
         .withExistingResourceGroup(getMRGName(context))
         .withTags(Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString()))
