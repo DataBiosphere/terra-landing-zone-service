@@ -17,7 +17,7 @@ public class RetryRules {
 
   /** Use for cloud operations that may take a couple of minutes to respond. */
   public static RetryRule cloudLongRunning() {
-    return new RetryRuleExponentialBackoff(1, 8, 5 * 60);
+    return new RetryRuleExponentialBackoff(1, 8, 7 * 60);
   }
 
   /**

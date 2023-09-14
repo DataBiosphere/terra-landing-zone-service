@@ -12,7 +12,7 @@ apply from: 'publishing.gradle'
 
 dependencies {
     implementation 'bio.terra:terra-common-lib'
-    implementation 'org.apache.commons:commons-dbcp2:2.9.0'
+    implementation 'org.apache.commons:commons-dbcp2:2.10.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:3.1.3'
     implementation 'org.springframework.boot:spring-boot-starter-web:3.1.3'
     implementation 'org.springframework.retry:spring-retry:2.0.2'
@@ -21,7 +21,7 @@ dependencies {
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.6.0'
     implementation 'javax.servlet:jstl:1.2'
-    implementation group: 'com.azure', name: 'azure-core', version: '1.42.0'
+    implementation group: 'com.azure', name: 'azure-core', version: '1.43.0'
     implementation (group: 'com.azure', name: 'azure-identity', version: '1.10.0') {
         // the msal4j transitive dependency is still pulling in an old version of json-smart
         // which is vulnerable to CVE-2023-1370
@@ -31,20 +31,20 @@ dependencies {
     implementation group: 'net.minidev', 'name': 'json-smart', version: '2.4.10'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.30.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.29.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0-beta.7'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0-beta.3'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.29.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.30.0'
 
     // at commit time, azure-resourcemanager-monitor v2.20.0 is the latest but starting with v2.19.0
     // attributes of com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner
     // are missing making creation of DataCollectionRules impossible via java client lib
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0-beta.5'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.29.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.30.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
     implementation group: "io.kubernetes", name: "client-java", version: "18.0.1"
@@ -65,7 +65,7 @@ dependencies {
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.awaitility:awaitility:4.2.0'
-    testImplementation('org.springframework.boot:spring-boot-starter-test:3.1.2') {
+    testImplementation('org.springframework.boot:spring-boot-starter-test:3.1.3') {
         // Fixes warning about multiple occurrences of JSONObject on the classpath
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }

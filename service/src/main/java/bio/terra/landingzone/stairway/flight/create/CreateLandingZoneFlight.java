@@ -53,7 +53,7 @@ public class CreateLandingZoneFlight extends Flight {
               requestedLandingZone,
               LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
       addStep(
-          new AwaitCreateLandingResourcesZoneFlightStep(
+          new AwaitCreateLandingZoneResourcesFlightStep(
               LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
     }
 
