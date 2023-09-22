@@ -45,7 +45,16 @@ class CreateVnetStepTest extends BaseStepTest {
   @Mock private Network.DefinitionStages.Blank mockDefinitionStageBlack;
   @Mock private Network.DefinitionStages.WithGroup mockDefinitionStageWithGroup;
   @Mock private Network.DefinitionStages.WithCreate mockDefinitionStageWithCreate;
+  @Mock private Network.DefinitionStages.WithSubnet mockDefinitionStageWithSubnet;
   @Mock private Network.DefinitionStages.WithCreateAndSubnet mockDefinitionStageWithCreateAndSubnet;
+
+  @Mock
+  private Subnet.DefinitionStages.Blank<Network.DefinitionStages.WithCreateAndSubnet>
+      mockSubnetDefinitionStagesBlank;
+
+  @Mock
+  private Subnet.DefinitionStages.WithAttach<Network.DefinitionStages.WithCreateAndSubnet>
+      mockSubnetDefinitionStagesWithAttach;
 
   @Captor private ArgumentCaptor<Map<String, String>> vnetTagsCaptor;
   @Captor private ArgumentCaptor<List<Delegation>> delegationsArgumentCaptor;
@@ -162,6 +171,20 @@ class CreateVnetStepTest extends BaseStepTest {
     when(mockNetworks.define(anyString())).thenReturn(mockDefinitionStageBlack);
     when(mockAzureResourceManager.networks()).thenReturn(mockNetworks);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
+    when(mockDefinitionStageWithSubnet.defineSubnet(anyString()))
+        .thenReturn(mockSubnetDefinitionStagesBlank);
+    when(mockSubnetDefinitionStagesBlank.withAddressPrefix(anyString()))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+    when(mockSubnetDefinitionStagesWithAttach.withDelegation(anyString()))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+    when(mockSubnetDefinitionStagesWithAttach.withExistingNetworkSecurityGroup(anyString()))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+    when(mockSubnetDefinitionStagesWithAttach.withAccessFromService(
+            ServiceEndpointType.fromString(anyString())))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+    when(mockSubnetDefinitionStagesWithAttach.attach())
+        .thenReturn(mockDefinitionStageWithCreateAndSubnet);
+
     when(mockDefinitionStageWithCreate.create()).thenReturn(result);
 
     when(mockNetworks.manager()).thenReturn(mockNetworkManager);

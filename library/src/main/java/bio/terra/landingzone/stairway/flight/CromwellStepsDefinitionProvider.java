@@ -6,29 +6,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneFederatedIdentityStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerInsightsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerLogV2Step;
-import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
-import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
-import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.*;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import java.util.List;
@@ -50,6 +28,10 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
                 parametersResolver),
             RetryRules.shortExponential()),
         Pair.of(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud()),
+        Pair.of(
+            new CreateNetworkSecurityGroupStep(
+                armManagers, parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
         Pair.of(
             new CreateVnetStep(armManagers, parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
