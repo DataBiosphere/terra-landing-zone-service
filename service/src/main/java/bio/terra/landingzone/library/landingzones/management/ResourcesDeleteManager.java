@@ -6,10 +6,9 @@ import bio.terra.landingzone.library.landingzones.management.deleterules.Landing
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.resources.models.GenericResource;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import scala.Tuple2;
 
 public class ResourcesDeleteManager {
   private final ArmManagers armManagers;
@@ -112,20 +111,17 @@ public class ResourcesDeleteManager {
   private List<GenericResource> deleteLandingZoneResourcesInOrder(
       List<ResourceToDelete> resourcesToDelete) {
 
-    // The first partition (false) contains all the resources that can be deleted first (independent
-    // resources)
-    // the second partition (true) contains resources that are considered foundational
-    // for the landing zone (base resources) and therefore should be deleted last.
-    // The enum LandingZoneDependentResourceType determines the types that are considered base
-    // resources.
+    Comparator<ResourceToDelete> byDeletionOrder =
+        new Comparator<ResourceToDelete>() {
+          @Override
+          public int compare(ResourceToDelete o1, ResourceToDelete o2) {
+            return GetDeleteOrder(o1) - GetDeleteOrder(o2);
+          }
+        };
 
-    Map<Boolean, List<ResourceToDelete>> partitions =
-        resourcesToDelete.stream().collect(Collectors.partitioningBy(this::isBaseResource));
-
-    return Stream.concat(
-            partitions.get(false).stream().map(this::deleteResource),
-            partitions.get(true).stream().map(this::deleteResource))
-        .toList();
+    var r = resourcesToDelete.stream().toList();
+    var m = r.stream().sorted(byDeletionOrder).map(x -> new Tuple2(GetDeleteOrder(x), x)).toList();
+    return m.stream().map(x -> deleteResource((ResourceToDelete) x._2)).toList();
   }
 
   private GenericResource deleteResource(ResourceToDelete resourceToDelete) {
@@ -171,8 +167,16 @@ public class ResourcesDeleteManager {
     return resourceToDelete.resource();
   }
 
-  private boolean isBaseResource(ResourceToDelete resourceToDelete) {
-    return LandingZoneBaseResourceType.containsValueIgnoringCase(
-        resourceToDelete.resource().type());
+  private int GetDeleteOrder(ResourceToDelete resourceToDelete) {
+    switch (resourceToDelete.resource().resourceType().toLowerCase()) {
+      case "virtualnetworks":
+        return 1;
+      case "privatednszones":
+        return 1;
+      case "networksecuritygroups":
+        return 2;
+      default:
+        return 0;
+    }
   }
 }

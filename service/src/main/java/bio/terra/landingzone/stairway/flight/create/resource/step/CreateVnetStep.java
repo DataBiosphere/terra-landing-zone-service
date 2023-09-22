@@ -33,8 +33,10 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   @Override
   public void createResource(FlightContext context, ArmManagers armManagers) {
     String vNetName = resourceNameProvider.getName(getResourceType());
-    NetworkSecurityGroup nsg = createNetworkSecurityGroup(context, armManagers, vNetName);
-    Network vNet = createVnetAndSubnets(context, armManagers, vNetName, nsg);
+    var nsgId =
+        getParameterOrThrow(
+            context.getWorkingMap(), CreateNetworkSecurityGroupStep.NSG_ID, String.class);
+    Network vNet = createVnetAndSubnets(context, armManagers, vNetName, nsgId);
 
     context.getWorkingMap().put(VNET_ID, vNet.id());
     context
@@ -55,7 +57,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
       FlightContext context,
       ArmManagers armManagers,
       String vNetName,
-      NetworkSecurityGroup networkSecurityGroup) {
+      String networkSecurityGroupId) {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -73,18 +75,18 @@ public class CreateVnetStep extends BaseResourceCreateStep {
           .defineSubnet(CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name())
           .withAddressPrefix(
               parametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name()))
-          .withExistingNetworkSecurityGroup(networkSecurityGroup)
+          .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .attach()
           .defineSubnet(CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name())
           .withAddressPrefix(
               parametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name()))
-          .withExistingNetworkSecurityGroup(networkSecurityGroup)
+          .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .attach()
           .defineSubnet(CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name())
           .withAddressPrefix(
               parametersResolver.getValue(
                   CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name()))
-          .withExistingNetworkSecurityGroup(networkSecurityGroup)
+          .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .withDelegation("Microsoft.DBforPostgreSQL/flexibleServers")
           .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
           .attach()
@@ -92,7 +94,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
           .withAddressPrefix(
               parametersResolver.getValue(
                   CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name()))
-          .withExistingNetworkSecurityGroup(networkSecurityGroup)
+          .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .attach()
           .withTags(
               Map.of(
@@ -119,22 +121,6 @@ public class CreateVnetStep extends BaseResourceCreateStep {
         throw e;
       }
     }
-  }
-
-  private NetworkSecurityGroup createNetworkSecurityGroup(
-      FlightContext context, ArmManagers armManagers, String vnetName) {
-    var landingZoneId =
-        getParameterOrThrow(
-            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-
-    return armManagers
-        .azureResourceManager()
-        .networkSecurityGroups()
-        .define(vnetName + "-default-nsg")
-        .withRegion(getMRGRegionName(context))
-        .withExistingResourceGroup(getMRGName(context))
-        .withTags(Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString()))
-        .create();
   }
 
   @Override
