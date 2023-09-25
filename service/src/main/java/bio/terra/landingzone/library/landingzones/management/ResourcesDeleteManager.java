@@ -8,7 +8,6 @@ import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import java.util.Comparator;
 import java.util.List;
-import scala.Tuple2;
 
 public class ResourcesDeleteManager {
   private final ArmManagers armManagers;
@@ -111,11 +110,10 @@ public class ResourcesDeleteManager {
   private List<GenericResource> deleteLandingZoneResourcesInOrder(
       List<ResourceToDelete> resourcesToDelete) {
 
-    return resourcesToDelete
-            .stream()
-            .sorted(Comparator.comparingInt(this::GetDeleteOrder))
-            .map(x -> deleteResource(x))
-            .toList();
+    return resourcesToDelete.stream()
+        .sorted(Comparator.comparingInt(this::GetDeleteOrder))
+        .map(x -> deleteResource(x))
+        .toList();
   }
 
   private GenericResource deleteResource(ResourceToDelete resourceToDelete) {
