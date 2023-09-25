@@ -111,17 +111,11 @@ public class ResourcesDeleteManager {
   private List<GenericResource> deleteLandingZoneResourcesInOrder(
       List<ResourceToDelete> resourcesToDelete) {
 
-    Comparator<ResourceToDelete> byDeletionOrder =
-        new Comparator<ResourceToDelete>() {
-          @Override
-          public int compare(ResourceToDelete o1, ResourceToDelete o2) {
-            return GetDeleteOrder(o1) - GetDeleteOrder(o2);
-          }
-        };
-
-    var r = resourcesToDelete.stream().toList();
-    var m = r.stream().sorted(byDeletionOrder).map(x -> new Tuple2(GetDeleteOrder(x), x)).toList();
-    return m.stream().map(x -> deleteResource((ResourceToDelete) x._2)).toList();
+    return resourcesToDelete
+            .stream()
+            .sorted(Comparator.comparingInt(this::GetDeleteOrder))
+            .map(x -> deleteResource(x))
+            .toList();
   }
 
   private GenericResource deleteResource(ResourceToDelete resourceToDelete) {
