@@ -17,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
-  private static final Logger logger = LoggerFactory.getLogger(CreateNetworkSecurityGroupStep.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(CreateNetworkSecurityGroupStep.class);
   public static final String NSG_ID = "NSG_ID";
   public static final String NSG_RESOURCE_KEY = "NSG";
 
