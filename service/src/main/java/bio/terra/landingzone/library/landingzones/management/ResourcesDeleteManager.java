@@ -3,13 +3,16 @@ package bio.terra.landingzone.library.landingzones.management;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 
 public class ResourcesDeleteManager {
   private final ArmManagers armManagers;
@@ -136,12 +139,7 @@ public class ResourcesDeleteManager {
           "Deleting landing zone private endpoint {} for resource: {}",
           resourceToDelete.privateEndpoint().id(),
           resourceToDelete.resource().id());
-
-      armManagers
-          .azureResourceManager()
-          .genericResources()
-          .deleteById(resourceToDelete.privateEndpoint().id());
-
+      handleResourceDeletion(this::deleteResource, resourceToDelete.privateEndpoint().id());
       logger.info("Resource deleted. id:{}", resourceToDelete.privateEndpoint().id());
     }
 
@@ -154,21 +152,33 @@ public class ResourcesDeleteManager {
                     "Deleting landing zone solution {} for resource: {}",
                     solution.id(),
                     resourceToDelete.resource().id());
-
-                armManagers.azureResourceManager().genericResources().deleteById(solution.id());
-
+                handleResourceDeletion(this::deleteResource, solution.id());
                 logger.info("Resource deleted. id:{}", solution.id());
               });
     }
 
-    armManagers
-        .azureResourceManager()
-        .genericResources()
-        .deleteById(resourceToDelete.resource().id());
-
+    handleResourceDeletion(this::deleteResource, resourceToDelete.resource().id());
     logger.info("Resource deleted. id:{}", resourceToDelete.resource().id());
 
     return resourceToDelete.resource();
+  }
+
+  private void deleteResource(String resourceId) {
+    armManagers.azureResourceManager().genericResources().deleteById(resourceId);
+  }
+
+  private void handleResourceDeletion(
+      Consumer<String> deleteResourceByIdAction, String resourceId) {
+    try {
+      deleteResourceByIdAction.accept(resourceId);
+    } catch (ManagementException e) {
+      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "ResourceNotFound")) {
+        logger.info("Landing zone resource with id={} doesn't exist.", resourceId);
+      } else {
+        logger.error("Failed to delete resource with id={}.", resourceId);
+        throw e;
+      }
+    }
   }
 
   private boolean isBaseResource(ResourceToDelete resourceToDelete) {
