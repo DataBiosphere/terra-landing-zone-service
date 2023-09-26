@@ -128,7 +128,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
 
   private List<DeployedResource> listResourcesByTag(
       String landingZoneId, String resourceGroup, String key, String value) {
-    logger.info(
+    logger.verbose(
         "Listing resources by tag. lzid:{} group:{} key:{} value:{} ",
         landingZoneId,
         resourceGroup,
@@ -149,7 +149,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   private DeployedResource toLandingZoneDeployedResource(GenericResource r) {
-    logger.info(
+    logger.verbose(
         "To landing zone deployed resource: {} type: {} tags: {}", r.id(), r.type(), r.tags());
     return new DeployedResource(r.id(), r.type(), r.tags(), r.region().name());
   }
