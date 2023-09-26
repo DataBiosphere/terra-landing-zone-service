@@ -1,8 +1,13 @@
 package bio.terra.landingzone.library.landingzones.management;
 
+import static java.util.Collections.emptyList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -58,10 +63,12 @@ class ResourcesDeleteManagerTest {
   }
 
   @Test
-  void delete_LZResourcesNotFound() throws LandingZoneRuleDeleteException {
-    mockResourceListing(Collections.emptyList(), Collections.emptyList());
+  void delete_LZResourcesDontExist() throws LandingZoneRuleDeleteException {
+    mockResourceListing(emptyList(), emptyList());
 
-    resourcesDeleteManager.deleteLandingZoneResources(LANDING_ZONE_ID, RESOURCE_GROUP_NAME);
+    var deletedResources =
+        resourcesDeleteManager.deleteLandingZoneResources(LANDING_ZONE_ID, RESOURCE_GROUP_NAME);
+    assertThat(deletedResources, is(empty()));
 
     verify(deleteRulesVerifierMock, times(1)).checkIfRulesAllowDelete(any());
     verify(genericResourcesManagerMock, never()).deleteById(any());
@@ -69,22 +76,25 @@ class ResourcesDeleteManagerTest {
 
   @Test
   void delete_SomeLZResourcesExist() throws LandingZoneRuleDeleteException {
+    var privateEndpoints = Collections.<PrivateEndpoint>emptyList() /*ignoring private endpoints*/;
     var genericResource = mock(GenericResource.class);
+    var genericResources = Collections.singletonList(genericResource);
     when(genericResource.tags())
         .thenReturn(Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), LANDING_ZONE_ID));
-    mockResourceListing(
-        Collections.emptyList() /*ignoring private endpoints*/,
-        Collections.singletonList(genericResource));
+    mockResourceListing(privateEndpoints, genericResources);
 
-    resourcesDeleteManager.deleteLandingZoneResources(LANDING_ZONE_ID, RESOURCE_GROUP_NAME);
+    var deletedResources =
+        resourcesDeleteManager.deleteLandingZoneResources(LANDING_ZONE_ID, RESOURCE_GROUP_NAME);
+
+    assertNotNull(deletedResources);
+    assertThat(deletedResources.size(), equalTo(privateEndpoints.size() + genericResources.size()));
 
     verify(deleteRulesVerifierMock, times(1)).checkIfRulesAllowDelete(any());
     verify(genericResourcesManagerMock, times(1)).deleteById(any());
   }
 
   @Test
-  void delete_LZResourceCouldNotBeDeletedBecauseItIsNotFound()
-      throws LandingZoneRuleDeleteException {
+  void delete_LZResourceCouldNotBeDeleted() throws LandingZoneRuleDeleteException {
     final String resourceId1 = "RESOURCE_ID_1";
     final String resourceId2 = "RESOURCE_ID_2";
     var genericResource1 =
@@ -93,17 +103,20 @@ class ResourcesDeleteManagerTest {
     var genericResource2 =
         mockGenericResource(
             resourceId2, Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), LANDING_ZONE_ID));
-    mockResourceListing(
-        Collections.emptyList() /*ignoring private endpoints*/,
-        Arrays.asList(genericResource1, genericResource2));
+    var privateEndpoints = Collections.<PrivateEndpoint>emptyList() /*ignoring private endpoints*/;
+    var genericResources = Arrays.asList(genericResource1, genericResource2);
+    mockResourceListing(privateEndpoints, genericResources);
 
-    var managementException = mock(ManagementException.class);
-    var managementError = mock(ManagementError.class);
-    when(managementError.getCode()).thenReturn("ResourceNotFound");
-    when(managementException.getValue()).thenReturn(managementError);
+    var managementException = mockManagementException("ResourceNotFound");
     doThrow(managementException).when(genericResourcesManagerMock).deleteById(resourceId1);
 
-    resourcesDeleteManager.deleteLandingZoneResources(LANDING_ZONE_ID, RESOURCE_GROUP_NAME);
+    var deletedResources =
+        resourcesDeleteManager.deleteLandingZoneResources(LANDING_ZONE_ID, RESOURCE_GROUP_NAME);
+
+    assertNotNull(deletedResources);
+    assertThat(deletedResources.size(), equalTo(privateEndpoints.size() + genericResources.size()));
+    assertTrue(deletedResources.stream().anyMatch(r -> r.id().equals(resourceId1)));
+    assertTrue(deletedResources.stream().anyMatch(r -> r.id().equals(resourceId2)));
 
     verify(deleteRulesVerifierMock, times(1)).checkIfRulesAllowDelete(any());
     verify(genericResourcesManagerMock, times(1)).deleteById(resourceId2);
@@ -119,13 +132,9 @@ class ResourcesDeleteManagerTest {
             resourceId1, Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), LANDING_ZONE_ID));
 
     mockResourceListing(
-        Collections.emptyList() /*ignoring private endpoints*/,
-        Collections.singletonList(genericResource1));
+        emptyList() /*ignoring private endpoints*/, Collections.singletonList(genericResource1));
 
-    var managementException = mock(ManagementException.class);
-    var managementError = mock(ManagementError.class);
-    when(managementError.getCode()).thenReturn(customManagementExceptionCode);
-    when(managementException.getValue()).thenReturn(managementError);
+    var managementException = mockManagementException(customManagementExceptionCode);
     doThrow(managementException).when(genericResourcesManagerMock).deleteById(resourceId1);
 
     var exception =
@@ -167,5 +176,13 @@ class ResourcesDeleteManagerTest {
     Answer<Stream<T>> answer = invocation -> resources.stream();
     when(pagedIterableMock.stream()).thenAnswer(answer);
     return pagedIterableMock;
+  }
+
+  private ManagementException mockManagementException(String errorCode) {
+    var managementException = mock(ManagementException.class);
+    var managementError = mock(ManagementError.class);
+    when(managementError.getCode()).thenReturn(errorCode);
+    when(managementException.getValue()).thenReturn(managementError);
+    return managementException;
   }
 }
