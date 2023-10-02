@@ -26,7 +26,7 @@ public class AzureIntegrationUtils {
   // 8201558-dsp-azure-testing
   public static final AzureProfile TERRA_DEV_AZURE_PROFILE =
       new AzureProfile(
-          "***REMOVED***",
+          "fad90753-2022-4456-9b0a-c7e5b934e408",
           "f557c728-871d-408c-a28b-eb6b2141a087",
           AzureEnvironment.AZURE);
 
