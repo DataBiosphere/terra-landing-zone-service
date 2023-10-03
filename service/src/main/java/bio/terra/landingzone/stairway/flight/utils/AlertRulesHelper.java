@@ -8,9 +8,12 @@ import com.azure.resourcemanager.securityinsights.models.NrtAlertRuleTemplate;
 import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRule;
 import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRuleTemplate;
 import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AlertRulesHelper {
   private final SecurityInsightsManager securityInsightsManager;
+  private static final Logger logger = LoggerFactory.getLogger(AlertRulesHelper.class);
 
   public AlertRulesHelper(SecurityInsightsManager securityInsightsManager) {
     this.securityInsightsManager = securityInsightsManager;
@@ -75,6 +78,8 @@ public class AlertRulesHelper {
 
   public void createAlertRule(
       AlertRuleInner alertRule, String ruleId, String mrgName, String workspaceName) {
+    logger.info("Creating alert rule w/id = {}", ruleId);
     securityInsightsManager.alertRules().createOrUpdate(mrgName, workspaceName, ruleId, alertRule);
+    logger.info("Finished creating alert rule w/id = {}", ruleId);
   }
 }
