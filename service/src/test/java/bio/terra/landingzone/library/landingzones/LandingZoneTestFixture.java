@@ -35,6 +35,6 @@ public class LandingZoneTestFixture {
 
   @AfterAll
   static void cleanUpAfterAll() {
-    armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
+    // armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
   }
 }
