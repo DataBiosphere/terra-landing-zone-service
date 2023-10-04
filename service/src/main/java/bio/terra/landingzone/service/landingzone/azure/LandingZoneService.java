@@ -5,6 +5,7 @@ import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORI
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
+import bio.terra.landingzone.common.utils.MetricUtils;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
@@ -45,12 +46,14 @@ import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneResourcesFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import bio.terra.profile.model.ProfileModel;
+import io.micrometer.core.annotation.Timed;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -86,6 +89,31 @@ public class LandingZoneService {
     this.samService = samService;
     this.bpmService = bpmService;
     this.testingConfiguration = landingZoneTestingConfiguration;
+  }
+
+  //  @Counted(
+  //      value = "landingzone.creation.count",
+  //      extraTags = {"cloudPlatform", "AZURE"})
+  @Timed("startFakeActivityToTestMetrics")
+  public void startFakeActivityToTestMetrics() throws InterruptedException {
+    fakeMethod1();
+    fakeMethod2();
+    String type = Math.random() < 0.7 ? "type1" : "type2";
+    MetricUtils.incrementLandingZoneCreation(type);
+  }
+
+  public void fakeMethod1() throws InterruptedException {
+    TimeUnit.MILLISECONDS.sleep(getDelayValue(true));
+  }
+
+  public void fakeMethod2() throws InterruptedException {
+    TimeUnit.MILLISECONDS.sleep(getDelayValue(false));
+  }
+
+  private long getDelayValue(boolean method1) {
+    return method1
+        ? Math.round((Math.random() * 1000)) /*less than a second*/
+        : Math.round((Math.random() * 1000)) + 1000 /*between 1 and 2 seconds*/;
   }
 
   /**
