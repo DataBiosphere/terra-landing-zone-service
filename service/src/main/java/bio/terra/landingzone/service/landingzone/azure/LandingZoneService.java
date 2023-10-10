@@ -46,14 +46,12 @@ import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneResourcesFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import bio.terra.profile.model.ProfileModel;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -89,50 +87,6 @@ public class LandingZoneService {
     this.samService = samService;
     this.bpmService = bpmService;
     this.testingConfiguration = landingZoneTestingConfiguration;
-  }
-
-  //  @Counted(
-  //      value = "landingzone.creation.count",
-  //      extraTags = {"cloudPlatform", "AZURE"})
-  // @Timed("startFakeActivityToTestMetrics")
-  public void startFakeActivityToTestMetrics() throws InterruptedException {
-    String type = Math.random() < 0.7 ? "type1" : "type2";
-    fakeMethod1(type);
-    fakeMethod2(type);
-    try {
-      if (Math.random() > 0.98) {
-        throw new Exception("something went wrong");
-      }
-      MetricUtils.incrementLandingZoneCreation(type);
-    } catch (Exception e) {
-      MetricUtils.incrementLandingZoneCreationFailure(type);
-    }
-  }
-
-  public void fakeMethod1(String type) throws InterruptedException {
-    var timer = MetricUtils.configureTimerForLzStepLatency(type, "step1");
-
-    var start = System.currentTimeMillis();
-    TimeUnit.MILLISECONDS.sleep(getDelayValue(true));
-    var finish = System.currentTimeMillis();
-
-    timer.record(Duration.ofMillis(finish - start));
-  }
-
-  public void fakeMethod2(String type) throws InterruptedException {
-    var timer = MetricUtils.configureTimerForLzStepLatency(type, "step2");
-
-    var start = System.currentTimeMillis();
-    TimeUnit.MILLISECONDS.sleep(getDelayValue(false));
-    var finish = System.currentTimeMillis();
-
-    timer.record(Duration.ofMillis(finish - start));
-  }
-
-  private long getDelayValue(boolean method1) {
-    return method1
-        ? Math.round((Math.random() * 1000)) /*less than a second*/
-        : Math.round((Math.random() * 1000)) + 300 /*between 1 and 1.3 seconds*/;
   }
 
   /**
