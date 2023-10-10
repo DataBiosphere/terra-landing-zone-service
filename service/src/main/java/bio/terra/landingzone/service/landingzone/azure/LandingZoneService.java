@@ -46,7 +46,7 @@ import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneResourcesFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
 import bio.terra.profile.model.ProfileModel;
-import io.micrometer.core.annotation.Timed;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -94,26 +94,45 @@ public class LandingZoneService {
   //  @Counted(
   //      value = "landingzone.creation.count",
   //      extraTags = {"cloudPlatform", "AZURE"})
-  @Timed("startFakeActivityToTestMetrics")
+  // @Timed("startFakeActivityToTestMetrics")
   public void startFakeActivityToTestMetrics() throws InterruptedException {
-    fakeMethod1();
-    fakeMethod2();
     String type = Math.random() < 0.7 ? "type1" : "type2";
-    MetricUtils.incrementLandingZoneCreation(type);
+    fakeMethod1(type);
+    fakeMethod2(type);
+    try {
+      if (Math.random() > 0.98) {
+        throw new Exception("something went wrong");
+      }
+      MetricUtils.incrementLandingZoneCreation(type);
+    } catch (Exception e) {
+      MetricUtils.incrementLandingZoneCreationFailure(type);
+    }
   }
 
-  public void fakeMethod1() throws InterruptedException {
+  public void fakeMethod1(String type) throws InterruptedException {
+    var timer = MetricUtils.configureTimerForLzStepLatency(type, "step1");
+
+    var start = System.currentTimeMillis();
     TimeUnit.MILLISECONDS.sleep(getDelayValue(true));
+    var finish = System.currentTimeMillis();
+
+    timer.record(Duration.ofMillis(finish - start));
   }
 
-  public void fakeMethod2() throws InterruptedException {
+  public void fakeMethod2(String type) throws InterruptedException {
+    var timer = MetricUtils.configureTimerForLzStepLatency(type, "step2");
+
+    var start = System.currentTimeMillis();
     TimeUnit.MILLISECONDS.sleep(getDelayValue(false));
+    var finish = System.currentTimeMillis();
+
+    timer.record(Duration.ofMillis(finish - start));
   }
 
   private long getDelayValue(boolean method1) {
     return method1
         ? Math.round((Math.random() * 1000)) /*less than a second*/
-        : Math.round((Math.random() * 1000)) + 1000 /*between 1 and 2 seconds*/;
+        : Math.round((Math.random() * 1000)) + 300 /*between 1 and 1.3 seconds*/;
   }
 
   /**
@@ -193,6 +212,7 @@ public class LandingZoneService {
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+    MetricUtils.incrementLandingZoneCreation(azureLandingZoneRequest.definition());
     return azureLandingZoneJobService.retrieveStartingAsyncJobResult(
         jobBuilder.submit(),
         new StartLandingZoneCreation(

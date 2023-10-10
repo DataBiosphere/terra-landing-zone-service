@@ -2,8 +2,10 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
 
+import bio.terra.landingzone.common.utils.MetricUtils;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
@@ -17,6 +19,8 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.exception.ManagementException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,23 +68,27 @@ public abstract class BaseResourceCreateStep implements Step {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+    var azureLandingZoneRequest =
+        getParameterOrThrow(
+            context.getInputParameters(),
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            LandingZoneRequest.class);
     try {
+      var stepLatency =
+          MetricUtils.configureTimerForLzStepLatency(
+              azureLandingZoneRequest.definition(), getResourceType());
+      var start = Instant.now().toEpochMilli();
       createResource(context, armManagers);
+      var finish = Instant.now().toEpochMilli();
+      stepLatency.record(Duration.ofMillis(finish - start));
     } catch (ManagementException e) {
-      var handled = maybeHandleManagementException(e);
-      if (handled.isPresent()) {
-        return handled.get();
-      }
-
-      if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
-        logger.info(
-            RESOURCE_ALREADY_EXISTS, getResourceType(), billingProfile.getManagedResourceGroupId());
-        return StepResult.getStepResultSuccess();
-      }
-      logger.error(
-          FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId.toString(), e.toString());
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
+      return handleManagementException(
+          e,
+          landingZoneId.toString(),
+          azureLandingZoneRequest.definition(),
+          billingProfile.getManagedResourceGroupId());
     } catch (RuntimeException e) {
+      MetricUtils.incrementLandingZoneCreationFailure(azureLandingZoneRequest.definition());
       throw maybeThrowAzureInterruptedException(e);
     }
     return StepResult.getStepResultSuccess();
@@ -143,5 +151,29 @@ public abstract class BaseResourceCreateStep implements Step {
   private <T extends BaseResourceCreateStep> void registerForNameGeneration(
       ResourceNameProvider resourceNameProvider, T step) {
     resourceNameProvider.registerStep(step);
+  }
+
+  private StepResult handleManagementException(
+      ManagementException e,
+      String landingZoneId,
+      String landingZoneType,
+      String managedResourceGroup) {
+    var handled = maybeHandleManagementException(e);
+    if (handled.isPresent()) {
+      var stepResult = handled.get();
+      if (!stepResult.isSuccess()
+          && stepResult.getStepStatus().equals(StepStatus.STEP_RESULT_FAILURE_FATAL)) {
+        MetricUtils.incrementLandingZoneCreationFailure(landingZoneType);
+      }
+      return handled.get();
+    }
+
+    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "conflict")) {
+      logger.info(RESOURCE_ALREADY_EXISTS, getResourceType(), managedResourceGroup);
+      return StepResult.getStepResultSuccess();
+    }
+    logger.error(FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId, e.toString());
+    MetricUtils.incrementLandingZoneCreationFailure(landingZoneType);
+    return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
   }
 }
