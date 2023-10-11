@@ -166,7 +166,6 @@ public class LandingZoneService {
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
-    MetricUtils.incrementLandingZoneCreation(azureLandingZoneRequest.definition());
     return azureLandingZoneJobService.retrieveStartingAsyncJobResult(
         jobBuilder.submit(),
         new StartLandingZoneCreation(
@@ -184,6 +183,7 @@ public class LandingZoneService {
       String resultPath) {
     var jobDescription =
         "Inner flight to create landing zone resources. definition='%s', version='%s'";
+    MetricUtils.incrementLandingZoneCreation(landingZoneRequest.definition());
     return azureLandingZoneJobService
         .newJob()
         .jobId(jobId)

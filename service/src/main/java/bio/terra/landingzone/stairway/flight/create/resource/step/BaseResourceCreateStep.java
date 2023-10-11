@@ -74,13 +74,13 @@ public abstract class BaseResourceCreateStep implements Step {
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             LandingZoneRequest.class);
     try {
-      var stepLatency =
-          MetricUtils.configureTimerForLzStepLatency(
+      var stepDuration =
+          MetricUtils.configureTimerForLzStepDuration(
               azureLandingZoneRequest.definition(), getResourceType());
       var start = Instant.now().toEpochMilli();
       createResource(context, armManagers);
       var finish = Instant.now().toEpochMilli();
-      stepLatency.record(Duration.ofMillis(finish - start));
+      stepDuration.record(Duration.ofMillis(finish - start));
     } catch (ManagementException e) {
       return handleManagementException(
           e,

@@ -7,6 +7,7 @@ import java.time.Duration;
 public class MetricUtils {
   private static final String NAMESPACE = "landingzone";
   private static final String CLOUD_PLATFORM_TAG = "cloudPlatform";
+  private static final String AZURE_PLATFORM_NAME = "AZURE";
   private static final String LANDINGZONE_TYPE_TAG = "type";
   private static final String LANDINGZONE_STEP_TAG = "step";
 
@@ -22,8 +23,8 @@ public class MetricUtils {
         .counter(
             String.format("%s.creation.count", NAMESPACE),
             CLOUD_PLATFORM_TAG,
-            "AZURE",
-            "TYPE",
+            AZURE_PLATFORM_NAME,
+            LANDINGZONE_TYPE_TAG,
             type)
         .increment();
   }
@@ -33,20 +34,25 @@ public class MetricUtils {
         .counter(
             String.format("%s.creation.failure.count", NAMESPACE),
             CLOUD_PLATFORM_TAG,
-            "AZURE",
-            "TYPE",
+            AZURE_PLATFORM_NAME,
+            LANDINGZONE_TYPE_TAG,
             type)
         .increment();
   }
 
-  public static Timer configureTimerForLzStepLatency(String type, String step) {
+  public static Timer configureTimerForLzStepDuration(String type, String step) {
     var registry = Metrics.globalRegistry;
     var t =
         Timer.builder(String.format("%s.step.latency", NAMESPACE))
             .description("Measure LZ step latency")
             .publishPercentileHistogram()
             .tags(
-                CLOUD_PLATFORM_TAG, "AZURE", LANDINGZONE_TYPE_TAG, type, LANDINGZONE_STEP_TAG, step)
+                CLOUD_PLATFORM_TAG,
+                AZURE_PLATFORM_NAME,
+                LANDINGZONE_TYPE_TAG,
+                type,
+                LANDINGZONE_STEP_TAG,
+                step)
             .minimumExpectedValue(Duration.ofMillis(LANDINGZONE_STEP_MIN_DURATION_MILLISECONDS))
             .maximumExpectedValue(Duration.ofMillis(LANDINGZONE_STEP_MAX_DURATION_MILLISECONDS))
             .register(
