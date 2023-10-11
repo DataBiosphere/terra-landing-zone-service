@@ -93,7 +93,9 @@ class CreateAksStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID),
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
             CreateVnetStep.VNET_ID,
             "vNetId",
@@ -131,7 +133,9 @@ class CreateAksStepTest extends BaseStepTest {
                 LandingZoneFlightMapKeys.BILLING_PROFILE,
                 new ProfileModel().id(UUID.randomUUID()),
                 LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-                LANDING_ZONE_ID));
+                LANDING_ZONE_ID,
+                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+                ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()));
     FlightMap flightMapWorkingParameters =
         FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
     when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);

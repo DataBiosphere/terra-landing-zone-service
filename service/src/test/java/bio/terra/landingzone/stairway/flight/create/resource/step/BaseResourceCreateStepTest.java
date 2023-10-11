@@ -42,7 +42,7 @@ public class BaseResourceCreateStepTest extends BaseStepTest {
 
           @Override
           protected String getResourceType() {
-            return null;
+            return "someResource";
           }
 
           @Override
@@ -55,6 +55,9 @@ public class BaseResourceCreateStepTest extends BaseStepTest {
     inputParamsMap.put(
         LandingZoneFlightMapKeys.BILLING_PROFILE, new ProfileModel().id(UUID.randomUUID()));
     inputParamsMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, LANDING_ZONE_ID);
+    inputParamsMap.put(
+        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+        ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone());
     when(mockFlightContext.getInputParameters()).thenReturn(inputParamsMap);
     Assertions.assertThrows(InterruptedException.class, () -> step.doStep(mockFlightContext));
     assertThat(Thread.currentThread().isInterrupted(), equalTo(true));
