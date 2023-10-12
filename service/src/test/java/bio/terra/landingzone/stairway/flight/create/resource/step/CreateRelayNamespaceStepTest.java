@@ -76,7 +76,9 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID),
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
     setupArmManagersForDoStep(RELAY_NAMESPACE_ID, RELAY_NAMESPACE_NAME, mrg.region(), mrg.name());
 

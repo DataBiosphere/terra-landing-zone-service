@@ -102,7 +102,9 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(),
-            "true"),
+            "true",
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,

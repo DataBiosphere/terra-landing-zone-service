@@ -87,7 +87,9 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             CromwellBaseResourcesFactory.ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(),
-            retentionInDays),
+            retentionInDays,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
     setupArmManagersForDoStep();
 

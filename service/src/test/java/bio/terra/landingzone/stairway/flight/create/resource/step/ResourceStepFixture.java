@@ -1,7 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
+import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.profile.model.ProfileModel;
 import java.util.Map;
 import java.util.Optional;
@@ -25,5 +27,13 @@ public class ResourceStepFixture {
   public static LandingZoneResource createAksLandingZoneResource(String aksId, String aksName) {
     return new LandingZoneResource(
         aksId, "aks", Map.of(), "eastus", Optional.of(aksName), Optional.empty());
+  }
+
+  public static LandingZoneRequest createLandingZoneRequestForCromwellLandingZone() {
+    return LandingZoneRequest.builder()
+        .billingProfileId(UUID.randomUUID())
+        .definition(
+            StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue())
+        .build();
   }
 }

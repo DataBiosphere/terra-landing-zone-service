@@ -5,6 +5,7 @@ import static bio.terra.landingzone.service.iam.LandingZoneSamService.IS_AUTHORI
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
+import bio.terra.landingzone.common.utils.MetricUtils;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
@@ -182,6 +183,7 @@ public class LandingZoneService {
       String resultPath) {
     var jobDescription =
         "Inner flight to create landing zone resources. definition='%s', version='%s'";
+    MetricUtils.incrementLandingZoneCreation(landingZoneRequest.definition());
     return azureLandingZoneJobService
         .newJob()
         .jobId(jobId)

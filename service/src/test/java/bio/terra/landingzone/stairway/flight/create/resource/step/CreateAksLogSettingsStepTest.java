@@ -89,7 +89,9 @@ public class CreateAksLogSettingsStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID),
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
             CreateAksStep.AKS_ID, aksResourceId, GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
     setupArmManagersForDoStep();
@@ -122,7 +124,9 @@ public class CreateAksLogSettingsStepTest extends BaseStepTest {
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID),
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
             CreateAksStep.AKS_ID, aksResourceId, GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
 
@@ -152,7 +156,9 @@ public class CreateAksLogSettingsStepTest extends BaseStepTest {
                 LandingZoneFlightMapKeys.BILLING_PROFILE,
                 new ProfileModel().id(UUID.randomUUID()),
                 LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-                LANDING_ZONE_ID));
+                LANDING_ZONE_ID,
+                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+                ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()));
     FlightMap flightMapWorkingParameters =
         FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
     when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);

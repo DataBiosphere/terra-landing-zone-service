@@ -49,6 +49,7 @@ dependencies {
     implementation group: "io.kubernetes", name: "client-java", version: "18.0.1"
     // io.kubernetes:client-java brings in snakeyaml 2.0 which breaks whatever version of liquibase was pulled in before
     implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.24.0'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.8.6'
 
     liquibaseRuntime 'org.liquibase:liquibase-core:4.24.0'
     liquibaseRuntime 'info.picocli:picocli:4.7.5'
