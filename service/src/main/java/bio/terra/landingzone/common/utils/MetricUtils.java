@@ -13,11 +13,17 @@ public class MetricUtils {
 
   // this is to set reasonable upper/lower bound for a step. postgres, aks take 7-8 minutes;
   // histogram metric would have buckets for all results.
-  private static final int LANDINGZONE_STEP_MAX_DURATION_MILLISECONDS = 60 * 10 * 1000; // 10min
-  private static final int LANDINGZONE_STEP_MIN_DURATION_MILLISECONDS = 60 * 1000; // 1min
+  private static final Duration LANDINGZONE_STEP_MAX_DURATION_MINUTES = Duration.ofMinutes(10);
+  private static final Duration LANDINGZONE_STEP_MIN_DURATION_MINUTES = Duration.ofMinutes(1);
 
   private MetricUtils() {}
 
+  /**
+   * Increments counter for total number of landing zone creation requests per specific type of
+   * landing zone.
+   *
+   * @param type type of landing zone
+   */
   public static void incrementLandingZoneCreation(String type) {
     Metrics.globalRegistry
         .counter(
@@ -29,6 +35,12 @@ public class MetricUtils {
         .increment();
   }
 
+  /**
+   * Increments counter for total number of landing zone failed creation requests per specific type
+   * of landing zone.
+   *
+   * @param type type of landing zone
+   */
   public static void incrementLandingZoneCreationFailure(String type) {
     Metrics.globalRegistry
         .counter(
@@ -40,6 +52,13 @@ public class MetricUtils {
         .increment();
   }
 
+  /**
+   * Configures timer to measure step's duration for landing zone resource creation flight.
+   *
+   * @param type type of landing zone
+   * @param step name of a landing zone
+   * @return Timer
+   */
   public static Timer configureTimerForLzStepDuration(String type, String step) {
     var registry = Metrics.globalRegistry;
     var t =
@@ -53,8 +72,8 @@ public class MetricUtils {
                 type,
                 LANDINGZONE_STEP_TAG,
                 step)
-            .minimumExpectedValue(Duration.ofMillis(LANDINGZONE_STEP_MIN_DURATION_MILLISECONDS))
-            .maximumExpectedValue(Duration.ofMillis(LANDINGZONE_STEP_MAX_DURATION_MILLISECONDS))
+            .minimumExpectedValue(LANDINGZONE_STEP_MIN_DURATION_MINUTES)
+            .maximumExpectedValue(LANDINGZONE_STEP_MAX_DURATION_MINUTES)
             .register(
                 registry); // "register" method registers new or return existing one based on name
     // and tags
