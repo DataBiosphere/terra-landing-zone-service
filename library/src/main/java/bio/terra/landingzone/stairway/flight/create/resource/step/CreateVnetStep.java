@@ -81,6 +81,8 @@ public class CreateVnetStep extends BaseResourceCreateStep {
           .withAddressPrefix(
               parametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
+          .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
+          .withAccessFromService(ServiceEndpointType.MICROSOFT_SQL)
           .attach()
           .defineSubnet(CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name())
           .withAddressPrefix(
