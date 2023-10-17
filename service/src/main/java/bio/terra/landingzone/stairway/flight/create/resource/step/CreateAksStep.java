@@ -56,6 +56,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .withExistingResourceGroup(getMRGName(context))
             .withDefaultVersion()
             .withSystemAssignedManagedServiceIdentity()
+            .withAgentPoolResourceGroup(getNodeResourceGroup(aksName, getMRGRegionName(context)))
             .withAzureActiveDirectoryGroup(
                 parametersResolver.getValue(
                     CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
@@ -161,5 +162,43 @@ public class CreateAksStep extends BaseResourceCreateStep {
         new ResourceNameRequirements(
             getResourceType() + DNS_SUFFIX_KEY,
             ResourceNameGenerator.MAX_AKS_DNS_PREFIX_NAME_LENGTH));
+  }
+
+  /**
+   * Define name of the node resource group for AKS.
+   *
+   * <p>Maximum allowed length of the name is 80 characters. AKS name (resourceName) has maximum
+   * length of 18 characters (ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH). Plus 2
+   * underscores, plus 'nrg' prefix gives 23 characters in total. The rest (57 characters) is for
+   * region. The longest region name now is 18 characters.
+   *
+   * @param resourceName AKS cluster's name
+   * @return Custom name for AKS node resource group
+   */
+  private String getNodeResourceGroup(String resourceName, String region) {
+    return "nrg_%s_%s".formatted(resourceName, region);
+  }
+
+  /**
+   * Define name of the AKS node resource group using existing pattern
+   * MC_resourceGroupName_resourceName_AzureRegion. In case name exceeds 80 characters it will be
+   * adjusted by trimming value of 'resourceGroupName'.
+   *
+   * @return name of the node resource group
+   */
+  private String getNodeResourceGroup2(
+      String resourceGroupName, String resourceName, String region) {
+    int nodeResourceGroupMaxLength = 80;
+    String nodeResourceGroupPattern = "MC_%s_%s_%s";
+    var result = nodeResourceGroupPattern.formatted(resourceGroupName, resourceName, region);
+    if (result.length() > nodeResourceGroupMaxLength) {
+      result =
+          result.replace(
+              resourceGroupName,
+              resourceGroupName.substring(
+                  0,
+                  resourceGroupName.length() - (result.length() - nodeResourceGroupMaxLength) - 1));
+    }
+    return result;
   }
 }
