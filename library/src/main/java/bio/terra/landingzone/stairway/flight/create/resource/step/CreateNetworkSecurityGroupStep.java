@@ -9,12 +9,15 @@ import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
+import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.network.models.NetworkSecurityGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
   private static final Logger logger =
@@ -36,16 +39,31 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     var nsgName = resourceNameProvider.getName(getResourceType());
 
-    var nsg =
-        armManagers
-            .azureResourceManager()
-            .networkSecurityGroups()
-            .define(nsgName)
-            .withRegion(getMRGRegionName(context))
-            .withExistingResourceGroup(getMRGName(context))
-            .withTags(
-                Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString()))
-            .create();
+    NetworkSecurityGroup nsg = null;
+    try {
+      nsg =
+          armManagers
+              .azureResourceManager()
+              .networkSecurityGroups()
+              .define(nsgName)
+              .withRegion(getMRGRegionName(context))
+              .withExistingResourceGroup(getMRGName(context))
+              .withTags(
+                  Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString()))
+              .create();
+    } catch (ManagementException e) {
+      // resource may already exist if this step is being retried
+      if (e.getResponse() != null
+          && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
+        nsg =
+            armManagers
+                .azureResourceManager()
+                .networkSecurityGroups()
+                .getByResourceGroup(getMRGName(context), nsgName);
+      } else {
+        throw e;
+      }
+    }
 
     context.getWorkingMap().put(NSG_ID, nsg.id());
     context
