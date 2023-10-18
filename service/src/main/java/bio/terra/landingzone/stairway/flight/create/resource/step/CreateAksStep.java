@@ -178,27 +178,4 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private String getNodeResourceGroup(String resourceName, String region) {
     return "nrg_%s_%s".formatted(resourceName, region);
   }
-
-  /**
-   * Define name of the AKS node resource group using existing pattern
-   * MC_resourceGroupName_resourceName_AzureRegion. In case name exceeds 80 characters it will be
-   * adjusted by trimming value of 'resourceGroupName'.
-   *
-   * @return name of the node resource group
-   */
-  private String getNodeResourceGroup2(
-      String resourceGroupName, String resourceName, String region) {
-    int nodeResourceGroupMaxLength = 80;
-    String nodeResourceGroupPattern = "MC_%s_%s_%s";
-    var result = nodeResourceGroupPattern.formatted(resourceGroupName, resourceName, region);
-    if (result.length() > nodeResourceGroupMaxLength) {
-      result =
-          result.replace(
-              resourceGroupName,
-              resourceGroupName.substring(
-                  0,
-                  resourceGroupName.length() - (result.length() - nodeResourceGroupMaxLength) - 1));
-    }
-    return result;
-  }
 }
