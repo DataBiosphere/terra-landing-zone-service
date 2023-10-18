@@ -74,6 +74,7 @@ class CreateAksStepTest extends BaseStepTest {
   @Mock private KubernetesCluster mockKubernetesCluster;
 
   @Captor private ArgumentCaptor<Map<String, String>> tagsCaptor;
+  @Captor private ArgumentCaptor<String> nodeResourceGroupCaptor;
 
   private CreateAksStep testStep;
 
@@ -85,7 +86,8 @@ class CreateAksStepTest extends BaseStepTest {
   @Test
   void doStepSuccess() throws InterruptedException {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    when(mockResourceNameProvider.getName(anyString())).thenReturn("aksName");
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
     setupParameterResolver();
     setupFlightContext(
         mockFlightContext,
@@ -108,6 +110,8 @@ class CreateAksStepTest extends BaseStepTest {
     var stepResult = testStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    verifyAksNodeResourceGroupName(
+        nodeResourceGroupCaptor.getValue(), aksResourceName, mrg.region());
     verify(mockK8sDefinitionStageWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
@@ -148,6 +152,12 @@ class CreateAksStepTest extends BaseStepTest {
     verify(mockK8sDefinitionStageWithCreate, never()).withAddOnProfiles(any());
   }
 
+  private void verifyAksNodeResourceGroupName(
+      String actualValue, String aksResourceName, String region) {
+    String expectedValue = "nrg_%s_%s".formatted(aksResourceName, region);
+    assertThat(actualValue, equalTo(expectedValue));
+  }
+
   private void setupParameterResolver() {
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name()))
@@ -185,6 +195,9 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockK8sDefinitionStageWithCreate.defineAgentPool(anyString()))
         .thenReturn(mockK8sAPDefinitionStagesBlank);
     when(mockK8sDefinitionStageWithLinuxRootUsername.withSystemAssignedManagedServiceIdentity())
+        .thenReturn(mockK8sDefinitionStageWithCreate);
+    when(mockK8sDefinitionStageWithCreate.withAgentPoolResourceGroup(
+            nodeResourceGroupCaptor.capture()))
         .thenReturn(mockK8sDefinitionStageWithCreate);
     when(mockK8sDefinitionStageWithVersion.withDefaultVersion())
         .thenReturn(mockK8sDefinitionStageWithLinuxRootUsername);
