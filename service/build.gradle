@@ -109,6 +109,8 @@ task integrationTest(type: Test) {
     testLogging {
         events = ["passed", "failed", "skipped", "started", "standard_out", "standard_error"]
     }
+
+    maxParallelForks = Runtime.runtime.availableProcessors()
 }
 
 sonarqube {
