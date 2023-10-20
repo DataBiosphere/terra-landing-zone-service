@@ -10,7 +10,9 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.exception.ResourceCreationException;
 import bio.terra.stairway.FlightContext;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
@@ -22,8 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 public class CreateAksStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAksStep.class);
@@ -44,64 +48,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
-    UUID landingZoneId =
-        getParameterOrThrow(
-            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-    var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
-
-    var aksName = resourceNameProvider.getName(getResourceType());
-    var aksPartial =
-        armManagers
-            .azureResourceManager()
-            .kubernetesClusters()
-            .define(aksName)
-            .withRegion(getMRGRegionName(context))
-            .withExistingResourceGroup(getMRGName(context))
-            .withDefaultVersion()
-            .withSystemAssignedManagedServiceIdentity()
-            .withAgentPoolResourceGroup(getNodeResourceGroup(getMRGName(context)))
-            .withAzureActiveDirectoryGroup(
-                parametersResolver.getValue(
-                    CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
-                        .name()))
-            .defineAgentPool(resourceNameProvider.getName(getResourceType() + POOL_SUFFIX_KEY))
-            .withVirtualMachineSize(
-                ContainerServiceVMSizeTypes.fromString(
-                    parametersResolver.getValue(
-                        CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name())))
-            .withAgentPoolVirtualMachineCount(
-                Integer.parseInt(
-                    parametersResolver.getValue(
-                        CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name())))
-            .withAgentPoolMode(AgentPoolMode.SYSTEM)
-            .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
-
-    if (Boolean.parseBoolean(
-        parametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))) {
-      int min =
-          Integer.parseInt(
-              parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
-      int max =
-          Integer.parseInt(
-              parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
-      aksPartial = aksPartial.withAutoScaling(min, max);
-    }
-
-    var aks =
-        aksPartial
-            .attach()
-            .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
-            .withTags(
-                Map.of(
-                    LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-                    landingZoneId.toString(),
-                    LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                    ResourcePurpose.SHARED_RESOURCE.toString()))
-            .create();
-
+    var aks = createAks(context);
     enableWorkloadIdentity(aks);
 
     context.getWorkingMap().put(AKS_ID, aks.id());
@@ -120,6 +67,148 @@ public class CreateAksStep extends BaseResourceCreateStep {
                 .resourceName(aks.name())
                 .build());
     logger.info(RESOURCE_CREATED, getResourceType(), aks.id(), getMRGName(context));
+  }
+
+  private KubernetesCluster createAks(FlightContext context) {
+    UUID landingZoneId =
+        getParameterOrThrow(
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+    var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
+
+    var aksName = resourceNameProvider.getName(getResourceType());
+
+    KubernetesCluster aks = null;
+    //    try {
+    //      existingAks =
+    //          armManagers
+    //              .azureResourceManager()
+    //              .kubernetesClusters()
+    //              .getByResourceGroup(getMRGName(context), aksName);
+    //    } catch (ManagementException ignored) {
+    //    }
+
+    //    try {
+    //      if (existingAks != null) {
+    //        if (existingAks.provisioningState() != null) {
+    //          while (!existingAks.provisioningState().equals("Succeeded")) {
+    //            TimeUnit.MINUTES.sleep(1);
+    //            existingAks =
+    //                armManagers
+    //                    .azureResourceManager()
+    //                    .kubernetesClusters()
+    //                    .getByResourceGroup(getMRGName(context), aksName);
+    //          }
+    //        }
+    //      }
+    //    } catch (InterruptedException e) {
+    //      return null;
+    //    }
+
+    //    if (existingAks != null) {
+    //      return existingAks;
+    //    }
+
+    try {
+      var aksPartial =
+          armManagers
+              .azureResourceManager()
+              .kubernetesClusters()
+              .define(aksName)
+              .withRegion(getMRGRegionName(context))
+              .withExistingResourceGroup(getMRGName(context))
+              .withDefaultVersion()
+              .withSystemAssignedManagedServiceIdentity()
+              .withAgentPoolResourceGroup(getNodeResourceGroup(getMRGRegionName(context)))
+              .withAzureActiveDirectoryGroup(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
+                          .name()))
+              .defineAgentPool(resourceNameProvider.getName(getResourceType() + POOL_SUFFIX_KEY))
+              .withVirtualMachineSize(
+                  ContainerServiceVMSizeTypes.fromString(
+                      parametersResolver.getValue(
+                          CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name())))
+              .withAgentPoolVirtualMachineCount(
+                  Integer.parseInt(
+                      parametersResolver.getValue(
+                          CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name())))
+              .withAgentPoolMode(AgentPoolMode.SYSTEM)
+              .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
+
+      if (Boolean.parseBoolean(
+          parametersResolver.getValue(
+              CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))) {
+        int min =
+            Integer.parseInt(
+                parametersResolver.getValue(
+                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
+        int max =
+            Integer.parseInt(
+                parametersResolver.getValue(
+                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
+        aksPartial = aksPartial.withAutoScaling(min, max);
+      }
+
+      aks =
+          aksPartial
+              .attach()
+              .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
+              .withTags(
+                  Map.of(
+                      LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                      landingZoneId.toString(),
+                      LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                      ResourcePurpose.SHARED_RESOURCE.toString()))
+              .create();
+    } catch (ManagementException e) {
+      if (e.getResponse() != null
+          && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
+        if (e.getValue().getCode().equals("OperationNotAllowed")) {
+          /*duplicate request but resource is not ready for use and is still being provisioned*/
+          aks = waitAndGetAksProvisioned(getMRGName(context), aksName);
+        } else if (e.getValue().getCode().equals("conflict")) {
+          /*duplicate request, but resource is ready for use*/
+          aks =
+              armManagers
+                  .azureResourceManager()
+                  .kubernetesClusters()
+                  .getByResourceGroup(getMRGName(context), aksName);
+        }
+      } else {
+        throw e;
+      }
+    }
+    return aks;
+  }
+
+  private KubernetesCluster waitAndGetAksProvisioned(String mrgName, String aksName) {
+    int pollCycleNumberMax = 30;
+    int sleepDurationSeconds = 30;
+    KubernetesCluster existingAks =
+        armManagers
+            .azureResourceManager()
+            .kubernetesClusters()
+            .getByResourceGroup(mrgName, aksName);
+    int pollCycleNumber = 0;
+    try {
+      while (existingAks == null || (!existingAks.provisioningState().equals("Succeeded"))) {
+        TimeUnit.SECONDS.sleep(sleepDurationSeconds);
+        existingAks =
+            armManagers
+                .azureResourceManager()
+                .kubernetesClusters()
+                .getByResourceGroup(mrgName, aksName);
+        pollCycleNumber++;
+        if (pollCycleNumber > pollCycleNumberMax) {
+          throw new ResourceCreationException(
+              "Aks resource still not ready after %s sec."
+                  .formatted(pollCycleNumber * sleepDurationSeconds));
+        }
+      }
+    } catch (InterruptedException e) {
+      throw new ResourceCreationException(e.getMessage(), e);
+    }
+    return existingAks;
   }
 
   /** see https://github.com/Azure/azure-sdk-for-java/issues/31271 */
