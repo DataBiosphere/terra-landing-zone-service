@@ -163,17 +163,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
     } catch (ManagementException e) {
       if (e.getResponse() != null
           && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
-        if (e.getValue().getCode().equals("OperationNotAllowed")) {
-          /*duplicate request but resource is not ready for use and is still being provisioned*/
-          aks = waitAndGetAksProvisioned(getMRGName(context), aksName);
-        } else if (e.getValue().getCode().equals("conflict")) {
-          /*duplicate request, but resource is ready for use*/
-          aks =
-              armManagers
-                  .azureResourceManager()
-                  .kubernetesClusters()
-                  .getByResourceGroup(getMRGName(context), aksName);
-        }
+        aks = handleConflictAndMaybeGetAks(context, aksName, e);
       } else {
         throw e;
       }
@@ -181,18 +171,27 @@ public class CreateAksStep extends BaseResourceCreateStep {
     return aks;
   }
 
+  private KubernetesCluster handleConflictAndMaybeGetAks(
+      FlightContext context, String aksName, ManagementException e) {
+    return switch (e.getValue().getCode()) {
+        /*duplicate request but resource is not ready for use and is still being provisioned*/
+      case "OperationNotAllowed" -> waitAndGetAksProvisioned(getMRGName(context), aksName);
+        /*duplicate request, but resource is ready for use*/
+      case "conflict" -> armManagers
+          .azureResourceManager()
+          .kubernetesClusters()
+          .getByResourceGroup(getMRGName(context), aksName);
+      default -> throw e;
+    };
+  }
+
   private KubernetesCluster waitAndGetAksProvisioned(String mrgName, String aksName) {
     int pollCycleNumberMax = 30;
     int sleepDurationSeconds = 30;
-    KubernetesCluster existingAks =
-        armManagers
-            .azureResourceManager()
-            .kubernetesClusters()
-            .getByResourceGroup(mrgName, aksName);
     int pollCycleNumber = 0;
+    KubernetesCluster existingAks;
     try {
-      while (existingAks == null || (!existingAks.provisioningState().equals("Succeeded"))) {
-        TimeUnit.SECONDS.sleep(sleepDurationSeconds);
+      do {
         existingAks =
             armManagers
                 .azureResourceManager()
@@ -204,7 +203,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
               "Aks resource still not ready after %s sec."
                   .formatted(pollCycleNumber * sleepDurationSeconds));
         }
-      }
+        TimeUnit.SECONDS.sleep(sleepDurationSeconds);
+      } while (existingAks == null || (!existingAks.provisioningState().equals("Succeeded")));
     } catch (InterruptedException e) {
       throw new ResourceCreationException(e.getMessage(), e);
     }
