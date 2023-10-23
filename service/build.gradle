@@ -21,7 +21,7 @@ dependencies {
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.6.0'
     implementation group: 'com.azure', name: 'azure-core', version: '1.44.0'
-    implementation (group: 'com.azure', name: 'azure-identity', version: '1.10.3') {
+    implementation (group: 'com.azure', name: 'azure-identity', version: '1.10.4') {
         // the msal4j transitive dependency is still pulling in an old version of json-smart
         // which is vulnerable to CVE-2023-1370
         // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611
