@@ -16,7 +16,7 @@ dependencies {
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.3'
     implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.2'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:4.4.1.3373'
-    implementation 'org.springframework.boot:spring-boot-gradle-plugin:2.7.15'
+    implementation 'org.springframework.boot:spring-boot-gradle-plugin:2.7.17'
     // This is required due to a dependency conflict between jib and srcclr. Removing it will cause jib to fail.
     implementation 'org.apache.commons:commons-compress:1.24.0'
 }
