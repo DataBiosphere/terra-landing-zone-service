@@ -17,6 +17,7 @@ import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private static final String DNS_SUFFIX_KEY = "_DNS";
   private static final String POOL_SUFFIX_KEY = "_POOL";
   public static final String AKS_OIDC_ISSUER_URL = "AKS_OIDC_ISSUER_URL";
+  public static final int NODE_RESOURCE_GROUP_NAME_MAX_LENGTH = 80;
+  public static final String NODE_RESOURCE_GROUP_NAME_SUFFIX = "_aks";
 
   public CreateAksStep(
       ArmManagers armManagers,
@@ -56,7 +59,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
             .withExistingResourceGroup(getMRGName(context))
             .withDefaultVersion()
             .withSystemAssignedManagedServiceIdentity()
-            .withAgentPoolResourceGroup(getNodeResourceGroup(aksName, getMRGRegionName(context)))
+            .withAgentPoolResourceGroup(getNodeResourceGroup(getMRGName(context)))
             .withAzureActiveDirectoryGroup(
                 parametersResolver.getValue(
                     CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
@@ -167,15 +170,25 @@ public class CreateAksStep extends BaseResourceCreateStep {
   /**
    * Define name of the node resource group for AKS.
    *
-   * <p>Maximum allowed length of the name is 80 characters. AKS name (resourceName) has maximum
-   * length of 18 characters (ResourceNameGenerator.MAX_AKS_CLUSTER_NAME_LENGTH). Plus 2
-   * underscores, plus 'nrg' prefix gives 23 characters in total. The rest (57 characters) is for
-   * region. The longest region name now is 18 characters.
+   * <p>The name of the node resource group should follow this pattern [RESOURCE_GROUP_NAME]_aks.
+   * Maximum allowed length of the name is 80 characters. RESOURCE_GROUP_NAME might be truncated in
+   * case of the full name length exceeds 80 characters.
    *
-   * @param resourceName AKS cluster's name
+   * @param managedResourceGroupName Name of the managed resource group
    * @return Custom name for AKS node resource group
    */
-  private String getNodeResourceGroup(String resourceName, String region) {
-    return "nrg_%s_%s".formatted(resourceName, region);
+  @VisibleForTesting
+  String getNodeResourceGroup(String managedResourceGroupName) {
+    var nodeResourceGroup =
+        "%s%s".formatted(managedResourceGroupName, NODE_RESOURCE_GROUP_NAME_SUFFIX);
+    if (nodeResourceGroup.length() > NODE_RESOURCE_GROUP_NAME_MAX_LENGTH) {
+      nodeResourceGroup =
+          nodeResourceGroup.replace(
+              managedResourceGroupName,
+              managedResourceGroupName.substring(
+                  0,
+                  NODE_RESOURCE_GROUP_NAME_MAX_LENGTH - NODE_RESOURCE_GROUP_NAME_SUFFIX.length()));
+    }
+    return nodeResourceGroup;
   }
 }
