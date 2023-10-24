@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,9 @@ public class CreateAksStep extends BaseResourceCreateStep {
   public static final String AKS_OIDC_ISSUER_URL = "AKS_OIDC_ISSUER_URL";
   public static final int NODE_RESOURCE_GROUP_NAME_MAX_LENGTH = 80;
   public static final String NODE_RESOURCE_GROUP_NAME_SUFFIX = "_aks";
+
+  // it's always true, false is only for testing; see denySleepWhilePoolingForAksStatus() method
+  private boolean sleepWhilePollingAksStatus = true;
 
   public CreateAksStep(
       ArmManagers armManagers,
@@ -77,37 +81,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
     var aksName = resourceNameProvider.getName(getResourceType());
 
-    KubernetesCluster aks = null;
-    //    try {
-    //      existingAks =
-    //          armManagers
-    //              .azureResourceManager()
-    //              .kubernetesClusters()
-    //              .getByResourceGroup(getMRGName(context), aksName);
-    //    } catch (ManagementException ignored) {
-    //    }
-
-    //    try {
-    //      if (existingAks != null) {
-    //        if (existingAks.provisioningState() != null) {
-    //          while (!existingAks.provisioningState().equals("Succeeded")) {
-    //            TimeUnit.MINUTES.sleep(1);
-    //            existingAks =
-    //                armManagers
-    //                    .azureResourceManager()
-    //                    .kubernetesClusters()
-    //                    .getByResourceGroup(getMRGName(context), aksName);
-    //          }
-    //        }
-    //      }
-    //    } catch (InterruptedException e) {
-    //      return null;
-    //    }
-
-    //    if (existingAks != null) {
-    //      return existingAks;
-    //    }
-
+    KubernetesCluster aks;
     try {
       var aksPartial =
           armManagers
@@ -173,10 +147,11 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
   private KubernetesCluster handleConflictAndMaybeGetAks(
       FlightContext context, String aksName, ManagementException e) {
-    return switch (e.getValue().getCode()) {
-        /*duplicate request but resource is not ready for use and is still being provisioned*/
-      case "OperationNotAllowed" -> waitAndGetAksProvisioned(getMRGName(context), aksName);
-        /*duplicate request, but resource is ready for use*/
+    return switch (e.getValue().getCode().toLowerCase()) {
+        /*duplicate request (Stairway has resumed flight after interruption)
+        but resource is not ready for use and is still being provisioned*/
+      case "operationnotallowed" -> waitAndMaybeGetAksProvisioned(getMRGName(context), aksName);
+        /*duplicate request (Stairway resume flight after interruption), but resource is ready for use*/
       case "conflict" -> armManagers
           .azureResourceManager()
           .kubernetesClusters()
@@ -185,30 +160,38 @@ public class CreateAksStep extends BaseResourceCreateStep {
     };
   }
 
-  private KubernetesCluster waitAndGetAksProvisioned(String mrgName, String aksName) {
-    int pollCycleNumberMax = 30;
-    int sleepDurationSeconds = 30;
+  private KubernetesCluster waitAndMaybeGetAksProvisioned(String mrgName, String aksName) {
+    final int pollCycleNumberMax = 30;
+    final int sleepDurationSeconds = 30;
     int pollCycleNumber = 0;
     KubernetesCluster existingAks;
     try {
       do {
+        if (sleepWhilePollingAksStatus) {
+          /*always sleep except during unit testing*/
+          TimeUnit.SECONDS.sleep(sleepDurationSeconds);
+        }
         existingAks =
             armManagers
                 .azureResourceManager()
                 .kubernetesClusters()
                 .getByResourceGroup(mrgName, aksName);
-        pollCycleNumber++;
-        if (pollCycleNumber > pollCycleNumberMax) {
+        if (++pollCycleNumber > pollCycleNumberMax) {
           throw new ResourceCreationException(
               "Aks resource still not ready after %s sec."
                   .formatted(pollCycleNumber * sleepDurationSeconds));
         }
-        TimeUnit.SECONDS.sleep(sleepDurationSeconds);
-      } while (existingAks == null || (!existingAks.provisioningState().equals("Succeeded")));
+      } while (existingAks == null
+          || (!StringUtils.equalsIgnoreCase(existingAks.provisioningState(), "Succeeded")));
     } catch (InterruptedException e) {
       throw new ResourceCreationException(e.getMessage(), e);
     }
     return existingAks;
+  }
+
+  @VisibleForTesting
+  void denySleepWhilePoolingForAksStatus() {
+    sleepWhilePollingAksStatus = false;
   }
 
   /** see https://github.com/Azure/azure-sdk-for-java/issues/31271 */
