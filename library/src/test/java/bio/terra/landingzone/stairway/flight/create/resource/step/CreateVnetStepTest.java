@@ -173,13 +173,8 @@ class CreateVnetStepTest extends BaseStepTest {
         .thenReturn(mockSubnetDefinitionStagesBlank);
     when(mockSubnetDefinitionStagesBlank.withAddressPrefix(anyString()))
         .thenReturn(mockSubnetDefinitionStagesWithAttach);
-    /*    when(mockSubnetDefinitionStagesWithAttach.withDelegation(anyString()))
-    .thenReturn(mockSubnetDefinitionStagesWithAttach);*/
     when(mockSubnetDefinitionStagesWithAttach.withExistingNetworkSecurityGroup(anyString()))
         .thenReturn(mockSubnetDefinitionStagesWithAttach);
-    /*    when(mockSubnetDefinitionStagesWithAttach.withAccessFromService(
-        ServiceEndpointType.MICROSOFT_STORAGE))
-    .thenReturn(mockSubnetDefinitionStagesWithAttach);*/
     when(mockSubnetDefinitionStagesWithAttach.attach())
         .thenReturn(mockDefinitionStageWithCreateAndSubnet);
 
