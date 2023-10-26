@@ -110,8 +110,7 @@ class CreateAksStepTest extends BaseStepTest {
     var stepResult = testStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
-    verifyAksNodeResourceGroupName(
-        nodeResourceGroupCaptor.getValue(), aksResourceName, mrg.region());
+    verifyAksNodeResourceGroupName(nodeResourceGroupCaptor.getValue(), mrg.name());
     verify(mockK8sDefinitionStageWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
@@ -148,13 +147,21 @@ class CreateAksStepTest extends BaseStepTest {
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 
+  @ParameterizedTest
+  @MethodSource("managedResourceGroupNameProvider")
+  void validateNodeResourceGroupWithTruncation(
+      String managedResourceGroupName, String expectedNodeResourceGroupName) {
+    assertThat(
+        testStep.getNodeResourceGroup(managedResourceGroupName),
+        equalTo(expectedNodeResourceGroupName));
+  }
+
   private void verifyOmsAgentAddonProfileNotSet() {
     verify(mockK8sDefinitionStageWithCreate, never()).withAddOnProfiles(any());
   }
 
-  private void verifyAksNodeResourceGroupName(
-      String actualValue, String aksResourceName, String region) {
-    String expectedValue = "nrg_%s_%s".formatted(aksResourceName, region);
+  private void verifyAksNodeResourceGroupName(String actualValue, String managedResourceGroup) {
+    String expectedValue = "%s_aks".formatted(managedResourceGroup);
     assertThat(actualValue, equalTo(expectedValue));
   }
 
@@ -229,5 +236,22 @@ class CreateAksStepTest extends BaseStepTest {
     return Stream.of(
         // intentionally return empty map, to check required parameter validation
         Arguments.of(Map.of()));
+  }
+
+  // provides pairs of mrg name and expected name of node resource group
+  private static Stream<Arguments> managedResourceGroupNameProvider() {
+    return Stream.of(
+        Arguments.of("mrgNameWithoutTruncation", "mrgNameWithoutTruncation_aks"),
+        Arguments.of("mrgName", "mrgName_aks"),
+        Arguments.of("mrgMyCustomName", "mrgMyCustomName_aks"),
+        Arguments.of(
+            "mrgSuperSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncatedImmediately",
+            "mrgSuperSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncat_aks"),
+        Arguments.of(
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncatedImmediately",
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncatedImm_aks"),
+        Arguments.of(
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichMaybeMaybeMaybeMaybeMa",
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichMaybeMaybeMaybeMaybe_aks"));
   }
 }
