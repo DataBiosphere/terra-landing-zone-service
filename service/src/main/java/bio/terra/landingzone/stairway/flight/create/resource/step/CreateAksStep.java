@@ -92,7 +92,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
               .withExistingResourceGroup(getMRGName(context))
               .withDefaultVersion()
               .withSystemAssignedManagedServiceIdentity()
-              .withAgentPoolResourceGroup(getNodeResourceGroup(getMRGRegionName(context)))
+              .withAgentPoolResourceGroup(getNodeResourceGroup(getMRGName(context)))
               .withAzureActiveDirectoryGroup(
                   parametersResolver.getValue(
                       CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
