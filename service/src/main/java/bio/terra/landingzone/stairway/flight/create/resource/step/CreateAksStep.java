@@ -166,6 +166,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
     int pollCycleNumber = 0;
     KubernetesCluster existingAks;
     try {
+      boolean aksNotProvisioned;
       do {
         if (sleepWhilePollingAksStatus) {
           /*always sleep except during unit testing*/
@@ -176,13 +177,15 @@ public class CreateAksStep extends BaseResourceCreateStep {
                 .azureResourceManager()
                 .kubernetesClusters()
                 .getByResourceGroup(mrgName, aksName);
-        if (++pollCycleNumber > pollCycleNumberMax) {
+        aksNotProvisioned =
+            (existingAks == null)
+                || (!StringUtils.equalsIgnoreCase(existingAks.provisioningState(), "Succeeded"));
+        if (++pollCycleNumber == pollCycleNumberMax && aksNotProvisioned) {
           throw new ResourceCreationException(
               "Aks resource still not ready after %s sec."
                   .formatted(pollCycleNumber * sleepDurationSeconds));
         }
-      } while (existingAks == null
-          || (!StringUtils.equalsIgnoreCase(existingAks.provisioningState(), "Succeeded")));
+      } while (aksNotProvisioned);
     } catch (InterruptedException e) {
       throw new ResourceCreationException(e.getMessage(), e);
     }
