@@ -187,6 +187,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
         }
       } while (aksNotProvisioned);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new ResourceCreationException(e.getMessage(), e);
     }
     return existingAks;
