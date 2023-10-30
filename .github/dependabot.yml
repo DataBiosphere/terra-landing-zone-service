@@ -19,3 +19,9 @@ updates:
     ignore:
       - dependency-name: "org.springframework.boot:spring-boot-gradle-plugin"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "org.springframework.boot:spring-boot-starter-data-jdbc"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+      - dependency-name: "org.springframework.boot:spring-boot-starter-web"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+      - dependency-name: "org.springframework.boot:spring-boot-starter-test"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
