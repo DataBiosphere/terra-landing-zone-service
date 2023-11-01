@@ -68,8 +68,8 @@ jobs:
           SEMVER_PART=${{ github.event.inputs.bump }}
           CHECKOUT_BRANCH=${{ github.event.inputs.branch }}
         fi
-        echo ::set-output name=semver-part::$SEMVER_PART
-        echo ::set-output name=checkout-branch::$CHECKOUT_BRANCH
+        echo "semver-part=$SEMVER_PART" >> $GITHUB_OUTPUT
+        echo "checkout-branch=$CHECKOUT_BRANCH" >> $GITHUB_OUTPUT
 
     - name: Checkout current code
       uses: actions/checkout@v2

@@ -146,6 +146,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
     armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
   }
 
+  @Disabled("Protected data landing zones exercise the base cromwell path, this test is redundant")
   @Test
   void createResourcesFlightDeploysCromwellResources() {
     String resultPath = "";

@@ -105,6 +105,16 @@ task integrationTest(type: Test) {
     // Force tests to always be re-run, since integration tests involve communicating with external
     // resources.
     outputs.upToDateWhen { false }
+
+    testLogging {
+        if (System.getenv('PRINT_STANDARD_STREAMS') == null) {
+            events = ["passed", "failed", "skipped", "started"]
+        } else {
+            events = ["passed", "failed", "skipped", "started", "standard_out", "standard_error"]
+        }
+    }
+
+    maxParallelForks = 4
 }
 
 sonarqube {

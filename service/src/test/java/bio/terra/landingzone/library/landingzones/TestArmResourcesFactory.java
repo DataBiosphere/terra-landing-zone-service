@@ -84,6 +84,7 @@ public class TestArmResourcesFactory {
         .resourceGroups()
         .define("rg" + resourceGroupId)
         .withRegion(Region.US_SOUTH_CENTRAL)
+        .withTag("PURPOSE", "LANDING_ZONE_SERVICE_INTEGRATION_TESTING")
         .create();
   }
 
