@@ -1,0 +1,19 @@
+plugins {
+    id 'bio.terra.landingzone.java-spring-app-conventions'
+    id 'de.undercouch.download'
+    id 'com.google.cloud.tools.jib'
+    id 'com.srcclr.gradle'
+}
+
+apply from: 'publishing.gradle'
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation project(':service')
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+    useJUnitPlatform()
+}
