@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -22,6 +23,9 @@ import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsExce
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepStatus;
+import com.azure.core.http.HttpResponse;
+import com.azure.core.management.exception.ManagementError;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.containerservice.fluent.models.ManagedClusterInner;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
@@ -44,6 +48,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
@@ -74,18 +79,21 @@ class CreateAksStepTest extends BaseStepTest {
   @Mock private KubernetesCluster mockKubernetesCluster;
 
   @Captor private ArgumentCaptor<Map<String, String>> tagsCaptor;
+  @Captor private ArgumentCaptor<String> nodeResourceGroupCaptor;
 
   private CreateAksStep testStep;
 
   @BeforeEach
   void setup() {
     testStep = new CreateAksStep(mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    testStep.denySleepWhilePoolingForAksStatus();
   }
 
   @Test
   void doStepSuccess() throws InterruptedException {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    when(mockResourceNameProvider.getName(anyString())).thenReturn("aksName");
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
     setupParameterResolver();
     setupFlightContext(
         mockFlightContext,
@@ -108,6 +116,7 @@ class CreateAksStepTest extends BaseStepTest {
     var stepResult = testStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    verifyAksNodeResourceGroupName(nodeResourceGroupCaptor.getValue(), mrg.name());
     verify(mockK8sDefinitionStageWithCreate, times(1)).create();
     verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
@@ -144,8 +153,89 @@ class CreateAksStepTest extends BaseStepTest {
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 
+  @ParameterizedTest
+  @MethodSource("managedResourceGroupNameProvider")
+  void validateNodeResourceGroupWithTruncation(
+      String managedResourceGroupName, String expectedNodeResourceGroupName) {
+    assertThat(
+        testStep.getNodeResourceGroup(managedResourceGroupName),
+        equalTo(expectedNodeResourceGroupName));
+  }
+
+  @Test
+  void doStepRetryWhenAksIsNotProvisionedYet() throws InterruptedException {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
+    setupParameterResolver();
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(
+            CreateVnetStep.VNET_ID,
+            "vNetId",
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            "logAnalyticsWorkspaceId"));
+    setupArmManagersForDoStepRetryWhenAksIsNotProvisionedYet();
+    var stepResult = testStep.doStep(mockFlightContext);
+
+    assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    verify(mockK8sDefinitionStageWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
+    // poll for aks 2 times based on mocks - 1st attempt failed, 2nd successful;
+    // failed means that aks is not ready yet at the time of the request
+    verify(mockKubernetesClusters, times(2)).getByResourceGroup(any(), any());
+    verifyOmsAgentAddonProfileNotSet();
+  }
+
+  @Test
+  void doStepRetryWhenAksIsAlreadyProvisioned() throws InterruptedException {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
+    setupParameterResolver();
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(
+            CreateVnetStep.VNET_ID,
+            "vNetId",
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            "logAnalyticsWorkspaceId"));
+    setupArmManagersForDoStepRetryWhenAksIsAlreadyProvisioned();
+    var stepResult = testStep.doStep(mockFlightContext);
+
+    assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    verify(mockK8sDefinitionStageWithCreate, times(1)).create();
+    verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
+    // aks has been already provisioned when we retry to call create
+    verify(mockKubernetesClusters, times(1)).getByResourceGroup(any(), any());
+    verifyOmsAgentAddonProfileNotSet();
+  }
+
   private void verifyOmsAgentAddonProfileNotSet() {
     verify(mockK8sDefinitionStageWithCreate, never()).withAddOnProfiles(any());
+  }
+
+  private void verifyAksNodeResourceGroupName(String actualValue, String managedResourceGroup) {
+    String expectedValue = "%s_aks".formatted(managedResourceGroup);
+    assertThat(actualValue, equalTo(expectedValue));
   }
 
   private void setupParameterResolver() {
@@ -164,9 +254,14 @@ class CreateAksStepTest extends BaseStepTest {
   }
 
   private void setupArmManagersForDoStep() {
-    setupMocksForEnablingWorkloadIdentity();
+    setupMocksForEnablingWorkloadIdentity(mockKubernetesCluster);
     when(mockKubernetesCluster.id()).thenReturn(RESOURCE_ID);
     when(mockK8sDefinitionStageWithCreate.create()).thenReturn(mockKubernetesCluster);
+
+    setupK8sMocks();
+  }
+
+  private void setupK8sMocks() {
     when(mockK8sDefinitionStageWithCreate.withTags(tagsCaptor.capture()))
         .thenReturn(mockK8sDefinitionStageWithCreate);
     when(mockK8sDefinition.withDnsPrefix(anyString())).thenReturn(mockK8sDefinitionStageWithCreate);
@@ -186,6 +281,9 @@ class CreateAksStepTest extends BaseStepTest {
         .thenReturn(mockK8sAPDefinitionStagesBlank);
     when(mockK8sDefinitionStageWithLinuxRootUsername.withSystemAssignedManagedServiceIdentity())
         .thenReturn(mockK8sDefinitionStageWithCreate);
+    when(mockK8sDefinitionStageWithCreate.withAgentPoolResourceGroup(
+            nodeResourceGroupCaptor.capture()))
+        .thenReturn(mockK8sDefinitionStageWithCreate);
     when(mockK8sDefinitionStageWithVersion.withDefaultVersion())
         .thenReturn(mockK8sDefinitionStageWithLinuxRootUsername);
     when(mockK8sDefinitionStageWithGroup.withExistingResourceGroup(anyString()))
@@ -197,7 +295,48 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
   }
 
-  private void setupMocksForEnablingWorkloadIdentity() {
+  // setup mocks for doStep retry attempt after Stairway failure
+  private void setupArmManagersForDoStepRetryWhenAksIsNotProvisionedYet() {
+    setupK8sMocks();
+
+    /*throw exception during call to create aks*/
+    mockManagementException("OperationNotAllowed");
+
+    /*setup mocks for polling aks status*/
+    var mockClusterNotReady = mock(KubernetesCluster.class);
+    when(mockClusterNotReady.provisioningState()).thenReturn("provisioning");
+    var mockClusterReady = mock(KubernetesCluster.class);
+    when(mockClusterReady.provisioningState()).thenReturn("succeeded");
+    when(mockKubernetesClusters.getByResourceGroup(any(), any()))
+        .thenReturn(mockClusterNotReady, mockClusterReady);
+
+    setupMocksForEnablingWorkloadIdentity(mockClusterReady);
+  }
+
+  private void setupArmManagersForDoStepRetryWhenAksIsAlreadyProvisioned() {
+    setupK8sMocks();
+
+    /*throw exception during call to create aks*/
+    mockManagementException("Conflict");
+
+    var mockClusterReady = mock(KubernetesCluster.class);
+    when(mockKubernetesClusters.getByResourceGroup(any(), any())).thenReturn(mockClusterReady);
+
+    setupMocksForEnablingWorkloadIdentity(mockClusterReady);
+  }
+
+  private void mockManagementException(String code) {
+    var retryableConflictException = mock(ManagementException.class);
+    var managementError = mock(ManagementError.class);
+    when(managementError.getCode()).thenReturn(code);
+    when(retryableConflictException.getValue()).thenReturn(managementError);
+    var httpResponse = mock(HttpResponse.class);
+    when(httpResponse.getStatusCode()).thenReturn(HttpStatus.CONFLICT.value());
+    when(retryableConflictException.getResponse()).thenReturn(httpResponse);
+    doThrow(retryableConflictException).when(mockK8sDefinitionStageWithCreate).create();
+  }
+
+  private void setupMocksForEnablingWorkloadIdentity(KubernetesCluster mockKubernetesCluster) {
     KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
     ManagedClusterInner mockManagedClusterInner = mock(ManagedClusterInner.class);
     ManagedClusterSecurityProfile mockManagedClusterSecurityProfile =
@@ -216,5 +355,22 @@ class CreateAksStepTest extends BaseStepTest {
     return Stream.of(
         // intentionally return empty map, to check required parameter validation
         Arguments.of(Map.of()));
+  }
+
+  // provides pairs of mrg name and expected name of node resource group
+  private static Stream<Arguments> managedResourceGroupNameProvider() {
+    return Stream.of(
+        Arguments.of("mrgNameWithoutTruncation", "mrgNameWithoutTruncation_aks"),
+        Arguments.of("mrgName", "mrgName_aks"),
+        Arguments.of("mrgMyCustomName", "mrgMyCustomName_aks"),
+        Arguments.of(
+            "mrgSuperSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncatedImmediately",
+            "mrgSuperSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncat_aks"),
+        Arguments.of(
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncatedImmediately",
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichShouldBeTruncatedImm_aks"),
+        Arguments.of(
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichMaybeMaybeMaybeMaybeMa",
+            "mrgSuperSuperSuperSuperLongManagedResourceGroupNameWhichMaybeMaybeMaybeMaybe_aks"));
   }
 }
