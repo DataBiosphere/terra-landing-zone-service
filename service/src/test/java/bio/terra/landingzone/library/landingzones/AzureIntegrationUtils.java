@@ -7,12 +7,6 @@ import com.azure.identity.DefaultAzureCredentialBuilder;
 
 public class AzureIntegrationUtils {
 
-  /** Path to Azure properties file. */
-  private static final String AZURE_PROPERTIES_PATH = "integration_azure_env.properties";
-
-  /** Property prefix for properties in {@link #AZURE_PROPERTIES_PATH}. */
-  private static final String AZURE_PROPERTY_PREFIX = "workspace.azure.";
-
   // 8201558-dsp-azure-testing
   public static final AzureProfile TERRA_DEV_AZURE_PROFILE =
       new AzureProfile(
