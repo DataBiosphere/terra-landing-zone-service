@@ -33,15 +33,15 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     jacocoTestReport {
-        dependsOn(':service:compileTestJava')
+        dependsOn(':library:compileTestJava')
         reports {
             // sonarqube requires XML coverage output to upload coverage data
             xml.required = true
             html.required = true
         }
 
-        additionalSourceDirs.from = files("$rootDir/service/src")
-        additionalClassDirs.from = files("$rootDir/service/build/classes")
+        additionalSourceDirs.from = files("$rootDir/library/src")
+        additionalClassDirs.from = files("$rootDir/library/build/classes")
     }
 
     test {
