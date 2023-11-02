@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation (project(":service")) {
+    implementation (project(":library")) {
         // the msal4j transitive dependency is still pulling in an old version of json-smart
         // which is vulnerable to CVE-2023-1370
         // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611

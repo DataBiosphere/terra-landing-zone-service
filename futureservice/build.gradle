@@ -9,7 +9,7 @@ apply from: 'publishing.gradle'
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation project(':service')
+    implementation project(':library')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
