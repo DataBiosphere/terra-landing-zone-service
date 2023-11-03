@@ -109,7 +109,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Publish to Artifactory
-      run: ./gradlew :service:artifactoryPublish --scan
+      run: ./gradlew :library:artifactoryPublish --scan
       env:
         ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
         ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}

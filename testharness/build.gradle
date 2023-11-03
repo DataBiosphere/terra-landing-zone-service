@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation (project(":service")) {
+    implementation (project(":library")) {
         // the msal4j transitive dependency is still pulling in an old version of json-smart
         // which is vulnerable to CVE-2023-1370
         // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611
@@ -33,15 +33,15 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:5.2.0'
 
     jacocoTestReport {
-        dependsOn(':service:compileTestJava')
+        dependsOn(':library:compileTestJava')
         reports {
             // sonarqube requires XML coverage output to upload coverage data
             xml.required = true
             html.required = true
         }
 
-        additionalSourceDirs.from = files("$rootDir/service/src")
-        additionalClassDirs.from = files("$rootDir/service/build/classes")
+        additionalSourceDirs.from = files("$rootDir/library/src")
+        additionalClassDirs.from = files("$rootDir/library/build/classes")
     }
 
     test {
