@@ -175,8 +175,9 @@ public class ResourcesDeleteManager {
     }
 
     return switch (resourceToDelete.resource().resourceType().toLowerCase()) {
-      case "virtualnetworks", "managedclusters", "privatednszones" -> 1;
-      case "networksecuritygroups", "datacollectionrules" -> 2;
+      case "managedclusters" -> 1;
+      case "virtualnetworks", "privatednszones" -> 2;
+      case "networksecuritygroups", "datacollectionrules" -> 3;
       default -> 0;
     };
   }
