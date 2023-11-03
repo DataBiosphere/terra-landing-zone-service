@@ -7,11 +7,9 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.resourcemanager.network.models.PrivateEndpoint;
 import com.azure.resourcemanager.resources.models.GenericResource;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
 public class ResourcesDeleteManager {
@@ -115,19 +113,9 @@ public class ResourcesDeleteManager {
   private List<GenericResource> deleteLandingZoneResourcesInOrder(
       List<ResourceToDelete> resourcesToDelete) {
 
-    // The first partition (false) contains all the resources that can be deleted first (independent
-    // resources)
-    // the second partition (true) contains resources that are considered foundational
-    // for the landing zone (base resources) and therefore should be deleted last.
-    // The enum LandingZoneDependentResourceType determines the types that are considered base
-    // resources.
-
-    Map<Boolean, List<ResourceToDelete>> partitions =
-        resourcesToDelete.stream().collect(Collectors.partitioningBy(this::isBaseResource));
-
-    return Stream.concat(
-            partitions.get(false).stream().map(this::deleteResource),
-            partitions.get(true).stream().map(this::deleteResource))
+    return resourcesToDelete.stream()
+        .sorted(Comparator.comparingInt(this::getDeleteOrder))
+        .map(this::deleteResource)
         .toList();
   }
 
@@ -181,8 +169,16 @@ public class ResourcesDeleteManager {
     }
   }
 
-  private boolean isBaseResource(ResourceToDelete resourceToDelete) {
-    return LandingZoneBaseResourceType.containsValueIgnoringCase(
-        resourceToDelete.resource().type());
+  private int getDeleteOrder(ResourceToDelete resourceToDelete) {
+    if (resourceToDelete.resource().resourceType() == null) {
+      return 0;
+    }
+
+    return switch (resourceToDelete.resource().resourceType().toLowerCase()) {
+      case "managedclusters" -> 1;
+      case "virtualnetworks", "privatednszones" -> 2;
+      case "networksecuritygroups", "datacollectionrules" -> 3;
+      default -> 0;
+    };
   }
 }

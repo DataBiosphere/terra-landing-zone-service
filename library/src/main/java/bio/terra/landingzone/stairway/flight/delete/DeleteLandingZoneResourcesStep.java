@@ -93,6 +93,13 @@ public class DeleteLandingZoneResourcesStep implements Step {
             DeletedLandingZone.emptyLandingZone(
                 landingZoneId, landingZoneRecord.billingProfileId()));
         return StepResult.getStepResultSuccess();
+      }
+      if (e.getValue().getCode().equals("ExistingAssociationsPreventDelete")) {
+        logger.warn(
+            "Landing zone resource deletion failed due to dangling data collection rules associations, code = {}",
+            e.getValue().getCode(),
+            e);
+        return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
       } else {
         logger.error("Failed to delete the landing zone due to Azure error.", e);
         return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
