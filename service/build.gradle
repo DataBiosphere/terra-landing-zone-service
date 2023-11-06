@@ -6,8 +6,12 @@ plugins {
     id 'com.gorylenko.gradle-git-properties' version '2.4.1'
 }
 
-apply from: 'generators.gradle'
-apply from: 'publishing.gradle'
+project.ext {
+    includeDir = "$projectDir/gradle"
+}
+
+apply(from: "$includeDir/generators.gradle")
+apply(from: "$includeDir/publishing.gradle")
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
