@@ -85,14 +85,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # use a federated credential to connect w/azure
-      - name: Azure CLI login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
-          tenant-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
-          subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
-
       - name: Initialize the database
         env:
           PGPASSWORD: postgres
@@ -102,23 +94,23 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      # Run tests
-#      - name: Test Library and Library with coverage
-#        run: ./gradlew --build-cache library:test --scan
-
-      - name: Azure CLI script
-        uses: azure/CLI@v1
+      # use a federated credential to connect w/azure
+      - name: Azure CLI login
+        uses: azure/login@v1
         with:
-          azcliversion: latest
-          inlineScript: |
-            az account show
-            az group list
+          client-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
+          tenant-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
+          subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
+
+      # Run tests
+      - name: Test Library and Library with coverage
+        run: ./gradlew --build-cache library:test --scan
 
       - name: Test Harness Tests with coverage
         run: ./gradlew --build-cache testharness:test --scan
-#
-#      - name: Integration Test with coverage
-#        run: ./gradlew --build-cache library:integration --scan
+
+      - name: Integration Test with coverage
+        run: ./gradlew --build-cache library:integration --scan
 
       - name: Upload Test Harness Test Reports
         uses: actions/upload-artifact@v1
