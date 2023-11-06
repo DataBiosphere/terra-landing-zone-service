@@ -106,6 +106,14 @@ jobs:
 #      - name: Test Library and Library with coverage
 #        run: ./gradlew --build-cache library:test --scan
 
+      - name: Azure CLI script
+        uses: azure/CLI@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az account show
+            az group list
+
       - name: Test Harness Tests with coverage
         run: ./gradlew --build-cache testharness:test --scan
 #
