@@ -1,5 +1,6 @@
 package bio.terra.lz.futureservice.app.controller;
 
+import bio.terra.lz.futureservice.app.configuration.VersionConfiguration;
 import bio.terra.lz.futureservice.generated.api.UnauthenticatedApi;
 import bio.terra.lz.futureservice.generated.model.SystemVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +14,15 @@ public class UnauthenticatedApiController implements UnauthenticatedApi {
   private final SystemVersion currentVersion;
 
   @Autowired
-  public UnauthenticatedApiController() {
-    currentVersion = new SystemVersion().build("1").gitTag("1");
+  public UnauthenticatedApiController(VersionConfiguration versionConfiguration) {
+    currentVersion =
+        new SystemVersion()
+            .gitTag(versionConfiguration.getGitTag())
+            .gitHash(versionConfiguration.getGitHash())
+            .github(
+                "https://github.com/DataBiosphere/terra-landing-zone-service/commit/"
+                    + versionConfiguration.getGitHash())
+            .build(versionConfiguration.getBuild());
   }
 
   @Override

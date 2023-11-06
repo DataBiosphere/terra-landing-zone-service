@@ -41,8 +41,9 @@ spotlessJava.dependsOn generateSwaggerCode
 // see https://github.com/n0mer/gradle-git-properties
 gitProperties {
     keys = []
-    customProperty('bpm.version.gitTag', { it.describe(tags: true) })
-    customProperty('bpm.version.gitHash', { it.head().abbreviatedId })
-    customProperty('bpm.version.github', { "https://github.com/DataBiosphere/terra-landing-zone-service/tree/${it.describe(tags: true)}" })
-    customProperty('bpm.version.build', version)
+    gitPropertiesName = "version.properties"
+    customProperty('landingzone.version.gitTag', { it.describe(tags: true) })
+    customProperty('landingzone.version.gitHash', { it.head().abbreviatedId })
+    customProperty('landingzone.version.github', { "https://github.com/DataBiosphere/terra-landing-zone-service/tree/${it.describe(tags: true)}" })
+    customProperty('landingzone.version.build', version)
 }

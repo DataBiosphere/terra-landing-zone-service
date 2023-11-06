@@ -8,14 +8,15 @@ plugins {
 
 project.ext {
     includeDir = "$projectDir/gradle"
+    resourceDir = "${projectDir}/src/main/resources"
 }
 
 apply(from: "$includeDir/generators.gradle")
 apply(from: "$includeDir/publishing.gradle")
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation project(':library')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
