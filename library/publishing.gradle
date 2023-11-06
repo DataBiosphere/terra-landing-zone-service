@@ -21,18 +21,19 @@ publishing {
     }
 }
 
-artifactory {
-    publish {
-        contextUrl = 'https://broadinstitute.jfrog.io/broadinstitute/'
-        repository {
-            repoKey = "${artifactory_repo_key}"
-            username = "${artifactory_username}"
-            password = "${artifactory_password}"
-        }
-        defaults {
-            publications('terraLandingZoneService')
-            publishArtifacts = true
-            publishPom = true
-        }
-    }
-}
+//TODO: investigate artifactory task conflict between 'client' and 'library' modules
+//artifactory {
+//    publish {
+//        contextUrl = 'https://broadinstitute.jfrog.io/broadinstitute/'
+//        repository {
+//            repoKey = "${artifactory_repo_key}"
+//            username = "${artifactory_username}"
+//            password = "${artifactory_password}"
+//        }
+//        defaults {
+//            publications('terraLandingZoneService')
+//            publishArtifacts = true
+//            publishPom = true
+//        }
+//    }
+//}

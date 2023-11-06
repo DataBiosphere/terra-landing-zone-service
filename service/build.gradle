@@ -3,8 +3,10 @@ plugins {
     id 'de.undercouch.download'
     id 'com.google.cloud.tools.jib'
     id 'com.srcclr.gradle'
+    id 'com.gorylenko.gradle-git-properties' version '2.4.1'
 }
 
+apply from: 'generators.gradle'
 apply from: 'publishing.gradle'
 
 dependencies {

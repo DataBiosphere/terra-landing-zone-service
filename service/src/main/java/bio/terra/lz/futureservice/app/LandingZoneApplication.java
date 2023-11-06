@@ -1,4 +1,4 @@
-package bio.terra.lz.futureservice;
+package bio.terra.lz.futureservice.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

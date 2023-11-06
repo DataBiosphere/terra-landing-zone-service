@@ -5,6 +5,7 @@ plugins {
 
     id 'com.diffplug.spotless'
     id 'com.github.spotbugs'
+    id 'org.hidetake.swagger.generator'
 }
 
 boolean isGithubAction = System.getenv().containsKey("GITHUB_ACTIONS")
@@ -41,6 +42,8 @@ repositories {
 dependencies {
     compileOnly "com.google.code.findbugs:annotations:3.0.1"
     implementation 'org.slf4j:slf4j-api:1.7.35'
+    implementation 'io.swagger.core.v3:swagger-annotations:2.1.12'
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.31'
 
     testImplementation 'ch.qos.logback:logback-classic:1.2.10'
     testImplementation 'org.hamcrest:hamcrest:2.2'
