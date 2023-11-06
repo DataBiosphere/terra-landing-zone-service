@@ -3,6 +3,8 @@ package bio.terra.landingzone.library;
 import bio.terra.common.migrate.LiquibaseMigrator;
 import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
+import com.azure.core.credential.TokenRequestContext;
+import com.azure.identity.DefaultAzureCredentialBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -29,12 +31,11 @@ public class LandingZoneMain {
 
     // sanity check our configured credentials can successfully create an azure access token
     // using the default management scope
-    //    logger.info("Verifying LZS Azure credentials...");
-    //    new DefaultAzureCredentialBuilder()
-    //        .build()
-    //        .getTokenSync(new
-    // TokenRequestContext().addScopes("https://management.azure.com/.default"));
-    //    logger.info("LZS Azure credentials verified");
+    logger.info("Verifying LZS Azure credentials...");
+    new DefaultAzureCredentialBuilder()
+        .build()
+        .getTokenSync(new TokenRequestContext().addScopes("https://management.azure.com/.default"));
+    logger.info("LZS Azure credentials verified");
 
     LandingZoneJobService landingZoneJobService =
         applicationContext.getBean("landingZoneJobService", LandingZoneJobService.class);
