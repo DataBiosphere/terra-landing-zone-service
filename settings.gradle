@@ -1,6 +1,6 @@
 rootProject.name = 'terra-landing-zone-service'
 include('service','library', 'scripts', 'testharness')
 
-gradle.ext.releaseVersion = "0.0.223-SNAPSHOT"
+gradle.ext.releaseVersion = "0.0.224-SNAPSHOT"
 include 'testharness'
 
