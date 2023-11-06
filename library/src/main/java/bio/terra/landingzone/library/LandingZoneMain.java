@@ -31,11 +31,11 @@ public class LandingZoneMain {
 
     // sanity check our configured credentials can successfully create an azure access token
     // using the default management scope
-    logger.info("Verifying LZS Azure credentials...");
-    new DefaultAzureCredentialBuilder()
-        .build()
-        .getTokenSync(new TokenRequestContext().addScopes("https://management.azure.com/.default"));
-    logger.info("LZS Azure credentials verified");
+//    logger.info("Verifying LZS Azure credentials...");
+//    new DefaultAzureCredentialBuilder()
+//        .build()
+//        .getTokenSync(new TokenRequestContext().addScopes("https://management.azure.com/.default"));
+//    logger.info("LZS Azure credentials verified");
 
     LandingZoneJobService landingZoneJobService =
         applicationContext.getBean("landingZoneJobService", LandingZoneJobService.class);
