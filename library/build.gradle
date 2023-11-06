@@ -42,7 +42,7 @@ dependencies {
     // attributes of com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner
     // are missing making creation of DataCollectionRules impossible via java client lib
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.32.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0-beta.5'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.31.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
