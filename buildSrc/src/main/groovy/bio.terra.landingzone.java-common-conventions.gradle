@@ -52,6 +52,10 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    testLogging {
+        events = ["passed", "failed", "skipped", "started", "standard_out", "standard_error"]
+    }
 }
 
 version = gradle.releaseVersion
