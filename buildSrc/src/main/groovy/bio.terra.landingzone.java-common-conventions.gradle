@@ -71,6 +71,7 @@ if (hasProperty("buildScan")) {
 spotless {
     java {
         targetExclude "${buildDir}/**"
+        targetExclude "**/swagger-code/**"
         googleJavaFormat()
     }
 }
