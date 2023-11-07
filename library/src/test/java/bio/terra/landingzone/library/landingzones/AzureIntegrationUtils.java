@@ -26,6 +26,6 @@ public class AzureIntegrationUtils {
     if (credential != null) {
       return credential;
     }
-    throw new RuntimeException("Not supported");
+    throw new RuntimeException("Unable to load Azure integration testing credentials");
   }
 }
