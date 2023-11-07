@@ -31,6 +31,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/SystemVersion'
 
+  /api/landingzones/v1/azure:
+    post:
+      summary: Starts an async job to create an Azure landing zone
+      operationId: createAzureLandingZone
+      tags: [ LandingZones ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAzureLandingZoneRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/CreateLandingZoneResponse'
+        '202':
+          $ref: '#/components/responses/CreateLandingZoneResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
 components:
 #  responses:
 #    StatusResponse:
@@ -39,6 +62,34 @@ components:
 #        application/json:
 #          schema:
 #            $ref: '#/components/schemas/SystemStatus'
+  responses:
+    CreateLandingZoneResponse:
+      description: Response to starting an async job to create an Azure landing zone.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateLandingZoneResult'
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorReport'
+
+    PermissionDenied:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorReport'
+
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorReport'
 
   schemas:
     SystemStatus:
@@ -74,3 +125,122 @@ components:
         build:
           type: string
           description: Version of the currently deployed app declared in build.gradle. Client and server versions are linked.
+
+    CreateAzureLandingZoneRequestBody:
+      description: Payload for requesting a new Azure landing zone.
+      type: object
+      required: [ definition, billingProfileId ]
+      properties:
+        landingZoneId:
+          description: The ID of the landing zone (optional). If omitted an ID will be auto-generated.
+          type: string
+          format: uuid
+        definition:
+          description: A definition to create an Azure landing zone from
+          type: string
+        version:
+          description: |
+            A version of the landing zone. If not set the most recent will be used.
+            If two versions available - 'v1' and 'v2' then 'v2' will be selected.
+          type: string
+        parameters:
+          description: List of Azure landing zone parameters
+          type: array
+          items:
+            description: |
+              Parameters to set user defined properties for resources in a landing zone.
+              The parameters vary per landing zone definition.
+              Here is a list of some parameters - POSTGRES_SERVER_SKU, POSTGRESQL_SUBNET, VNET_ADDRESS_SPACE.
+              These are example of assigned values - POSTGRES_SERVER_SKU=GP_Gen5_2, POSTGRESQL_SUBNET=10.1.0.16/29
+            $ref: '#/components/schemas/AzureLandingZoneParameter'
+        billingProfileId:
+          description: Identifier for the billing profile to be used for this landing zone.
+          type: string
+          format: uuid
+        jobControl:
+          $ref: '#/components/schemas/JobControl'
+
+    AzureLandingZoneParameter:
+      description: Parameters to set user defined properties for resources in a landing zone
+      type: object
+      required: [ key, value ]
+      properties:
+        key:
+          description: Name of the parameter
+          type: string
+        value:
+          description: Value of the parameter
+          type: string
+
+    CreateLandingZoneResult:
+      description: Result of starting an async job to create an Azure landing zone
+      type: object
+      properties:
+        landingZoneId:
+          description: An identifier of the Azure landing zone.
+          type: string
+          format: uuid
+        definition:
+          description: Requested landing zone definition.
+          type: string
+        version:
+          description: Requested version of the landing zone definition.
+          type: string
+        jobReport:
+          $ref: '#/components/schemas/JobReport'
+        errorReport:
+          $ref: '#/components/schemas/ErrorReport'
+
+    JobControl:
+      type: object
+      required: [ id ]
+      properties:
+        id:
+          description: >-
+            Unique identifier for the job. Best practice is for job identifier to be a UUID,
+            a ShortUUID, or other globally unique identifier.
+          type: string
+
+    JobReport:
+      type: object
+      required: [ id, status, statusCode, resultURL ]
+      properties:
+        id:
+          description: caller-provided unique identifier for the job
+          type: string
+        description:
+          description: caller-provided description of the job
+          type: string
+        status:
+          description: status of the job
+          type: string
+          enum: [ 'RUNNING', 'SUCCEEDED', 'FAILED' ]
+        statusCode:
+          description: HTTP code providing status of the job.
+          type: integer
+        submitted:
+          description: timestamp when the job was submitted; in ISO-8601 format
+          type: string
+        completed:
+          description: >-
+            timestamp when the job completed - in ISO-8601 format. Present if
+            status is SUCCEEDED or FAILED.
+          type: string
+        resultURL:
+          description: >-
+            URL where the result of the job can be retrieved. Equivalent to a
+            Location header in HTTP.
+          type: string
+
+    ErrorReport:
+      type: object
+      required: [ message, statusCode, causes ]
+      properties:
+        message:
+          type: string
+        statusCode:
+          type: integer
+        causes:
+          type: array
+          items:
+            type: string
