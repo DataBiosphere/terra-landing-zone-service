@@ -15,20 +15,17 @@ public class AzureIntegrationUtils {
           AzureEnvironment.AZURE);
 
   /**
-   * Gets an Azure TokenCredential object for an Azure admin account. This account has the roles
-   * needed to operate the integration test project, e.g. create and delete resources.
+   * Gets an Azure TokenCredential object for an Azure integration testing account. This account has
+   * the roles needed to operate the integration test project, e.g. create and delete resources in a
+   * test resource group.
    *
    * @return TokenCredential
    */
-  public static TokenCredential getAdminAzureCredentialsOrDie() {
-    TokenCredential credential = getAdminCredentialsFromEnvironmentVariables();
+  public static TokenCredential getAzureCredentialsOrDie() {
+    TokenCredential credential = new DefaultAzureCredentialBuilder().build();
     if (credential != null) {
       return credential;
     }
     throw new RuntimeException("Not supported");
-  }
-
-  public static TokenCredential getAdminCredentialsFromEnvironmentVariables() {
-    return new DefaultAzureCredentialBuilder().build();
   }
 }
