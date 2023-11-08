@@ -349,10 +349,10 @@ as well as on merge to `main`.
 
 ```sh
 # Unit tests
-./gradlew :service:unitTest
+./gradlew :library:unitTest
 
 # integration tests
-./gradlew :service:integrationTest
+./gradlew :library:integrationTest
 ```
 
 #### Setup for Local Integration Testing
@@ -364,5 +364,5 @@ Running integration tests locally requires:
 
 * A running postgres:
 ```
- ./service/local-dev/run_postgres.sh start|stop
+ ./library/local-dev/run_postgres.sh start|stop
 ```
