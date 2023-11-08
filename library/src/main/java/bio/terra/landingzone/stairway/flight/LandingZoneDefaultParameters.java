@@ -60,6 +60,9 @@ public class LandingZoneDefaultParameters {
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name(), String.valueOf(3));
     defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name(),
+        String.valueOf(false));
+    defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
     defaultValues.put(
         StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),

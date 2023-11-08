@@ -249,6 +249,9 @@ class CreateAksStepTest extends BaseStepTest {
             CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
         .thenReturn("false");
     when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name()))
+        .thenReturn("false");
+    when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
         .thenReturn("00000000-0000-0000-0000-000000000000");
   }
