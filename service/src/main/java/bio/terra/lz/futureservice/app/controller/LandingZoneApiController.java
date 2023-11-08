@@ -4,6 +4,7 @@ import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.lz.futureservice.app.controller.common.ResponseUtils;
 import bio.terra.lz.futureservice.app.service.LandingZoneAppService;
 import bio.terra.lz.futureservice.generated.api.LandingZonesApi;
+import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneResult;
 import bio.terra.lz.futureservice.generated.model.ApiCreateAzureLandingZoneRequestBody;
 import bio.terra.lz.futureservice.generated.model.ApiCreateLandingZoneResult;
 import javax.servlet.http.HttpServletRequest;
@@ -39,5 +40,14 @@ public class LandingZoneApiController implements LandingZonesApi {
             bearerTokenFactory.from(request), body, resultEndpoint);
 
     return new ResponseEntity<>(result, ResponseUtils.getAsyncResponseCode(result.getJobReport()));
+  }
+
+  @Override
+  public ResponseEntity<ApiAzureLandingZoneResult> getCreateAzureLandingZoneResult(String jobId) {
+    ApiAzureLandingZoneResult response =
+        landingZoneAppService.getCreateAzureLandingZoneResult(
+            bearerTokenFactory.from(request), jobId);
+    return new ResponseEntity<>(
+        response, ResponseUtils.getAsyncResponseCode(response.getJobReport()));
   }
 }

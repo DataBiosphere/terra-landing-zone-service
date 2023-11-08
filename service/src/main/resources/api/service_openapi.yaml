@@ -54,6 +54,25 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /api/landingzones/v1/azure/create-result/{jobId}:
+    parameters:
+      - $ref: '#/components/parameters/JobId'
+    get:
+      summary: Get the status of a async job to create an Azure Landing Zone
+      operationId: getCreateAzureLandingZoneResult
+      tags: [ LandingZones ]
+      responses:
+        '200':
+          $ref: '#/components/responses/CreateLandingZoneJobResponse'
+        '202':
+          $ref: '#/components/responses/CreateLandingZoneJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
 components:
 #  responses:
 #    StatusResponse:
@@ -62,6 +81,15 @@ components:
 #        application/json:
 #          schema:
 #            $ref: '#/components/schemas/SystemStatus'
+  parameters:
+    JobId:
+      name: jobId
+      in: path
+      description: A String ID to used to identify a job
+      required: true
+      schema:
+        type: string
+
   responses:
     CreateLandingZoneResponse:
       description: Response to starting an async job to create an Azure landing zone.
@@ -69,6 +97,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CreateLandingZoneResult'
+
+    CreateLandingZoneJobResponse:
+      description: Response to get the status of an async job to create an Azure landing zone.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AzureLandingZoneResult'
 
     BadRequest:
       description: Bad request
@@ -190,6 +225,58 @@ components:
           $ref: '#/components/schemas/JobReport'
         errorReport:
           $ref: '#/components/schemas/ErrorReport'
+
+    AzureLandingZoneResult:
+      description: Result of creating Azure landing zone
+      type: object
+      properties:
+        landingZone:
+          $ref: '#/components/schemas/AzureLandingZoneDetails'
+        jobReport:
+          $ref: '#/components/schemas/JobReport'
+        errorReport:
+          $ref: '#/components/schemas/ErrorReport'
+
+    AzureLandingZoneDetails:
+      description: Created Azure Landing Zone details.
+      type: object
+      properties:
+        id:
+          description: An identifier of created Azure landing zone.
+          type: string
+          format: uuid
+        resources:
+          description: List of Azure landing zone deployed resources.
+          type: array
+          items:
+            $ref: '#/components/schemas/AzureLandingZoneDeployedResource'
+
+    AzureLandingZoneDeployedResource:
+      description: Details of an Azure resource.
+      type: object
+      properties:
+        resourceId:
+          description: Unique Azure resource identifier.
+          type: string
+        resourceType:
+          description: |
+            The azure deployed resource type; e.g., 'Microsoft.Compute/virtualMachines'.
+            The deployed resource type definition is located in ARM template documentation, under the Reference node.
+          type: string
+        resourceName:
+          description: Azure resource name. Present for a subnet resource.
+          type: string
+        resourceParentId:
+          description: Azure resource Id of a resource parent. Present for a subnet resource.
+          type: string
+        region:
+          description: A region where an Azure resource deployed.
+          type: string
+        tags:
+          description: Tags for this Azure resource.
+          type: object
+          additionalProperties:
+            type: string
 
     JobControl:
       type: object

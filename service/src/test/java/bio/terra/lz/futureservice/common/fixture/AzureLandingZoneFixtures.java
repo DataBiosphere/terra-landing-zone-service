@@ -3,6 +3,8 @@ package bio.terra.lz.futureservice.common.fixture;
 import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.job.model.JobReport;
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
+import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneDetails;
+import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneResult;
 import bio.terra.lz.futureservice.generated.model.ApiCreateAzureLandingZoneRequestBody;
 import bio.terra.lz.futureservice.generated.model.ApiCreateLandingZoneResult;
 import bio.terra.lz.futureservice.generated.model.ApiJobControl;
@@ -64,15 +66,31 @@ public class AzureLandingZoneFixtures {
   }
 
   public static ApiCreateLandingZoneResult buildApiCreateLandingZoneSuccessResult(String jobId) {
-    var jobReport =
-        new ApiJobReport()
-            .description("LZ creation")
-            .status(ApiJobReport.StatusEnum.RUNNING)
-            .id(jobId);
+    var jobReport = buildApiJobReport(jobId, ApiJobReport.StatusEnum.RUNNING);
     return new ApiCreateLandingZoneResult()
         .jobReport(jobReport)
         .landingZoneId(UUID.randomUUID())
         .definition("lzDefinition")
         .version("lzVersion");
+  }
+
+  private static ApiJobReport buildApiJobReport(String jobId, ApiJobReport.StatusEnum status) {
+    return new ApiJobReport().description("LZ creation").status(status).id(jobId);
+  }
+
+  public static ApiAzureLandingZoneResult createApiAzureLandingZoneResult(
+      String jobId, ApiJobReport.StatusEnum jobStatus) {
+    return new ApiAzureLandingZoneResult().jobReport(buildApiJobReport(jobId, jobStatus));
+  }
+
+  public static ApiAzureLandingZoneResult createApiAzureLandingZoneResult(
+      String jobId, UUID landingZoneId, ApiJobReport.StatusEnum jobStatus) {
+    return new ApiAzureLandingZoneResult()
+        .jobReport(buildApiJobReport(jobId, jobStatus))
+        .landingZone(buildApiAzureLandingZoneDetails(landingZoneId));
+  }
+
+  private static ApiAzureLandingZoneDetails buildApiAzureLandingZoneDetails(UUID landingZoneId) {
+    return new ApiAzureLandingZoneDetails().id(landingZoneId);
   }
 }
