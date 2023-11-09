@@ -16,7 +16,6 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
-import com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool.DefinitionStages.WithAttach;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
@@ -84,6 +83,10 @@ public class CreateAksStep extends BaseResourceCreateStep {
         Boolean.parseBoolean(
             parametersResolver.getValue(
                 CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name()));
+    boolean autoScalingEnabled =
+        Boolean.parseBoolean(
+            parametersResolver.getValue(
+                CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
 
     var aksName = resourceNameProvider.getName(getResourceType());
 
@@ -115,7 +118,18 @@ public class CreateAksStep extends BaseResourceCreateStep {
               .withAgentPoolMode(AgentPoolMode.SYSTEM)
               .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
 
-      aksPartial = addAutoscale(aksPartial);
+      // Add autoscaling to system nodepool
+      if (autoScalingEnabled) {
+        int min =
+            Integer.parseInt(
+                parametersResolver.getValue(
+                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
+        int max =
+            Integer.parseInt(
+                parametersResolver.getValue(
+                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
+        aksPartial = aksPartial.withAutoScaling(min, max);
+      }
 
       aks =
           aksPartial
@@ -148,7 +162,18 @@ public class CreateAksStep extends BaseResourceCreateStep {
                 .withAgentPoolMode(AgentPoolMode.USER)
                 .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
 
-        aksPartialUpdate = addAutoscale(aksPartialUpdate);
+        // Add autoscaling to spot nodepool
+        if (autoScalingEnabled) {
+          int min =
+              Integer.parseInt(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
+          int max =
+              Integer.parseInt(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
+          aksPartialUpdate = aksPartialUpdate.withAutoScaling(min, max);
+        }
 
         aks = aksPartialUpdate.attach().apply();
       }
@@ -161,23 +186,6 @@ public class CreateAksStep extends BaseResourceCreateStep {
       }
     }
     return aks;
-  }
-
-  private WithAttach addAutoscale(WithAttach aksPartial) {
-    if (Boolean.parseBoolean(
-        parametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))) {
-      int min =
-          Integer.parseInt(
-              parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
-      int max =
-          Integer.parseInt(
-              parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
-      return aksPartial.withAutoScaling(min, max);
-    }
-    return aksPartial;
   }
 
   private KubernetesCluster handleConflictAndMaybeGetAks(
