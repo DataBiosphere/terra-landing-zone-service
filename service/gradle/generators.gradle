@@ -23,7 +23,7 @@ generateSwaggerCode {
             modelPackage     : "${artifactGroup}.generated.model",
             apiPackage       : "${artifactGroup}.generated.api",
             modelNamePrefix  : "Api",
-            dateLibrary      : 'java11',
+            dateLibrary      : 'java8',
             java8            : true,
             interfaceOnly    : 'true',
             useTags          : 'true',

@@ -53,6 +53,23 @@ paths:
           $ref: '#/components/responses/PermissionDenied'
         '500':
           $ref: '#/components/responses/ServerError'
+    get:
+      parameters:
+        - $ref: '#/components/parameters/BillingProfileId'
+      summary: List Azure landing zones available to user
+      operationId: listAzureLandingZones
+      tags: [ LandingZones ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureLandingZoneList'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
   /api/landingzones/v1/azure/create-result/{jobId}:
     parameters:
@@ -66,6 +83,127 @@ paths:
           $ref: '#/components/responses/CreateLandingZoneJobResponse'
         '202':
           $ref: '#/components/responses/CreateLandingZoneJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/landingzones/v1/azure/{landingZoneId}/delete-result/{jobId}:
+    parameters:
+      - $ref: '#/components/parameters/LandingZoneId'
+      - $ref: '#/components/parameters/JobId'
+    get:
+      summary: Get the result of a async job to delete the Azure Landing Zone
+      operationId: getDeleteAzureLandingZoneResult
+      tags: [ LandingZones ]
+      responses:
+        '200':
+          $ref: '#/components/responses/DeleteAzureLandingZoneJobResponse'
+        '202':
+          $ref: '#/components/responses/DeleteAzureLandingZoneJobResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/landingzones/definitions/v1/azure:
+    get:
+      summary: List all Azure landing zones definitions
+      operationId: listAzureLandingZonesDefinitions
+      tags: [ LandingZones ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureLandingZoneDefinitionList'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/landingzones/v1/azure/{landingZoneId}:
+    parameters:
+      - $ref: '#/components/parameters/LandingZoneId'
+    post:
+      summary: |
+        Starts an async job to delete an existing Azure landing zone. OpenAPI
+        does not support request body in DELETE, but async state requires it.
+        Hence this is a POST.
+      operationId: deleteAzureLandingZone
+      tags: [ LandingZones ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAzureLandingZoneRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/DeleteAzureLandingZoneResponse'
+        '202':
+          $ref: '#/components/responses/DeleteAzureLandingZoneResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    get:
+      summary: Get Azure landing zone
+      operationId: getAzureLandingZone
+      tags: [ LandingZones ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureLandingZone'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/landingzones/v1/azure/{landingZoneId}/resources:
+    parameters:
+      - $ref: '#/components/parameters/LandingZoneId'
+    get:
+      deprecated: true
+      summary: |
+        List all Azure landing zones resources.
+        Deprecated in favor of the workspace-level landing zone resource endpoint.
+      operationId: listAzureLandingZoneResources
+      tags: [ LandingZones ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AzureLandingZoneResourcesList'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/landingzones/v1/azure/{landingZoneId}/resource-quota:
+    parameters:
+      - $ref: '#/components/parameters/LandingZoneId'
+      - $ref: '#/components/parameters/AzureResourceId'
+    get:
+      deprecated: true
+      summary: |
+        Get the quota information of a resource an Azure Landing Zone.
+        Deprecated in favor of the workspace-level landing zone resource endpoint.
+      operationId: getResourceQuotaResult
+      tags: [ LandingZones ]
+      responses:
+        '200':
+          $ref: '#/components/responses/ResourceQuotaResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -90,6 +228,33 @@ components:
       schema:
         type: string
 
+    LandingZoneId:
+      name: landingZoneId
+      in: path
+      description: A string to identify an Azure landing zone.
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    BillingProfileId:
+      name: billingProfileId
+      in: query
+      description: A string to identify an Azure billing profile.
+      required: false
+      schema:
+        type: string
+        format: uuid
+
+    AzureResourceId:
+      name: azureResourceId
+      in: query
+      description: The fully qualified ID of the Azure resource, including the resource name and resource type.
+        Use the format, /subscriptions/{guid}/resourceGroups/{resource-group-name}/{resource-provider-namespace}/{resource-type}/{resource-name}.
+      required: true
+      schema:
+        type: string
+
   responses:
     CreateLandingZoneResponse:
       description: Response to starting an async job to create an Azure landing zone.
@@ -105,8 +270,36 @@ components:
           schema:
             $ref: '#/components/schemas/AzureLandingZoneResult'
 
+    DeleteAzureLandingZoneJobResponse:
+      description: Response to get the status of an async job to delete an Azure landing zone.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeleteAzureLandingZoneJobResult'
+
+    DeleteAzureLandingZoneResponse:
+      description: Response to starting an async job to delete an Azure landing zone.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeleteAzureLandingZoneResult'
+
+    ResourceQuotaResponse:
+      description: Response to get the quota information of an Azure landing zone resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceQuota'
+
     BadRequest:
       description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorReport'
+
+    Conflict:
+      description: Request conflicts with current state
       content:
         application/json:
           schema:
@@ -121,6 +314,13 @@ components:
 
     ServerError:
       description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorReport'
+
+    NotFound:
+      description: Not found (or unauthorized)
       content:
         application/json:
           schema:
@@ -144,6 +344,7 @@ components:
                 type: array
                 items:
                   type: string
+
     SystemVersion:
       type: object
       required: [ gitTag, gitHash, github, build ]
@@ -277,6 +478,158 @@ components:
           type: object
           additionalProperties:
             type: string
+
+    AzureLandingZoneList:
+      type: object
+      required: [ landingzones ]
+      properties:
+        landingzones:
+          description: A list of landing zones.
+          type: array
+          items:
+            $ref: '#/components/schemas/AzureLandingZone'
+
+    AzureLandingZone:
+      description: |
+        The landing zone identification information.
+      type: object
+      required: [ landingZoneId, billingProfileId ]
+      properties:
+        landingZoneId:
+          description: An identifier of a Azure landing zone.
+          type: string
+          format: uuid
+        billingProfileId:
+          description: Identifier for the billing profile used for the landing zone.
+          type: string
+          format: uuid
+        definition:
+          description: A definition to create an Azure landing zone from
+          type: string
+        version:
+          description: |
+            A version of the landing zone. If not set the most recent will be used.
+            If two versions available - 'v1' and 'v2' then 'v2' will be selected.
+          type: string
+        createdDate:
+          description: |
+            A string containing date and time of Landing Zone creation.
+            It is set by the Landing Zone service and cannot be updated.
+          type: string
+          format: date-time
+
+    DeleteAzureLandingZoneJobResult:
+      description: Result of delete job for an Azure landing zone
+      type: object
+      properties:
+        landingZoneId:
+          type: string
+          format: uuid
+        resources:
+          description: A list of resource IDs of the deleted resources.
+          type: array
+          items:
+            type: string
+        jobReport:
+          $ref: '#/components/schemas/JobReport'
+        errorReport:
+          $ref: '#/components/schemas/ErrorReport'
+
+    AzureLandingZoneDefinitionList:
+      type: object
+      required: [ landingzones ]
+      properties:
+        landingzones:
+          description: A list of Azure landing zones definitions
+          type: array
+          items:
+            $ref: '#/components/schemas/AzureLandingZoneDefinition'
+
+    AzureLandingZoneDefinition:
+      type: object
+      required: [ definition, name, description, version ]
+      properties:
+        definition:
+          description: The name of the corresponding landing zone definition
+          type: string
+        name:
+          description: User friendly name of the definition
+          type: string
+        description:
+          description: Description of the definition
+          type: string
+        version:
+          description: The version of the definition
+          type: string
+
+    DeleteAzureLandingZoneRequestBody:
+      description: Payload for deleting an Azure landing zone.
+      type: object
+      required: [ jobControl ]
+      properties:
+        jobControl:
+          $ref: '#/components/schemas/JobControl'
+
+    DeleteAzureLandingZoneResult:
+      description: Result of starting a job to delete an Azure landing zone
+      type: object
+      properties:
+        landingZoneId:
+          type: string
+          format: uuid
+        jobReport:
+          $ref: '#/components/schemas/JobReport'
+        errorReport:
+          $ref: '#/components/schemas/ErrorReport'
+
+    AzureLandingZoneResourcesList:
+      type: object
+      required: [ resources ]
+      properties:
+        id:
+          description: An identifier of a Azure landing zone.
+          type: string
+          format: uuid
+        resources:
+          description: A list of deployed resources in a landing zone, grouped by purpose.
+          type: array
+          items:
+            $ref: '#/components/schemas/AzureLandingZoneResourcesPurposeGroup'
+
+    AzureLandingZoneResourcesPurposeGroup:
+      description: |
+        The structure contains one landing zone purpose and a list of Azure deployed resources that
+        are tagged with this purpose.
+      type: object
+      required: [ purpose,deployedResources ]
+      properties:
+        purpose:
+          description: Purpose tag value string.
+          type: string
+        deployedResources:
+          description: A list of Azure landing zones deployed resources.
+          type: array
+          items:
+            $ref: '#/components/schemas/AzureLandingZoneDeployedResource'
+
+    ResourceQuota:
+      description: Resource quota information of an Azure landing zone resource.
+      type: object
+      properties:
+        landingZoneId:
+          description: An identifier of the Azure landing zone.
+          type: string
+          format: uuid
+        azureResourceId:
+          description: The fully qualified ID of the Azure resource.
+          type: string
+        resourceType:
+          description: Azure resource type.
+          type: string
+        quotaValues:
+          description: A key-value pair of quota information values for the resource.
+          type: object
+          additionalProperties: true
 
     JobControl:
       type: object
