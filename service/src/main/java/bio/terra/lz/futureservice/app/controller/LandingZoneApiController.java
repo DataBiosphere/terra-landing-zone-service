@@ -18,14 +18,11 @@ import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneResul
 import bio.terra.lz.futureservice.generated.model.ApiResourceQuota;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class LandingZoneApiController implements LandingZonesApi {
@@ -118,9 +115,7 @@ public class LandingZoneApiController implements LandingZonesApi {
 
   @Override
   public ResponseEntity<ApiResourceQuota> getResourceQuotaResult(
-      @PathVariable("landingZoneId") UUID landingZoneId,
-      @Valid @RequestParam(value = "azureResourceId", required = true) String azureResourceId) {
-
+      UUID landingZoneId, String azureResourceId) {
     ApiResourceQuota result =
         landingZoneAppService.getResourceQuota(
             bearerTokenFactory.from(request), landingZoneId, azureResourceId);

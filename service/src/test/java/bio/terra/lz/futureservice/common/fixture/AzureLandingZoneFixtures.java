@@ -1,45 +1,25 @@
 package bio.terra.lz.futureservice.common.fixture;
 
-import bio.terra.landingzone.job.LandingZoneJobService;
-import bio.terra.landingzone.job.model.JobReport;
-import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
+import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZone;
+import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneDeployedResource;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneDetails;
+import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneResourcesList;
+import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneResourcesPurposeGroup;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneResult;
 import bio.terra.lz.futureservice.generated.model.ApiCreateAzureLandingZoneRequestBody;
 import bio.terra.lz.futureservice.generated.model.ApiCreateLandingZoneResult;
+import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneJobResult;
+import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneRequestBody;
+import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneResult;
+import bio.terra.lz.futureservice.generated.model.ApiErrorReport;
 import bio.terra.lz.futureservice.generated.model.ApiJobControl;
 import bio.terra.lz.futureservice.generated.model.ApiJobReport;
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
-import org.apache.http.HttpStatus;
 
 public class AzureLandingZoneFixtures {
   private AzureLandingZoneFixtures() {}
-
-  public static LandingZoneJobService.AsyncJobResult<StartLandingZoneCreation>
-      createStartCreateJobResult(String jobId, JobReport.StatusEnum jobStatus, UUID landingZoneId) {
-    return createStartCreateJobResultWithStartLandingZoneCreation(
-        jobId, jobStatus, new StartLandingZoneCreation(landingZoneId, "testdefinition", "v1"));
-  }
-
-  public static LandingZoneJobService.AsyncJobResult<StartLandingZoneCreation>
-      createStartCreateJobResultWithStartLandingZoneCreation(
-          String jobId,
-          JobReport.StatusEnum jobStatus,
-          StartLandingZoneCreation startLandingZoneCreation) {
-    LandingZoneJobService.AsyncJobResult<StartLandingZoneCreation> asyncJobResult =
-        new LandingZoneJobService.AsyncJobResult<>();
-    asyncJobResult.jobReport(
-        new JobReport()
-            .id(jobId)
-            .description("description")
-            .status(jobStatus)
-            .statusCode(HttpStatus.SC_ACCEPTED)
-            .submitted(Instant.now().toString())
-            .resultURL("create-result/"));
-    asyncJobResult.result(startLandingZoneCreation);
-    return asyncJobResult;
-  }
 
   public static ApiCreateAzureLandingZoneRequestBody buildCreateAzureLandingZoneRequest(
       String jobId, UUID billingProfileId) {
@@ -74,20 +54,94 @@ public class AzureLandingZoneFixtures {
         .version("lzVersion");
   }
 
-  private static ApiJobReport buildApiJobReport(String jobId, ApiJobReport.StatusEnum status) {
-    return new ApiJobReport().description("LZ creation").status(status).id(jobId);
+  public static ApiDeleteAzureLandingZoneResult buildApiDeleteAzureLandingZoneResult(
+      String jobId, ApiJobReport.StatusEnum jobStatus, UUID landingZoneId) {
+    var jobReport = buildApiJobReport(jobId, jobStatus);
+    return new ApiDeleteAzureLandingZoneResult().landingZoneId(landingZoneId).jobReport(jobReport);
   }
 
-  public static ApiAzureLandingZoneResult createApiAzureLandingZoneResult(
+  public static ApiDeleteAzureLandingZoneRequestBody buildDeleteAzureLandingZoneRequest(
+      String jobId) {
+    return new ApiDeleteAzureLandingZoneRequestBody().jobControl(new ApiJobControl().id(jobId));
+  }
+
+  public static ApiDeleteAzureLandingZoneJobResult buildApiDeleteAzureLandingZoneJobResult(
+      String jobId, UUID landingZoneId, ApiJobReport.StatusEnum jobStatus) {
+    var jobReport = buildApiJobReport(jobId, jobStatus);
+    return switch (jobStatus) {
+      case SUCCEEDED -> new ApiDeleteAzureLandingZoneJobResult()
+          .jobReport(jobReport)
+          .landingZoneId(landingZoneId)
+          .resources(List.of("resource/id1", "resource/id2"));
+      case RUNNING -> new ApiDeleteAzureLandingZoneJobResult().jobReport(jobReport);
+      case FAILED -> new ApiDeleteAzureLandingZoneJobResult()
+          .jobReport(jobReport)
+          .errorReport(buildApiErrorReport(500));
+    };
+  }
+
+  public static ApiAzureLandingZoneResourcesList buildListLandingZoneResourcesByPurposeResult(
+      UUID landingZoneId) {
+    var resourcePurposeGroups =
+        List.of(
+            new ApiAzureLandingZoneResourcesPurposeGroup()
+                .purpose("sharedResources")
+                .deployedResources(
+                    List.of(
+                        new ApiAzureLandingZoneDeployedResource()
+                            .resourceName("subnet")
+                            .resourceType("azure/subnet")
+                            .resourceId("subnet1"))),
+            new ApiAzureLandingZoneResourcesPurposeGroup()
+                .purpose("lzResources")
+                .deployedResources(
+                    List.of(
+                        new ApiAzureLandingZoneDeployedResource()
+                            .resourceName("sentinel")
+                            .resourceType("azure/solution")
+                            .resourceId("sentinel1"))));
+    return new ApiAzureLandingZoneResourcesList()
+        .id(landingZoneId)
+        .resources(resourcePurposeGroups);
+  }
+
+  public static ApiAzureLandingZoneResourcesList buildEmptyListLandingZoneResourcesByPurposeResult(
+      UUID landingZoneId) {
+    return new ApiAzureLandingZoneResourcesList().id(landingZoneId);
+  }
+
+  public static ApiAzureLandingZoneResult buildApiAzureLandingZoneResult(
       String jobId, ApiJobReport.StatusEnum jobStatus) {
     return new ApiAzureLandingZoneResult().jobReport(buildApiJobReport(jobId, jobStatus));
   }
 
-  public static ApiAzureLandingZoneResult createApiAzureLandingZoneResult(
+  public static ApiAzureLandingZoneResult buildApiAzureLandingZoneResult(
       String jobId, UUID landingZoneId, ApiJobReport.StatusEnum jobStatus) {
     return new ApiAzureLandingZoneResult()
         .jobReport(buildApiJobReport(jobId, jobStatus))
         .landingZone(buildApiAzureLandingZoneDetails(landingZoneId));
+  }
+
+  public static ApiAzureLandingZone buildDefaultApiAzureLandingZone(
+      UUID landingZoneId,
+      UUID billingProfileId,
+      String definition,
+      String version,
+      OffsetDateTime createDate) {
+    return new ApiAzureLandingZone()
+        .landingZoneId(landingZoneId)
+        .billingProfileId(billingProfileId)
+        .definition(definition)
+        .version(version)
+        .createdDate(createDate);
+  }
+
+  private static ApiJobReport buildApiJobReport(String jobId, ApiJobReport.StatusEnum status) {
+    return new ApiJobReport().description("LZ creation").status(status).id(jobId);
+  }
+
+  private static ApiErrorReport buildApiErrorReport(int statusCode) {
+    return new ApiErrorReport().statusCode(statusCode);
   }
 
   private static ApiAzureLandingZoneDetails buildApiAzureLandingZoneDetails(UUID landingZoneId) {

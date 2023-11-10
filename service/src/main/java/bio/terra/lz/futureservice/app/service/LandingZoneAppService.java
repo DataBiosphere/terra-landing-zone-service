@@ -41,9 +41,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class LandingZoneAppService {
   private static final Logger logger = LoggerFactory.getLogger(LandingZoneAppService.class);
 
