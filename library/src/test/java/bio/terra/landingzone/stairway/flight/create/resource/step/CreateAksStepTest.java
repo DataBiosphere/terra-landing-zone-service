@@ -148,15 +148,33 @@ class CreateAksStepTest extends BaseStepTest {
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             "logAnalyticsWorkspaceId"));
     setupArmManagersForDoStep();
+
     // TODO: move this to a setup function
     KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
     when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);
-    when(mockK8sUpdate.defineAgentPool(anyString())).thenReturn(mockK8sAPDefinitionStagesBlank);
-    when(mockK8sUpdate.defineAgentPool(anyString())).thenReturn(mockK8sAPDefinitionStagesBlank);
+
+    var mockK8sAPDefinitionStagesBlank =
+        mock(KubernetesClusterAgentPool.DefinitionStages.Blank.class);
+    when(mockK8sUpdate.defineAgentPool(eq("spotnodepool")))
+        .thenReturn(mockK8sAPDefinitionStagesBlank);
+
+    var mockK8sAPDefinitionStagesMachineCount =
+        mock(KubernetesClusterAgentPool.DefinitionStages.WithAgentPoolVirtualMachineCount.class);
+    when(mockK8sAPDefinitionStagesBlank.withVirtualMachineSize(any()))
+        .thenReturn(mockK8sAPDefinitionStagesMachineCount);
+
+    var mockK8sAPDefinitionStagesWithAttach =
+        mock(KubernetesClusterAgentPool.DefinitionStages.WithAttach.class);
+    when(mockK8sAPDefinitionStagesMachineCount.withAgentPoolVirtualMachineCount(anyInt()))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesWithAttach.withSpotPriorityVirtualMachine())
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesWithAttach.withAgentPoolMode(eq(AgentPoolMode.USER)))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.withVirtualNetwork(any(), any()))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.attach()).thenReturn(mockK8sUpdate);
+    // move block above into function
 
     var stepResult = testStep.doStep(mockFlightContext);
 

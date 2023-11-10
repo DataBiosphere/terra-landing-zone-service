@@ -20,6 +20,7 @@ import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssue
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
 import com.google.common.annotations.VisibleForTesting;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,8 +54,19 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
-    var aks = createAks(context);
+    var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
+    boolean costSavingsEnabled =
+        Boolean.parseBoolean(
+            parametersResolver.getValue(
+                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name()));
+    boolean autoScalingEnabled =
+        Boolean.parseBoolean(
+            parametersResolver.getValue(
+                CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
+
+    var aks = createAks(context, vNetId, costSavingsEnabled, autoScalingEnabled);
     enableWorkloadIdentity(aks);
+    enableCostSavings(aks, vNetId, costSavingsEnabled, autoScalingEnabled);
 
     context.getWorkingMap().put(AKS_ID, aks.id());
     context
@@ -74,19 +86,14 @@ public class CreateAksStep extends BaseResourceCreateStep {
     logger.info(RESOURCE_CREATED, getResourceType(), aks.id(), getMRGName(context));
   }
 
-  private KubernetesCluster createAks(FlightContext context) {
+  private KubernetesCluster createAks(
+      FlightContext context,
+      String vNetId,
+      boolean costSavingsEnabled,
+      boolean autoScalingEnabled) {
     UUID landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-    var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
-    boolean costSavingsEnabled =
-        Boolean.parseBoolean(
-            parametersResolver.getValue(
-                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name()));
-    boolean autoScalingEnabled =
-        Boolean.parseBoolean(
-            parametersResolver.getValue(
-                CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
 
     var aksName = resourceNameProvider.getName(getResourceType());
 
@@ -135,48 +142,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
           aksPartial
               .attach()
               .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
-              .withTags(
-                  Map.of(
-                      LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-                      landingZoneId.toString(),
-                      LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                      ResourcePurpose.SHARED_RESOURCE.toString(),
-                      LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString(),
-                      String.valueOf(costSavingsEnabled)))
+              .withTags(buildTagMap(landingZoneId, costSavingsEnabled))
               .create();
-
-      // Enable a spot nodepool if cost savings are enabled. TODO: VPA
-      if (costSavingsEnabled) {
-        var aksPartialUpdate =
-            aks.update()
-                .defineAgentPool(SPOT_NODE_POOL_NAME)
-                .withVirtualMachineSize(
-                    ContainerServiceVMSizeTypes.fromString(
-                        parametersResolver.getValue(
-                            CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name())))
-                .withAgentPoolVirtualMachineCount(
-                    Integer.parseInt(
-                        parametersResolver.getValue(
-                            CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name())))
-                .withSpotPriorityVirtualMachine()
-                .withAgentPoolMode(AgentPoolMode.USER)
-                .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
-
-        // Add autoscaling to spot nodepool
-        if (autoScalingEnabled) {
-          int min =
-              Integer.parseInt(
-                  parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
-          int max =
-              Integer.parseInt(
-                  parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
-          aksPartialUpdate = aksPartialUpdate.withAutoScaling(min, max);
-        }
-
-        aks = aksPartialUpdate.attach().apply();
-      }
     } catch (ManagementException e) {
       if (e.getResponse() != null
           && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
@@ -236,6 +203,22 @@ public class CreateAksStep extends BaseResourceCreateStep {
     return existingAks;
   }
 
+  private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsEnabled) {
+    var tags =
+        new HashMap<String, String>() {
+          {
+            put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString());
+            put(
+                LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                ResourcePurpose.SHARED_RESOURCE.toString());
+          }
+        };
+    if (costSavingsEnabled) {
+      tags.putIfAbsent(LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString(), "True");
+    }
+    return tags;
+  }
+
   @VisibleForTesting
   void denySleepWhilePoolingForAksStatus() {
     sleepWhilePollingAksStatus = false;
@@ -256,6 +239,47 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
     update.apply();
     aks.refresh();
+  }
+
+  private void enableCostSavings(
+      KubernetesCluster aks,
+      String vNetId,
+      boolean costSavingsEnabled,
+      boolean autoScalingEnabled) {
+    // Enable a spot nodepool if cost savings are enabled. TODO: VPA
+    if (costSavingsEnabled) {
+      var aksPartialUpdate =
+          aks.update()
+              .defineAgentPool(SPOT_NODE_POOL_NAME)
+              .withVirtualMachineSize(
+                  ContainerServiceVMSizeTypes.fromString(
+                      parametersResolver.getValue(
+                          CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name())))
+              .withAgentPoolVirtualMachineCount(
+                  Integer.parseInt(
+                      parametersResolver.getValue(
+                          CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name())))
+              .withSpotPriorityVirtualMachine()
+              .withAgentPoolMode(AgentPoolMode.USER)
+              .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
+
+      // Add autoscaling to spot nodepool
+      if (autoScalingEnabled) {
+        int min =
+            Integer.parseInt(
+                parametersResolver.getValue(
+                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
+        int max =
+            Integer.parseInt(
+                parametersResolver.getValue(
+                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
+        aksPartialUpdate = aksPartialUpdate.withAutoScaling(min, max);
+      }
+
+      var attach = aksPartialUpdate.attach();
+      attach.apply();
+      aks.refresh();
+    }
   }
 
   @Override
