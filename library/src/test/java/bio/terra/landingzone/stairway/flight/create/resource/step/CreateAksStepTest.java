@@ -56,6 +56,7 @@ class CreateAksStepTest extends BaseStepTest {
   private static final String RESOURCE_ID = "aksId";
 
   @Mock private KubernetesClusters mockKubernetesClusters;
+  @Mock private KubernetesCluster mockKubernetesCluster;
   @Mock private KubernetesCluster.DefinitionStages.Blank mockK8sDefinitionStageBlank;
   @Mock private KubernetesCluster.DefinitionStages.WithGroup mockK8sDefinitionStageWithGroup;
   @Mock private KubernetesCluster.DefinitionStages.WithVersion mockK8sDefinitionStageWithVersion;
@@ -76,12 +77,12 @@ class CreateAksStepTest extends BaseStepTest {
       mockK8sAPDefinitionStagesWithAttach;
 
   @Mock private KubernetesCluster.Definition mockK8sDefinition;
-  @Mock private KubernetesCluster mockKubernetesCluster;
 
   @Captor private ArgumentCaptor<Map<String, String>> tagsCaptor;
   @Captor private ArgumentCaptor<String> nodeResourceGroupCaptor;
 
   private CreateAksStep testStep;
+  private String costSavingEnabled = "false";
 
   @BeforeEach
   void setup() {
@@ -121,6 +122,48 @@ class CreateAksStepTest extends BaseStepTest {
     verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
     verifyOmsAgentAddonProfileNotSet();
+  }
+
+  @Test
+  void testCostSavingInStep() throws InterruptedException {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
+    costSavingEnabled = "true";
+    setupParameterResolver();
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(
+            CreateVnetStep.VNET_ID,
+            "vNetId",
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            "logAnalyticsWorkspaceId"));
+    setupArmManagersForDoStep();
+    // TODO: move this to a setup function
+    KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
+    when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);
+    when(mockK8sUpdate.defineAgentPool(anyString())).thenReturn(mockK8sAPDefinitionStagesBlank);
+    when(mockK8sUpdate.defineAgentPool(anyString())).thenReturn(mockK8sAPDefinitionStagesBlank);
+    when(mockK8sAPDefinitionStagesWithAttach.withSpotPriorityVirtualMachine())
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.withAgentPoolMode(eq(AgentPoolMode.USER)))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+
+    var stepResult = testStep.doStep(mockFlightContext);
+
+    assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    // TODO: verify second nodepool was created
+    // TODO: verify second nodepool has spot VMs
+
   }
 
   @ParameterizedTest
@@ -250,7 +293,7 @@ class CreateAksStepTest extends BaseStepTest {
         .thenReturn("false");
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name()))
-        .thenReturn("false");
+        .thenReturn(costSavingEnabled);
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
         .thenReturn("00000000-0000-0000-0000-000000000000");
