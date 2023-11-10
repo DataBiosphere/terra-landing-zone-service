@@ -204,18 +204,13 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsEnabled) {
-    var tags =
-        new HashMap<String, String>() {
-          {
-            put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString());
-            put(
-                LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-                ResourcePurpose.SHARED_RESOURCE.toString());
-            put(
-                LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString(),
-                String.valueOf(costSavingsEnabled));
-          }
-        };
+    var tags = new HashMap<String, String>();
+    tags.put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString());
+    tags.put(
+        LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+        ResourcePurpose.SHARED_RESOURCE.toString());
+    tags.put(
+        LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString(), String.valueOf(costSavingsEnabled));
     return tags;
   }
 

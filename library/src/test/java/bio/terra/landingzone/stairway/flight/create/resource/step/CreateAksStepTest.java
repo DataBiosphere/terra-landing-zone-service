@@ -347,8 +347,7 @@ class CreateAksStepTest extends BaseStepTest {
 
     var mockK8sAPDefinitionStagesBlank =
         mock(KubernetesClusterAgentPool.DefinitionStages.Blank.class);
-    when(mockK8sUpdate.defineAgentPool(eq("spotnodepool")))
-        .thenReturn(mockK8sAPDefinitionStagesBlank);
+    when(mockK8sUpdate.defineAgentPool("spotnodepool")).thenReturn(mockK8sAPDefinitionStagesBlank);
 
     var mockK8sAPDefinitionStagesMachineCount =
         mock(KubernetesClusterAgentPool.DefinitionStages.WithAgentPoolVirtualMachineCount.class);
@@ -361,7 +360,7 @@ class CreateAksStepTest extends BaseStepTest {
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesWithAttach.withSpotPriorityVirtualMachine())
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
-    when(mockK8sAPDefinitionStagesWithAttach.withAgentPoolMode(eq(AgentPoolMode.USER)))
+    when(mockK8sAPDefinitionStagesWithAttach.withAgentPoolMode(AgentPoolMode.USER))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesWithAttach.withVirtualNetwork(any(), any()))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
