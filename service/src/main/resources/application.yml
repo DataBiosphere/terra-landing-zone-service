@@ -16,6 +16,14 @@ env:
 
 spring:
   application.name: landingzone
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 0
+          must-revalidate: true
+        use-last-modified: false
+      static-locations: classpath:/api/
 
 landingzone:
   landingzone-database:

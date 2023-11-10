@@ -4,6 +4,10 @@ info:
   description: |
     Manages landing zones
   version: 0.1.0
+
+security:
+  - bearerAuth: []
+
 paths:
 #  /status:
 #    get:
@@ -684,3 +688,8 @@ components:
           type: array
           items:
             type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
