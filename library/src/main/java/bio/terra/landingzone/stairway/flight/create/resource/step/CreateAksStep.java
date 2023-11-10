@@ -211,11 +211,11 @@ public class CreateAksStep extends BaseResourceCreateStep {
             put(
                 LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                 ResourcePurpose.SHARED_RESOURCE.toString());
+            put(
+                LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString(),
+                String.valueOf(costSavingsEnabled));
           }
         };
-    if (costSavingsEnabled) {
-      tags.putIfAbsent(LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString(), "True");
-    }
     return tags;
   }
 
