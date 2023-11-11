@@ -15,6 +15,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZ
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateNetworkSecurityGroupStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
@@ -50,6 +51,10 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
                 parametersResolver),
             RetryRules.shortExponential()),
         Pair.of(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud()),
+        Pair.of(
+            new CreateNetworkSecurityGroupStep(
+                armManagers, parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
         Pair.of(
             new CreateVnetStep(armManagers, parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
