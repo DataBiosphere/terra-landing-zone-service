@@ -27,7 +27,7 @@ public class BaseIntegrationTest {
             TestArmResourcesFactory.createMonitorArmClient(),
             TestArmResourcesFactory.createApplicationInsightsArmClient(),
             TestArmResourcesFactory.createSecurityInsightsArmClient());
-    tokenCredential = AzureIntegrationUtils.getAdminAzureCredentialsOrDie();
+    tokenCredential = AzureIntegrationUtils.getAzureCredentialsOrDie();
     azureProfile = AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE;
   }
 }

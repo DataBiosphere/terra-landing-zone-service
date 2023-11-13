@@ -32,7 +32,7 @@ landingzone:
     timeout-seconds: 1800
 
   protected-data:
-    logic-app-resource-id: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-audit-logs-rg/providers/Microsoft.Logic/workflows/terra-protected-data-slack-notification
+    logic-app-resource-id: /subscriptions/df547342-9cfd-44ef-a6dd-df0ede32f1e3/resourceGroups/landing-zone-testing/providers/Microsoft.Logic/workflows/terra-protected-data-slack-notification
     tenant-id: fad90753-2022-4456-9b0a-c7e5b934e408
     long-term-storage-table-names:
       - Alert
@@ -52,9 +52,7 @@ landingzone:
       - Syslog
     longTermStorageAccountIds:
       #extend configuration in case mrg is in different region; resource id should be fully qualified
-      eastus2: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdeveastus2
-      eastus: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdeveastus
-      southcentralus: /subscriptions/c5f8eca3-f512-48cb-b01f-f19f1af9014c/resourceGroups/terra-dev-protected-data-logs-rg/providers/Microsoft.Storage/storageAccounts/ltslogsdevsthcntrlus
+      southcentralus: /subscriptions/df547342-9cfd-44ef-a6dd-df0ede32f1e3/resourceGroups/landing-zone-testing/providers/Microsoft.Storage/storageAccounts/ltssthcentralus
     sentinelScheduledAlertRuleTemplateIds:
       - 0b9ae89d-8cad-461c-808f-0494f70ad5c4
     sentinelMlRuleTemplateIds:
@@ -68,11 +66,6 @@ terra.common:
   tracing:
     stackdriverExportEnabled: false
 
-workspace:
-  azure:
-    managedAppClientId: ${AZURE_PUBLISHER_CLIENT_ID}
-    managedAppClientSecret: ${AZURE_PUBLISHER_CLIENT_SECRET}
-    managedAppTenantId: ${AZURE_PUBLISHER_TENANT_ID}
 
 azure:
   customer:

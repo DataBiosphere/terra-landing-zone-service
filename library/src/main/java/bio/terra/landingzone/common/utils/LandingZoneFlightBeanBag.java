@@ -3,7 +3,6 @@ package bio.terra.landingzone.common.utils;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Component;
 public class LandingZoneFlightBeanBag {
   private final LandingZoneService landingZoneService;
   private final LandingZoneDao landingZoneDao;
-  private final LandingZoneAzureConfiguration azureConfiguration;
   private final LandingZoneTestingConfiguration testingConfiguration;
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneSamService samService;
@@ -32,7 +30,6 @@ public class LandingZoneFlightBeanBag {
   public LandingZoneFlightBeanBag(
       LandingZoneService landingZoneService,
       LandingZoneDao landingZoneDao,
-      LandingZoneAzureConfiguration azureConfiguration,
       LandingZoneTestingConfiguration testingConfiguration,
       LandingZoneManagerProvider landingZoneManagerProvider,
       LandingZoneSamService samService,
@@ -42,7 +39,6 @@ public class LandingZoneFlightBeanBag {
       ObjectMapper objectMapper) {
     this.landingZoneService = landingZoneService;
     this.landingZoneDao = landingZoneDao;
-    this.azureConfiguration = azureConfiguration;
     this.testingConfiguration = testingConfiguration;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.samService = samService;
@@ -58,10 +54,6 @@ public class LandingZoneFlightBeanBag {
 
   public LandingZoneDao getLandingZoneDao() {
     return landingZoneDao;
-  }
-
-  public LandingZoneAzureConfiguration getAzureConfiguration() {
-    return azureConfiguration;
   }
 
   public LandingZoneManagerProvider getAzureLandingZoneManagerProvider() {
