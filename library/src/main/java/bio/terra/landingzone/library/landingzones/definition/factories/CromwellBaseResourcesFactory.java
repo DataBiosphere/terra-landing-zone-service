@@ -57,8 +57,7 @@ import java.util.UUID;
  * An implementation of {@link LandingZoneDefinitionFactory} that deploys resources required for
  * cromwell. Current resources are: - VNet: Subnets required for AKS, Batch, PostgreSQL and
  * Compute/VMs - AKS Account (?) TODO - AKS Nodepool TODO - Batch Account TODO - Storage Account
- * TODO - PostgreSQL server TODO
- * NOOP IGNORE
+ * TODO - PostgreSQL server TODO NOOP IGNORE
  */
 public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
   private final String LZ_NAME = "Cromwell Landing Zone Base Resources";
