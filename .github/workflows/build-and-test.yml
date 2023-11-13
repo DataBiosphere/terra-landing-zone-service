@@ -16,6 +16,10 @@ on:
     # to run tests even when we only change a markdown file. So don't do what I did and put a
     # paths-ignore right here!
   workflow_dispatch: {}
+env:
+  AZURE_PUBLISHER_CLIENT_ID: ${{ secrets.AZURE_PUBLISHER_CLIENT_ID }}
+  AZURE_PUBLISHER_CLIENT_SECRET: ${{ secrets.AZURE_PUBLISHER_CLIENT_SECRET }}
+  AZURE_PUBLISHER_TENANT_ID: ${{ secrets.AZURE_PUBLISHER_TENANT_ID }}
 
 jobs:
   bump-check:
@@ -41,9 +45,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+          cache: 'gradle'
 
       - name: Build the test harness and, by dependency, the library
         run: ./gradlew --build-cache build -x test
@@ -57,9 +59,6 @@ jobs:
     needs: [ bump-check, build ]
     runs-on: ubuntu-latest
     if: needs.bump-check.outputs.is-bump == 'no'
-    permissions:
-      contents: 'read'
-      id-token: 'write'
 
     services:
       postgres:
@@ -84,23 +83,13 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Initialize the database
+      - name: initialize the database
         env:
           PGPASSWORD: postgres
         run: |
           psql -h localhost -U postgres -f ./scripts/postgres-init.sql
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-
-      # use a federated credential to connect w/azure
-      - name: Azure CLI login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
-          tenant-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
-          subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
 
       # Run tests
       - name: Test Library and Library with coverage
@@ -132,15 +121,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Azure logout
-        uses: azure/CLI@v1
-        if: always()
-        with:
-          inlineScript: |
-            az logout
-            az cache purge
-            az account clear
 
   jib:
     #disable until we need it

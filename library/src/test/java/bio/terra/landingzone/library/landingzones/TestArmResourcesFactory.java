@@ -20,7 +20,7 @@ public class TestArmResourcesFactory {
   public static AzureResourceManager createArmClient() {
     AzureProfile profile = AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE;
     return AzureResourceManager.authenticate(
-            AzureIntegrationUtils.getAzureCredentialsOrDie(), profile)
+            AzureIntegrationUtils.getAdminAzureCredentialsOrDie(), profile)
         .withSubscription(profile.getSubscriptionId());
   }
 
@@ -38,43 +38,43 @@ public class TestArmResourcesFactory {
 
   public static RelayManager createRelayArmClient() {
     return RelayManager.authenticate(
-        AzureIntegrationUtils.getAzureCredentialsOrDie(),
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }
 
   public static BatchManager createBatchArmClient() {
     return BatchManager.authenticate(
-        AzureIntegrationUtils.getAzureCredentialsOrDie(),
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }
 
   public static PostgreSqlManager createPostgreSqlArmClient() {
     return PostgreSqlManager.authenticate(
-        AzureIntegrationUtils.getAzureCredentialsOrDie(),
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }
 
   public static LogAnalyticsManager createLogAnalyticsArmClient() {
     return LogAnalyticsManager.authenticate(
-        AzureIntegrationUtils.getAzureCredentialsOrDie(),
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }
 
   public static MonitorManager createMonitorArmClient() {
     return MonitorManager.authenticate(
-        AzureIntegrationUtils.getAzureCredentialsOrDie(),
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }
 
   public static ApplicationInsightsManager createApplicationInsightsArmClient() {
     return ApplicationInsightsManager.authenticate(
-        AzureIntegrationUtils.getAzureCredentialsOrDie(),
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }
 
   public static SecurityInsightsManager createSecurityInsightsArmClient() {
     return SecurityInsightsManager.authenticate(
-        AzureIntegrationUtils.getAzureCredentialsOrDie(),
+        AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
         AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE);
   }
 
@@ -84,7 +84,6 @@ public class TestArmResourcesFactory {
         .resourceGroups()
         .define("rg" + resourceGroupId)
         .withRegion(Region.US_SOUTH_CENTRAL)
-        .withTag("PURPOSE", "LANDING_ZONE_SERVICE_INTEGRATION_TESTING")
         .create();
   }
 

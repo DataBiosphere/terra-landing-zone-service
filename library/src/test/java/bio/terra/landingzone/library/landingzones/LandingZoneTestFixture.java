@@ -29,7 +29,7 @@ public class LandingZoneTestFixture {
             TestArmResourcesFactory.createSecurityInsightsArmClient());
     resourceGroup =
         TestArmResourcesFactory.createTestResourceGroup(armManagers.azureResourceManager());
-    tokenCredential = AzureIntegrationUtils.getAzureCredentialsOrDie();
+    tokenCredential = AzureIntegrationUtils.getAdminAzureCredentialsOrDie();
     azureProfile = AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE;
   }
 
