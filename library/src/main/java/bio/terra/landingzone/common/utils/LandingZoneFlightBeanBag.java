@@ -1,6 +1,7 @@
 package bio.terra.landingzone.common.utils;
 
 import bio.terra.landingzone.db.LandingZoneDao;
+import bio.terra.landingzone.library.AzureCredentialsProvider;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
@@ -24,6 +25,7 @@ public class LandingZoneFlightBeanBag {
   private final ObjectMapper objectMapper;
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
   private final AzureCustomerUsageConfiguration azureCustomerUsageConfiguration;
+  private final AzureCredentialsProvider azureCredentialsProvider;
 
   @Lazy
   @Autowired
@@ -36,6 +38,7 @@ public class LandingZoneFlightBeanBag {
       LandingZoneBillingProfileManagerService bpmService,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration,
       AzureCustomerUsageConfiguration azureCustomerUsageConfiguration,
+      AzureCredentialsProvider azureCredentialsProvider,
       ObjectMapper objectMapper) {
     this.landingZoneService = landingZoneService;
     this.landingZoneDao = landingZoneDao;
@@ -45,6 +48,7 @@ public class LandingZoneFlightBeanBag {
     this.bpmService = bpmService;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
     this.azureCustomerUsageConfiguration = azureCustomerUsageConfiguration;
+    this.azureCredentialsProvider = azureCredentialsProvider;
     this.objectMapper = objectMapper;
   }
 
@@ -86,5 +90,9 @@ public class LandingZoneFlightBeanBag {
 
   public AzureCustomerUsageConfiguration getAzureCustomerUsageConfiguration() {
     return azureCustomerUsageConfiguration;
+  }
+
+  public AzureCredentialsProvider getAzureCredentialsProvider() {
+    return azureCredentialsProvider;
   }
 }

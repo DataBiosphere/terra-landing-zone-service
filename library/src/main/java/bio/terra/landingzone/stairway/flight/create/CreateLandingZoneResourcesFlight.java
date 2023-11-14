@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
+import bio.terra.landingzone.library.AzureCredentialsProvider;
 import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
@@ -22,7 +23,6 @@ import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
-import com.azure.identity.DefaultAzureCredentialBuilder;
 import java.util.UUID;
 
 public class CreateLandingZoneResourcesFlight extends Flight {
@@ -33,6 +33,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
   private final ResourceNameProvider resourceNameProvider;
   private final ParametersResolver parametersResolver;
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
+  private final AzureCredentialsProvider azureCredentialsProvider;
 
   /**
    * All subclasses must provide a constructor with this signature.
@@ -45,6 +46,8 @@ public class CreateLandingZoneResourcesFlight extends Flight {
 
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
+
+    azureCredentialsProvider = flightBeanBag.getAzureCredentialsProvider();
 
     landingZoneRequest =
         inputParameters.get(
@@ -93,7 +96,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
             landingZoneTarget.azureTenantId(),
             landingZoneTarget.azureSubscriptionId(),
             AzureEnvironment.AZURE);
-    var tokenCredentials = new DefaultAzureCredentialBuilder().build();
+    var tokenCredentials = azureCredentialsProvider.getTokenCredential();
     return LandingZoneManager.createArmManagers(
         tokenCredentials, azureProfile, azureCustomerUsageConfiguration.getUsageAttribute());
   }
