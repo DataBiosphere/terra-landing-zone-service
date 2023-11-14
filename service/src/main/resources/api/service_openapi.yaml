@@ -14,7 +14,7 @@ paths:
 #      security: []
 #      summary: Returns the operational status of the service.
 #      operationId: serviceStatus
-#      tags: [ Unauthenticated ]
+#      tags: [ public ]
 #      responses:
 #        '200':
 #          $ref: '#/components/responses/StatusResponse'
@@ -26,7 +26,7 @@ paths:
       security: [ ]
       summary: Returns the deployed version of the service.
       operationId: serviceVersion
-      tags: [ Unauthenticated ]
+      tags: [ public ]
       responses:
         '200':
           description: System version response

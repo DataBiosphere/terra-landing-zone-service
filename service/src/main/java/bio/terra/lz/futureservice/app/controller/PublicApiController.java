@@ -1,7 +1,7 @@
 package bio.terra.lz.futureservice.app.controller;
 
 import bio.terra.lz.futureservice.app.configuration.VersionConfiguration;
-import bio.terra.lz.futureservice.generated.api.UnauthenticatedApi;
+import bio.terra.lz.futureservice.generated.api.PublicApi;
 import bio.terra.lz.futureservice.generated.model.ApiSystemVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,12 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 @Controller
-public class UnauthenticatedApiController implements UnauthenticatedApi {
+public class PublicApiController implements PublicApi {
 
   private final ApiSystemVersion currentVersion;
 
   @Autowired
-  public UnauthenticatedApiController(VersionConfiguration versionConfiguration) {
+  public PublicApiController(VersionConfiguration versionConfiguration) {
     currentVersion =
         new ApiSystemVersion()
             .gitTag(versionConfiguration.getGitTag())

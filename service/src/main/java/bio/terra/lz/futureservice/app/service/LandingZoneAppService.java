@@ -58,8 +58,6 @@ public class LandingZoneAppService {
       BearerToken bearerToken,
       ApiCreateAzureLandingZoneRequestBody body,
       String asyncResultEndpoint) {
-    // TODO: this feature is always on since we inside LZ service?
-    // features.azureEnabledCheck();
     logger.info(
         "Requesting new Azure landing zone with definition='{}', version='{}'",
         body.getDefinition(),
@@ -84,13 +82,11 @@ public class LandingZoneAppService {
 
   public ApiAzureLandingZoneResult getCreateAzureLandingZoneResult(
       BearerToken bearerToken, String jobId) {
-    // features.azureEnabledCheck();
     return toApiAzureLandingZoneResult(landingZoneService.getAsyncJobResult(bearerToken, jobId));
   }
 
   public ApiAzureLandingZoneList listAzureLandingZones(
       BearerToken bearerToken, UUID billingProfileId) {
-    // features.azureEnabledCheck();
     if (billingProfileId != null) {
       return getAzureLandingZonesByBillingProfile(bearerToken, billingProfileId);
     }
@@ -102,14 +98,12 @@ public class LandingZoneAppService {
 
   public ApiDeleteAzureLandingZoneJobResult getDeleteAzureLandingZoneResult(
       BearerToken token, UUID landingZoneId, String jobId) {
-    // features.azureEnabledCheck();
     return toApiDeleteAzureLandingZoneJobResult(
         landingZoneService.getAsyncDeletionJobResult(token, landingZoneId, jobId));
   }
 
   public ApiAzureLandingZoneDefinitionList listAzureLandingZonesDefinitions(
       BearerToken bearerToken) {
-    // features.azureEnabledCheck();
     List<LandingZoneDefinition> templates =
         landingZoneService.listLandingZoneDefinitions(bearerToken);
 
@@ -131,21 +125,18 @@ public class LandingZoneAppService {
       UUID landingZoneId,
       ApiDeleteAzureLandingZoneRequestBody body,
       String resultEndpoint) {
-    // features.azureEnabledCheck();
     return toApiDeleteAzureLandingZoneResult(
         landingZoneService.startLandingZoneDeletionJob(
             bearerToken, body.getJobControl().getId(), landingZoneId, resultEndpoint));
   }
 
   public ApiAzureLandingZone getAzureLandingZone(BearerToken bearerToken, UUID landingZoneId) {
-    // features.azureEnabledCheck();
     LandingZone landingZoneRecord = landingZoneService.getLandingZone(bearerToken, landingZoneId);
     return toApiAzureLandingZone(landingZoneRecord);
   }
 
   public ApiAzureLandingZoneResourcesList listAzureLandingZoneResources(
       BearerToken bearerToken, UUID landingZoneId) {
-    // features.azureEnabledCheck();
     var result = new ApiAzureLandingZoneResourcesList().id(landingZoneId);
     landingZoneService
         .listResourcesWithPurposes(bearerToken, landingZoneId)
