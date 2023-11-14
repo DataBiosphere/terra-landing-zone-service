@@ -6,7 +6,6 @@ import bio.terra.landingzone.model.LandingZoneTarget;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
-import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.resourcemanager.AzureResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +14,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class LandingZoneManagerProvider {
   private AzureCustomerUsageConfiguration azureCustomerUsageConfiguration;
+  private final AzureCredentialsProvider azureCredentialsProvider;
 
   @Autowired
   public LandingZoneManagerProvider(
-      AzureCustomerUsageConfiguration azureCustomerUsageConfiguration) {
+      AzureCustomerUsageConfiguration azureCustomerUsageConfiguration,
+      AzureCredentialsProvider azureCredentialsProvider) {
     this.azureCustomerUsageConfiguration = azureCustomerUsageConfiguration;
+    this.azureCredentialsProvider = azureCredentialsProvider;
   }
 
   public LandingZoneManager createLandingZoneManager(LandingZoneTarget landingZoneTarget) {
@@ -47,6 +49,6 @@ public class LandingZoneManagerProvider {
   }
 
   public TokenCredential buildTokenCredential() {
-    return new DefaultAzureCredentialBuilder().build();
+    return azureCredentialsProvider.getTokenCredential();
   }
 }
