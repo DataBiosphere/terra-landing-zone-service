@@ -9,17 +9,17 @@ security:
   - bearerAuth: []
 
 paths:
-#  /status:
-#    get:
-#      security: []
-#      summary: Returns the operational status of the service.
-#      operationId: serviceStatus
-#      tags: [ public ]
-#      responses:
-#        '200':
-#          $ref: '#/components/responses/StatusResponse'
-#        '500':
-#          $ref: '#/components/responses/StatusResponse'
+  /status:
+    get:
+      security: []
+      summary: Returns the operational status of the service.
+      operationId: serviceStatus
+      tags: [ public ]
+      responses:
+        '200':
+          $ref: '#/components/responses/SystemStatusResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
   /version:
     get:
@@ -216,13 +216,6 @@ paths:
           $ref: '#/components/responses/ServerError'
 
 components:
-#  responses:
-#    StatusResponse:
-#      description: common status response
-#      content:
-#        application/json:
-#          schema:
-#            $ref: '#/components/schemas/SystemStatus'
   parameters:
     JobId:
       name: jobId
@@ -295,6 +288,13 @@ components:
           schema:
             $ref: '#/components/schemas/ResourceQuota'
 
+    SystemStatusResponse:
+      description: common status response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SystemStatus'
+
     BadRequest:
       description: Bad request
       content:
@@ -332,6 +332,7 @@ components:
 
   schemas:
     SystemStatus:
+      required: [ ok, systems ]
       type: object
       properties:
         ok:

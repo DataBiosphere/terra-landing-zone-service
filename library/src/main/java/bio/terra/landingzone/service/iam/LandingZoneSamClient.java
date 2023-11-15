@@ -7,6 +7,7 @@ import java.util.List;
 import okhttp3.OkHttpClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
+import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.springframework.stereotype.Component;
 
@@ -47,5 +48,9 @@ public class LandingZoneSamClient {
 
   List<String> getLandingZoneResourceUsers() {
     return samConfig.getLandingZoneResourceUsers();
+  }
+
+  StatusApi statusApi() {
+    return new StatusApi(getApiClient());
   }
 }
