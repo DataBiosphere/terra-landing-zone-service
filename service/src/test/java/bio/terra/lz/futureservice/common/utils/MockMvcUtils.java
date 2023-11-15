@@ -1,6 +1,6 @@
 package bio.terra.lz.futureservice.common.utils;
 
-import bio.terra.lz.futureservice.app.service.iam.AuthenticatedUserRequest;
+import bio.terra.lz.futureservice.app.controller.common.iam.AuthenticatedUserRequest;
 import java.util.Optional;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 

@@ -1,4 +1,4 @@
-package bio.terra.lz.futureservice.app.service.iam;
+package bio.terra.lz.futureservice.app.controller.common.iam;
 
 import bio.terra.common.exception.ApiException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
