@@ -25,10 +25,13 @@ class QuotaProviderTest {
   @Mock private ArmManagers armManagers;
 
   @Mock private ResourceQuotaReader resourceQuotaReader;
+  @Mock private ResourceTypeQuotaReader resourceTypeQuotaReader;
 
   @BeforeEach
   void setUp() {
-    quotaProvider = new QuotaProvider(armManagers, List.of(resourceQuotaReader));
+    quotaProvider =
+        new QuotaProvider(
+            armManagers, List.of(resourceQuotaReader), List.of(resourceTypeQuotaReader));
   }
 
   @Test

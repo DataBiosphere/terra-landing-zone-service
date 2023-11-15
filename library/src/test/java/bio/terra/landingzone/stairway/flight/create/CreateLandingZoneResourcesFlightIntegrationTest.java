@@ -23,10 +23,12 @@ import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.landingzones.TestArmResourcesFactory;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
+import bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils;
 import bio.terra.landingzone.library.landingzones.management.DeleteRulesVerifier;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.ResourcesDeleteManager;
 import bio.terra.landingzone.library.landingzones.management.deleterules.*;
+import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDiagnosticSetting;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -144,6 +146,15 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
   @AfterEach
   void cleanUpResources() {
     armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
+  }
+
+  @Test
+  void testQuota() {
+    // fake test to see if we can get quota data for batch accounts
+    var quotaProvider = new QuotaProvider(armManagers);
+    var quota =
+        quotaProvider.resourceTypeQuota(AzureResourceTypeUtils.AZURE_BATCH_TYPE, "southcentralus");
+    System.out.println(quota);
   }
 
   @Disabled("Protected data landing zones exercise the base cromwell path, this test is redundant")
