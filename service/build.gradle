@@ -3,15 +3,27 @@ plugins {
     id 'de.undercouch.download'
     id 'com.google.cloud.tools.jib'
     id 'com.srcclr.gradle'
+    id 'com.gorylenko.gradle-git-properties' version '2.4.1'
 }
 
-apply from: 'publishing.gradle'
+project.ext {
+    includeDir = "$projectDir/gradle"
+    resourceDir = "${projectDir}/src/main/resources"
+}
+
+apply(from: "$includeDir/generators.gradle")
+apply(from: "$includeDir/publishing.gradle")
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation project(':library')
+    implementation group: "org.springframework.boot", name: "spring-boot-starter-web"
+    implementation group: "org.springframework.boot", name: "spring-boot-starter-validation"
+    implementation group: "org.springframework.boot", name: "spring-boot-starter-data-jdbc"
+
+    //implementation group: "org.liquibase", name: "liquibase-core", version: "4.8.0"
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
 }
 
 test {

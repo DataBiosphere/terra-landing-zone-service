@@ -3,4 +3,5 @@ include('service','library', 'scripts', 'testharness')
 
 gradle.ext.releaseVersion = "0.0.231-SNAPSHOT"
 include 'testharness'
+include 'client'
 
