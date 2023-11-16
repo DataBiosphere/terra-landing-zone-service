@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.lz.futureservice.app.configuration.VersionConfiguration;
-import bio.terra.lz.futureservice.app.service.StatusService;
+import bio.terra.lz.futureservice.app.service.status.StatusService;
 import bio.terra.lz.futureservice.common.fixture.SystemStatusFixtures;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;

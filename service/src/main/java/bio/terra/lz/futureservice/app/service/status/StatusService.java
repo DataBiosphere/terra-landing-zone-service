@@ -1,4 +1,4 @@
-package bio.terra.lz.futureservice.app.service;
+package bio.terra.lz.futureservice.app.service.status;
 
 import bio.terra.lz.futureservice.app.configuration.StatusCheckConfiguration;
 import bio.terra.lz.futureservice.generated.model.ApiSystemStatusSystems;

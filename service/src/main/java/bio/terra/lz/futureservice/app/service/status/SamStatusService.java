@@ -1,6 +1,5 @@
-package bio.terra.lz.futureservice.app.service;
+package bio.terra.lz.futureservice.app.service.status;
 
-import bio.terra.landingzone.service.iam.LandingZoneSamClient;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.lz.futureservice.generated.model.ApiSystemStatusSystems;
 import java.util.List;
@@ -24,8 +23,8 @@ public class SamStatusService {
   private final LandingZoneSamService landingZoneSamService;
 
   @Autowired
-  public SamStatusService(LandingZoneSamClient samClient) {
-    landingZoneSamService = new LandingZoneSamService(samClient);
+  public SamStatusService(LandingZoneSamService landingZoneSamService) {
+    this.landingZoneSamService = landingZoneSamService;
   }
 
   public ApiSystemStatusSystems status() {

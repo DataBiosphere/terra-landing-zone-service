@@ -1,7 +1,7 @@
 package bio.terra.lz.futureservice.app.controller;
 
 import bio.terra.lz.futureservice.app.configuration.VersionConfiguration;
-import bio.terra.lz.futureservice.app.service.StatusService;
+import bio.terra.lz.futureservice.app.service.status.StatusService;
 import bio.terra.lz.futureservice.generated.api.PublicApi;
 import bio.terra.lz.futureservice.generated.model.ApiSystemStatus;
 import bio.terra.lz.futureservice.generated.model.ApiSystemVersion;
