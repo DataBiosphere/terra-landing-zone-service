@@ -5,7 +5,6 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
-import bio.terra.profile.model.SystemStatusSystems;
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import io.opencensus.contrib.spring.aop.Traced;
 import java.util.HashMap;
@@ -15,10 +14,10 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
+import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.CreateResourceRequestV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.FullyQualifiedResourceId;
-import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserResourcesResponse;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.slf4j.Logger;
@@ -36,6 +35,10 @@ public class LandingZoneSamService {
   @Autowired
   public LandingZoneSamService(LandingZoneSamClient samClient) {
     this.samClient = samClient;
+  }
+
+  protected StatusApi getSamClientStatusApi() {
+    return samClient.statusApi();
   }
 
   /**
@@ -199,27 +202,6 @@ public class LandingZoneSamService {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException apiException) {
       throw SamExceptionFactory.create("Error getting user status info from Sam", apiException);
-    }
-  }
-
-  public SystemStatusSystems status() {
-    // No access token needed since this is an unauthenticated API.
-    try {
-      // Don't retry status check
-      SystemStatus samStatus = samClient.statusApi().getSystemStatus();
-      var result = new SystemStatusSystems().ok(samStatus.getOk());
-      var samSystems = samStatus.getSystems();
-      // Populate error message if Sam status is non-ok
-      if (result.isOk() == null || !result.isOk()) {
-        String errorMsg = "Sam status check failed. Messages = " + samSystems;
-        logger.error(errorMsg);
-        result.addMessagesItem(errorMsg);
-      }
-      return result;
-    } catch (Exception e) {
-      String errorMsg = "Sam status check failed";
-      logger.error(errorMsg, e);
-      return new SystemStatusSystems().ok(false).messages(List.of(errorMsg));
     }
   }
 }

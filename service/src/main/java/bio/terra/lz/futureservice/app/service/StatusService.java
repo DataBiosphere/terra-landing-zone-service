@@ -14,15 +14,18 @@ public class StatusService extends BaseStatusService {
   private static final Logger logger = LoggerFactory.getLogger(StatusService.class);
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
+  private final SamService samService;
 
   @Autowired
   public StatusService(
-      NamedParameterJdbcTemplate jdbcTemplate, StatusCheckConfiguration configuration /*,
-            SamService samService*/) {
+      SamService samService,
+      NamedParameterJdbcTemplate jdbcTemplate,
+      StatusCheckConfiguration configuration) {
     super(configuration);
+    this.samService = samService;
     this.jdbcTemplate = jdbcTemplate;
     registerStatusCheck("Database", this::databaseStatus);
-    // registerStatusCheck("Sam", samService::status);
+    registerStatusCheck("Sam", samService::status);
   }
 
   private ApiSystemStatusSystems databaseStatus() {

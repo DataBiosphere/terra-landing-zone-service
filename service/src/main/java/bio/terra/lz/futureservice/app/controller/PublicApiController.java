@@ -12,6 +12,8 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class PublicApiController implements PublicApi {
+  public static final String LANDING_ZONE_REPO_URL =
+      "https://github.com/DataBiosphere/terra-landing-zone-service/commit/";
 
   private final ApiSystemVersion currentVersion;
   private final StatusService statusService;
@@ -24,9 +26,7 @@ public class PublicApiController implements PublicApi {
         new ApiSystemVersion()
             .gitTag(versionConfiguration.getGitTag())
             .gitHash(versionConfiguration.getGitHash())
-            .github(
-                "https://github.com/DataBiosphere/terra-landing-zone-service/commit/"
-                    + versionConfiguration.getGitHash())
+            .github(LANDING_ZONE_REPO_URL + versionConfiguration.getGitHash())
             .build(versionConfiguration.getBuild());
   }
 
