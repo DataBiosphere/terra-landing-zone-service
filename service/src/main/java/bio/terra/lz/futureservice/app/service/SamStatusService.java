@@ -12,22 +12,27 @@ import org.springframework.stereotype.Component;
 
 /**
  * The purpose of this service is to provide only Sam status information. For other Sam service
- * capabilities see LandingZoneSamService.
+ * capabilities see LandingZoneSamService. We can't implement this status functionality there since
+ * LandingZoneSamService is located in library module and doesn't have access to Api* models. Most
+ * likely later library module functionality migrate into service modules, and this status check can
+ * be moved into proper location.
  */
 @Component
-public class SamService extends LandingZoneSamService {
-  private static final Logger logger = LoggerFactory.getLogger(SamService.class);
+public class SamStatusService {
+  private static final Logger logger = LoggerFactory.getLogger(SamStatusService.class);
+
+  private final LandingZoneSamService landingZoneSamService;
 
   @Autowired
-  public SamService(LandingZoneSamClient samClient) {
-    super(samClient);
+  public SamStatusService(LandingZoneSamClient samClient) {
+    landingZoneSamService = new LandingZoneSamService(samClient);
   }
 
   public ApiSystemStatusSystems status() {
     // No access token needed since this is an unauthenticated API.
     try {
       // Don't retry status check
-      SystemStatus samStatus = getSamClientStatusApi().getSystemStatus();
+      SystemStatus samStatus = landingZoneSamService.getSamClientStatusApi().getSystemStatus();
       var result = new ApiSystemStatusSystems().ok(samStatus.getOk());
       var samSystems = samStatus.getSystems();
       // Populate error message if Sam status is non-ok

@@ -37,7 +37,7 @@ public class LandingZoneSamService {
     this.samClient = samClient;
   }
 
-  protected StatusApi getSamClientStatusApi() {
+  public StatusApi getSamClientStatusApi() {
     return samClient.statusApi();
   }
 
