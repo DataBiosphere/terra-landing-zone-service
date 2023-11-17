@@ -48,6 +48,11 @@ landingzone:
     tracing-enabled: true
     retention-check-interval: 1d
     completed-flight-retention: 90d
+  status-check:
+    enabled: true
+    polling-interval-seconds: 60
+    startup-wait-seconds: 5
+    staleness-threshold-seconds: 125
   sam:
     base-path: ${env.urls.sam}
     landing-zone-resource-users:
