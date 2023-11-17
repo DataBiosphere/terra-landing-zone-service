@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.service.iam.LandingZoneSamService;
+import bio.terra.landingzone.service.iam.LandingZoneSamClient;
 import java.util.Map;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
@@ -22,14 +22,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @Tag("unit")
 class SamStatusServiceTest {
 
-  @Mock private LandingZoneSamService mockLandingZoneSamService;
+  @Mock private LandingZoneSamClient mockLandingZoneSamClient;
   @Mock private StatusApi mockSamClientStatusApi;
 
   private SamStatusService samStatusService;
 
   @BeforeEach
   void setup() {
-    samStatusService = new SamStatusService(mockLandingZoneSamService);
+    samStatusService = new SamStatusService(mockLandingZoneSamClient);
   }
 
   @Test
@@ -37,7 +37,7 @@ class SamStatusServiceTest {
     var systems = Map.of("Db", new SubsystemStatus().ok(true));
     var systemStatus = new SystemStatus().ok(true).systems(systems);
     when(mockSamClientStatusApi.getSystemStatus()).thenReturn(systemStatus);
-    when(mockLandingZoneSamService.getSamClientStatusApi()).thenReturn(mockSamClientStatusApi);
+    when(mockLandingZoneSamClient.statusApi()).thenReturn(mockSamClientStatusApi);
 
     assertTrue(samStatusService.status().isOk());
   }
@@ -47,7 +47,7 @@ class SamStatusServiceTest {
     var systems = Map.of("Db", new SubsystemStatus().ok(false));
     var systemStatus = new SystemStatus().ok(false).systems(systems);
     when(mockSamClientStatusApi.getSystemStatus()).thenReturn(systemStatus);
-    when(mockLandingZoneSamService.getSamClientStatusApi()).thenReturn(mockSamClientStatusApi);
+    when(mockLandingZoneSamClient.statusApi()).thenReturn(mockSamClientStatusApi);
 
     var status = samStatusService.status();
     assertFalse(status.isOk());
@@ -56,7 +56,7 @@ class SamStatusServiceTest {
 
   @Test
   void testCheckStatus_FailedToGetSystemStatus() throws ApiException {
-    when(mockLandingZoneSamService.getSamClientStatusApi()).thenReturn(mockSamClientStatusApi);
+    when(mockLandingZoneSamClient.statusApi()).thenReturn(mockSamClientStatusApi);
     doThrow(ApiException.class).when(mockSamClientStatusApi).getSystemStatus();
 
     var status = samStatusService.status();

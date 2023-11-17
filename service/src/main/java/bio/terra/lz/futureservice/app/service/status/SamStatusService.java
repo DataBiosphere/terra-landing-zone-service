@@ -1,6 +1,6 @@
 package bio.terra.lz.futureservice.app.service.status;
 
-import bio.terra.landingzone.service.iam.LandingZoneSamService;
+import bio.terra.landingzone.service.iam.LandingZoneSamClient;
 import bio.terra.lz.futureservice.generated.model.ApiSystemStatusSystems;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
@@ -20,18 +20,18 @@ import org.springframework.stereotype.Component;
 public class SamStatusService {
   private static final Logger logger = LoggerFactory.getLogger(SamStatusService.class);
 
-  private final LandingZoneSamService landingZoneSamService;
+  private final LandingZoneSamClient landingZoneSamClient;
 
   @Autowired
-  public SamStatusService(LandingZoneSamService landingZoneSamService) {
-    this.landingZoneSamService = landingZoneSamService;
+  public SamStatusService(LandingZoneSamClient landingZoneSamClient) {
+    this.landingZoneSamClient = landingZoneSamClient;
   }
 
   public ApiSystemStatusSystems status() {
     // No access token needed since this is an unauthenticated API.
     try {
       // Don't retry status check
-      SystemStatus samStatus = landingZoneSamService.getSamClientStatusApi().getSystemStatus();
+      SystemStatus samStatus = landingZoneSamClient.statusApi().getSystemStatus();
       var result = new ApiSystemStatusSystems().ok(samStatus.getOk());
       var samSystems = samStatus.getSystems();
       // Populate error message if Sam status is non-ok

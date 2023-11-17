@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
-import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.CreateResourceRequestV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.FullyQualifiedResourceId;
@@ -35,10 +34,6 @@ public class LandingZoneSamService {
   @Autowired
   public LandingZoneSamService(LandingZoneSamClient samClient) {
     this.samClient = samClient;
-  }
-
-  public StatusApi getSamClientStatusApi() {
-    return samClient.statusApi();
   }
 
   /**

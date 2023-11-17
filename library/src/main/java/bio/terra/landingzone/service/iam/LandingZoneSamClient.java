@@ -50,7 +50,8 @@ public class LandingZoneSamClient {
     return samConfig.getLandingZoneResourceUsers();
   }
 
-  StatusApi statusApi() {
+  // expose to use inside service:SamStatusService class
+  public StatusApi statusApi() {
     return new StatusApi(getApiClient());
   }
 }
