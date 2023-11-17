@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
  * The purpose of this service is to provide only Sam status information. For other Sam service
  * capabilities see LandingZoneSamService. We can't implement this status functionality there since
  * LandingZoneSamService is located in library module and doesn't have access to Api* models. Most
- * likely later library module functionality migrate into service modules, and this status check can
- * be moved into proper location.
+ * likely later library module functionality will migrate into service module, and this status check
+ * can be moved into proper location.
  */
 @Component
 public class SamStatusService {
