@@ -32,7 +32,7 @@ public abstract class BaseResourceCreateStep implements Step {
   private static final Logger logger = LoggerFactory.getLogger(BaseResourceCreateStep.class);
 
   protected static final String FAILED_TO_CREATE_RESOURCE =
-      "Failed to create landing zone %s resource. landingZoneId=%s: %s";
+      "Failed to create landing zone %s resource. landingZoneId=%s. Error: %s";
   protected static final String RESOURCE_ALREADY_EXISTS =
       "{} resource in managed resource group {} already exists.";
   protected static final String RESOURCE_CREATED =

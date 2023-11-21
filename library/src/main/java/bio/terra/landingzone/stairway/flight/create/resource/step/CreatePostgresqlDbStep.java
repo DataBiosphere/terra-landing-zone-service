@@ -11,6 +11,8 @@ import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
+import bio.terra.stairway.StepResult;
+import bio.terra.stairway.StepStatus;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.ActiveDirectoryAuthEnum;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.AuthConfig;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -210,6 +213,25 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
         }
       }
     }
+  }
+
+  /*
+   Current step is responsible for multiple postgres operations such as 1) DB server provisioning
+   2) Enabling pgbouncer 3) Creating admin user. This particular method works as a global handler for
+   the whole step. But current implementation handles specific Postgres db provisioning issue.
+  */
+  protected Optional<StepResult> maybeHandleManagementException(ManagementException e) {
+    final String resourceOperationFailure = "ResourceOperationFailure";
+    final String internalServerError = "InternalServerError";
+    if (e.getValue() != null
+        && StringUtils.equalsIgnoreCase(e.getValue().getCode(), resourceOperationFailure)
+        && e.getValue().getDetails() != null
+        && e.getValue().getDetails().stream()
+            .anyMatch(d -> StringUtils.equalsIgnoreCase(d.getCode(), internalServerError))) {
+      logger.warn("Postgres provisioning failure. Error: {}.", e.getMessage());
+      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
+    }
+    return Optional.empty();
   }
 
   @Override
