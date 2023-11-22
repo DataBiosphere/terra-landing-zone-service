@@ -5,7 +5,7 @@ plugins {
     id 'com.srcclr.gradle'
     id 'org.sonarqube'
     id 'com.jfrog.artifactory'
-    id 'org.liquibase.gradle' version '2.2.0'
+    id 'org.liquibase.gradle' version '2.2.1'
 }
 
 apply from: 'publishing.gradle'
