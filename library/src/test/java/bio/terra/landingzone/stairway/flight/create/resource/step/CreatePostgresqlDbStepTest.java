@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,8 +24,12 @@ import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.management.Region;
+import com.azure.core.management.exception.ManagementError;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.postgresqlflexibleserver.PostgreSqlManager;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +49,12 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final String POSTGRESQL_NAME = "testPostgresql";
   private static final String POSTGRESQL_ID = "postgresqlId";
+
+  private static final String postgresqlSku = "psqlSku";
+  private static final ServerVersion serverVersion = ServerVersion.ONE_ONE;
+  private static final SkuTier skuTier = SkuTier.GENERAL_PURPOSE;
+  private static final String backupRetention = "10";
+  private static final String storageSize = "100";
 
   @Mock private PostgreSqlManager mockPostgreSqlManager;
   @Mock private Configurations mockConfigurations;
@@ -86,8 +97,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
   @Test
   void doStepSuccess() throws InterruptedException {
-    var postgresqlSku = "psqlSku";
-
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     when(mockResourceNameProvider.getName(createPostgresqlDbStep.getResourceType()))
         .thenReturn(POSTGRESQL_NAME);
@@ -118,29 +127,8 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             adminPrincipalId));
     setupArmManagersForDoStep(
         POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name(), adminPrincipalId, adminName);
-    final ServerVersion serverVersion = ServerVersion.ONE_ONE;
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name()))
-        .thenReturn(serverVersion.toString());
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name()))
-        .thenReturn(postgresqlSku);
-    final SkuTier skuTier = SkuTier.GENERAL_PURPOSE;
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
-        .thenReturn(skuTier.toString());
-    final String backupRetention = "10";
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
-                .name()))
-        .thenReturn(backupRetention);
-    final String storageSize = "100";
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name()))
-        .thenReturn(storageSize);
-    when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))
-        .thenReturn("true");
+
+    setupMocksForDefaultValues(serverVersion, postgresqlSku, skuTier, backupRetention, storageSize);
 
     StepResult stepResult = createPostgresqlDbStep.doStep(mockFlightContext);
 
@@ -196,12 +184,58 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
   }
 
+  @Test
+  void doStepWhenPostgresProvisioningFailedReturnFailureRetry()
+      throws InterruptedException, JsonProcessingException {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    when(mockResourceNameProvider.getName(createPostgresqlDbStep.getResourceType()))
+        .thenReturn(POSTGRESQL_NAME);
+
+    final String adminName = "adminName";
+    final String adminPrincipalId = "adminPrincipalId";
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(),
+            "true",
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateVnetStep.VNET_ID,
+            "vnetId",
+            CreatePostgresqlDNSStep.POSTGRESQL_DNS_ID,
+            "dnsId",
+            CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
+            LandingZoneResource.builder().resourceName(adminName).build(),
+            CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_PRINCIPAL_ID,
+            adminPrincipalId));
+
+    setupMocksForDefaultValues(serverVersion, postgresqlSku, skuTier, backupRetention, storageSize);
+
+    var errorJson =
+        "{\"code\":\"ResourceOperationFailure\",\"message\":\"The resource operation completed with terminal provisioning state 'Failed'.\",\"details\":[{\"code\":\"InternalServerError\",\"message\":\"An unexpected error occured while processing the request. Tracking ID: '8a04238e-7145-42d6-a71e-8a82d6f9f819'\"}]}";
+    var exception = buildManagementException("Provisioning failure", errorJson);
+    setupArmManagersForFailedPostgresProvisioning(
+        POSTGRESQL_NAME, mrg.region(), mrg.name(), exception);
+
+    var stepResult = createPostgresqlDbStep.doStep(mockFlightContext);
+
+    verify(mockServers, never()).deleteById(anyString());
+    assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_FAILURE_RETRY));
+  }
+
   private void setupArmManagersForDoStep(
       String postgresqlId,
       String name,
       String region,
       String resourceGroup,
-      String adminPrinicipalId,
+      String adminPrincipalId,
       String adminName) {
     when(mockServer.id()).thenReturn(postgresqlId);
     when(mockServer.region()).thenReturn(Region.US_SOUTH_CENTRAL);
@@ -244,12 +278,75 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
 
     when(mockPostgreSqlManager.administrators()).thenReturn(mockAdministrators);
-    when(mockAdministrators.define(adminPrinicipalId)).thenReturn(mockAdministrator);
+    when(mockAdministrators.define(adminPrincipalId)).thenReturn(mockAdministrator);
     when(mockAdministrator.withExistingFlexibleServer(resourceGroup, name))
         .thenReturn(mockAdminWithCreate);
     when(mockAdminWithCreate.withPrincipalName(adminName)).thenReturn(mockAdminWithCreate);
     when(mockAdminWithCreate.withPrincipalType(PrincipalType.SERVICE_PRINCIPAL))
         .thenReturn(mockAdminWithCreate);
+  }
+
+  private void setupArmManagersForFailedPostgresProvisioning(
+      String name,
+      String region,
+      String resourceGroup,
+      ManagementException throwExceptionDuringCreation) {
+    doThrow(throwExceptionDuringCreation).when(mockServerDefinitionStagesWithCreate).create();
+    when(mockServerDefinitionStagesWithCreate.withTags(postgresqlTagsCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withSku(skuCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withVersion(versionCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithResourceGroup.withExistingResourceGroup(resourceGroup))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+
+    when(mockServerDefinitionStagesWithCreate.withNetwork(networkCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withAuthConfig(authConfigCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withBackup(backupCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withCreateMode(createModeCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withHighAvailability(
+            highAvailabilityCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+    when(mockServerDefinitionStagesWithCreate.withStorage(storageCaptor.capture()))
+        .thenReturn(mockServerDefinitionStagesWithCreate);
+
+    when(mockServerDefinitionStagesBlank.withRegion(region))
+        .thenReturn(mockServerDefinitionStagesWithResourceGroup);
+    when(mockServers.define(name)).thenReturn(mockServerDefinitionStagesBlank);
+    when(mockPostgreSqlManager.servers()).thenReturn(mockServers);
+    when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
+  }
+
+  private void setupMocksForDefaultValues(
+      ServerVersion serverVersion,
+      String postgresqlSku,
+      SkuTier skuTier,
+      String backupRetention,
+      String storageSize) {
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name()))
+        .thenReturn(serverVersion.toString());
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name()))
+        .thenReturn(postgresqlSku);
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
+        .thenReturn(skuTier.toString());
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
+                .name()))
+        .thenReturn(backupRetention);
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name()))
+        .thenReturn(storageSize);
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))
+        .thenReturn("true");
   }
 
   private void verifyServerProperties(
@@ -269,5 +366,11 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     assertThat(
         authConfigCaptor.getValue().activeDirectoryAuth(),
         equalTo(ActiveDirectoryAuthEnum.ENABLED));
+  }
+
+  private ManagementException buildManagementException(String message, String managementErrorJson)
+      throws JsonProcessingException {
+    var error = new ObjectMapper().readValue(managementErrorJson, ManagementError.class);
+    return new ManagementException(message, null, error);
   }
 }

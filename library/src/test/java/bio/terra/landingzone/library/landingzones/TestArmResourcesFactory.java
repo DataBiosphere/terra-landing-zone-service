@@ -80,10 +80,12 @@ public class TestArmResourcesFactory {
 
   public static ResourceGroup createTestResourceGroup(AzureResourceManager azureResourceManager) {
     String resourceGroupId = UUID.randomUUID().toString().replace("-", "");
+    // temporarily switch to US_EAST since we have Postgres provisioning issue potentially related
+    // to quota. Details in WOR-1362.
     return azureResourceManager
         .resourceGroups()
         .define("rg" + resourceGroupId)
-        .withRegion(Region.US_SOUTH_CENTRAL)
+        .withRegion(Region.US_EAST)
         .withTag("PURPOSE", "LANDING_ZONE_SERVICE_INTEGRATION_TESTING")
         .create();
   }
