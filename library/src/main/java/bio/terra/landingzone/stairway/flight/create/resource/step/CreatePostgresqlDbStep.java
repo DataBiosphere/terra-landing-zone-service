@@ -10,6 +10,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.exception.utils.ManagementExceptionUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
@@ -228,7 +229,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
         && e.getValue().getDetails() != null
         && e.getValue().getDetails().stream()
             .anyMatch(d -> StringUtils.equalsIgnoreCase(d.getCode(), internalServerError))) {
-      logger.warn("Postgres provisioning failure. Error: {}.", e.getMessage());
+      logger.warn(
+          "Postgres provisioning failure. Error: {}.", ManagementExceptionUtils.buildErrorInfo(e));
       return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
     }
     return Optional.empty();
