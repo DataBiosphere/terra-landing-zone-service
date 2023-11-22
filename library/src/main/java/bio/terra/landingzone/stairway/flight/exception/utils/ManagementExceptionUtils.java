@@ -9,16 +9,16 @@ public class ManagementExceptionUtils {
 
   public static String buildErrorInfo(ManagementException e) {
     StringBuilder errorDetails = new StringBuilder();
-    errorDetails.append("ErrorMessage: %s; ".formatted(e.getMessage()));
+    errorDetails.append("ErrorMessage: %s;".formatted(e.getMessage()));
     if (e.getValue() != null) {
       errorDetails.append(
-          "ErrorCode: %s; AdditionalMessage: %s;"
+          " ErrorCode: %s; AdditionalMessage: %s;"
               .formatted(
                   Optional.of(e.getValue().getCode()).orElse("n/a"),
                   Optional.of(e.getValue().getMessage()).orElse("n/a")));
       if (e.getValue().getDetails() != null) {
         errorDetails.append(
-            "Details: %s;"
+            " Details: %s;"
                 .formatted(
                     e.getValue().getDetails().stream()
                         .map(
