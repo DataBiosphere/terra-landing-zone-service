@@ -1,0 +1,29 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terra-landing-zone-service
+  description: |
+    A Landing Zone is a set of cloud resources that serve 
+    as the underlying infrastructure where workspaces or 
+    other Terra applications can be deployed. 
+    The resources in a Landing Zone define and implement constraints, 
+    provide cross-cutting features, or can be shared. 
+    These resources have a different lifecycle than resources in workspaces.
+  tags:
+    - java
+    - dsp
+    - terra
+    - springboot
+    - broadworkspaces
+  annotations:
+    github.com/project-slug: databiosphere/terra-landing-zone-service
+spec:
+  type: library
+  lifecycle: production
+  owner: broadworkspaces
+  system: terra
+  dependsOn:
+    - component:sam
+    - component:terra-billing-profile-manager
+---

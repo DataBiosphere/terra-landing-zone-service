@@ -1,2 +1,79 @@
+env:
+  db:
+    host: jdbc:postgresql://${DATABASE_HOSTNAME:127.0.0.1}:5432
+    init: ${INIT_DB:false}
+    landingzone:
+      name: ${LANDINGZONE_DATABASE_NAME:landingzone_db}
+      pass: ${LANDINGZONE_DATABASE_USER_PASSWORD:landingzonepwd}
+      user: ${LANDINGZONE_DATABASE_USER:landingzoneuser}
+    landingzonestairway:
+      name: ${LANDINGZONE_STAIRWAY_DATABASE_NAME:landingzone_stairway_db}
+      pass: ${LANDINGZONE_STAIRWAY_DATABASE_USER_PASSWORD:landingzonestairwaypwd}
+      user: ${LANDINGZONE_STAIRWAY_DATABASE_USER:landingzonestairwayuser}
+  urls: # While we've traditionally thought of these as env specific and ok to hardcode, with kubernetes they may change
+    sam: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org/}
+    bpm: ${BPM_ADDRESS:https://bpm.dsde-dev.broadinstitute.org/}
+
 spring:
   application.name: landingzone
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 0
+          must-revalidate: true
+        use-last-modified: false
+      static-locations: classpath:/api/
+
+landingzone:
+  landingzone-database:
+    initialize-on-start: ${env.db.init}
+    password: ${env.db.landingzone.pass}
+    upgrade-on-start: true
+    uri: ${env.db.host}/${env.db.landingzone.name}
+    username: ${env.db.landingzone.user}
+  landingzone-stairway-database:
+    initialize-on-start: ${env.db.init}
+    password: ${env.db.landingzonestairway.pass}
+    upgrade-on-start: true
+    uri: ${env.db.host}/${env.db.landingzonestairway.name}
+    username: ${env.db.landingzonestairway.user}
+  stairway:
+    cluster-name-suffix: landingzone-stairway
+    force-clean-start: false # ${env.db.init}
+    max-parallel-flights: 50
+    migrate-upgrade: true
+    quiet-down-timeout: 30s
+    terminate-timeout: 30s
+    tracing-enabled: true
+    retention-check-interval: 1d
+    completed-flight-retention: 90d
+  status-check:
+    enabled: true
+    polling-interval-seconds: 60
+    startup-wait-seconds: 5
+    staleness-threshold-seconds: 125
+  sam:
+    base-path: ${env.urls.sam}
+    landing-zone-resource-users:
+      - workspace-dev@broad-dsde-dev.iam.gserviceaccount.com
+      - leonardo-dev@broad-dsde-dev.iam.gserviceaccount.com
+  bpm.base-path: ${env.urls.bpm}
+  protected-data:
+    long-term-storage-table-names:
+      - Alert
+      - AlertEvidence
+      - AlertInfo
+      - Anomalies
+      - AppTraces
+      - CommonSecurityLog
+      - ContainerLog
+      - ContainerLogV2
+      - ContainerNodeInventory
+      - ContainerServiceLog
+      - Operation
+      - SecurityAlert
+      - SecurityIncident
+      - SentinelHealth
+      - StorageBlobLogs
+      - Syslog

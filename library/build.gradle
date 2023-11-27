@@ -4,8 +4,8 @@ plugins {
     id 'com.google.cloud.tools.jib'
     id 'com.srcclr.gradle'
     id 'org.sonarqube'
-    id 'com.jfrog.artifactory' version '5.1.10'
-    id 'org.liquibase.gradle' version '2.2.0'
+    id 'com.jfrog.artifactory'
+    id 'org.liquibase.gradle' version '2.2.1'
 }
 
 apply from: 'publishing.gradle'
@@ -16,44 +16,45 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:3.1.2'
     implementation 'org.springframework.boot:spring-boot-starter-web:3.1.2'
     implementation 'org.springframework.retry:spring-retry:2.0.4'
-    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6d19a41'
+    //we need to expose it at service module for status checking capability
+    api 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6d19a41'
     implementation 'bio.terra:billing-profile-manager-client:0.1.29-SNAPSHOT'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
-    implementation 'org.postgresql:postgresql:42.6.0'
+    implementation 'org.postgresql:postgresql:42.7.0'
     implementation group: 'com.azure', name: 'azure-core', version: '1.45.0'
-    implementation (group: 'com.azure', name: 'azure-identity', version: '1.10.4') {
+    implementation (group: 'com.azure', name: 'azure-identity', version: '1.11.0') {
         // the msal4j transitive dependency is still pulling in an old version of json-smart
         // which is vulnerable to CVE-2023-1370
         // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611
         exclude group: 'net.minidev', module: 'json-smart'
     }
     implementation group: 'net.minidev', 'name': 'json-smart', version: '2.4.10'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.32.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.32.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.32.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.33.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.33.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.33.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.32.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.33.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.32.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.33.0'
 
     // at commit time, azure-resourcemanager-monitor v2.20.0 is the latest but starting with v2.19.0
     // attributes of com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner
     // are missing making creation of DataCollectionRules impossible via java client lib
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.32.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.33.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.32.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.33.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
     implementation group: "io.kubernetes", name: "client-java", version: "19.0.0"
     // io.kubernetes:client-java brings in snakeyaml 2.0 which breaks whatever version of liquibase was pulled in before
-    implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.24.0'
-    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.11.5'
+    implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.25.0'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.0'
 
-    liquibaseRuntime 'org.liquibase:liquibase-core:4.24.0'
+    liquibaseRuntime 'org.liquibase:liquibase-core:4.25.0'
     liquibaseRuntime 'info.picocli:picocli:4.7.5'
-    liquibaseRuntime 'org.postgresql:postgresql:42.6.0'
+    liquibaseRuntime 'org.postgresql:postgresql:42.7.0'
     liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.11'
 
     // Spotbugs dependencies
@@ -105,6 +106,10 @@ task integrationTest(type: Test) {
     // Force tests to always be re-run, since integration tests involve communicating with external
     // resources.
     outputs.upToDateWhen { false }
+
+    testLogging {
+        events = ["passed", "failed", "skipped", "started", "standard_out", "standard_error"]
+    }
 }
 
 sonarqube {

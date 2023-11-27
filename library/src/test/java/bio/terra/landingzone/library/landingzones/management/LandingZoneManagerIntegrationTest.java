@@ -50,7 +50,7 @@ class LandingZoneManagerIntegrationTest {
     resourceGroup = TestArmResourcesFactory.createTestResourceGroup(azureResourceManager);
     landingZoneManager =
         LandingZoneManager.createLandingZoneManager(
-            AzureIntegrationUtils.getAdminAzureCredentialsOrDie(),
+            AzureIntegrationUtils.getAzureCredentialsOrDie(),
             AzureIntegrationUtils.TERRA_DEV_AZURE_PROFILE,
             resourceGroup.name(),
             null /*ignore this value in test*/);

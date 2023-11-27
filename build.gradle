@@ -1,0 +1,3 @@
+plugins {
+    id 'com.jfrog.artifactory' version '5.1.11' apply false
+}

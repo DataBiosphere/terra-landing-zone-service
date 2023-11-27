@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -22,9 +23,7 @@ import bio.terra.stairway.StepResult;
 import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.network.fluent.NetworkManagementClient;
 import com.azure.resourcemanager.network.fluent.SubnetsClient;
-import com.azure.resourcemanager.network.fluent.models.SubnetInner;
 import com.azure.resourcemanager.network.models.*;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,11 +46,18 @@ class CreateVnetStepTest extends BaseStepTest {
   @Mock private Network.DefinitionStages.WithCreate mockDefinitionStageWithCreate;
   @Mock private Network.DefinitionStages.WithCreateAndSubnet mockDefinitionStageWithCreateAndSubnet;
 
-  @Captor private ArgumentCaptor<Map<String, String>> vnetTagsCaptor;
-  @Captor private ArgumentCaptor<List<Delegation>> delegationsArgumentCaptor;
+  @Mock
+  private Subnet.DefinitionStages.Blank<Network.DefinitionStages.WithCreateAndSubnet>
+      mockSubnetDefinitionStagesBlank;
 
-  @Captor
-  private ArgumentCaptor<List<ServiceEndpointPropertiesFormat>> serviceEndpointsArgumentCaptor;
+  @Mock
+  private Subnet.DefinitionStages.WithAttach<Network.DefinitionStages.WithCreateAndSubnet>
+      mockSubnetDefinitionStagesWithAttach;
+
+  @Captor private ArgumentCaptor<Map<String, String>> vnetTagsCaptor;
+  @Captor private ArgumentCaptor<String> delegationsArgumentCaptor;
+
+  @Captor private ArgumentCaptor<ServiceEndpointType> serviceEndpointsArgumentCaptor;
 
   private CreateVnetStep createVnetStep;
   @Mock private NetworkManager mockNetworkManager;
@@ -77,21 +83,23 @@ class CreateVnetStepTest extends BaseStepTest {
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, ResourceStepFixture.createDefaultMrg()));
+        Map.of(
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            ResourceStepFixture.createDefaultMrg(),
+            CreateNetworkSecurityGroupStep.NSG_ID,
+            "nsgId"));
     setupParameterResolver();
 
     var network = mock(Network.class);
-    var postgresSubnet = mock(Subnet.class);
-    var postgresSubnetInner = mock(SubnetInner.class);
+
     when(network.id()).thenReturn(VNET_ID);
-    when(network.subnets())
-        .thenReturn(
-            Map.of(CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name(), postgresSubnet));
-    when(postgresSubnet.innerModel()).thenReturn(postgresSubnetInner);
-    when(postgresSubnetInner.withDelegations(delegationsArgumentCaptor.capture()))
-        .thenReturn(postgresSubnetInner);
-    when(postgresSubnetInner.withServiceEndpoints(serviceEndpointsArgumentCaptor.capture()))
-        .thenReturn(postgresSubnetInner);
+
+    when(mockSubnetDefinitionStagesWithAttach.withDelegation(delegationsArgumentCaptor.capture()))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+    when(mockSubnetDefinitionStagesWithAttach.withAccessFromService(
+            serviceEndpointsArgumentCaptor.capture()))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+
     setupArmManagersForDoStep(network);
 
     var stepResult = createVnetStep.doStep(mockFlightContext);
@@ -102,10 +110,11 @@ class CreateVnetStepTest extends BaseStepTest {
         equalTo(VNET_ID));
 
     assertThat(
-        delegationsArgumentCaptor.getValue().get(0).serviceName(),
-        equalTo("Microsoft.DBforPostgreSQL/flexibleServers"));
+        delegationsArgumentCaptor.getValue(),
+        equalToIgnoringCase("Microsoft.DBforPostgreSQL/flexibleServers"));
     assertThat(
-        serviceEndpointsArgumentCaptor.getValue().get(0).service(), equalTo("Microsoft.storage"));
+        serviceEndpointsArgumentCaptor.getValue().toString(),
+        equalToIgnoringCase("Microsoft.storage"));
     // verifyBasicTags(vnetTagsCaptor, LANDING_ZONE_ID);
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
     verify(mockDefinitionStageWithCreate, times(1)).create();
@@ -152,8 +161,6 @@ class CreateVnetStepTest extends BaseStepTest {
   private void setupArmManagersForDoStep(Network result) {
     when(mockDefinitionStageWithCreateAndSubnet.withTags(vnetTagsCaptor.capture()))
         .thenReturn(mockDefinitionStageWithCreate);
-    when(mockDefinitionStageWithCreateAndSubnet.withSubnet(anyString(), anyString()))
-        .thenReturn(mockDefinitionStageWithCreateAndSubnet);
     when(mockDefinitionStageWithCreate.withAddressSpace(anyString()))
         .thenReturn(mockDefinitionStageWithCreateAndSubnet);
     when(mockDefinitionStageWithGroup.withExistingResourceGroup(anyString()))
@@ -162,11 +169,16 @@ class CreateVnetStepTest extends BaseStepTest {
     when(mockNetworks.define(anyString())).thenReturn(mockDefinitionStageBlack);
     when(mockAzureResourceManager.networks()).thenReturn(mockNetworks);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
-    when(mockDefinitionStageWithCreate.create()).thenReturn(result);
+    when(mockDefinitionStageWithCreateAndSubnet.defineSubnet(anyString()))
+        .thenReturn(mockSubnetDefinitionStagesBlank);
+    when(mockSubnetDefinitionStagesBlank.withAddressPrefix(anyString()))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+    when(mockSubnetDefinitionStagesWithAttach.withExistingNetworkSecurityGroup(anyString()))
+        .thenReturn(mockSubnetDefinitionStagesWithAttach);
+    when(mockSubnetDefinitionStagesWithAttach.attach())
+        .thenReturn(mockDefinitionStageWithCreateAndSubnet);
 
-    when(mockNetworks.manager()).thenReturn(mockNetworkManager);
-    when(mockNetworkManager.serviceClient()).thenReturn(mockServiceClient);
-    when(mockServiceClient.getSubnets()).thenReturn(mockSubnets);
+    when(mockDefinitionStageWithCreate.create()).thenReturn(result);
   }
 
   private void setupParameterResolver() {

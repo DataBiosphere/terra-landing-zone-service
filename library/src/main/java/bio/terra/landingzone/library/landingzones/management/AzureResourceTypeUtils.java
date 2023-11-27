@@ -11,6 +11,7 @@ public class AzureResourceTypeUtils {
   private AzureResourceTypeUtils() {}
 
   public static final String AZURE_VNET_TYPE = "Microsoft.Network/virtualNetworks";
+  public static final String AZURE_NSG_TYPE = "Microsoft.Network/networkSecurityGroups";
   public static final String AZURE_RELAY_TYPE = "Microsoft.Relay/namespaces";
 
   public static final String AZURE_STORAGE_ACCOUNT_TYPE = "Microsoft.Storage/storageAccounts";

@@ -10,6 +10,7 @@ import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.exception.utils.ManagementExceptionUtils;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
@@ -32,7 +33,7 @@ public abstract class BaseResourceCreateStep implements Step {
   private static final Logger logger = LoggerFactory.getLogger(BaseResourceCreateStep.class);
 
   protected static final String FAILED_TO_CREATE_RESOURCE =
-      "Failed to create landing zone {} resource. landingZoneId={}: {}";
+      "Failed to create landing zone {} resource. landingZoneId={}. Error: {}";
   protected static final String RESOURCE_ALREADY_EXISTS =
       "{} resource in managed resource group {} already exists.";
   protected static final String RESOURCE_CREATED =
@@ -172,7 +173,11 @@ public abstract class BaseResourceCreateStep implements Step {
       logger.info(RESOURCE_ALREADY_EXISTS, getResourceType(), managedResourceGroup);
       return StepResult.getStepResultSuccess();
     }
-    logger.error(FAILED_TO_CREATE_RESOURCE, getResourceType(), landingZoneId, e.toString());
+    logger.error(
+        FAILED_TO_CREATE_RESOURCE,
+        getResourceType(),
+        landingZoneId,
+        ManagementExceptionUtils.buildErrorInfo(e));
     MetricUtils.incrementLandingZoneCreationFailure(landingZoneType);
     return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
   }

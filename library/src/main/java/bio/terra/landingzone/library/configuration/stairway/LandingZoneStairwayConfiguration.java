@@ -4,7 +4,6 @@ import bio.terra.common.kubernetes.KubeProperties;
 import bio.terra.common.kubernetes.KubeService;
 import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.common.stairway.StairwayProperties;
-import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneStairwayProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,11 +13,6 @@ public class LandingZoneStairwayConfiguration {
   @Bean
   public LandingZoneStairwayProperties getLandingZoneStairwayProperties() {
     return new LandingZoneStairwayProperties();
-  }
-
-  @Bean
-  public LandingZoneAzureConfiguration getLandingZoneAzureConfiguration() {
-    return new LandingZoneAzureConfiguration();
   }
 
   @Bean("landingZoneStairwayComponent")
