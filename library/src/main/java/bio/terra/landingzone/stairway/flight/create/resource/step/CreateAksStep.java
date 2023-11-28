@@ -55,18 +55,19 @@ public class CreateAksStep extends BaseResourceCreateStep {
   @Override
   protected void createResource(FlightContext context, ArmManagers armManagers) {
     var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
-    boolean costSavingsEnabled =
+    boolean costSavingsSpotNodesEnabled =
         Boolean.parseBoolean(
             parametersResolver.getValue(
-                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name()));
+                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
+                    .name()));
     boolean autoScalingEnabled =
         Boolean.parseBoolean(
             parametersResolver.getValue(
                 CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
 
-    var aks = createAks(context, vNetId, costSavingsEnabled, autoScalingEnabled);
+    var aks = createAks(context, vNetId, costSavingsSpotNodesEnabled, autoScalingEnabled);
     enableWorkloadIdentity(aks);
-    enableCostSavings(aks, vNetId, costSavingsEnabled, autoScalingEnabled);
+    enableCostSavings(aks, vNetId, costSavingsSpotNodesEnabled, autoScalingEnabled);
 
     context.getWorkingMap().put(AKS_ID, aks.id());
     context
@@ -89,7 +90,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private KubernetesCluster createAks(
       FlightContext context,
       String vNetId,
-      boolean costSavingsEnabled,
+      boolean costSavingsSpotNodesEnabled,
       boolean autoScalingEnabled) {
     UUID landingZoneId =
         getParameterOrThrow(
@@ -142,7 +143,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
           aksPartial
               .attach()
               .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
-              .withTags(buildTagMap(landingZoneId, costSavingsEnabled))
+              .withTags(buildTagMap(landingZoneId, costSavingsSpotNodesEnabled))
               .create();
     } catch (ManagementException e) {
       if (e.getResponse() != null
@@ -203,14 +204,15 @@ public class CreateAksStep extends BaseResourceCreateStep {
     return existingAks;
   }
 
-  private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsEnabled) {
+  private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsSpotNodesEnabled) {
     var tags = new HashMap<String, String>();
     tags.put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString());
     tags.put(
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
         ResourcePurpose.SHARED_RESOURCE.toString());
     tags.put(
-        LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString(), String.valueOf(costSavingsEnabled));
+        LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString(),
+        String.valueOf(costSavingsSpotNodesEnabled));
     return tags;
   }
 
@@ -239,10 +241,10 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private void enableCostSavings(
       KubernetesCluster aks,
       String vNetId,
-      boolean costSavingsEnabled,
+      boolean costSavingsSpotNodesEnabled,
       boolean autoScalingEnabled) {
-    // Enable a spot nodepool if cost savings are enabled. TODO: VPA
-    if (costSavingsEnabled) {
+    // Enable a spot nodepool if cost savings are enabled.
+    if (costSavingsSpotNodesEnabled) {
       var aksPartialUpdate =
           aks.update()
               .defineAgentPool(SPOT_NODE_POOL_NAME)

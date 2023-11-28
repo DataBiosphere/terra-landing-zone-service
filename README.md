@@ -310,7 +310,7 @@ The table below describes the current Landing Zone Definitions available in the 
             <strong>AKS_AUTOSCALING_ENABLED:</strong> Flag to enabled autoscaling for the AKS nodepool <br/>Default value: <i>false</i><br/><br/>
             <strong>AKS_AUTOSCALING_MIN:</strong> Minimum number of nodes in nodepool when autoscaling is enabled <br/>Default value: <i>1</i><br/><br/>
             <strong>AKS_AUTOSCALING_MAX:</strong> Maximum number of nodes in nodepool when autoscaling is enabled <br/>Default value: <i>3</i><br/><br/>
-            <strong>AKS_COST_SAVING_ENABLED:</strong> Enable Vertical Pod Autoscaling and Spot Node usage on AKS <br/>Default value: <i>false</i><br/><br/>
+            <strong>AKS_COST_SAVING_SPOT_NODES_ENABLED:</strong> Enable Spot Node usage on AKS <br/>Default value: <i>false</i><br/><br/>
             <strong>Azure storage account overview:</strong> <a href="https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview">documentation</a><br/><br/>
             <strong>Azure storage CORS configuration:</strong> <a href="https://learn.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services">documentation</a><br/><br/>
             <strong>STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS:</strong> The origin domains that are permitted to make a request against the storage service via CORS <br/>Default value: <i>*</i><br/><br/>

@@ -84,7 +84,7 @@ class CreateAksStepTest extends BaseStepTest {
   @Captor private ArgumentCaptor<String> nodeResourceGroupCaptor;
 
   private CreateAksStep testStep;
-  private String costSavingEnabled = "false";
+  private String costSavingsSpotNodesEnabled = "false";
 
   @BeforeEach
   void setup() {
@@ -131,7 +131,7 @@ class CreateAksStepTest extends BaseStepTest {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     String aksResourceName = "aksName";
     when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
-    costSavingEnabled = "true";
+    costSavingsSpotNodesEnabled = "true";
     setupParameterResolver();
     setupFlightContext(
         mockFlightContext,
@@ -157,9 +157,11 @@ class CreateAksStepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
     // verify cost saving tag
     assertTrue(
-        tagsCaptor.getValue().containsKey(LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString()));
+        tagsCaptor
+            .getValue()
+            .containsKey(LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString()));
     assertThat(
-        tagsCaptor.getValue().get(LandingZoneTagKeys.AKS_COST_SAVINGS_ENABLED.toString()),
+        tagsCaptor.getValue().get(LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString()),
         equalTo("true"));
     // TODO: verify second nodepool was created
     // TODO: verify second nodepool has spot VMs
@@ -292,8 +294,8 @@ class CreateAksStepTest extends BaseStepTest {
             CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
         .thenReturn("false");
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_ENABLED.name()))
-        .thenReturn(costSavingEnabled);
+            CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name()))
+        .thenReturn(costSavingsSpotNodesEnabled);
     when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
         .thenReturn("00000000-0000-0000-0000-000000000000");
