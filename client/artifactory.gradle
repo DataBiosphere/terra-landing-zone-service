@@ -17,7 +17,7 @@ java {
 
 publishing {
     publications {
-        billingProfileManagerClientLibrary(MavenPublication) {
+        landingZoneServiceClientLibrary(MavenPublication) {
             artifactId = "landing-zone-service-client"
             from components.java
             versionMapping {

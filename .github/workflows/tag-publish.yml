@@ -115,6 +115,13 @@ jobs:
         ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
         ARTIFACTORY_REPO_KEY: "libs-snapshot-local"
 
+    - name: Publish API client
+      run: ./gradlew :client:artifactoryPublish
+      env:
+        ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+        ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+        ARTIFACTORY_REPO_KEY: libs-snapshot-local
+
     - name: Make release
       uses: ncipollo/release-action@v1
       id: create_release
