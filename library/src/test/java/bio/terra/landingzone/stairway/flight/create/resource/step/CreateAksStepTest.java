@@ -132,6 +132,7 @@ class CreateAksStepTest extends BaseStepTest {
     String aksResourceName = "aksName";
     when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
     costSavingsSpotNodesEnabled = "true";
+
     setupParameterResolver();
     setupFlightContext(
         mockFlightContext,
@@ -344,9 +345,14 @@ class CreateAksStepTest extends BaseStepTest {
   }
 
   private void setupCostSavingK8sMocks() {
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()))
+        .thenReturn("10");
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
+        .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
     KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
     when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);
-
     var mockK8sAPDefinitionStagesBlank =
         mock(KubernetesClusterAgentPool.DefinitionStages.Blank.class);
     when(mockK8sUpdate.defineAgentPool("spotnodepool")).thenReturn(mockK8sAPDefinitionStagesBlank);
@@ -363,6 +369,8 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockK8sAPDefinitionStagesWithAttach.withSpotPriorityVirtualMachine())
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesWithAttach.withAgentPoolMode(AgentPoolMode.USER))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.withAutoScaling(anyInt(), anyInt()))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesWithAttach.withVirtualNetwork(any(), any()))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);

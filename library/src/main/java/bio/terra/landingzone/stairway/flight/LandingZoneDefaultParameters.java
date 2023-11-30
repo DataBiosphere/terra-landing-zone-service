@@ -50,6 +50,9 @@ public class LandingZoneDefaultParameters {
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name(), String.valueOf(1));
     defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name(),
+        String.valueOf(10));
+    defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name(),
         ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
     defaultValues.put(

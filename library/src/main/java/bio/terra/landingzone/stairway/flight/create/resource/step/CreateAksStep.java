@@ -20,7 +20,6 @@ import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssue
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
 import com.google.common.annotations.VisibleForTesting;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -67,7 +66,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
     var aks = createAks(context, vNetId, costSavingsSpotNodesEnabled, autoScalingEnabled);
     enableWorkloadIdentity(aks);
-    enableCostSavings(aks, vNetId, costSavingsSpotNodesEnabled, autoScalingEnabled);
+    enableCostSavings(aks, vNetId, costSavingsSpotNodesEnabled);
 
     context.getWorkingMap().put(AKS_ID, aks.id());
     context
@@ -205,15 +204,13 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsSpotNodesEnabled) {
-    var tags = new HashMap<String, String>();
-    tags.put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString());
-    tags.put(
+    return Map.of(
+        LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+        landingZoneId.toString(),
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
-        ResourcePurpose.SHARED_RESOURCE.toString());
-    tags.put(
+        ResourcePurpose.SHARED_RESOURCE.toString(),
         LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString(),
         String.valueOf(costSavingsSpotNodesEnabled));
-    return tags;
   }
 
   @VisibleForTesting
@@ -239,39 +236,43 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   private void enableCostSavings(
-      KubernetesCluster aks,
-      String vNetId,
-      boolean costSavingsSpotNodesEnabled,
-      boolean autoScalingEnabled) {
+      KubernetesCluster aks, String vNetId, boolean costSavingsSpotNodesEnabled) {
     // Enable a spot nodepool if cost savings are enabled.
     if (costSavingsSpotNodesEnabled) {
+      // set to default if no specified parameters were provided at LZ creation
+      var machineSize =
+          !StringUtils.isEmpty(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
+              ? ContainerServiceVMSizeTypes.fromString(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
+              : ContainerServiceVMSizeTypes.fromString(
+                  parametersResolver.getValue(
+                      CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name()));
+      System.out.print("MACHINE SIZE: " + machineSize);
+      // spot nodes should always use auto scaler per MS documentation:
+      // https://learn.microsoft.com/en-us/azure/aks/spot-node-pool
+      // "If you don't use a cluster autoscaler, upon eviction,
+      // the Spot pool will eventually decrease to 0 and require manual operation to receive any
+      // additional Spot nodes."
+      int max =
+          Integer.parseInt(
+              parametersResolver.getValue(
+                  CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()));
+
       var aksPartialUpdate =
           aks.update()
               .defineAgentPool(SPOT_NODE_POOL_NAME)
-              .withVirtualMachineSize(
-                  ContainerServiceVMSizeTypes.fromString(
-                      parametersResolver.getValue(
-                          CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name())))
+              .withVirtualMachineSize(machineSize)
               .withAgentPoolVirtualMachineCount(
                   Integer.parseInt(
                       parametersResolver.getValue(
                           CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name())))
               .withSpotPriorityVirtualMachine()
               .withAgentPoolMode(AgentPoolMode.USER)
+              .withAutoScaling(1, max)
               .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
-
-      // Add autoscaling to spot nodepool
-      if (autoScalingEnabled) {
-        int min =
-            Integer.parseInt(
-                parametersResolver.getValue(
-                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
-        int max =
-            Integer.parseInt(
-                parametersResolver.getValue(
-                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
-        aksPartialUpdate = aksPartialUpdate.withAutoScaling(min, max);
-      }
 
       var attach = aksPartialUpdate.attach();
       attach.apply();
