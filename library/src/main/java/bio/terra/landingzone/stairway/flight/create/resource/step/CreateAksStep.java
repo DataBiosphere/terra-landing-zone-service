@@ -250,7 +250,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
               : ContainerServiceVMSizeTypes.fromString(
                   parametersResolver.getValue(
                       CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name()));
-      System.out.print("MACHINE SIZE: " + machineSize);
+
       // spot nodes should always use auto scaler per MS documentation:
       // https://learn.microsoft.com/en-us/azure/aks/spot-node-pool
       // "If you don't use a cluster autoscaler, upon eviction,
