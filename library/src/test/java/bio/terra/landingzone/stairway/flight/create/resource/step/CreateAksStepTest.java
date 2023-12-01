@@ -164,9 +164,6 @@ class CreateAksStepTest extends BaseStepTest {
     assertThat(
         tagsCaptor.getValue().get(LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString()),
         equalTo("true"));
-    // TODO: verify second nodepool was created
-    // TODO: verify second nodepool has spot VMs
-
   }
 
   @ParameterizedTest
