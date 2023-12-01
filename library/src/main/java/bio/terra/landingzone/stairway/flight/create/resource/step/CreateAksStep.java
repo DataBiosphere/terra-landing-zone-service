@@ -59,6 +59,11 @@ public class CreateAksStep extends BaseResourceCreateStep {
             parametersResolver.getValue(
                 CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
                     .name()));
+    boolean costSavingsVpaEnabled =
+        Boolean.parseBoolean(
+            parametersResolver.getValue(
+                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_VPA_ENABLED
+                    .name()));
     boolean autoScalingEnabled =
         Boolean.parseBoolean(
             parametersResolver.getValue(
