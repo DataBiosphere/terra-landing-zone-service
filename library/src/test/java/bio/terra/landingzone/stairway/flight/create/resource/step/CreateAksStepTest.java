@@ -3,6 +3,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
+import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -56,6 +58,7 @@ class CreateAksStepTest extends BaseStepTest {
   private static final String RESOURCE_ID = "aksId";
 
   @Mock private KubernetesClusters mockKubernetesClusters;
+  @Mock private KubernetesCluster mockKubernetesCluster;
   @Mock private KubernetesCluster.DefinitionStages.Blank mockK8sDefinitionStageBlank;
   @Mock private KubernetesCluster.DefinitionStages.WithGroup mockK8sDefinitionStageWithGroup;
   @Mock private KubernetesCluster.DefinitionStages.WithVersion mockK8sDefinitionStageWithVersion;
@@ -76,12 +79,12 @@ class CreateAksStepTest extends BaseStepTest {
       mockK8sAPDefinitionStagesWithAttach;
 
   @Mock private KubernetesCluster.Definition mockK8sDefinition;
-  @Mock private KubernetesCluster mockKubernetesCluster;
 
   @Captor private ArgumentCaptor<Map<String, String>> tagsCaptor;
   @Captor private ArgumentCaptor<String> nodeResourceGroupCaptor;
 
   private CreateAksStep testStep;
+  private String costSavingsSpotNodesEnabled = "false";
 
   @BeforeEach
   void setup() {
@@ -121,6 +124,46 @@ class CreateAksStepTest extends BaseStepTest {
     verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
     verifyOmsAgentAddonProfileNotSet();
+  }
+
+  @Test
+  void testCostSavingInStep() throws InterruptedException {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
+    costSavingsSpotNodesEnabled = "true";
+
+    setupParameterResolver();
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(
+            CreateVnetStep.VNET_ID,
+            "vNetId",
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            "logAnalyticsWorkspaceId"));
+    setupArmManagersForDoStep();
+    setupCostSavingK8sMocks();
+
+    var stepResult = testStep.doStep(mockFlightContext);
+
+    assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    // verify cost saving tag
+    assertTrue(
+        tagsCaptor
+            .getValue()
+            .containsKey(LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString()));
+    assertThat(
+        tagsCaptor.getValue().get(LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString()),
+        equalTo("true"));
   }
 
   @ParameterizedTest
@@ -249,6 +292,9 @@ class CreateAksStepTest extends BaseStepTest {
             CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
         .thenReturn("false");
     when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name()))
+        .thenReturn(costSavingsSpotNodesEnabled);
+    when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
         .thenReturn("00000000-0000-0000-0000-000000000000");
   }
@@ -293,6 +339,39 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockKubernetesClusters.define(anyString())).thenReturn(mockK8sDefinitionStageBlank);
     when(mockAzureResourceManager.kubernetesClusters()).thenReturn(mockKubernetesClusters);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
+  }
+
+  private void setupCostSavingK8sMocks() {
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()))
+        .thenReturn("10");
+    when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
+        .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
+    KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
+    when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);
+    var mockK8sAPDefinitionStagesBlank =
+        mock(KubernetesClusterAgentPool.DefinitionStages.Blank.class);
+    when(mockK8sUpdate.defineAgentPool("spotnodepool")).thenReturn(mockK8sAPDefinitionStagesBlank);
+
+    var mockK8sAPDefinitionStagesMachineCount =
+        mock(KubernetesClusterAgentPool.DefinitionStages.WithAgentPoolVirtualMachineCount.class);
+    when(mockK8sAPDefinitionStagesBlank.withVirtualMachineSize(any()))
+        .thenReturn(mockK8sAPDefinitionStagesMachineCount);
+
+    var mockK8sAPDefinitionStagesWithAttach =
+        mock(KubernetesClusterAgentPool.DefinitionStages.WithAttach.class);
+    when(mockK8sAPDefinitionStagesMachineCount.withAgentPoolVirtualMachineCount(anyInt()))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.withSpotPriorityVirtualMachine())
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.withAgentPoolMode(AgentPoolMode.USER))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.withAutoScaling(anyInt(), anyInt()))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.withVirtualNetwork(any(), any()))
+        .thenReturn(mockK8sAPDefinitionStagesWithAttach);
+    when(mockK8sAPDefinitionStagesWithAttach.attach()).thenReturn(mockK8sUpdate);
   }
 
   // setup mocks for doStep retry attempt after Stairway failure

@@ -50,6 +50,9 @@ public class LandingZoneDefaultParameters {
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name(), String.valueOf(1));
     defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name(),
+        String.valueOf(10));
+    defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name(),
         ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
     defaultValues.put(
@@ -59,6 +62,9 @@ public class LandingZoneDefaultParameters {
         CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name(), String.valueOf(1));
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name(), String.valueOf(3));
+    defaultValues.put(
+        CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name(),
+        String.valueOf(false));
     defaultValues.put(
         CromwellBaseResourcesFactory.ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
     defaultValues.put(
