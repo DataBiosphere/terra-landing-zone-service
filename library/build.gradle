@@ -21,7 +21,7 @@ dependencies {
     implementation 'bio.terra:billing-profile-manager-client:0.1.29-SNAPSHOT'
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.7.0'
-    implementation group: 'com.azure', name: 'azure-core', version: '1.45.0'
+    implementation group: 'com.azure', name: 'azure-core', version: '1.45.1'
     implementation (group: 'com.azure', name: 'azure-identity', version: '1.11.0') {
         // the msal4j transitive dependency is still pulling in an old version of json-smart
         // which is vulnerable to CVE-2023-1370
