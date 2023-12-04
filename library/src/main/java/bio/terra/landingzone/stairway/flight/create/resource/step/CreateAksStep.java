@@ -148,7 +148,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
           aksPartial
               .attach()
               .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
-              .withTags(buildTagMap(landingZoneId, costSavingsSpotNodesEnabled))
+              .withTags(buildTagMap(landingZoneId, costSavingsSpotNodesEnabled, costSavingsVpaEnabled))
               .create();
 
     } catch (ManagementException e) {
@@ -210,14 +210,16 @@ public class CreateAksStep extends BaseResourceCreateStep {
     return existingAks;
   }
 
-  private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsSpotNodesEnabled) {
+  private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsSpotNodesEnabled, boolean costSavingsVpaEnabled) {
     return Map.of(
         LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
         landingZoneId.toString(),
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
         ResourcePurpose.SHARED_RESOURCE.toString(),
         LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString(),
-        String.valueOf(costSavingsSpotNodesEnabled));
+        String.valueOf(costSavingsSpotNodesEnabled),
+        LandingZoneTagKeys.AKS_COST_SAVING_VPA_ENABLED.toString(),
+        String.valueOf(costSavingsVpaEnabled));
   }
 
   @VisibleForTesting
