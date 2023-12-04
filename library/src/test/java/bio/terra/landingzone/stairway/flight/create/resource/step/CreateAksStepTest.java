@@ -29,13 +29,7 @@ import com.azure.core.http.HttpResponse;
 import com.azure.core.management.exception.ManagementError;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.containerservice.fluent.models.ManagedClusterInner;
-import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
-import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
-import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
-import com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool;
-import com.azure.resourcemanager.containerservice.models.KubernetesClusters;
-import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
-import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
+import com.azure.resourcemanager.containerservice.models.*;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -85,6 +79,7 @@ class CreateAksStepTest extends BaseStepTest {
 
   private CreateAksStep testStep;
   private String costSavingsSpotNodesEnabled = "false";
+  private String costSavingsVpaEnabled = "false";
 
   @BeforeEach
   void setup() {
@@ -127,7 +122,7 @@ class CreateAksStepTest extends BaseStepTest {
   }
 
   @Test
-  void testCostSavingInStep() throws InterruptedException {
+  void testCostSavingSpotNodesInStep() throws InterruptedException {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     String aksResourceName = "aksName";
     when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
@@ -163,6 +158,47 @@ class CreateAksStepTest extends BaseStepTest {
             .containsKey(LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString()));
     assertThat(
         tagsCaptor.getValue().get(LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString()),
+        equalTo("true"));
+  }
+
+  @Test
+  void testCostSavingVpaInStep() throws InterruptedException {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
+    costSavingsVpaEnabled = "true";
+
+    setupParameterResolver();
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(
+            CreateVnetStep.VNET_ID,
+            "vNetId",
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            "logAnalyticsWorkspaceId"));
+    setupArmManagersForDoStep();
+    setupCostSavingK8sMocks();
+    setupVpaCostSavingK8sMocks();
+
+    var stepResult = testStep.doStep(mockFlightContext);
+
+    assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    // verify cost saving tag
+    assertTrue(
+        tagsCaptor
+            .getValue()
+            .containsKey(LandingZoneTagKeys.AKS_COST_SAVING_VPA_ENABLED.toString()));
+    assertThat(
+        tagsCaptor.getValue().get(LandingZoneTagKeys.AKS_COST_SAVING_VPA_ENABLED.toString()),
         equalTo("true"));
   }
 
@@ -295,6 +331,9 @@ class CreateAksStepTest extends BaseStepTest {
             CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name()))
         .thenReturn(costSavingsSpotNodesEnabled);
     when(mockParametersResolver.getValue(
+            CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()))
+        .thenReturn(costSavingsVpaEnabled);
+    when(mockParametersResolver.getValue(
             CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
         .thenReturn("00000000-0000-0000-0000-000000000000");
   }
@@ -372,6 +411,19 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockK8sAPDefinitionStagesWithAttach.withVirtualNetwork(any(), any()))
         .thenReturn(mockK8sAPDefinitionStagesWithAttach);
     when(mockK8sAPDefinitionStagesWithAttach.attach()).thenReturn(mockK8sUpdate);
+  }
+
+  private void setupVpaCostSavingK8sMocks() {
+    when(mockKubernetesCluster.innerModel()).thenReturn(mock(ManagedClusterInner.class));
+    when(mockKubernetesCluster.innerModel().workloadAutoScalerProfile())
+        .thenReturn(mock(ManagedClusterWorkloadAutoScalerProfile.class));
+    when(mockKubernetesCluster
+            .innerModel()
+            .workloadAutoScalerProfile()
+            .withVerticalPodAutoscaler(
+                mock(ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler.class)
+                    .withEnabled(true)))
+        .thenReturn(mock(ManagedClusterWorkloadAutoScalerProfile.class));
   }
 
   // setup mocks for doStep retry attempt after Stairway failure
