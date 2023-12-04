@@ -17,7 +17,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
 
-    testImplementation 'org.apache.commons:commons-lang3:3.13.0'
+    testImplementation 'org.apache.commons:commons-lang3:3.14.0'
 
     // Spotbugs dependencies
     compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
