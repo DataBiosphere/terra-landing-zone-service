@@ -16,8 +16,8 @@ import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneJobRe
 import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneRequestBody;
 import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneResult;
 import bio.terra.lz.futureservice.generated.model.ApiResourceQuota;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,12 +1,15 @@
 package bio.terra.landingzone.service.bpm;
 
 import bio.terra.common.iam.BearerToken;
+import bio.terra.common.tracing.JakartaTracingFilter;
 import bio.terra.landingzone.library.configuration.LandingZoneBillingProfileManagerConfiguration;
 import bio.terra.landingzone.service.bpm.exception.BillingProfileNotFoundException;
 import bio.terra.profile.api.ProfileApi;
 import bio.terra.profile.client.ApiClient;
 import bio.terra.profile.client.ApiException;
 import bio.terra.profile.model.ProfileModel;
+import io.opentelemetry.api.OpenTelemetry;
+import jakarta.ws.rs.client.Client;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +21,19 @@ public class LandingZoneBillingProfileManagerService {
   private static final Logger logger =
       LoggerFactory.getLogger(LandingZoneBillingProfileManagerService.class);
   private final LandingZoneBillingProfileManagerConfiguration bpmConfig;
+  private final Client commonHttpClient;
 
   @Autowired
   public LandingZoneBillingProfileManagerService(
-      LandingZoneBillingProfileManagerConfiguration bpmConfig) {
+      LandingZoneBillingProfileManagerConfiguration bpmConfig, OpenTelemetry openTelemetry) {
     this.bpmConfig = bpmConfig;
+    this.commonHttpClient =
+        new ApiClient().getHttpClient().register(new JakartaTracingFilter(openTelemetry));
   }
 
   private ApiClient getApiClient(String accessToken) {
-    ApiClient apiClient = new ApiClient().setBasePath(bpmConfig.getBasePath());
+    ApiClient apiClient =
+        new ApiClient().setHttpClient(commonHttpClient).setBasePath(bpmConfig.getBasePath());
     apiClient.setAccessToken(accessToken);
     return apiClient;
   }
