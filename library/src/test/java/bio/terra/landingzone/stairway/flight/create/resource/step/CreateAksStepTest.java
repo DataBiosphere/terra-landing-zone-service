@@ -123,29 +123,8 @@ class CreateAksStepTest extends BaseStepTest {
 
   @Test
   void testCostSavingSpotNodesInStep() throws InterruptedException {
-    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    String aksResourceName = "aksName";
-    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
     costSavingsSpotNodesEnabled = "true";
-
-    setupParameterResolver();
-    setupFlightContext(
-        mockFlightContext,
-        Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
-            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID,
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
-        Map.of(
-            CreateVnetStep.VNET_ID,
-            "vNetId",
-            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            mrg,
-            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
-    setupArmManagersForDoStep();
+    setupCostSavingLZ();
     setupCostSavingK8sMocks();
 
     var stepResult = testStep.doStep(mockFlightContext);
@@ -163,29 +142,9 @@ class CreateAksStepTest extends BaseStepTest {
 
   @Test
   void testCostSavingVpaInStep() throws InterruptedException {
-    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    String aksResourceName = "aksName";
-    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
     costSavingsVpaEnabled = "true";
+    setupCostSavingLZ();
 
-    setupParameterResolver();
-    setupFlightContext(
-        mockFlightContext,
-        Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
-            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID,
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
-        Map.of(
-            CreateVnetStep.VNET_ID,
-            "vNetId",
-            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-            mrg,
-            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
-    setupArmManagersForDoStep();
     setupVpaCostSavingK8sMocks(mockKubernetesCluster, mockKubernetesCluster.innerModel());
 
     var stepResult = testStep.doStep(mockFlightContext);
@@ -377,6 +336,31 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockKubernetesClusters.define(anyString())).thenReturn(mockK8sDefinitionStageBlank);
     when(mockAzureResourceManager.kubernetesClusters()).thenReturn(mockKubernetesClusters);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
+  }
+
+  private void setupCostSavingLZ() {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    String aksResourceName = "aksName";
+    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
+
+    setupParameterResolver();
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(
+            CreateVnetStep.VNET_ID,
+            "vNetId",
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            "logAnalyticsWorkspaceId"));
+    setupArmManagersForDoStep();
   }
 
   private void setupCostSavingK8sMocks() {
