@@ -148,7 +148,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
           aksPartial
               .attach()
               .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
-              .withTags(buildTagMap(landingZoneId, costSavingsSpotNodesEnabled, costSavingsVpaEnabled))
+              .withTags(
+                  buildTagMap(landingZoneId, costSavingsSpotNodesEnabled, costSavingsVpaEnabled))
               .create();
 
     } catch (ManagementException e) {
@@ -210,7 +211,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
     return existingAks;
   }
 
-  private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsSpotNodesEnabled, boolean costSavingsVpaEnabled) {
+  private Map<String, String> buildTagMap(
+      UUID landingZoneId, boolean costSavingsSpotNodesEnabled, boolean costSavingsVpaEnabled) {
     return Map.of(
         LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
         landingZoneId.toString(),

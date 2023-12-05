@@ -186,8 +186,7 @@ class CreateAksStepTest extends BaseStepTest {
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
             "logAnalyticsWorkspaceId"));
     setupArmManagersForDoStep();
-    setupCostSavingK8sMocks();
-    setupVpaCostSavingK8sMocks();
+    setupVpaCostSavingK8sMocks(mockKubernetesCluster, mockKubernetesCluster.innerModel());
 
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -413,17 +412,15 @@ class CreateAksStepTest extends BaseStepTest {
     when(mockK8sAPDefinitionStagesWithAttach.attach()).thenReturn(mockK8sUpdate);
   }
 
-  private void setupVpaCostSavingK8sMocks() {
-    when(mockKubernetesCluster.innerModel()).thenReturn(mock(ManagedClusterInner.class));
-    when(mockKubernetesCluster.innerModel().workloadAutoScalerProfile())
-        .thenReturn(mock(ManagedClusterWorkloadAutoScalerProfile.class));
-    when(mockKubernetesCluster
-            .innerModel()
-            .workloadAutoScalerProfile()
-            .withVerticalPodAutoscaler(
-                mock(ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler.class)
-                    .withEnabled(true)))
-        .thenReturn(mock(ManagedClusterWorkloadAutoScalerProfile.class));
+  private void setupVpaCostSavingK8sMocks(
+      KubernetesCluster mockKubernetesCluster, ManagedClusterInner mockManagedClusterInner) {
+    KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
+    ManagedClusterWorkloadAutoScalerProfile mockManagedClusterWorkloadAutoScalerProfile =
+        mock(ManagedClusterWorkloadAutoScalerProfile.class);
+    when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);
+    when(mockManagedClusterInner.workloadAutoScalerProfile())
+        .thenReturn(mockManagedClusterWorkloadAutoScalerProfile);
+    when(mockKubernetesCluster.innerModel()).thenReturn(mockManagedClusterInner);
   }
 
   // setup mocks for doStep retry attempt after Stairway failure
