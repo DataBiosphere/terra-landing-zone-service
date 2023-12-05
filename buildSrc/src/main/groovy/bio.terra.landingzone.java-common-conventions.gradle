@@ -45,7 +45,7 @@ dependencies {
     implementation 'io.swagger.core.v3:swagger-annotations:2.1.12'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
-    testImplementation 'ch.qos.logback:logback-classic:1.2.10'
+    testImplementation 'ch.qos.logback:logback-classic'
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
     var openTelemetryVersion = '1.32.0'
