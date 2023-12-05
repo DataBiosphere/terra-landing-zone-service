@@ -32,11 +32,11 @@ import com.azure.resourcemanager.containerservice.fluent.models.ManagedClusterIn
 import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
 import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
+import com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool;
 import com.azure.resourcemanager.containerservice.models.KubernetesClusters;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterWorkloadAutoScalerProfile;
-import com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
