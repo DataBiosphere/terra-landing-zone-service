@@ -44,6 +44,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class CreateBatchAccountStepTest extends BaseStepTest {
+  private static final String MANAGEMENT_EXCEPTION_BATCH_QUOTA_EXCEEDED_ERROR_MESSAGE =
+      "Polling failed with status code";
+  private static final String BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE =
+      "The regional Batch account quota for the specified subscription has been reached";
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final String BATCH_ACCOUNT_NAME = "testBatchAccount";
   private static final String BATCH_ACCOUNT_ID = "batchAccountId";
@@ -121,7 +125,31 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_FAILURE_FATAL));
     assertTrue(stepResult.getException().isPresent());
     assertTrue(stepResult.getException().get() instanceof LandingZoneCreateException);
+    // validates that user-friendly message in on top level now. this is what would be shown to a
+    // user
+    assertTrue(
+        stepResult
+            .getException()
+            .get()
+            .getMessage()
+            .contains(BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE));
+    // validates that we keep original exception as well
     assertNotNull(stepResult.getException().get().getCause());
+    assertTrue(stepResult.getException().get().getCause() instanceof ManagementException);
+    assertTrue(
+        stepResult
+            .getException()
+            .get()
+            .getCause()
+            .getMessage()
+            .contains(MANAGEMENT_EXCEPTION_BATCH_QUOTA_EXCEEDED_ERROR_MESSAGE));
+    // this user-friendly message in the original exception is located one level down at
+    // ManagementError which is part of ManagementException
+    assertTrue(
+        ((ManagementException) stepResult.getException().get().getCause())
+            .getValue()
+            .getMessage()
+            .contains(BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE));
   }
 
   @ParameterizedTest
@@ -184,11 +212,10 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     var batchAccountQuotaException = mock(ManagementException.class);
     var managementError = mock(ManagementError.class);
     when(managementError.getCode()).thenReturn("code");
-    when(managementError.getMessage())
-        .thenReturn(
-            "The regional Batch account quota for the specified subscription has been reached");
+    when(managementError.getMessage()).thenReturn(BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE);
     when(batchAccountQuotaException.getValue()).thenReturn(managementError);
-    when(batchAccountQuotaException.getMessage()).thenReturn("Polling failed with status code");
+    when(batchAccountQuotaException.getMessage())
+        .thenReturn(MANAGEMENT_EXCEPTION_BATCH_QUOTA_EXCEEDED_ERROR_MESSAGE);
     return batchAccountQuotaException;
   }
 }
