@@ -29,7 +29,14 @@ import com.azure.core.http.HttpResponse;
 import com.azure.core.management.exception.ManagementError;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.containerservice.fluent.models.ManagedClusterInner;
-import com.azure.resourcemanager.containerservice.models.*;
+import com.azure.resourcemanager.containerservice.models.AgentPoolMode;
+import com.azure.resourcemanager.containerservice.models.ContainerServiceVMSizeTypes;
+import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
+import com.azure.resourcemanager.containerservice.models.KubernetesClusters;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterWorkloadAutoScalerProfile;
+import com.azure.resourcemanager.containerservice.models.KubernetesClusterAgentPool;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -340,8 +347,7 @@ class CreateAksStepTest extends BaseStepTest {
 
   private void setupCostSavingLZ() {
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    String aksResourceName = "aksName";
-    when(mockResourceNameProvider.getName(anyString())).thenReturn(aksResourceName);
+    when(mockResourceNameProvider.getName(anyString())).thenReturn("aksName");
 
     setupParameterResolver();
     setupFlightContext(
