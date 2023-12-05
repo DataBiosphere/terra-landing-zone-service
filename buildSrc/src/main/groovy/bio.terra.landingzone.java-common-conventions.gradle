@@ -41,7 +41,7 @@ repositories {
 
 dependencies {
     compileOnly "com.google.code.findbugs:annotations:3.0.1"
-    implementation 'org.slf4j:slf4j-api:1.7.35'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'io.swagger.core.v3:swagger-annotations:2.1.12'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
