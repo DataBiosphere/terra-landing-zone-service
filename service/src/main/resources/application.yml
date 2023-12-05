@@ -13,6 +13,9 @@ env:
   urls: # While we've traditionally thought of these as env specific and ok to hardcode, with kubernetes they may change
     sam: ${SAM_ADDRESS:https://sam.dsde-dev.broadinstitute.org/}
     bpm: ${BPM_ADDRESS:https://bpm.dsde-dev.broadinstitute.org/}
+  tracing:
+    exportEnabled: ${CLOUD_TRACE_ENABLED:false}
+    samplingRate: ${SAMPLING_PROBABILITY:0}
 
 spring:
   application.name: landingzone
@@ -77,3 +80,21 @@ landingzone:
       - SentinelHealth
       - StorageBlobLogs
       - Syslog
+
+terra.common:
+  tracing:
+    sampling-ratio: ${env.tracing.samplingRate}
+  google:
+    tracing:
+      enabled: ${env.tracing.exportEnabled}
+
+otel:
+  sdk:
+    disabled: false # set to true to disable all open telemetry features
+
+  springboot:
+    resource:
+      attributes:
+        service:
+          name: ${spring.application.name}
+          version: ${landingzone.version.gitTag:unknown}
