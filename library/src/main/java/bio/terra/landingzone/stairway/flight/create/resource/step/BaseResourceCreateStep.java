@@ -10,6 +10,7 @@ import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.exception.translation.FlightExceptionTranslator;
 import bio.terra.landingzone.stairway.flight.exception.utils.ManagementExceptionUtils;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
@@ -179,6 +180,7 @@ public abstract class BaseResourceCreateStep implements Step {
         landingZoneId,
         ManagementExceptionUtils.buildErrorInfo(e));
     MetricUtils.incrementLandingZoneCreationFailure(landingZoneType);
-    return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
+    return new StepResult(
+        StepStatus.STEP_RESULT_FAILURE_FATAL, new FlightExceptionTranslator(e).translate());
   }
 }

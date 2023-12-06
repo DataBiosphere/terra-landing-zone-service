@@ -2,8 +2,12 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -13,11 +17,14 @@ import static org.mockito.Mockito.when;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
+import com.azure.core.management.exception.ManagementError;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.batch.BatchManager;
 import com.azure.resourcemanager.batch.models.BatchAccount;
 import com.azure.resourcemanager.batch.models.BatchAccounts;
@@ -37,6 +44,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class CreateBatchAccountStepTest extends BaseStepTest {
+  private static final String MANAGEMENT_EXCEPTION_BATCH_QUOTA_EXCEEDED_ERROR_MESSAGE =
+      "Polling failed with status code";
+  private static final String BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE =
+      "The regional Batch account quota for the specified subscription has been reached";
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final String BATCH_ACCOUNT_NAME = "testBatchAccount";
   private static final String BATCH_ACCOUNT_ID = "batchAccountId";
@@ -89,6 +100,58 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     verifyNoMoreInteractions(mockBatchAccountDefinitionStagesWithCreate);
   }
 
+  @Test
+  void doStepWhenQuotaIssueThrown() throws InterruptedException {
+    TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
+    when(mockResourceNameProvider.getName(createBatchAccountStep.getResourceType()))
+        .thenReturn(BATCH_ACCOUNT_NAME);
+
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
+    setupMocks(BATCH_ACCOUNT_NAME, mrg.region(), mrg.name());
+    var batchAccountQuotaException = mockBatchQuotaException();
+    doThrow(batchAccountQuotaException).when(mockBatchAccountDefinitionStagesWithCreate).create();
+
+    var stepResult = createBatchAccountStep.doStep(mockFlightContext);
+
+    assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_FAILURE_FATAL));
+    assertTrue(stepResult.getException().isPresent());
+    assertTrue(stepResult.getException().get() instanceof LandingZoneCreateException);
+    // validates that user-friendly message in on top level now. this is what would be shown to a
+    // user
+    assertTrue(
+        stepResult
+            .getException()
+            .get()
+            .getMessage()
+            .contains(BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE));
+    // validates that we keep original exception as well
+    assertNotNull(stepResult.getException().get().getCause());
+    assertTrue(stepResult.getException().get().getCause() instanceof ManagementException);
+    assertTrue(
+        stepResult
+            .getException()
+            .get()
+            .getCause()
+            .getMessage()
+            .contains(MANAGEMENT_EXCEPTION_BATCH_QUOTA_EXCEEDED_ERROR_MESSAGE));
+    // this user-friendly message in the original exception is located one level down at
+    // ManagementError which is part of ManagementException
+    assertTrue(
+        ((ManagementException) stepResult.getException().get().getCause())
+            .getValue()
+            .getMessage()
+            .contains(BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE));
+  }
+
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
@@ -129,6 +192,11 @@ class CreateBatchAccountStepTest extends BaseStepTest {
       String batchAccountId, String name, String region, String resourceGroup) {
     when(mockBatchAccount.id()).thenReturn(batchAccountId);
     when(mockBatchAccountDefinitionStagesWithCreate.create()).thenReturn(mockBatchAccount);
+
+    setupMocks(name, region, resourceGroup);
+  }
+
+  private void setupMocks(String name, String region, String resourceGroup) {
     when(mockBatchAccountDefinitionStagesWithCreate.withTags(batchAccountTagsCaptor.capture()))
         .thenReturn(mockBatchAccountDefinitionStagesWithCreate);
     when(mockBatchAccountDefinitionStagesWithResourceGroup.withExistingResourceGroup(resourceGroup))
@@ -138,5 +206,16 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     when(mockBatchAccounts.define(name)).thenReturn(mockBatchAccountDefinitionStagesBlank);
     when(mockBatchManager.batchAccounts()).thenReturn(mockBatchAccounts);
     when(mockArmManagers.batchManager()).thenReturn(mockBatchManager);
+  }
+
+  private Exception mockBatchQuotaException() {
+    var batchAccountQuotaException = mock(ManagementException.class);
+    var managementError = mock(ManagementError.class);
+    when(managementError.getCode()).thenReturn("code");
+    when(managementError.getMessage()).thenReturn(BATCH_QUOTA_EXCEEDED_ERROR_DETAILED_MESSAGE);
+    when(batchAccountQuotaException.getValue()).thenReturn(managementError);
+    when(batchAccountQuotaException.getMessage())
+        .thenReturn(MANAGEMENT_EXCEPTION_BATCH_QUOTA_EXCEEDED_ERROR_MESSAGE);
+    return batchAccountQuotaException;
   }
 }
