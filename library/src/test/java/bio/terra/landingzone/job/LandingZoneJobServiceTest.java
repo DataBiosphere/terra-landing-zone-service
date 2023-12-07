@@ -34,6 +34,7 @@ import bio.terra.stairway.FlightState;
 import bio.terra.stairway.FlightStatus;
 import bio.terra.stairway.Stairway;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.api.OpenTelemetry;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -80,7 +81,8 @@ class LandingZoneJobServiceTest {
             stairwayComponent,
             flightBeanBag,
             mapper,
-            samService);
+            samService,
+            OpenTelemetry.noop());
   }
 
   @Test

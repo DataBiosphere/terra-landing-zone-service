@@ -2,8 +2,9 @@ package bio.terra.landingzone.service.iam;
 
 import bio.terra.common.tracing.OkHttpClientTracingInterceptor;
 import bio.terra.landingzone.library.configuration.LandingZoneSamConfiguration;
-import io.opencensus.trace.Tracing;
+import io.opentelemetry.api.OpenTelemetry;
 import java.util.List;
+import java.util.Optional;
 import okhttp3.OkHttpClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
@@ -16,9 +17,19 @@ public class LandingZoneSamClient {
   private final LandingZoneSamConfiguration samConfig;
   private final OkHttpClient okHttpClient;
 
-  public LandingZoneSamClient(LandingZoneSamConfiguration samConfig) {
+  public LandingZoneSamClient(
+      LandingZoneSamConfiguration samConfig, Optional<OpenTelemetry> openTelemetry) {
     this.samConfig = samConfig;
-    this.okHttpClient = new ApiClient().getHttpClient();
+    this.okHttpClient =
+        openTelemetry
+            .map(
+                otel ->
+                    new ApiClient()
+                        .getHttpClient()
+                        .newBuilder()
+                        .addInterceptor(new OkHttpClientTracingInterceptor(otel))
+                        .build())
+            .orElse(new ApiClient().getHttpClient());
   }
 
   private ApiClient getApiClient(String accessToken) {
@@ -28,14 +39,7 @@ public class LandingZoneSamClient {
   }
 
   private ApiClient getApiClient() {
-    var okHttpClientWithTracing =
-        this.okHttpClient
-            .newBuilder()
-            .addInterceptor(new OkHttpClientTracingInterceptor(Tracing.getTracer()))
-            .build();
-    return new ApiClient()
-        .setHttpClient(okHttpClientWithTracing)
-        .setBasePath(samConfig.getBasePath());
+    return new ApiClient().setHttpClient(this.okHttpClient).setBasePath(samConfig.getBasePath());
   }
 
   UsersApi usersApi(String accessToken) {

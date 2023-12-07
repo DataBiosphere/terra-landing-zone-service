@@ -42,7 +42,8 @@ import bio.terra.stairway.exception.StairwayException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.opencensus.contrib.spring.aop.Traced;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
@@ -73,6 +74,7 @@ public class LandingZoneJobService {
   private final ObjectMapper objectMapper;
   private final LandingZoneSamService samService;
   private FlightDebugInfo flightDebugInfo;
+  private final OpenTelemetry openTelemetry;
 
   @Autowired
   public LandingZoneJobService(
@@ -83,7 +85,8 @@ public class LandingZoneJobService {
       @Qualifier("landingZoneStairwayComponent") StairwayComponent stairwayComponent,
       LandingZoneFlightBeanBag flightBeanBag,
       ObjectMapper objectMapper,
-      LandingZoneSamService samService) {
+      LandingZoneSamService samService,
+      OpenTelemetry openTelemetry) {
     this.jobConfig = jobConfig;
     this.ingressConfig = ingressConfig;
     this.stairwayDatabaseConfiguration = stairwayDatabaseConfiguration;
@@ -93,11 +96,12 @@ public class LandingZoneJobService {
     this.flightBeanBag = flightBeanBag;
     this.objectMapper = objectMapper;
     this.samService = samService;
+    this.openTelemetry = openTelemetry;
   }
 
   // Fully fluent style of JobBuilder
   public LandingZoneJobBuilder newJob() {
-    return new LandingZoneJobBuilder(this, stairwayComponent, mdcHook);
+    return new LandingZoneJobBuilder(this, stairwayComponent, mdcHook, openTelemetry);
   }
 
   // submit a new job to stairway
@@ -173,7 +177,7 @@ public class LandingZoneJobService {
             .dataSource(DataSourceInitializer.initializeDataSource(stairwayDatabaseConfiguration))
             .context(flightBeanBag)
             .addHook(mdcHook)
-            .addHook(new MonitoringHook())
+            .addHook(new MonitoringHook(openTelemetry))
             .exceptionSerializer(new StairwayExceptionSerializer(objectMapper)));
   }
 
@@ -258,7 +262,7 @@ public class LandingZoneJobService {
     }
   }
 
-  @Traced
+  @WithSpan
   public JobReport retrieveJob(String jobId) {
     try {
       FlightState flightState = stairwayComponent.get().getFlightState(jobId);
@@ -302,7 +306,7 @@ public class LandingZoneJobService {
    * @param jobId to process
    * @return object of the result class pulled from the result map
    */
-  @Traced
+  @WithSpan
   public <T> JobResultOrException<T> retrieveJobResult(String jobId, Class<T> resultClass) {
     try {
       return retrieveJobResultWorker(jobId, resultClass);

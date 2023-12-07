@@ -16,6 +16,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aop'
+    implementation 'org.springframework:spring-aspects'
 
     testImplementation 'org.apache.commons:commons-lang3:3.14.0'
 

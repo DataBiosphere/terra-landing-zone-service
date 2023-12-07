@@ -12,7 +12,8 @@ import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
-import io.opencensus.contrib.spring.aop.Traced;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,6 +22,7 @@ public class LandingZoneJobBuilder {
   private final StairwayComponent stairwayComponent;
   private final LandingZoneMdcHook mdcHook;
   private final FlightMap jobParameterMap;
+  private final OpenTelemetry openTelemetry;
   private Class<? extends Flight> flightClass;
   @Nullable private String jobId;
   @Nullable private String description;
@@ -31,10 +33,12 @@ public class LandingZoneJobBuilder {
   public LandingZoneJobBuilder(
       LandingZoneJobService jobService,
       StairwayComponent stairwayComponent,
-      LandingZoneMdcHook mdcHook) {
+      LandingZoneMdcHook mdcHook,
+      OpenTelemetry openTelemetry) {
     this.jobService = jobService;
     this.stairwayComponent = stairwayComponent;
     this.mdcHook = mdcHook;
+    this.openTelemetry = openTelemetry;
     this.jobParameterMap = new FlightMap();
   }
 
@@ -97,7 +101,7 @@ public class LandingZoneJobBuilder {
    * @param resultClass Class of the job's result
    * @return Result of the finished job.
    */
-  @Traced
+  @WithSpan
   public <T> T submitAndWait(Class<T> resultClass) {
     populateInputParams();
     return jobService.submitAndWait(flightClass, jobParameterMap, resultClass, jobId);
@@ -126,7 +130,7 @@ public class LandingZoneJobBuilder {
     addParameter(LandingZoneMdcHook.MDC_FLIGHT_MAP_KEY, mdcHook.getSerializedCurrentContext());
     addParameter(
         MonitoringHook.SUBMISSION_SPAN_CONTEXT_MAP_KEY,
-        MonitoringHook.serializeCurrentTracingContext());
+        MonitoringHook.serializeCurrentTracingContext(openTelemetry));
 
     // Convert any other members that were set into parameters. However, if they were
     // explicitly added with addParameter during construction, we do not overwrite them.

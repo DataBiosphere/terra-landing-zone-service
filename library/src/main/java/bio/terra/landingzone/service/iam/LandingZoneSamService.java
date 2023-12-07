@@ -6,7 +6,7 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
-import io.opencensus.contrib.spring.aop.Traced;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class LandingZoneSamService {
    * @return true if the user may perform the specified action on the specified resource. False
    *     otherwise.
    */
-  @Traced
+  @WithSpan
   public boolean isAuthorized(
       BearerToken bearerToken, String iamResourceType, String resourceId, String action)
       throws InterruptedException {
@@ -63,7 +63,7 @@ public class LandingZoneSamService {
    * Wrapper around isAuthorized which throws an appropriate exception if the calling user does not
    * have access to a resource.
    */
-  @Traced
+  @WithSpan
   public void checkAuthz(
       BearerToken bearerToken, String resourceType, String resourceId, String action)
       throws InterruptedException {
@@ -77,7 +77,7 @@ public class LandingZoneSamService {
     }
   }
 
-  @Traced
+  @WithSpan
   public void checkUserEnabled(BearerToken bearerToken) throws InterruptedException {
     var userInfo = getUserStatusInfo(bearerToken);
     if (!BooleanUtils.isTrue(userInfo.getEnabled())) {
@@ -93,7 +93,7 @@ public class LandingZoneSamService {
    *     effect of this is that the landing zone inherits permissions of the billing profile.
    * @param landingZoneId the ID of the landing zone resource to create
    */
-  @Traced
+  @WithSpan
   public void createLandingZone(BearerToken bearerToken, UUID billingProfileId, UUID landingZoneId)
       throws InterruptedException {
     var userInfo = getUserStatusInfo(bearerToken);
@@ -141,7 +141,7 @@ public class LandingZoneSamService {
    * @param bearerToken bearer token of the calling user
    * @param landingZoneId the ID of the landing zone resource to delete
    */
-  @Traced
+  @WithSpan
   public void deleteLandingZone(BearerToken bearerToken, UUID landingZoneId)
       throws InterruptedException {
     var resourceApi = samClient.resourcesApi(bearerToken.getToken());
@@ -165,7 +165,7 @@ public class LandingZoneSamService {
     }
   }
 
-  @Traced
+  @WithSpan
   public List<UUID> listLandingZoneResourceIds(BearerToken bearerToken)
       throws InterruptedException {
     var resourceApi = samClient.resourcesApi(bearerToken.getToken());
