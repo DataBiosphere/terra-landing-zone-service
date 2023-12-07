@@ -57,10 +57,6 @@ dependencies {
     liquibaseRuntime 'org.postgresql:postgresql:42.7.0'
     liquibaseRuntime 'ch.qos.logback:logback-classic:1.4.14'
 
-    // Spotbugs dependencies
-    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
-    spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
-
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
 
