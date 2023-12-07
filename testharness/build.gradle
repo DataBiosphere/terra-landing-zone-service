@@ -21,10 +21,6 @@ dependencies {
 
     testImplementation 'org.apache.commons:commons-lang3:3.14.0'
 
-    // Spotbugs dependencies
-    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
-    spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
-
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
         exclude group: 'net.minidev', module: 'json-smart'

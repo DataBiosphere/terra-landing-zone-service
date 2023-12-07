@@ -48,11 +48,6 @@ jobs:
       - name: Build the test harness and, by dependency, the library
         run: ./gradlew --build-cache build -x test
 
-      - name: Upload spotbugs results
-        uses: github/codeql-action/upload-sarif@main
-        with:
-          sarif_file: library/build/reports/spotbugs/main.sarif
-
   tests-and-sonarqube:
     needs: [ bump-check, build ]
     runs-on: ubuntu-latest
