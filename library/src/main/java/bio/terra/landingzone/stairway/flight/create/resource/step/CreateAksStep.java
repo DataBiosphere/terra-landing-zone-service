@@ -19,6 +19,7 @@ import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterOidcIssuerProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfile;
 import com.azure.resourcemanager.containerservice.models.ManagedClusterSecurityProfileWorkloadIdentity;
+import com.azure.resourcemanager.containerservice.models.ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +60,24 @@ public class CreateAksStep extends BaseResourceCreateStep {
             parametersResolver.getValue(
                 CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
                     .name()));
+    boolean costSavingsVpaEnabled =
+        Boolean.parseBoolean(
+            parametersResolver.getValue(
+                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()));
     boolean autoScalingEnabled =
         Boolean.parseBoolean(
             parametersResolver.getValue(
                 CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
 
-    var aks = createAks(context, vNetId, costSavingsSpotNodesEnabled, autoScalingEnabled);
+    var aks =
+        createAks(
+            context,
+            vNetId,
+            costSavingsSpotNodesEnabled,
+            costSavingsVpaEnabled,
+            autoScalingEnabled);
     enableWorkloadIdentity(aks);
-    enableCostSavings(aks, vNetId, costSavingsSpotNodesEnabled);
+    enableCostSavings(aks, vNetId, costSavingsSpotNodesEnabled, costSavingsVpaEnabled);
 
     context.getWorkingMap().put(AKS_ID, aks.id());
     context
@@ -90,6 +101,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
       FlightContext context,
       String vNetId,
       boolean costSavingsSpotNodesEnabled,
+      boolean costSavingsVpaEnabled,
       boolean autoScalingEnabled) {
     UUID landingZoneId =
         getParameterOrThrow(
@@ -142,8 +154,10 @@ public class CreateAksStep extends BaseResourceCreateStep {
           aksPartial
               .attach()
               .withDnsPrefix(resourceNameProvider.getName(getResourceType() + DNS_SUFFIX_KEY))
-              .withTags(buildTagMap(landingZoneId, costSavingsSpotNodesEnabled))
+              .withTags(
+                  buildTagMap(landingZoneId, costSavingsSpotNodesEnabled, costSavingsVpaEnabled))
               .create();
+
     } catch (ManagementException e) {
       if (e.getResponse() != null
           && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
@@ -203,14 +217,17 @@ public class CreateAksStep extends BaseResourceCreateStep {
     return existingAks;
   }
 
-  private Map<String, String> buildTagMap(UUID landingZoneId, boolean costSavingsSpotNodesEnabled) {
+  private Map<String, String> buildTagMap(
+      UUID landingZoneId, boolean costSavingsSpotNodesEnabled, boolean costSavingsVpaEnabled) {
     return Map.of(
         LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
         landingZoneId.toString(),
         LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
         ResourcePurpose.SHARED_RESOURCE.toString(),
         LandingZoneTagKeys.AKS_COST_SAVING_SPOT_NODES_ENABLED.toString(),
-        String.valueOf(costSavingsSpotNodesEnabled));
+        String.valueOf(costSavingsSpotNodesEnabled),
+        LandingZoneTagKeys.AKS_COST_SAVING_VPA_ENABLED.toString(),
+        String.valueOf(costSavingsVpaEnabled));
   }
 
   @VisibleForTesting
@@ -236,8 +253,24 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   private void enableCostSavings(
-      KubernetesCluster aks, String vNetId, boolean costSavingsSpotNodesEnabled) {
-    // Enable a spot nodepool if cost savings are enabled.
+      KubernetesCluster aks,
+      String vNetId,
+      boolean costSavingsSpotNodesEnabled,
+      boolean costSavingsVpaEnabled) {
+    // enable Vertical Pod Autoscaler on the AKS cluster if this option for cost savings is enabled
+    if (costSavingsVpaEnabled) {
+      KubernetesCluster.Update update = aks.update();
+
+      var autoScaleProfileVpa = new ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler();
+      aks.innerModel()
+          .workloadAutoScalerProfile()
+          .withVerticalPodAutoscaler(autoScaleProfileVpa.withEnabled(true));
+
+      update.apply();
+      aks.refresh();
+    }
+
+    // Enable a spot nodepool  if this option for cost savings is enabled.
     if (costSavingsSpotNodesEnabled) {
       // set to default if no specified parameters were provided at LZ creation
       var machineSize =

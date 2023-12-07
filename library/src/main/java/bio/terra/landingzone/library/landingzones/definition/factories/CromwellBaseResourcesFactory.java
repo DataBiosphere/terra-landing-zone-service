@@ -102,6 +102,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
     AKS_SPOT_AUTOSCALING_MAX,
     AKS_AAD_PROFILE_USER_GROUP_ID,
     AKS_COST_SAVING_SPOT_NODES_ENABLED,
+    AKS_COST_SAVING_VPA_ENABLED,
     STORAGE_ACCOUNT_SKU_TYPE,
     ENABLE_PGBOUNCER
   }
@@ -409,6 +410,7 @@ public class CromwellBaseResourcesFactory extends ArmClientsDefinitionFactory {
       defaultValues.put(ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name(), String.valueOf(10));
       defaultValues.put(
           ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name(), String.valueOf(false));
+      defaultValues.put(ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name(), String.valueOf(false));
       defaultValues.put(ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(), "90");
       defaultValues.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),

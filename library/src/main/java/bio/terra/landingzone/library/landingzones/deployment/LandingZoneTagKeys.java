@@ -10,6 +10,8 @@ public final class LandingZoneTagKeys extends ExpandableStringEnum<LandingZoneTa
   public static final LandingZoneTagKeys PGBOUNCER_ENABLED = fromString("pgbouncer-enabled");
   public static final LandingZoneTagKeys AKS_COST_SAVING_SPOT_NODES_ENABLED =
       fromString("aks-cost-spot-nodes-enabled");
+  public static final LandingZoneTagKeys AKS_COST_SAVING_VPA_ENABLED =
+      fromString("aks-cost-vpa-enabled");
 
   /**
    * Creates or finds a {@link LandingZoneTagKeys} from its string representation.
