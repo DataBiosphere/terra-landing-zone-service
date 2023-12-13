@@ -46,3 +46,6 @@ gha-creds-*.json
 
 ### jEnv
 .java-version
+
+### Python
+**/__pycache__/
