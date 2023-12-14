@@ -27,8 +27,13 @@ dependencies {
     implementation (group: 'com.azure', name: 'azure-identity', version: '1.11.1') {
         // azure-identity is still pulling in an old version of reactor-netty-http
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-http'
+        exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
+        exclude group: 'io.projectreactor', module: 'reactor-core'
     }
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.13'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.14'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.14'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.13'
+
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.33.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.33.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerservice', version: '2.33.0'
