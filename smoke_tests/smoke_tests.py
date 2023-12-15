@@ -7,8 +7,8 @@ import requests
 from tests.smoke_test_case import SmokeTestCase
 from tests.unauthenticated.status_tests import StatusTests
 from tests.unauthenticated.version_tests import VersionTests
-# from tests.authenticated.azure.managed_apps_tests import ManagedAppsTests
-# from tests.authenticated.billing_profiles import BillingProfileTests
+from tests.authenticated.landingzone_definitions_tests import LandingZoneDefinitionsTests
+from tests.authenticated.landingzone_list_tests import LandingZoneListTests
 
 DESCRIPTION = """
 LandingZone Smoke Test
@@ -17,29 +17,26 @@ instance running on that host is minimally functional.
 """
 
 
-def gather_tests(is_authenticated: bool = False, azure_subscription: bool = False) -> TestSuite:
+def gather_tests(is_authenticated: bool = False) -> TestSuite:
     suite = unittest.TestSuite()
     status_tests = unittest.defaultTestLoader.loadTestsFromTestCase(StatusTests)
     suite.addTests(status_tests)
     version_tests = unittest.defaultTestLoader.loadTestsFromTestCase(VersionTests)
     suite.addTests(version_tests)
-    # if is_authenticated:
-    #     profile_tests = unittest.defaultTestLoader.loadTestsFromTestCase(BillingProfileTests)
-    #     suite.addTests(profile_tests)
-    #     if azure_subscription:
-    #         managed_apps_tests = unittest.defaultTestLoader.loadTestsFromTestCase(ManagedAppsTests)
-    #         suite.addTests(managed_apps_tests)
+    if is_authenticated:
+        lz_definitions_tests = unittest.defaultTestLoader.loadTestsFromTestCase(LandingZoneDefinitionsTests)
+        suite.addTests(lz_definitions_tests)
+        lz_list_tests = unittest.defaultTestLoader.loadTestsFromTestCase(LandingZoneListTests)
+        suite.addTests(lz_list_tests)
     return suite
 
 
 def main(main_args):
     SmokeTestCase.LZ_HOST = main_args.lz_host
     SmokeTestCase.USER_TOKEN = main_args.user_token
-    # ManagedAppsTests.AZURE_SUBSCRIPTION_ID = main_args.azure_sub_id
 
     valid_user_token = main_args.user_token is not None and verify_user_token(main_args.user_token)
-    sub_id_provided = type(main_args.azure_sub_id) is str and len(main_args.azure_sub_id) > 0
-    test_suite = gather_tests(valid_user_token, sub_id_provided)
+    test_suite = gather_tests(valid_user_token)
 
     runner = unittest.TextTestRunner(verbosity=main_args.verbosity)
     runner.run(test_suite)
@@ -67,11 +64,6 @@ def parse_args():
         default=None,
         type=str,
         help="Optional. If present, will test additional authenticated endpoints using the specified token"
-    )
-    parser.add_argument(
-        "--azure_sub_id",
-        type=str,
-        help="Optional Azure SubscriptionId. If present, will test retrieving azure managed apps using the specified id"
     )
     parser.add_argument(
         "-v",

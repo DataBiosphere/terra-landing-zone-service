@@ -2,6 +2,9 @@ import json
 
 from tests.smoke_test_case import SmokeTestCase
 
+"""Validates 'status' endpoint"""
+
+
 class StatusTests(SmokeTestCase):
     @staticmethod
     def status_url() -> str:
