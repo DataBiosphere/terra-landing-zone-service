@@ -12,6 +12,16 @@ public class ExceptionFixtures {
             "code", BatchAccountQuotaExceedExceptionRule.BATCH_QUOTA_MESSAGE_MARKER));
   }
 
+  public static ManagementException createFlexiblePostgresRegionRestrictionException() {
+    return new ManagementException(
+        FlexiblePostgresRegionRestrictedOfferExceptionRule.LONG_RUNNING_OPERATION_MESSAGE_MARKER,
+        null,
+        new ManagementError(
+            "code",
+            FlexiblePostgresRegionRestrictedOfferExceptionRule
+                .FLEXIBLE_POSTGRES_REGION_RESTRICTION_MESSAGE_MARKER));
+  }
+
   public static ManagementException createNonMatchingManagementException() {
     return new ManagementException(
         "not matching message", null, new ManagementError("code", "non matching internal message"));

@@ -12,10 +12,11 @@ import java.util.ArrayList;
  */
 public class FlightExceptionTranslator {
   private final Exception flightException;
-  private ArrayList<ExceptionMatchingRule> exceptionMatchingRules = new ArrayList<>();
+  private final ArrayList<ExceptionMatchingRule> exceptionMatchingRules = new ArrayList<>();
 
   public FlightExceptionTranslator(Exception exception) {
     exceptionMatchingRules.add(new BatchAccountQuotaExceedExceptionRule());
+    exceptionMatchingRules.add(new FlexiblePostgresRegionRestrictedOfferExceptionRule());
     this.flightException = exception;
   }
 
