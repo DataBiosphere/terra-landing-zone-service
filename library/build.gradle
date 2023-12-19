@@ -32,7 +32,7 @@ dependencies {
     }
     implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.14'
     implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.14'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.13'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.1'
 
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.33.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.33.0'
