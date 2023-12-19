@@ -1,7 +1,7 @@
 
 
 ## Purpose
-To provide a low overhead way to check that LandingZone service is basically operational in a given environment.
+To provide a low overhead way to check that Landing Zone service is basically operational in a given environment.
 
 These tests are intended to be run either as the final step in the deployment check list for releasing the service independently, or on an ad-hoc basis if needed.
 They are currently set up to be run manually, but could be automated in the future.

@@ -10,10 +10,10 @@ from tests.unauthenticated.version_tests import VersionTests
 from tests.authenticated.landingzone_definitions_tests import LandingZoneDefinitionsTests
 from tests.authenticated.landingzone_list_tests import LandingZoneListTests
 
-DESCRIPTION = """
-LandingZone Smoke Test
-Enter the host (domain and optional port) of the LandingZone instance you want to to test. This test will ensure that the LandingZone 
-instance running on that host is minimally functional.
+"""
+Landing Zone Smoke Test
+Enter the host (domain and optional port) of the Landing Zone instance you want to to test. 
+This test will ensure that the Landing Zone instance running on that host is minimally functional.
 """
 
 
@@ -50,8 +50,8 @@ def verify_user_token(user_token: str) -> bool:
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        prog="LandingZone Smoke Tests",
-        description=DESCRIPTION,
+        prog="Landing Zone Smoke Tests",
+        description=__doc__,
     )
     parser.add_argument(
         "lz_host",
@@ -86,4 +86,3 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     main(args)
-    sys.exit(0)
