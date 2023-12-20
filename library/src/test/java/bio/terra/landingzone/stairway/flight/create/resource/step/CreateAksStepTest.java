@@ -16,10 +16,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
@@ -284,22 +284,22 @@ class CreateAksStepTest extends BaseStepTest {
 
   private void setupParameterResolver() {
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name()))
         .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name()))
         .thenReturn("1");
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
         .thenReturn("false");
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name()))
         .thenReturn(costSavingsSpotNodesEnabled);
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()))
         .thenReturn(costSavingsVpaEnabled);
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
         .thenReturn("00000000-0000-0000-0000-000000000000");
   }
 
@@ -371,10 +371,10 @@ class CreateAksStepTest extends BaseStepTest {
 
   private void setupCostSavingK8sMocks() {
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()))
         .thenReturn("10");
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
+            LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
         .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
     KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
     when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);

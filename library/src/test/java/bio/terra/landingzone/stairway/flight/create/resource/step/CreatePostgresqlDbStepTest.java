@@ -12,11 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
@@ -329,23 +329,23 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
       String backupRetention,
       String storageSize) {
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name()))
+            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_VERSION.name()))
         .thenReturn(serverVersion.toString());
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name()))
+            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU.name()))
         .thenReturn(postgresqlSku);
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
+            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
         .thenReturn(skuTier.toString());
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
+            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
                 .name()))
         .thenReturn(backupRetention);
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name()))
+            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name()))
         .thenReturn(storageSize);
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))
+            LandingZoneDefaultParameters.ParametersNames.ENABLE_PGBOUNCER.name()))
         .thenReturn("true");
   }
 

@@ -1,8 +1,8 @@
 package bio.terra.landingzone.library.landingzones.definition.factories.validation;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.exception.InvalidInputParameterException;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import com.azure.resourcemanager.storage.models.SkuName;
 import java.util.Optional;
 import java.util.Set;
@@ -25,12 +25,12 @@ public class StorageAccountSkuTypeValidator implements InputParameterValidator {
   private Optional<String> validateStorageAccountSkuType(ParametersResolver parametersResolver) {
     String value =
         parametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name());
+            LandingZoneDefaultParameters.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name());
 
     Set<String> acceptedValues = getAcceptedValues();
     String errorMessage =
         buildErrorMessage(
-            CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE,
+            LandingZoneDefaultParameters.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE,
             String.format(" Accepted values: [%s].", String.join(",", acceptedValues)));
 
     return acceptedValues.contains(value) ? Optional.empty() : Optional.of(errorMessage);

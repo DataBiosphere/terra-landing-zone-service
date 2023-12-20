@@ -2,11 +2,11 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -98,21 +98,21 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
           .withVersion(
               ServerVersion.fromString(
                   parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_VERSION.name())))
+                      LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_VERSION.name())))
           .withSku(
               new Sku()
                   .withName(
                       parametersResolver.getValue(
-                          CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU.name()))
+                          LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU.name()))
                   .withTier(
                       SkuTier.fromString(
                           parametersResolver.getValue(
-                              CromwellBaseResourcesFactory.ParametersNames.POSTGRES_SERVER_SKU_TIER
+                              LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU_TIER
                                   .name()))))
           .withNetwork(
               new Network()
                   .withDelegatedSubnetResourceId(
-                      vNetId + "/subnets/" + CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET)
+                      vNetId + "/subnets/" + LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET)
                   .withPrivateDnsZoneArmResourceId(dnsId))
           .withAuthConfig(
               new AuthConfig()
@@ -124,7 +124,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   .withBackupRetentionDays(
                       Integer.parseInt(
                           parametersResolver.getValue(
-                              CromwellBaseResourcesFactory.ParametersNames
+                              LandingZoneDefaultParameters.ParametersNames
                                   .POSTGRES_SERVER_BACKUP_RETENTION_DAYS
                                   .name()))))
           .withCreateMode(CreateMode.DEFAULT)
@@ -134,7 +134,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   .withStorageSizeGB(
                       Integer.parseInt(
                           parametersResolver.getValue(
-                              CromwellBaseResourcesFactory.ParametersNames
+                              LandingZoneDefaultParameters.ParametersNames
                                   .POSTGRES_SERVER_STORAGE_SIZE_GB
                                   .name()))))
           .withTags(
@@ -145,7 +145,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   ResourcePurpose.SHARED_RESOURCE.toString(),
                   LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(),
                   parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name())))
+                      LandingZoneDefaultParameters.ParametersNames.ENABLE_PGBOUNCER.name())))
           .create();
     } catch (ManagementException e) {
       // resource may already exist if this step is being retried
@@ -189,7 +189,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
     // server
     if (Boolean.parseBoolean(
         parametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.ENABLE_PGBOUNCER.name()))) {
+            LandingZoneDefaultParameters.ParametersNames.ENABLE_PGBOUNCER.name()))) {
       LinkedHashMap<String, String> params = new LinkedHashMap<>();
       params.put("pgbouncer.enabled", "true");
       params.put("metrics.pgbouncer_diagnostics", "on");
