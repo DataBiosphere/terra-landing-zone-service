@@ -180,6 +180,7 @@ public class DeleteLandingZoneResourcesStepTest {
         "fake",
         "fake",
         UUID.randomUUID(),
+        null,
         OffsetDateTime.now(),
         Optional.empty(),
         Optional.empty(),

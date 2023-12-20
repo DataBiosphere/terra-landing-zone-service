@@ -20,6 +20,7 @@ public record LandingZoneRecord(
     String subscriptionId,
     String tenantId,
     UUID billingProfileId,
+    String region,
     OffsetDateTime createdDate,
     Optional<String> displayName,
     Optional<String> description,
@@ -38,6 +39,7 @@ public record LandingZoneRecord(
     private String subscriptionId;
     private String tenantId;
     private UUID billingProfileId;
+    private String region;
     private @Nullable String displayName;
     private @Nullable String description;
     private OffsetDateTime createdDate;
@@ -93,6 +95,11 @@ public record LandingZoneRecord(
       return this;
     }
 
+    public Builder region(String region) {
+      this.region = region;
+      return this;
+    }
+
     public Builder createdDate(OffsetDateTime createdDate) {
       this.createdDate = createdDate;
       return this;
@@ -112,6 +119,10 @@ public record LandingZoneRecord(
       if (landingZoneId == null) {
         throw new MissingRequiredFieldsException("Landing zone requires id");
       }
+      if (region == null) {
+        region = "";
+      }
+
       return new LandingZoneRecord(
           landingZoneId,
           resourceGroupId,
@@ -120,6 +131,7 @@ public record LandingZoneRecord(
           subscriptionId,
           tenantId,
           billingProfileId,
+          region,
           createdDate,
           Optional.of(displayName),
           Optional.of(description),
