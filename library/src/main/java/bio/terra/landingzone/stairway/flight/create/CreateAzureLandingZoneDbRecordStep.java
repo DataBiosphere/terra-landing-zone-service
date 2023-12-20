@@ -4,7 +4,9 @@ import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
+import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
@@ -35,7 +37,8 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
     FlightUtils.validateRequiredEntries(
         inputMap,
         LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-        LandingZoneFlightMapKeys.LANDING_ZONE_ID);
+        LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+        GetManagedResourceGroupInfo.TARGET_MRG_KEY);
     var requestedExternalLandingZoneResource =
         inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
     var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -52,6 +55,12 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
         LandingZoneRecord.builder()
             .landingZoneId(landingZoneId)
             .definition(requestedExternalLandingZoneResource.definition())
+            .region(
+                workingMap
+                    .get(
+                        GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+                        TargetManagedResourceGroup.class)
+                    .region())
             .version(requestedExternalLandingZoneResource.version())
             .description(
                 String.format(
