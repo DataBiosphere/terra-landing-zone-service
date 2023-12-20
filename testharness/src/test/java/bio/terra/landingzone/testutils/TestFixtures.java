@@ -18,6 +18,7 @@ public class TestFixtures {
       String subscription,
       String tenant,
       UUID billingProfileId,
+      String region,
       OffsetDateTime createdDate) {
     return new LandingZoneRecord(
         landingZoneId,
@@ -27,6 +28,7 @@ public class TestFixtures {
         subscription,
         tenant,
         billingProfileId,
+        region,
         createdDate,
         Optional.of(displayName),
         Optional.of(description),
