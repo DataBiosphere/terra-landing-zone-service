@@ -26,6 +26,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   private static final String VERSION = "v1";
   private static final String DISPLAY_NAME = "lzDisplayName";
   private static final String DESCRIPTION = "lzDescription";
+  private static final String REGION = "eastus";
   private static final Map<String, String> properties = Map.of("key1", "value1");
   private static final OffsetDateTime CREATED_DATE = Instant.now().atOffset(ZoneOffset.UTC);
   @Autowired private LandingZoneDao landingZoneDao;
@@ -43,6 +44,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -71,6 +73,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -114,6 +117,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE);
       landingZoneDao.createLandingZone(lz);
 
@@ -150,6 +154,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
             SUBSCRIPTION,
             TENANT,
             BILLING_PROFILE,
+            REGION,
             CREATED_DATE);
     landingZoneDao.createLandingZone(lz);
 
@@ -169,6 +174,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -218,6 +224,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -231,6 +238,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               UUID.randomUUID(),
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -275,6 +283,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
