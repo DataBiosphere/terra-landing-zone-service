@@ -1,0 +1,16 @@
+# The schema for a landing zone
+databaseChangeLog:
+  - changeSet:
+      id: add region field.
+      changes:
+        - addColumn:
+            tableName: landingzone
+            columns:
+              - column:
+                  name: region
+                  type: text
+                  # constraints:
+                  #  nullable: false
+                  # defaultValue: "00000000-0000-0000-0000-000000000000"
+                  # remarks: |
+                    # region of a landing zone.
