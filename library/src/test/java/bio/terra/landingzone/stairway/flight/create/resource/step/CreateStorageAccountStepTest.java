@@ -38,6 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class CreateStorageAccountStepTest extends BaseStepTest {
+
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final String STORAGE_ACCOUNT_ID = "storageAccountId";
   private static final String STORAGE_ACCOUNT_NAME = "testStorageAccount";
@@ -56,8 +57,7 @@ class CreateStorageAccountStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createStorageAccountStep =
-        new CreateStorageAccountStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+        new CreateStorageAccountStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
@@ -77,7 +77,11 @@ class CreateStorageAccountStepTest extends BaseStepTest {
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
+        Map.of(
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStep(STORAGE_ACCOUNT_ID, STORAGE_ACCOUNT_NAME, mrg.region(), mrg.name());
 
     var stepResult = createStorageAccountStep.doStep(mockFlightContext);

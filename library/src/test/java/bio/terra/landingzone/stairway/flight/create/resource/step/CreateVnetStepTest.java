@@ -66,8 +66,7 @@ class CreateVnetStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createVnetStep =
-        new CreateVnetStep(mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    createVnetStep = new CreateVnetStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
@@ -87,7 +86,9 @@ class CreateVnetStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             ResourceStepFixture.createDefaultMrg(),
             CreateNetworkSecurityGroupStep.NSG_ID,
-            "nsgId"));
+            "nsgId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupParameterResolver();
 
     var network = mock(Network.class);

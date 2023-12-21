@@ -7,6 +7,7 @@ import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
+import bio.terra.landingzone.stairway.flight.ParametersResolverProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
@@ -30,6 +31,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep
 import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerLogV2Step;
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetParametersResolver;
 import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
 import bio.terra.stairway.RetryRule;
@@ -61,82 +63,63 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
   @Override
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
-      ParametersResolver parametersResolver,
+      ParametersResolverProvider parametersResolverProvider,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     return List.of(
         Pair.of(
+            new GetManagedResourceGroupInfo(armManagers),
+            RetryRules
+                .cloud()), // todo: maybe move this before the parameter validation to avoid having
+        // to pass all regional defaults into parameterResolvers?
+        Pair.of(new GetParametersResolver(parametersResolverProvider), RetryRules.shortDatabase()),
+        Pair.of(
             new ValidateLandingZoneParametersStep(
                 InputParametersValidationFactory.buildValidators(
-                    StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE),
-                parametersResolver),
+                    StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE)),
             RetryRules.shortExponential()),
-        Pair.of(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud()),
         Pair.of(
-            new CreateNetworkSecurityGroupStep(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateNetworkSecurityGroupStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(new CreateVnetStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateLogAnalyticsWorkspaceStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(new CreatePostgresqlDNSStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateVirtualNetworkLinkStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateVnetStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateLandingZoneIdentityStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(new CreatePostgresqlDbStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAccountStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(new CreateBatchAccountStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAccountCorsRules(armManagers, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateLogAnalyticsWorkspaceStep(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateLogAnalyticsDataCollectionRulesStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
-        Pair.of(
-            new CreatePostgresqlDNSStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateVirtualNetworkLinkStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateLandingZoneIdentityStep(
-                armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreatePostgresqlDbStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAccountStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateBatchAccountStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAccountCorsRules(
-                armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateLogAnalyticsDataCollectionRulesStep(
-                armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateAksStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
+        Pair.of(new CreateAksStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(
             new CreateLandingZoneFederatedIdentityStep(
                 armManagers, new KubernetesClientProviderImpl()),
             RetryRules.cloud()),
         Pair.of(
-            new CreateRelayNamespaceStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateRelayNamespaceStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAuditLogSettingsStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateStorageAuditLogSettingsStep(
-                armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
+            new CreateBatchLogSettingsStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(
-            new CreateBatchLogSettingsStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreatePostgresLogSettingsStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
+        Pair.of(new CreateAppInsightsStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(
-            new CreatePostgresLogSettingsStep(
-                armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateAksCostOptimizationDataCollectionRulesStep(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateAksCostOptimizationDataCollectionRulesStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
             new EnableAksContainerLogV2Step(

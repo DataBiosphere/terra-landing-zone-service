@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
 import bio.terra.landingzone.stairway.flight.exception.ResourceNameGenerationException;
 import bio.terra.stairway.FlightContext;
@@ -67,8 +66,7 @@ class ResourceNameProviderTest {
   private static BaseResourceCreateStep createDummyStep(
       ResourceNameProvider resourceNameProvider,
       ResourceNameRequirements resourceNameRequirements) {
-    return new BaseResourceCreateStep(
-        mock(ArmManagers.class), mock(ParametersResolver.class), resourceNameProvider) {
+    return new BaseResourceCreateStep(mock(ArmManagers.class), resourceNameProvider) {
       @Override
       public List<ResourceNameRequirements> getResourceNameRequirements() {
         return List.of(

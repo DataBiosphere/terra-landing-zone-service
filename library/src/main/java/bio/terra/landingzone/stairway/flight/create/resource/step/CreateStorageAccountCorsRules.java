@@ -21,10 +21,8 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateStorageAccountCorsRules.class);
 
   public CreateStorageAccountCorsRules(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
@@ -33,7 +31,7 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
         getParameterOrThrow(
             context.getWorkingMap(), LandingZoneFlightMapKeys.STORAGE_ACCOUNT_NAME, String.class);
 
-    var corsRules = buildStorageAccountBlobServiceCorsRules(parametersResolver);
+    var corsRules = buildStorageAccountBlobServiceCorsRules(getParametersResolver(context));
     var rules =
         armManagers
             .azureResourceManager()

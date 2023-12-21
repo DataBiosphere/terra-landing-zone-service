@@ -90,9 +90,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createPostgresqlDbStep =
-        new CreatePostgresqlDbStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    createPostgresqlDbStep = new CreatePostgresqlDbStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
@@ -124,7 +122,9 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
             LandingZoneResource.builder().resourceName(adminName).build(),
             CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_PRINCIPAL_ID,
-            adminPrincipalId));
+            adminPrincipalId,
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStep(
         POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name(), adminPrincipalId, adminName);
 
@@ -214,7 +214,9 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
             LandingZoneResource.builder().resourceName(adminName).build(),
             CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_PRINCIPAL_ID,
-            adminPrincipalId));
+            adminPrincipalId,
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
 
     setupMocksForDefaultValues(serverVersion, postgresqlSku, skuTier, backupRetention, storageSize);
 

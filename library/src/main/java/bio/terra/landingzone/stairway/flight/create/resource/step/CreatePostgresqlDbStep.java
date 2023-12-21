@@ -46,10 +46,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   public static final String POSTGRESQL_RESOURCE_KEY = "POSTGRESQL";
 
   public CreatePostgresqlDbStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
@@ -58,7 +56,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
     var postgres = createServer(context, armManagers, postgresName);
 
-    enablePgBouncer(getMRGName(context), postgresName);
+    enablePgBouncer(getMRGName(context), postgresName, getParametersResolver(context));
 
     createAdminUser(context, armManagers, postgresName);
 
@@ -97,18 +95,24 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
           .withExistingResourceGroup(getMRGName(context))
           .withVersion(
               ServerVersion.fromString(
-                  parametersResolver.getValue(
-                      LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_VERSION.name())))
+                  getParametersResolver(context)
+                      .getValue(
+                          LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_VERSION
+                              .name())))
           .withSku(
               new Sku()
                   .withName(
-                      parametersResolver.getValue(
-                          LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU.name()))
+                      getParametersResolver(context)
+                          .getValue(
+                              LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU
+                                  .name()))
                   .withTier(
                       SkuTier.fromString(
-                          parametersResolver.getValue(
-                              LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU_TIER
-                                  .name()))))
+                          getParametersResolver(context)
+                              .getValue(
+                                  LandingZoneDefaultParameters.ParametersNames
+                                      .POSTGRES_SERVER_SKU_TIER
+                                      .name()))))
           .withNetwork(
               new Network()
                   .withDelegatedSubnetResourceId(
@@ -123,20 +127,22 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   .withGeoRedundantBackup(GeoRedundantBackupEnum.DISABLED)
                   .withBackupRetentionDays(
                       Integer.parseInt(
-                          parametersResolver.getValue(
-                              LandingZoneDefaultParameters.ParametersNames
-                                  .POSTGRES_SERVER_BACKUP_RETENTION_DAYS
-                                  .name()))))
+                          getParametersResolver(context)
+                              .getValue(
+                                  LandingZoneDefaultParameters.ParametersNames
+                                      .POSTGRES_SERVER_BACKUP_RETENTION_DAYS
+                                      .name()))))
           .withCreateMode(CreateMode.DEFAULT)
           .withHighAvailability(new HighAvailability().withMode(HighAvailabilityMode.DISABLED))
           .withStorage(
               new Storage()
                   .withStorageSizeGB(
                       Integer.parseInt(
-                          parametersResolver.getValue(
-                              LandingZoneDefaultParameters.ParametersNames
-                                  .POSTGRES_SERVER_STORAGE_SIZE_GB
-                                  .name()))))
+                          getParametersResolver(context)
+                              .getValue(
+                                  LandingZoneDefaultParameters.ParametersNames
+                                      .POSTGRES_SERVER_STORAGE_SIZE_GB
+                                      .name()))))
           .withTags(
               Map.of(
                   LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
@@ -144,8 +150,9 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                   LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
                   ResourcePurpose.SHARED_RESOURCE.toString(),
                   LandingZoneTagKeys.PGBOUNCER_ENABLED.toString(),
-                  parametersResolver.getValue(
-                      LandingZoneDefaultParameters.ParametersNames.ENABLE_PGBOUNCER.name())))
+                  getParametersResolver(context)
+                      .getValue(
+                          LandingZoneDefaultParameters.ParametersNames.ENABLE_PGBOUNCER.name())))
           .create();
     } catch (ManagementException e) {
       // resource may already exist if this step is being retried
@@ -184,7 +191,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
         .create();
   }
 
-  private void enablePgBouncer(String mrgName, String postgresName) {
+  private void enablePgBouncer(
+      String mrgName, String postgresName, ParametersResolver parametersResolver) {
     // Note: azure sdk does not allow this to be done with one call, let alone while creating the
     // server
     if (Boolean.parseBoolean(

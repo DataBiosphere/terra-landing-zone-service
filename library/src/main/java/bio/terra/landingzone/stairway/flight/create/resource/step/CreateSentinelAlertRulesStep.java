@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -30,11 +29,10 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
 
   public CreateSentinelAlertRulesStep(
       ArmManagers armManagers,
-      ParametersResolver parametersResolver,
       ResourceNameProvider resourceNameProvider,
       AlertRulesHelper alertRuleAdapter,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+    super(armManagers, resourceNameProvider);
     this.alertRulesHelper = alertRuleAdapter;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }

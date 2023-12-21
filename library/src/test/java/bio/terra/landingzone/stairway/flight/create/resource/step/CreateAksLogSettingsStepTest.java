@@ -65,10 +65,7 @@ public class CreateAksLogSettingsStepTest extends BaseStepTest {
   void setup() {
     createAksLogSettingsStep =
         new CreateAksLogSettingsStep(
-            mockArmManagers,
-            mockParametersResolver,
-            mockResourceNameProvider,
-            mockLandingZoneProtectedDataConfiguration);
+            mockArmManagers, mockResourceNameProvider, mockLandingZoneProtectedDataConfiguration);
   }
 
   @Test

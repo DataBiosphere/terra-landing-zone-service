@@ -71,9 +71,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createAppInsightsStep =
-        new CreateAppInsightsStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    createAppInsightsStep = new CreateAppInsightsStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

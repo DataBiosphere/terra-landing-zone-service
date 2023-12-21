@@ -19,7 +19,6 @@ import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -43,8 +42,7 @@ class ValidateLandingZoneParametersStepTest {
     var validator = mock(InputParameterValidator.class);
     doNothing().when(validator).validate(any());
     List<InputParameterValidator> validators = List.of(validator);
-    validateLandingZoneParametersStep =
-        new ValidateLandingZoneParametersStep(validators, mockParametersResolver);
+    validateLandingZoneParametersStep = new ValidateLandingZoneParametersStep(validators);
 
     StepResult stepResult = validateLandingZoneParametersStep.doStep(mockFlightContext);
 
@@ -57,8 +55,7 @@ class ValidateLandingZoneParametersStepTest {
     var validator = mock(InputParameterValidator.class);
     doThrow(InvalidInputParameterException.class).when(validator).validate(any());
     List<InputParameterValidator> validators = List.of(validator);
-    validateLandingZoneParametersStep =
-        new ValidateLandingZoneParametersStep(validators, mockParametersResolver);
+    validateLandingZoneParametersStep = new ValidateLandingZoneParametersStep(validators);
 
     StepResult stepResult = validateLandingZoneParametersStep.doStep(mockFlightContext);
 
@@ -71,16 +68,12 @@ class ValidateLandingZoneParametersStepTest {
 
   @ParameterizedTest
   @MethodSource("initializationParameters")
-  void testInitialization(
-      List<InputParameterValidator> validators, ParametersResolver parametersResolver) {
+  void testInitialization(List<InputParameterValidator> validators) {
     assertThrows(
-        NullPointerException.class,
-        () -> new ValidateLandingZoneParametersStep(validators, parametersResolver));
+        NullPointerException.class, () -> new ValidateLandingZoneParametersStep(validators));
   }
 
   private static Stream<Arguments> initializationParameters() {
-    return Stream.of(
-        Arguments.of(List.of(new BlobCorsParametersValidator()), null),
-        Arguments.of(null, new ParametersResolver(Map.of(), Map.of())));
+    return Stream.of(Arguments.of(List.of(new BlobCorsParametersValidator())), Arguments.of(null));
   }
 }

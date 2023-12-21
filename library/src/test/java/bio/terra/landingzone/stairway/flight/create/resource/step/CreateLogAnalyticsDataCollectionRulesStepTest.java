@@ -69,8 +69,7 @@ class CreateLogAnalyticsDataCollectionRulesStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createLogAnalyticsDataCollectionRulesStep =
-        new CreateLogAnalyticsDataCollectionRulesStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+        new CreateLogAnalyticsDataCollectionRulesStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

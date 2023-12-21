@@ -56,6 +56,7 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class CreateAksStepTest extends BaseStepTest {
+
   private static final String RESOURCE_ID = "aksId";
 
   @Mock private KubernetesClusters mockKubernetesClusters;
@@ -90,7 +91,7 @@ class CreateAksStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateAksStep(mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    testStep = new CreateAksStep(mockArmManagers, mockResourceNameProvider);
     testStep.denySleepWhilePoolingForAksStatus();
   }
 
@@ -115,7 +116,9 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStep();
 
     var stepResult = testStep.doStep(mockFlightContext);
@@ -132,6 +135,7 @@ class CreateAksStepTest extends BaseStepTest {
   void testCostSavingSpotNodesInStep() throws InterruptedException {
     costSavingsSpotNodesEnabled = "true";
     setupCostSavingLZ();
+    setupParameterResolver();
     setupCostSavingK8sMocks();
 
     var stepResult = testStep.doStep(mockFlightContext);
@@ -227,7 +231,9 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStepRetryWhenAksIsNotProvisionedYet();
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -261,7 +267,9 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStepRetryWhenAksIsAlreadyProvisioned();
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -365,7 +373,9 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStep();
   }
 

@@ -155,44 +155,43 @@ public class BlobCorsParametersValidatorTest {
       String allowedHeaders,
       String exposedHeaders,
       String maxAge) {
-    Map<String, String> inputParameters = new HashMap<>();
+    Map<String, String> parameters = new HashMap<>(Map.of(
+        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
+        STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
+        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS.name(),
+        STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
+        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS.name(),
+        STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
+        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS.name(),
+        STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
+        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
+        STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT));
     if (allowedOrigins != null) {
-      inputParameters.put(
+      parameters.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
           allowedOrigins);
     }
     if (allowedMethods != null) {
-      inputParameters.put(
+      parameters.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS.name(),
           allowedMethods);
     }
     if (allowedHeaders != null) {
-      inputParameters.put(
+      parameters.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS.name(),
           allowedHeaders);
     }
     if (exposedHeaders != null) {
-      inputParameters.put(
+      parameters.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS.name(),
           exposedHeaders);
     }
     if (maxAge != null) {
-      inputParameters.put(
+      parameters.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(), maxAge);
     }
-    return new ParametersResolver(
-        inputParameters,
-        Map.of(
-            StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
-            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
-            StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS.name(),
-            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
-            StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS.name(),
-            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
-            StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS.name(),
-            STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
-            StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
-            STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT));
+
+    return new ParametersResolver(parameters);
   }
 
   static Stream<Arguments> maxAgeValueValidSupplier() {
