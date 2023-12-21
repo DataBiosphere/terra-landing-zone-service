@@ -107,6 +107,9 @@ jobs:
       - name: Integration Test with coverage
         run: ./gradlew --build-cache library:integration --scan
 
+      - name: Service Tests with coverage
+        run: ./gradlew --build-cache service:test --scan
+
       - name: Upload Test Harness Test Reports
         uses: actions/upload-artifact@v1
         if: always()
