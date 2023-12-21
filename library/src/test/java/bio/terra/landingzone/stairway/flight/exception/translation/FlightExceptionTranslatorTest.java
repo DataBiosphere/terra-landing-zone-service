@@ -31,6 +31,23 @@ class FlightExceptionTranslatorTest {
   }
 
   @Test
+  void successfullyTranslateFlexiblePostgresRegionRestrictionException() {
+    var flightException = ExceptionFixtures.createFlexiblePostgresRegionRestrictionException();
+
+    flightExceptionTranslator = new FlightExceptionTranslator(flightException);
+    var translatedException = flightExceptionTranslator.translate();
+
+    assertTrue(translatedException instanceof LandingZoneCreateException);
+    assertEquals(flightException, translatedException.getCause());
+    assertTrue(
+        translatedException
+            .getMessage()
+            .contains(
+                FlexiblePostgresRegionRestrictedOfferExceptionRule
+                    .FLEXIBLE_POSTGRES_REGION_RESTRICTION_MESSAGE_MARKER));
+  }
+
+  @Test
   void originalExceptionIsNotMatched() {
     var flightException = ExceptionFixtures.createNonMatchingManagementException();
 
