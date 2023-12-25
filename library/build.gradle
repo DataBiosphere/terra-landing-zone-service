@@ -43,7 +43,7 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.33.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-network', version: '2.34.0'
 
     // at commit time, azure-resourcemanager-monitor v2.20.0 is the latest but starting with v2.19.0
     // attributes of com.azure.resourcemanager.monitor.fluent.models.DataCollectionRuleResourceInner
