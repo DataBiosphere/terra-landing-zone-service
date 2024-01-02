@@ -583,6 +583,7 @@ public class LandingZoneService {
             .billingProfileId(landingZoneRecord.billingProfileId())
             .definition(landingZoneRecord.definition())
             .version(landingZoneRecord.version())
+            .region(landingZoneRecord.region())
             .createdDate(landingZoneRecord.createdDate())
             .build();
   }

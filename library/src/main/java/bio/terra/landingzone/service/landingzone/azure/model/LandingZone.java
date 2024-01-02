@@ -10,6 +10,7 @@ public record LandingZone(
     UUID billingProfileId,
     String definition,
     String version,
+    String region,
     OffsetDateTime createdDate) {
 
   public static Builder builder() {
@@ -21,6 +22,7 @@ public record LandingZone(
     private String version;
     private UUID landingZoneId;
     private UUID billingProfileId;
+    private String region;
     private OffsetDateTime createdDate;
 
     public Builder landingZoneId(UUID landingZoneId) {
@@ -40,6 +42,11 @@ public record LandingZone(
 
     public Builder version(String version) {
       this.version = version;
+      return this;
+    }
+
+    public Builder region(String region) {
+      this.region = region;
       return this;
     }
 
@@ -63,7 +70,8 @@ public record LandingZone(
       if (StringUtils.isBlank(version)) {
         throw new MissingRequiredFieldsException("Azure landing zone record requires version");
       }
-      return new LandingZone(landingZoneId, billingProfileId, definition, version, createdDate);
+      return new LandingZone(
+          landingZoneId, billingProfileId, definition, version, region, createdDate);
     }
   }
 }
