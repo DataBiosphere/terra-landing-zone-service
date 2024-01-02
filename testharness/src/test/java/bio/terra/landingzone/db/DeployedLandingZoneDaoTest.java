@@ -88,6 +88,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, lz.version());
       assertEquals(SUBSCRIPTION, lz.subscriptionId());
       assertEquals(TENANT, lz.tenantId());
+      assertEquals(REGION, lz.region());
       assertEquals(BILLING_PROFILE, lz.billingProfileId());
       assertEquals(DISPLAY_NAME, lz.displayName().get());
       assertEquals(DESCRIPTION, lz.description().get());
@@ -196,6 +197,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, records.get(0).version());
       assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
       assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(REGION, records.get(0).region());
       assertEquals(BILLING_PROFILE, records.get(0).billingProfileId());
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());
@@ -306,6 +308,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, records.get(0).version());
       assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
       assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(REGION, records.get(0).region());
       assertEquals(BILLING_PROFILE, records.get(0).billingProfileId());
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());
