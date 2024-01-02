@@ -35,11 +35,11 @@ dependencies {
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.1'
 
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-compute', version: '2.34.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.33.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerinstance', version: '2.34.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-containerservice', version: '2.34.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-msi', version: '2.34.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.33.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-resources', version: '2.34.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0'
@@ -50,7 +50,7 @@ dependencies {
     // are missing making creation of DataCollectionRules impossible via java client lib
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-monitor', version: '2.34.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.33.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.34.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
     implementation group: "io.kubernetes", name: "client-java", version: "19.0.0"
