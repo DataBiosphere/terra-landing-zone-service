@@ -36,6 +36,7 @@ public class LandingZoneDao {
   private static final String RESOURCE_GROUP = "resource_group";
   private static final String TENANT_ID = "tenant_id";
   private static final String BILLING_PROFILE_ID = "billing_profile_id";
+  private static final String REGION = "region";
   private static final String DEFINITION_ID = "definition_id";
   private static final String DEFINITION_VERSION_ID = "definition_version_id";
   private static final String DISPLAY_NAME = "display_name";
@@ -65,8 +66,8 @@ public class LandingZoneDao {
       transactionManager = "tlzTransactionManager")
   public UUID createLandingZone(LandingZoneRecord landingzone) {
     final String sql =
-        "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, created_date, definition_id, definition_version_id, display_name, description, properties) "
-            + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :billing_profile_id, :created_date, :definition_id, :definition_version_id, :display_name, :description,"
+        "INSERT INTO landingzone (landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, region, created_date, definition_id, definition_version_id, display_name, description, properties) "
+            + "values (:landingzone_id, :resource_group, :subscription_id, :tenant_id, :billing_profile_id, :region, :created_date, :definition_id, :definition_version_id, :display_name, :description,"
             + " cast(:properties AS jsonb))";
 
     final String landingZoneUuid = landingzone.landingZoneId().toString();
@@ -79,6 +80,7 @@ public class LandingZoneDao {
             .addValue(SUBSCRIPTION_ID, landingzone.subscriptionId())
             .addValue(TENANT_ID, landingzone.tenantId())
             .addValue(BILLING_PROFILE_ID, billingProfileUuid)
+            .addValue(REGION, landingzone.region())
             .addValue(CREATED_DATE, landingzone.createdDate())
             .addValue(DEFINITION_ID, landingzone.definition())
             .addValue(DEFINITION_VERSION_ID, landingzone.version())
@@ -229,6 +231,7 @@ public class LandingZoneDao {
               .subscriptionId(rs.getString(SUBSCRIPTION_ID))
               .tenantId(rs.getString(TENANT_ID))
               .billingProfileId(UUID.fromString(rs.getString(BILLING_PROFILE_ID)))
+              .region(rs.getString(REGION))
               .createdDate(
                   OffsetDateTime.ofInstant(
                       rs.getTimestamp(CREATED_DATE).toInstant(), ZoneOffset.UTC))
