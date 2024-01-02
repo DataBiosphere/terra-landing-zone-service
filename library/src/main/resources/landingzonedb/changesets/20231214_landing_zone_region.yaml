@@ -9,8 +9,5 @@ databaseChangeLog:
               - column:
                   name: region
                   type: text
-                  # constraints:
-                  #  nullable: false
-                  # defaultValue: "00000000-0000-0000-0000-000000000000"
-                  # remarks: |
-                    # region of a landing zone.
+                  remarks: |
+                    Region of a landing zone.
