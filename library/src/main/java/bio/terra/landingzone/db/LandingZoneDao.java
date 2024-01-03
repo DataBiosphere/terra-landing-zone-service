@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LandingZoneDao {
   /** SQL query for reading landing zone records. */
   private static final String LANDINGZONE_SELECT_SQL =
-      "SELECT landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, definition_id, definition_version_id, display_name, description, created_date, properties"
+      "SELECT landingzone_id, resource_group, subscription_id, tenant_id, billing_profile_id, region, definition_id, definition_version_id, display_name, description, created_date, properties"
           + " FROM landingzone";
 
   // Landing Zones table fields
