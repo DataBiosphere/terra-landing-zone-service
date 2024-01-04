@@ -6,5 +6,5 @@ import java.util.List;
 public interface LandingZoneDefinitionFactoryListProvider {
   List<FactoryDefinitionInfo> listFactories();
 
-  List<Class<? extends LandingZoneDefinitionFactory>> listFactoriesClasses();
+  List<Class<? extends StepsDefinitionProvider>> listFactoriesClasses();
 }

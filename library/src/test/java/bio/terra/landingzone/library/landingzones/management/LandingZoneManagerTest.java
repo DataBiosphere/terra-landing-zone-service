@@ -6,11 +6,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionProvider;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
 import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.List;
 import java.util.UUID;
@@ -28,9 +25,6 @@ class LandingZoneManagerTest {
   private static final String STUB_LZ_ID = UUID.randomUUID().toString();
   private LandingZoneManager landingZoneManager;
 
-  @Mock private LandingZoneDefinitionProvider landingZoneDefinitionProvider;
-  @Mock private LandingZoneDeployments landingZoneDeployments;
-  @Mock private AzureResourceManager resourceManager;
   @Mock private ResourceGroup resourceGroup;
   @Mock private ResourcesReader resourceReader;
   @Mock private QuotaProvider quotaProvider;
@@ -39,14 +33,7 @@ class LandingZoneManagerTest {
   @BeforeEach
   void setUp() {
     landingZoneManager =
-        new LandingZoneManager(
-            landingZoneDefinitionProvider,
-            landingZoneDeployments,
-            resourceManager,
-            resourceGroup,
-            resourceReader,
-            quotaProvider,
-            deleteManager);
+        new LandingZoneManager(resourceGroup, resourceReader, quotaProvider, deleteManager);
   }
 
   @Test

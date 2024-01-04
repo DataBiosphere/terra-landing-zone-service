@@ -1,14 +1,23 @@
-package bio.terra.landingzone.stairway.flight;
+package bio.terra.landingzone.library.landingzones.definition.factories;
 
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
+import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public interface StepsDefinitionProvider {
+
+  String landingZoneDefinition();
+
+  DefinitionHeader header();
+
+  List<DefinitionVersion> availableVersions();
+
   /**
    * Returns list of required steps for LZ flight together with corresponding retry rule. Each step
    * creates one specific landing zone resource. Order of steps matters. If a resource1 has

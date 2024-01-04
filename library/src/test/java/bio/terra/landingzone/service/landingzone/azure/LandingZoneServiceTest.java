@@ -32,7 +32,7 @@ import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
-import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
+import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionProvider;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZonePurpose;
@@ -240,7 +240,7 @@ public class LandingZoneServiceTest {
 
   @Test
   void startLandingZoneCreationJob_ThrowsErrorWhenDefinitionDoesntExist() {
-    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
+    var mockFactory1 = mock(StepsDefinitionProvider.class);
     when(mockFactory1.availableVersions())
         .thenReturn(List.of(DefinitionVersion.V1, DefinitionVersion.V2));
 
@@ -407,7 +407,7 @@ public class LandingZoneServiceTest {
 
   @Test
   void listLandingZoneDefinitions_Success() {
-    var mockFactory1 = mock(LandingZoneDefinitionFactory.class);
+    var mockFactory1 = mock(StepsDefinitionProvider.class);
 
     List<FactoryDefinitionInfo> factories =
         List.of(

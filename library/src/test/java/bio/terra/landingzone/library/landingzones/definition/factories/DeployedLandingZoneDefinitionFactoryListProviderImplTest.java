@@ -24,7 +24,7 @@ class DeployedLandingZoneDefinitionFactoryListProviderImplTest {
             new FactoryDefinitionInfo(
                 TestLandingZoneFactory.LZ_NAME,
                 TestLandingZoneFactory.LZ_DESC,
-                TestLandingZoneFactory.class.getSimpleName(),
+                TestLandingZoneFactory.DEFINITION_NAME,
                 List.of(DefinitionVersion.V1))));
   }
 

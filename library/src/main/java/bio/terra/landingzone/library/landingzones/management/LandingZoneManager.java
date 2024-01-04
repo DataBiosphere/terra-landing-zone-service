@@ -3,8 +3,6 @@ package bio.terra.landingzone.library.landingzones.management;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactoryListProviderImpl;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeploymentsImpl;
 import bio.terra.landingzone.library.landingzones.management.deleterules.LandingZoneRuleDeleteException;
 import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
 import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
@@ -34,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 public class LandingZoneManager {
   private static final ClientLogger logger = new ClientLogger(LandingZoneManager.class);
   // private final LandingZoneDefinitionProvider landingZoneDefinitionProvider;
-  private final LandingZoneDeployments landingZoneDeployments;
-  private final AzureResourceManager resourceManager;
+  // private final LandingZoneDeployments landingZoneDeployments;
+  // private final AzureResourceManager resourceManager;
   private final ResourceGroup resourceGroup;
   private final ResourcesReader resourcesReader;
   private final QuotaProvider quotaProvider;
@@ -44,15 +42,15 @@ public class LandingZoneManager {
 
   LandingZoneManager(
       /*LandingZoneDefinitionProvider landingZoneDefinitionProvider,*/
-      LandingZoneDeployments landingZoneDeployments,
-      AzureResourceManager resourceManager,
+      /*LandingZoneDeployments landingZoneDeployments,*/
+      /*AzureResourceManager resourceManager,*/
       ResourceGroup resourceGroup,
       ResourcesReader resourcesReader,
       QuotaProvider quotaProvider,
       ResourcesDeleteManager resourcesDeleteManager) {
     // this.landingZoneDefinitionProvider = landingZoneDefinitionProvider;
-    this.landingZoneDeployments = landingZoneDeployments;
-    this.resourceManager = resourceManager;
+    // this.landingZoneDeployments = landingZoneDeployments;
+    // this.resourceManager = resourceManager;
     this.resourceGroup = resourceGroup;
     this.resourcesReader = resourcesReader;
     this.quotaProvider = quotaProvider;
@@ -78,8 +76,8 @@ public class LandingZoneManager {
     DeleteRulesVerifier deleteRulesVerifier = new DeleteRulesVerifier(armManagers);
     return new LandingZoneManager(
         /*new LandingZoneDefinitionProviderImpl(armManagers),*/
-        new LandingZoneDeploymentsImpl(),
-        armManagers.azureResourceManager(),
+        /*new LandingZoneDeploymentsImpl(),*/
+        /*armManagers.azureResourceManager(),*/
         resourceGroup,
         new ResourcesReaderImpl(armManagers.azureResourceManager(), resourceGroup),
         new QuotaProvider(armManagers),
@@ -240,9 +238,9 @@ public class LandingZoneManager {
     return resourcesReader;
   }
 
-  public LandingZoneDeployments deployments() {
-    return landingZoneDeployments;
-  }
+  //  public LandingZoneDeployments deployments() {
+  //    return landingZoneDeployments;
+  //  }
 
   //  public LandingZoneDefinitionProvider provider() {
   //    return landingZoneDefinitionProvider;

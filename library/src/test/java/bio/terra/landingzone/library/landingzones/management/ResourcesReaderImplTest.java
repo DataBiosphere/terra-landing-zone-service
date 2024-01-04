@@ -2,21 +2,10 @@ package bio.terra.landingzone.library.landingzones.management;
 
 import static org.awaitility.Awaitility.await;
 
-import bio.terra.landingzone.library.landingzones.TestArmResourcesFactory;
 import bio.terra.landingzone.library.landingzones.TestUtils;
-import bio.terra.landingzone.library.landingzones.definition.DefinitionContext;
-import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
-import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionFactory;
-import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionProvider;
-import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionProviderImpl;
-import bio.terra.landingzone.library.landingzones.definition.factories.TestLandingZoneFactory;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedSubnet;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedVNet;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployment.DefinitionStages.WithLandingZoneResource;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeploymentsImpl;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
@@ -25,62 +14,62 @@ import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("integration")
+// TODO: this test should be deleted
 class ResourcesReaderImplTest {
 
   private static String landingZoneId;
   private static AzureResourceManager azureResourceManager;
   private static ResourceGroup resourceGroup;
-  private static LandingZoneDefinitionFactory landingZoneFactory;
+  // private static LandingZoneDefinitionFactory landingZoneFactory;
 
-  private static LandingZoneDefinitionProvider landingZoneDefinitionProvider;
+  // private static LandingZoneDefinitionProvider landingZoneDefinitionProvider;
 
-  private static LandingZoneDeployments landingZoneDeployments;
+  // private static LandingZoneDeployments landingZoneDeployments;
 
-  private static WithLandingZoneResource landingZoneResourceDeployment;
+  // private static WithLandingZoneResource landingZoneResourceDeployment;
 
   private static List<DeployedResource> landingZoneResources;
   private static DeployedResource deployedStorage;
   private static DeployedVNet deployedVNet;
   private ResourcesReader resourcesReader;
 
-  @BeforeAll
-  static void setUpTestLandingZone() throws InterruptedException {
-    azureResourceManager = TestArmResourcesFactory.createArmClient();
-    resourceGroup = TestArmResourcesFactory.createTestResourceGroup(azureResourceManager);
-    landingZoneDeployments = new LandingZoneDeploymentsImpl();
-    landingZoneId = UUID.randomUUID().toString();
-    landingZoneResourceDeployment = landingZoneDeployments.define(landingZoneId);
+  // TODO: We already have integration test; We can adjust it and test Reader's functionality as
+  // well
 
-    landingZoneDefinitionProvider =
-        new LandingZoneDefinitionProviderImpl(TestArmResourcesFactory.createArmManagers());
-    landingZoneFactory =
-        landingZoneDefinitionProvider.createDefinitionFactory(TestLandingZoneFactory.class);
-    landingZoneResources =
-        landingZoneFactory
-            .create(DefinitionVersion.V1)
-            .definition(
-                new DefinitionContext(
-                    landingZoneId,
-                    landingZoneResourceDeployment,
-                    resourceGroup,
-                    new ResourceNameGenerator(landingZoneId),
-                    new HashMap<>()))
-            .deploy();
-    deployedStorage = getDeployedStorage();
-    deployedVNet = getDeployedVNet();
-    TimeUnit.SECONDS.sleep(20); // give some time for replication of tag data
-    Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
-  }
+  //  @BeforeAll
+  //  static void setUpTestLandingZone() throws InterruptedException {
+  //    azureResourceManager = TestArmResourcesFactory.createArmClient();
+  //    resourceGroup = TestArmResourcesFactory.createTestResourceGroup(azureResourceManager);
+  //    landingZoneDeployments = new LandingZoneDeploymentsImpl();
+  //    landingZoneId = UUID.randomUUID().toString();
+  //    landingZoneResourceDeployment = landingZoneDeployments.define(landingZoneId);
+  //
+  //    landingZoneDefinitionProvider =
+  //        new LandingZoneDefinitionProviderImpl(TestArmResourcesFactory.createArmManagers());
+  //    landingZoneFactory =
+  //        landingZoneDefinitionProvider.createDefinitionFactory(TestLandingZoneFactory.class);
+  //    landingZoneResources =
+  //        landingZoneFactory
+  //            .create(DefinitionVersion.V1)
+  //            .definition(
+  //                new DefinitionContext(
+  //                    landingZoneId,
+  //                    landingZoneResourceDeployment,
+  //                    resourceGroup,
+  //                    new ResourceNameGenerator(landingZoneId),
+  //                    new HashMap<>()))
+  //            .deploy();
+  //    deployedStorage = getDeployedStorage();
+  //    deployedVNet = getDeployedVNet();
+  //    TimeUnit.SECONDS.sleep(20); // give some time for replication of tag data
+  //    Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
+  //  }
 
   @AfterAll
   static void cleanUpArmResources() {
