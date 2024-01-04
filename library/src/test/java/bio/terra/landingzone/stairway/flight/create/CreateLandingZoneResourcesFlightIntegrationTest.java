@@ -484,6 +484,10 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
 
     await()
         .atMost(Duration.ofMinutes(LANDING_ZONE_RESOURCES_AVAILABLE_AWAIT_TIMEOUT_MINUTES))
+        .untilAsserted(() -> assertLandingZoneResourcesExisted(landingZoneId));
+
+    await()
+        .atMost(Duration.ofMinutes(LANDING_ZONE_RESOURCES_AVAILABLE_AWAIT_TIMEOUT_MINUTES))
         .untilAsserted(() -> assertLandingZoneSharedResourcesExisted(landingZoneId));
 
     // Step 2 - delete lz
@@ -549,8 +553,13 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
     assertThat(resources, hasSize(0));
   }
 
-  private void assertLandingZoneSharedResourcesExisted(UUID landingZoneId) {
+  private void assertLandingZoneResourcesExisted(UUID landingZoneId) {
     var resources = landingZoneManager.reader().listAllResources(landingZoneId.toString());
+    assertFalse(resources.isEmpty());
+  }
+
+  private void assertLandingZoneSharedResourcesExisted(UUID landingZoneId) {
+    var resources = landingZoneManager.reader().listSharedResources(landingZoneId.toString());
     assertFalse(resources.isEmpty());
   }
 }

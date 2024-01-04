@@ -1,6 +1,6 @@
 package bio.terra.landingzone.library.landingzones.definition.factories.validation;
 
-import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
+import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import java.util.List;
 
 public class InputParametersValidationFactory {

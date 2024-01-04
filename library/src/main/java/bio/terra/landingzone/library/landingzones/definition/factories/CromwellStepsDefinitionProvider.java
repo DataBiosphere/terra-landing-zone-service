@@ -8,7 +8,6 @@ import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
-import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;

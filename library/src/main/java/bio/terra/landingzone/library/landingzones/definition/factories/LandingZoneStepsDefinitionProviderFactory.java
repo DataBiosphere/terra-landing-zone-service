@@ -1,8 +1,4 @@
-package bio.terra.landingzone.stairway.flight;
-
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellStepsDefinitionProvider;
-import bio.terra.landingzone.library.landingzones.definition.factories.ProtectedDataStepsDefinitionProvider;
-import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionProvider;
+package bio.terra.landingzone.library.landingzones.definition.factories;
 
 public class LandingZoneStepsDefinitionProviderFactory {
   private LandingZoneStepsDefinitionProviderFactory() {}
