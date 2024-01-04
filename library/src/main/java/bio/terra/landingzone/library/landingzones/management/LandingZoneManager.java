@@ -31,9 +31,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class LandingZoneManager {
   private static final ClientLogger logger = new ClientLogger(LandingZoneManager.class);
-  // private final LandingZoneDefinitionProvider landingZoneDefinitionProvider;
-  // private final LandingZoneDeployments landingZoneDeployments;
-  // private final AzureResourceManager resourceManager;
   private final ResourceGroup resourceGroup;
   private final ResourcesReader resourcesReader;
   private final QuotaProvider quotaProvider;
@@ -41,16 +38,10 @@ public class LandingZoneManager {
   private final ResourcesDeleteManager resourcesDeleteManager;
 
   LandingZoneManager(
-      /*LandingZoneDefinitionProvider landingZoneDefinitionProvider,*/
-      /*LandingZoneDeployments landingZoneDeployments,*/
-      /*AzureResourceManager resourceManager,*/
       ResourceGroup resourceGroup,
       ResourcesReader resourcesReader,
       QuotaProvider quotaProvider,
       ResourcesDeleteManager resourcesDeleteManager) {
-    // this.landingZoneDefinitionProvider = landingZoneDefinitionProvider;
-    // this.landingZoneDeployments = landingZoneDeployments;
-    // this.resourceManager = resourceManager;
     this.resourceGroup = resourceGroup;
     this.resourcesReader = resourcesReader;
     this.quotaProvider = quotaProvider;
@@ -75,9 +66,6 @@ public class LandingZoneManager {
         armManagers.azureResourceManager().resourceGroups().getByName(resourceGroupName);
     DeleteRulesVerifier deleteRulesVerifier = new DeleteRulesVerifier(armManagers);
     return new LandingZoneManager(
-        /*new LandingZoneDefinitionProviderImpl(armManagers),*/
-        /*new LandingZoneDeploymentsImpl(),*/
-        /*armManagers.azureResourceManager(),*/
         resourceGroup,
         new ResourcesReaderImpl(armManagers.azureResourceManager(), resourceGroup),
         new QuotaProvider(armManagers),
@@ -147,38 +135,6 @@ public class LandingZoneManager {
     return landingZoneDefinitionListProvider.listFactories();
   }
 
-  //  public List<DeployedResource> deployLandingZone(
-  //      String landingZoneId,
-  //      String className,
-  //      DefinitionVersion version,
-  //      Map<String, String> parameters) {
-  //
-  //    return deployLandingZoneAsync(landingZoneId, className, version, parameters)
-  //        .collectList()
-  //        .block();
-  //  }
-  //
-  //  public Flux<DeployedResource> deployLandingZoneAsync(
-  //      String landingZoneId,
-  //      String className,
-  //      DefinitionVersion version,
-  //      Map<String, String> parameters) {
-  //
-  //    Class<? extends LandingZoneDefinitionFactory> factory = getFactoryFromClassName(className);
-  //    Objects.requireNonNull(factory, "Factory information can't be null");
-  //    Objects.requireNonNull(version, "Factory version can't be null");
-  //    if (StringUtils.isBlank(landingZoneId)) {
-  //      throw logger.logExceptionAsError(
-  //          new IllegalArgumentException("Landing Zone ID can't be null or blank"));
-  //    }
-  //
-  //    return landingZoneDefinitionProvider
-  //        .createDefinitionFactory(factory)
-  //        .create(version)
-  //        .definition(createNewDefinitionContext(landingZoneId, parameters))
-  //        .deployAsync();
-  //  }
-
   public List<String> deleteResources(String landingZoneId) throws LandingZoneRuleDeleteException {
     return resourcesDeleteManager
         .deleteLandingZoneResources(landingZoneId, resourceGroup.name())
@@ -186,26 +142,6 @@ public class LandingZoneManager {
         .map(HasId::id)
         .toList();
   }
-
-  //  private Class<? extends LandingZoneDefinitionFactory> getFactoryFromClassName(String
-  // className) {
-  //
-  //    return new LandingZoneDefinitionFactoryListProviderImpl()
-  //        .listFactoriesClasses().stream()
-  //            .filter(f -> f.getSimpleName().equals(className))
-  //            .findFirst()
-  //            .orElseThrow(() -> new RuntimeException("Invalid factory definition name"));
-  //  }
-
-  //  private DefinitionContext createNewDefinitionContext(
-  //      String landingZoneId, Map<String, String> parameters) {
-  //    return new DefinitionContext(
-  //        landingZoneId,
-  //        landingZoneDeployments.define(landingZoneId),
-  //        resourceGroup,
-  //        new ResourceNameGenerator(landingZoneId),
-  //        parameters);
-  //  }
 
   /**
    * Returns quota information for a landing zone resource.
@@ -237,14 +173,6 @@ public class LandingZoneManager {
   public ResourcesReader reader() {
     return resourcesReader;
   }
-
-  //  public LandingZoneDeployments deployments() {
-  //    return landingZoneDeployments;
-  //  }
-
-  //  public LandingZoneDefinitionProvider provider() {
-  //    return landingZoneDefinitionProvider;
-  //  }
 
   public Region getLandingZoneRegion() {
     return resourceGroup.region();
