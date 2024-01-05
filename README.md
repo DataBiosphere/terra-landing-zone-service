@@ -102,7 +102,7 @@ Each step has access to [ParameterResolver](https://github.com/DataBiosphere/ter
 
 ### Naming Resources and Idempotency
 
-Each step which creates an Azure resource should provide requirements for name generation. For doing this, it should provide a unique resource type (unique across all steps withing the flight) 
+Each step which creates an Azure resource should provide requirements for name generation. For doing this, it should provide a unique resource type (unique across all steps within the flight) 
 and also return a list of `ResourceNameRequirements` (in general, a step can create more than one Azure resource). Please take a look at the step example above.
 
 The resource name generator creates a name from a hash of the landing zone id and internal sequence number.
