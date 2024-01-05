@@ -12,38 +12,22 @@ shared. These resources have a different lifecycle than resources in workspaces.
 
 ## Implementing a Landing Zone
 
-Landing zone creation process is implemented as a [Stairway](https://github.com/DataBiosphere/stairway) flight represented by the following class `CreateLandingZoneFlight`. This flight consists of different steps one of which is step which 
-represents sub-flight to create Azure resources. This sub-flight is represented by the following class `CreateLandingZoneResourcesFlight`. This class utilizes specific steps' provider to define the list of steps required to create Azure resources.
+The landing zone creation process is implemented as a [Stairway](https://github.com/DataBiosphere/stairway) flight, represented by the class `CreateLandingZoneFlight`. This flight consists of different steps one, of which is a step  
+representing a sub-flight that creates the Azure resources (`CreateLandingZoneResourcesFlight`). `CreateLandingZoneResourcesFlight` utilizes an implementation of `StepsDefinitionProvider` to define the list of steps required to create the Azure resources.
 
 Below are lists of changes required to introduce new landing zone:
-1) Implement specific steps which are responsible for Azure resource creation (see example below for `CreateVnetStep`)
-2) Implement specific steps' definition provider (by implementing `StepsDefinitionProvider` interface)
-3) Introduce new landing zone type by extending `StepsDefinitionFactoryType`
-4) Update mapping at `LandingZoneStepsDefinitionProviderFactory` based on landing zone type from section 3. This mapping is used by sub-flight to get flights' steps to create specific Azure resources.
+1) Implement specific steps which are responsible for Azure resource creation (see example below for `CreateVnetStep`).
+2) Create an implementation of `StepsDefinitionProvider` to define the list of Azure resource creation steps.
+3) Introduce new landing zone type by extending `StepsDefinitionFactoryType`.
+4) Update the mapping at `LandingZoneStepsDefinitionProviderFactory` based on new landing zone type. This mapping is used by the sub-flight `CreateLandingZoneResourcesFlight` to get the steps to create specific Azure resources.
 
-In case of updating existing landing zone it is required to do following:
-1) Introduce new or adjusting existing step
-2) In case of a new step it is also required to include it into corresponding steps' provider
+In the case of updating an existing landing zone, it is required to do following:
+1) Introduce new or adjusting existing step(s).
+2) In case of new steps, it is also required to include them into the corresponding implementation of `StepsDefinitionProvider`.
 
 ### Landing Zone Flight Step Providers
 
-Landing zones are implemented using providers classes which return list of necessary steps to create a landing zone. Each provider should implement following interface `StepsDefinitionProvider`
-```java
-public interface StepsDefinitionProvider {
-
-  String landingZoneDefinition();
-
-  DefinitionHeader header();
-
-  List<DefinitionVersion> availableVersions();
-
-  List<Pair<Step, RetryRule>> get(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider,
-      LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration);
-}
-```
+Landing zones are implemented using providers classes which return the list of necessary steps to create a landing zone. Each provider should implement the interface [StepsDefinitionProvider](https://github.com/DataBiosphere/terra-landing-zone-service/blob/main/library/src/main/java/bio/terra/landingzone/library/landingzones/definition/factories/StepsDefinitionProvider.java).
 
 ### Azure Resource Flight Step
 Each step is responsible to create a certain Azure resource and is represented as a separate class. All steps are inherited from the base class named `BaseResourceCreateStep`.
@@ -110,16 +94,16 @@ public class CreateVnetStep extends BaseResourceCreateStep {
 
 It is important that step's implementation should be idempotent. Please take a look at Stairway developer guide [here](https://github.com/DataBiosphere/stairway/blob/develop/FLIGHT_DEVELOPER_GUIDE.md).
 
-Resource creation is defined using the standard Azure Java SDK. Together with defining desired properties for a resource it is also important to assign specific tags to a resource based on requirements. 
+Resource creation is defined using the standard Azure Java SDK. Together with defining desired properties for a resource it is also important to assign specific tags to a resource. 
 
 ### Receiving Parameters
 
-Each step has access to `ParameterResolver`. This class allows accessing a specific parameters. All default values for parameters are set in `LandingZoneDefaultParameters`. 
+Each step has access to [ParameterResolver](https://github.com/DataBiosphere/terra-landing-zone-service/blob/main/library/src/main/java/bio/terra/landingzone/library/landingzones/definition/factories/ParametersResolver.java). This class allows accessing specific parameters. All default values for parameters are set in `LandingZoneDefaultParameters`. 
 
 ### Naming Resources and Idempotency
 
-Each step which creates Azure resource should provide requirements for name generation. For doing this it should provide unique (should be unique across all steps withing a flight) resource type 
-and also return list of `ResourceNameRequirements` (in general step can create more than one Azure resource). Please take a look at the step example above.
+Each step which creates an Azure resource should provide requirements for name generation. For doing this, it should provide a unique resource type (unique across all steps withing the flight) 
+and also return a list of `ResourceNameRequirements` (in general, a step can create more than one Azure resource). Please take a look at the step example above.
 
 The resource name generator creates a name from a hash of the landing zone id and internal sequence number.
 As long as the landing zone id is globally unique, the resulting name will be the same across retry attempts with a very
@@ -127,9 +111,9 @@ low probability of a naming collision.
 
 ### Error handling and retrying
 
-Each step is responsible for error handling. Usually in case a step is responsible for creation of just one resource (recommended) there is no need to add additional error handling.
-But this can be changed depending on complexity/requirements. Base step from which all steps are inherited contains some common error handling as well.
-For instance base class handles situation when resource already exist.
+Each step is responsible for error handling. In the case that a step is responsible for creation of just one resource (recommended) there is usually no need to add additional error handling,
+but this can be changed depending on complexity/requirements. The base step from which all steps are inherited contains some common error handling as well;
+for instance, the base class handles the situation when the resource already exists.
 
 ## Landing Zone Manager
 

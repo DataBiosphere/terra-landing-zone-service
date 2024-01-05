@@ -11,11 +11,28 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public interface StepsDefinitionProvider {
-
+  /**
+   * Represents code name for a landing zone. The value should be defined in the {@link
+   * bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType} and
+   * reused here. The api which returns a list of all available landing zone will use this value.
+   *
+   * @return String representation of the code name of a landing zone.
+   */
   String landingZoneDefinition();
 
+  /**
+   * Represents user-friendly name and description of a landing zone.
+   *
+   * @return Name and description of a landing zone.
+   */
   DefinitionHeader header();
 
+  /**
+   * Represents a list of all available versions for the current landing zone definition. Currently,
+   * all definitions support only one version called "v1".
+   *
+   * @return List of supported versions.
+   */
   List<DefinitionVersion> availableVersions();
 
   /**

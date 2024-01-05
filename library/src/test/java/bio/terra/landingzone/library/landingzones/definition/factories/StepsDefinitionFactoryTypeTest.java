@@ -1,9 +1,8 @@
-package bio.terra.landingzone.stairway.flight;
+package bio.terra.landingzone.library.landingzones.definition.factories;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
