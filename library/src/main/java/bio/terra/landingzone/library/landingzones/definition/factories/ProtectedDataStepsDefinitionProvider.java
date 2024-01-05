@@ -20,8 +20,8 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitionProvider {
-  private final String LZ_NAME = "Protected data Landing Zone Base Resources";
-  private final String LZ_DESC =
+  private static final String LZ_NAME = "Protected data Landing Zone Base Resources";
+  private static final String LZ_DESC =
       "Protected data landing zones are intended to fulfill legal requirements for data governed by a compliance standard, "
           + "such as HIPAA protected data, federal controlled-access data, etc. They deploy additional resources to the landing "
           + "zone for additional security monitoring (using Azure Sentinel) and exporting logs to centralized long-term storage for retention.";

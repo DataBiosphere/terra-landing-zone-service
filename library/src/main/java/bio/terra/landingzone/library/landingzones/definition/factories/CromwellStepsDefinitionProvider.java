@@ -38,8 +38,8 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider {
-  private final String LZ_NAME = "Cromwell Landing Zone Base Resources";
-  private final String LZ_DESC =
+  private static final String LZ_NAME = "Cromwell Landing Zone Base Resources";
+  private static final String LZ_DESC =
       "Cromwell Base Resources: VNet, AKS Account & Nodepool, Batch Account,"
           + " Storage Account, PostgreSQL server, Subnets for AKS, Batch, Posgres, and Compute";
 
@@ -58,7 +58,6 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
     return List.of(DefinitionVersion.V1);
   }
 
-  // TODO: this doesn't take into account versioning
   @Override
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
