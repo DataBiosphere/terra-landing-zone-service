@@ -1,4 +1,4 @@
-package bio.terra.landingzone.stairway.flight;
+package bio.terra.landingzone.library.landingzones.definition.factories;
 
 public enum StepsDefinitionFactoryType {
   CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE("CromwellBaseResourcesFactory"),

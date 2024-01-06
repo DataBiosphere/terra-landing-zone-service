@@ -12,9 +12,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
@@ -86,7 +86,7 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
             new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
-            CromwellBaseResourcesFactory.ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(),
+            LandingZoneDefaultParameters.ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(),
             retentionInDays,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),

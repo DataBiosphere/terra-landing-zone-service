@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
+import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.stairway.FlightMap;
 import java.util.Map;

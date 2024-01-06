@@ -2,11 +2,11 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -75,31 +75,31 @@ public class CreateVnetStep extends BaseResourceCreateStep {
           .withExistingResourceGroup(getMRGName(context))
           .withAddressSpace(
               parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.ParametersNames.VNET_ADDRESS_SPACE.name()))
-          .defineSubnet(CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name())
+                  LandingZoneDefaultParameters.ParametersNames.VNET_ADDRESS_SPACE.name()))
+          .defineSubnet(LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name())
           .withAddressPrefix(
-              parametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name()))
+              parametersResolver.getValue(LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .attach()
-          .defineSubnet(CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name())
+          .defineSubnet(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name())
           .withAddressPrefix(
-              parametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name()))
+              parametersResolver.getValue(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
           .withAccessFromService(ServiceEndpointType.MICROSOFT_SQL)
           .attach()
-          .defineSubnet(CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name())
+          .defineSubnet(LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name())
           .withAddressPrefix(
               parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name()))
+                  LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .withDelegation("Microsoft.DBforPostgreSQL/flexibleServers")
           .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
           .attach()
-          .defineSubnet(CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name())
+          .defineSubnet(LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name())
           .withAddressPrefix(
               parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name()))
+                  LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .attach()
           .withTags(
@@ -107,13 +107,13 @@ public class CreateVnetStep extends BaseResourceCreateStep {
                   LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
                   landingZoneId.toString(),
                   SubnetResourcePurpose.AKS_NODE_POOL_SUBNET.toString(),
-                  CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name(),
+                  LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name(),
                   SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET.toString(),
-                  CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name(),
+                  LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name(),
                   SubnetResourcePurpose.POSTGRESQL_SUBNET.toString(),
-                  CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name(),
+                  LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name(),
                   SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET.toString(),
-                  CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name()))
+                  LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name()))
           .create();
     } catch (ManagementException e) {
       // resource may already exist if this step is being retried

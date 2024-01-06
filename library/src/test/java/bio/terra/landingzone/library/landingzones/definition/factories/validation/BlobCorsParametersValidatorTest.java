@@ -1,10 +1,10 @@
 package bio.terra.landingzone.library.landingzones.definition.factories.validation;
 
+import static bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.exception.InvalidInputParameterException;
 import bio.terra.landingzone.library.landingzones.definition.factories.parameters.StorageAccountBlobCorsParametersNames;
@@ -34,11 +34,11 @@ public class BlobCorsParametersValidatorTest {
   void testDefaultCorsParametersSuccess() {
     var parametersResolver =
         buildParametersResolver(
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT);
+            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT);
     assertDoesNotThrow(
         () -> validator.validate(parametersResolver), "Validation should be successful.");
   }
@@ -184,15 +184,15 @@ public class BlobCorsParametersValidatorTest {
         inputParameters,
         Map.of(
             StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
             StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS.name(),
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
             StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS.name(),
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
             StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS.name(),
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
+            STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
             StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
-            CromwellBaseResourcesFactory.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT));
+            STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT));
   }
 
   static Stream<Arguments> maxAgeValueValidSupplier() {

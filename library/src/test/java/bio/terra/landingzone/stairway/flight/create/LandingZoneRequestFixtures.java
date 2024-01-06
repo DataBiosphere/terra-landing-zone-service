@@ -1,8 +1,8 @@
 package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.db.model.LandingZoneRecord;
+import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.profile.model.ProfileModel;
 import com.azure.core.management.profile.AzureProfile;
 import java.time.OffsetDateTime;

@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.exception.InvalidInputParameterException;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ class StorageAccountSkuTypeValidatorTest {
   @MethodSource("validStorageAccountSkyTypeProvider")
   void testSuccessValidation(String storageAccountSkuType) {
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name()))
+            LandingZoneDefaultParameters.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name()))
         .thenReturn(storageAccountSkuType);
     assertDoesNotThrow(
         () -> validator.validate(mockParametersResolver), "Validation should be successful.");
@@ -44,7 +44,7 @@ class StorageAccountSkuTypeValidatorTest {
   @MethodSource("invalidStorageAccountSkyTypeProvider")
   void testFailureValidation(String storageAccountSkuType) {
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name()))
+            LandingZoneDefaultParameters.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE.name()))
         .thenReturn(storageAccountSkuType);
 
     assertThrows(

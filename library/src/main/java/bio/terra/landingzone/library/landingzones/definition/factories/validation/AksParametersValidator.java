@@ -1,8 +1,8 @@
 package bio.terra.landingzone.library.landingzones.definition.factories.validation;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.exception.InvalidInputParameterException;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import java.util.Optional;
 
 public class AksParametersValidator implements InputParameterValidator {
@@ -23,18 +23,18 @@ public class AksParametersValidator implements InputParameterValidator {
   private Optional<String> validateAksAutoscalingRange(ParametersResolver parametersResolver) {
     String min =
         parametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name());
+            LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MIN.name());
     String max =
         parametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name());
+            LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MAX.name());
 
     String minErrorMessage =
         buildErrorMessage(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN,
+            LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MIN,
             " The value must be a number between 0 and the autoscaling max.");
     String maxErrorMessage =
         buildErrorMessage(
-            CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX,
+            LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MAX,
             " The value must be a number between the autoscaling min and 1000.");
 
     int minValue;

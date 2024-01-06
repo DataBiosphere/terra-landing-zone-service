@@ -12,194 +12,113 @@ shared. These resources have a different lifecycle than resources in workspaces.
 
 ## Implementing a Landing Zone
 
-### Landing Zone Definition Factories and Landing Zone Definitions.
+The landing zone creation process is implemented as a [Stairway](https://github.com/DataBiosphere/stairway) flight, represented by the class `CreateLandingZoneFlight`. This flight consists of different steps one, of which is a step  
+representing a sub-flight that creates the Azure resources (`CreateLandingZoneResourcesFlight`). `CreateLandingZoneResourcesFlight` utilizes an implementation of `StepsDefinitionProvider` to define the list of steps required to create the Azure resources.
 
-Landing zones are implemented using the factory pattern; the factory creates *Landing Zone Definitions* (LZDs).
+Below are lists of changes required to introduce new landing zone:
+1) Implement specific steps which are responsible for Azure resource creation (see example below for `CreateVnetStep`).
+2) Create an implementation of `StepsDefinitionProvider` to define the list of Azure resource creation steps.
+3) Introduce new landing zone type by extending `StepsDefinitionFactoryType`.
+4) Update the mapping at `LandingZoneStepsDefinitionProviderFactory` based on new landing zone type. This mapping is used by the sub-flight `CreateLandingZoneResourcesFlight` to get the steps to create specific Azure resources.
 
-Landing Zone Definitions are where resources and their purpose are defined.
+In the case of updating an existing landing zone, it is required to do following:
+1) Introduce new or adjusting existing step(s).
+2) In case of new steps, it is also required to include them into the corresponding implementation of `StepsDefinitionProvider`.
 
-A Landing Zone Definition factory is an implementation of:
+### Landing Zone Flight Step Providers
 
+Landing zones are implemented using providers classes which return the list of necessary steps to create a landing zone. Each provider should implement the interface [StepsDefinitionProvider](https://github.com/DataBiosphere/terra-landing-zone-service/blob/main/library/src/main/java/bio/terra/landingzone/library/landingzones/definition/factories/StepsDefinitionProvider.java).
+
+### Azure Resource Flight Step
+Each step is responsible to create a certain Azure resource and is represented as a separate class. All steps are inherited from the base class named `BaseResourceCreateStep`.
+All steps are located in the following package `bio.terra.landingzone.stairway.flight.create.resource.step`. If a certain landing zone needs a new resource it is required only to introduce specific step and include it into specific provider.
+
+Below is an example of a step responsible for vnet creation. `createResource` is the central part of the class implementation and it contains the logic responsible for Azure resource creation. 
 ```java
-public interface LandingZoneDefinitionFactory {
-    DefinitionHeader header();
+public class CreateVnetStep extends BaseResourceCreateStep {
+  private static final Logger logger = LoggerFactory.getLogger(CreateVnetStep.class);
+  public static final String VNET_ID = "VNET_ID";
+  public static final String VNET_RESOURCE_KEY = "VNET";
 
-    List<DefinitionVersion> availableVersions();
+  public CreateVnetStep(
+          ArmManagers armManagers,
+          ParametersResolver parametersResolver,
+          ResourceNameProvider resourceNameProvider) {
+    super(armManagers, parametersResolver, resourceNameProvider);
+  }
 
-    LandingZoneDefinable create(DefinitionVersion version);
-}
-```
-
-The library includes an abstract class that expects the Azure Resource Manager (ARM)
-clients: `ArmClientsDefinitionFactory`. Factories should extend this class.
-
-In addition, factories:
-
-- Must be implemented in the `factories` package.
-- Must have a package scoped parameterless constructor.
-
-```java
-package bio.terra.landingzone.library.landingzones.definition.factories;
-
-
-public class FooLZFactory extends ArmClientsDefinitionFactory {
-
-    FooLZFactory() {
-    }
-
-    @Override
-    public DefinitionHeader header() {
-        return new DefinitionHeader("Foo LZ", "Description of Foo LZ");
-    }
-
-    @Override
-    public List<DefinitionVersion> availableVersions() {
-        return List.of(DefinitionVersion.V1);
-    }
-
-    @Override
-    public LandingZoneDefinable create(DefinitionVersion version) {
-        if (version.equals(DefinitionVersion.V1)) {
-            return new FooLZDefinitionV1(azureResourceManager, relayManager);
-        }
-        throw new RuntimeException("Invalid Version");
-    }
-}
-```
-
-An inner class in the factory class is a good convention for implementing a Landing Zone Definition.
-
-```java
-public class FooLZFactory extends ArmClientsDefinitionFactory {
+  @Override
+  public void createResource(FlightContext context, ArmManagers armManagers) {
+    String vNetName = resourceNameProvider.getName(getResourceType());
+    var nsgId =
+            getParameterOrThrow(
+                    context.getWorkingMap(), CreateNetworkSecurityGroupStep.NSG_ID, String.class);
+    Network vNet = createVnetAndSubnets(context, armManagers, vNetName, nsgId);
+    ...
     ...
 
-    class FooLZDefinitionV1 extends LandingZoneDefinition {
+    private Network createVnetAndSubnets(
+            FlightContext context,
+            ArmManagers armManagers,
+            String vNetName,
+            String networkSecurityGroupId) {
+      var landingZoneId =
+              getParameterOrThrow(
+                      context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
-        protected FooLZDefinitionV1(
-                AzureResourceManager azureResourceManager, RelayManager relayManager) {
-            super(azureResourceManager, relayManager);
-        }
+      try {
+        return armManagers
+                .azureResourceManager()
+                .networks()
+                .define(vNetName)
+                .withRegion(getMRGRegionName(context))
+                .with()
+                ...
+                .create()
+      ...
+        
+    @Override
+    public String getResourceType() {
+      return "VirtualNetwork";
+    }
 
-        @Override
-        public Deployable definition(DefinitionContext definitionContext) {
-            var storage =
-                    azureResourceManager
-                            .storageAccounts()
-                            .define(definitionContext.resourceNameGenerator().nextName(20))
-                            .withRegion(Region.US_EAST2)
-                            .withExistingResourceGroup(definitionContext.resourceGroup());
-
-            var vNet =
-                    azureResourceManager
-                            .networks()
-                            .define(definitionContext.resourceNameGenerator().nextName(20))
-                            .withRegion(Region.US_EAST2)
-                            .withExistingResourceGroup(definitionContext.resourceGroup())
-                            .withAddressSpace("10.0.0.0/28")
-                            .withSubnet("compute", "10.0.0.0/29")
-                            .withSubnet("storage", "10.0.0.8/29");
-
-            return definitionContext
-                    .deployment()
-                    .withResourceWithPurpose(storage, ResourcePurpose.SHARED_RESOURCE)
-                    .withVNetWithPurpose(vNet, "compute", SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET)
-                    .withVNetWithPurpose(vNet, "storage", SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET);
-        }
+    ...
+        
+    @Override
+    public List<ResourceNameRequirements> getResourceNameRequirements() {
+      return List.of(
+              new ResourceNameRequirements(
+                      getResourceType(), ResourceNameGenerator.MAX_VNET_NAME_LENGTH));
     }
 ```
 
-Resources are defined using the standard Azure Java SDK but with the following constraints to consider:
+It is important that step's implementation should be idempotent. Please take a look at Stairway developer guide [here](https://github.com/DataBiosphere/stairway/blob/develop/FLIGHT_DEVELOPER_GUIDE.md).
 
-- The purpose of the resources must be indicated in the deployment.
-- Resources not included in the deployment won't be created.
-- The `create()` method in the resource definition must not be called.
-- The resource definition must have the required configuration for a creation before it can be added to the deployment.
+Resource creation is defined using the standard Azure Java SDK. Together with defining desired properties for a resource it is also important to assign specific tags to a resource. 
 
 ### Receiving Parameters
 
-The `DefinitionContext` contains the property `Map<String, String> parameters`, which can be used to receive parameter
-for the definition of a landing zone.
-
-A few points to consider when implementing a definition that requires parameters:
-
-- You must add the necessary validation for these parameters.
-- `parameters` can be  `null`
+Each step has access to [ParameterResolver](https://github.com/DataBiosphere/terra-landing-zone-service/blob/main/library/src/main/java/bio/terra/landingzone/library/landingzones/definition/factories/ParametersResolver.java). This class allows accessing specific parameters. All default values for parameters are set in `LandingZoneDefaultParameters`. 
 
 ### Naming Resources and Idempotency
 
-You can use the resource name generator in the deployment context to guarantee that names are consistent in retry
-attempts.
+Each step which creates an Azure resource should provide requirements for name generation. For doing this, it should provide a unique resource type (unique across all steps within the flight) 
+and also return a list of `ResourceNameRequirements` (in general, a step can create more than one Azure resource). Please take a look at the step example above.
 
 The resource name generator creates a name from a hash of the landing zone id and internal sequence number.
 As long as the landing zone id is globally unique, the resulting name will be the same across retry attempts with a very
 low probability of a naming collision.
 
-> The Azure Resource Manager APIs can be retried if a transient error occurs - the API is idempotent. However, The
-> request must be the same as the failed one to avoid duplicating resources in the deployment. The deployment could
-> create
-> duplicate resources if the resource's name is auto-generated and changes in every request.
+### Error handling and retrying
 
-An instance of the resource name generator is included in the deployment context.
-
-```java
- var storage=azureResourceManager
-        .storageAccounts()
-        .define(definitionContext.resourceNameGenerator().nextName(20))
-        .withRegion(Region.US_EAST2)
-        .withExistingResourceGroup(definitionContext.resourceGroup());
-
-```
-
-### Handling Prerequisites
-
-The library deploys resources in a non-deterministic order. Therefore, it is not possible to assume any specific order.
-For cases when a resource must be created before other resources, you can create a prerequisite deployment inside your
-definition.
-
-```java
-
-class FooLZDefinitionV1 extends LandingZoneDefinition {
-
-    protected FooLZDefinitionV1(
-            AzureResourceManager azureResourceManager, RelayManager relayManager) {
-        super(azureResourceManager, relayManager);
-    }
-
-    @Override
-    public Deployable definition(DefinitionContext definitionContext) {
-
-        var vNet =
-                azureResourceManager
-                        .networks()
-                        .define(definitionContext.resourceNameGenerator().nextName(20))
-                        .withRegion(Region.US_EAST2)
-                        .withExistingResourceGroup(definitionContext.resourceGroup())
-                        .withAddressSpace("10.0.0.0/28")
-                        .withSubnet("subnet1", "10.0.0.0/29")
-
-        var prerequisites =
-                deployment
-                        .definePrerequisites()
-                        .withVNetWithPurpose(vNet, "subnet1", SubnetResourcePurpose.WORKSPACE_STORAGE_SUBNET)
-                        .deploy();
-
-        var storage =
-                azureResourceManager
-                        .storageAccounts()
-                        .define(definitionContext.resourceNameGenerator().nextName(20))
-                        .withRegion(Region.US_EAST2)
-                        .withExistingResourceGroup(definitionContext.resourceGroup());
-
-        return definitionContext
-                .deployment()
-                .withResourceWithPurpose(storage, ResourcePurpose.SHARED_RESOURCE);
-    }
-```
+Each step is responsible for error handling. In the case that a step is responsible for creation of just one resource (recommended) there is usually no need to add additional error handling,
+but this can be changed depending on complexity/requirements. The base step from which all steps are inherited contains some common error handling as well;
+for instance, the base class handles the situation when the resource already exists.
 
 ## Landing Zone Manager
 
-The Landing Zone Manager is the high-level component that lists the available Landing Zone Definition factories, deploys
-Landing Zone Definitions and lists resources per purpose.
+The Landing Zone Manager is the high-level component that lists the available Landing Zone Step Definition factories, deploys
+Landing Zone and lists resources per purpose.
 
 The Landing Zone Manager requires a `TokenCredential`, `AzureProfile` and `resourceGroupName`.
 
@@ -209,31 +128,6 @@ landingZoneManager=
         credential,
         azureProfile,
         resourceGroupName);
-```
-
-### Deploying a Landing Zone Definition
-
-You can deploy Landing Zone Definition using the manager.
-
-```java
-    List<DeployedResource> resources=
-        landingZoneManager.deployLandingZone(
-        landingZoneId,
-        "FooLZFactory",
-        DefinitionVersion.V1,
-        parameters);
-
-```
-
-The manager has an asynchronous API for deployments. You can implement retry capabilities using standard reactive retry
-policies.
-
-```java
-    Flux<DeployedResource> resources=
-        landingZoneManager
-        .deployLandingZoneAsync(landingZoneId,FooLZDefinitionV1.class,DefinitionVersion.V1,parameters)
-        .retryWhen(Retry.max(1));
-
 ```
 
 ### Reading Landing Zone Resources
@@ -255,7 +149,7 @@ Virtual Networks can be listed by subnet purpose:
 
 ### Getting the available Landing Zone Factories
 
-You can get all available Landing Zone Factories:
+You can get all available Landing Zone Step Factories:
 
 ```java
 
@@ -324,18 +218,18 @@ The table below describes the current Landing Zone Definitions available in the 
         </td>
     </tr>
 <tr>
-      <td valign="top"><small>ManagedNetworkWithSharedResourcesFactory</small></td>
-      <td valign="top">Deploys a virtual network, shared storage and Azure Relay namespace.</td>
+      <td valign="top"><small>ProtectedDataResourcesFactory</small></td>
+      <td valign="top">Deploy additional resources to the landing zone for additional security monitoring (using Azure Sentinel) and exporting logs to centralized long-term storage for retention.</td>
       <td valign="top">V1</td>
       <td valign="top">
             <ul>
-                <li>Storage Account</li>
-                <li>Azure Relay Namespace</li>
-                <li>VNet</li>
+                <li>All resources as in CromwellBaseResourcesFactory</li>
+                <li>Long term storage account</li>
+                <li>Additional AKS log configuration</li>
             </ul>
        </td>
         <td valign="top">
-            <strong>NA</strong>
+            <strong>Same as for CromwellBaseResourcesFactory</strong>
         </td>
     </tr>
   </tbody>

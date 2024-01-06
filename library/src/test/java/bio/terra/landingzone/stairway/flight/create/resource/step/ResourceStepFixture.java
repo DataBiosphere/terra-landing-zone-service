@@ -1,9 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
+import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.StepsDefinitionFactoryType;
 import bio.terra.profile.model.ProfileModel;
 import java.util.Map;
 import java.util.Optional;

@@ -1,11 +1,13 @@
-package bio.terra.landingzone.stairway.flight;
+package bio.terra.landingzone.library.landingzones.definition.factories;
 
 import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapFileReaderImpl;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
+import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
+import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
+import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
@@ -36,7 +38,26 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider {
-  // TODO: this doesn't take into account versioning
+  private static final String LZ_NAME = "Cromwell Landing Zone Base Resources";
+  private static final String LZ_DESC =
+      "Cromwell Base Resources: VNet, AKS Account & Nodepool, Batch Account,"
+          + " Storage Account, PostgreSQL server, Subnets for AKS, Batch, Posgres, and Compute";
+
+  @Override
+  public String landingZoneDefinition() {
+    return StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue();
+  }
+
+  @Override
+  public DefinitionHeader header() {
+    return new DefinitionHeader(LZ_NAME, LZ_DESC);
+  }
+
+  @Override
+  public List<DefinitionVersion> availableVersions() {
+    return List.of(DefinitionVersion.V1);
+  }
+
   @Override
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,

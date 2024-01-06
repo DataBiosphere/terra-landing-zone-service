@@ -1,16 +1,18 @@
 package bio.terra.landingzone.library.landingzones.management;
 
 import static bio.terra.landingzone.library.landingzones.TestUtils.STUB_BATCH_ACCOUNT_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneDefinitionProvider;
+import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
+import bio.terra.landingzone.library.landingzones.definition.FactoryDefinitionInfo;
+import bio.terra.landingzone.library.landingzones.definition.factories.TestLandingZoneFactory;
 import bio.terra.landingzone.library.landingzones.deployment.DeployedResource;
-import bio.terra.landingzone.library.landingzones.deployment.LandingZoneDeployments;
 import bio.terra.landingzone.library.landingzones.management.quotas.QuotaProvider;
-import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.List;
 import java.util.UUID;
@@ -28,9 +30,6 @@ class LandingZoneManagerTest {
   private static final String STUB_LZ_ID = UUID.randomUUID().toString();
   private LandingZoneManager landingZoneManager;
 
-  @Mock private LandingZoneDefinitionProvider landingZoneDefinitionProvider;
-  @Mock private LandingZoneDeployments landingZoneDeployments;
-  @Mock private AzureResourceManager resourceManager;
   @Mock private ResourceGroup resourceGroup;
   @Mock private ResourcesReader resourceReader;
   @Mock private QuotaProvider quotaProvider;
@@ -39,14 +38,7 @@ class LandingZoneManagerTest {
   @BeforeEach
   void setUp() {
     landingZoneManager =
-        new LandingZoneManager(
-            landingZoneDefinitionProvider,
-            landingZoneDeployments,
-            resourceManager,
-            resourceGroup,
-            resourceReader,
-            quotaProvider,
-            deleteManager);
+        new LandingZoneManager(resourceGroup, resourceReader, quotaProvider, deleteManager);
   }
 
   @Test
@@ -70,5 +62,18 @@ class LandingZoneManagerTest {
     assertThrows(
         IllegalStateException.class,
         () -> landingZoneManager.resourceQuota(STUB_LZ_ID, STUB_BATCH_ACCOUNT_ID));
+  }
+
+  @Test
+  void listDefinitionFactories_testFactoryIsListed() {
+    var factories = LandingZoneManager.listDefinitionFactories();
+    FactoryDefinitionInfo testFactory =
+        new FactoryDefinitionInfo(
+            TestLandingZoneFactory.LZ_NAME,
+            TestLandingZoneFactory.LZ_DESC,
+            TestLandingZoneFactory.DEFINITION_NAME,
+            List.of(DefinitionVersion.V1));
+
+    assertThat(factories, hasItem(testFactory));
   }
 }

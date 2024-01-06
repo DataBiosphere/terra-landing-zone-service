@@ -1,4 +1,4 @@
-package bio.terra.landingzone.stairway.flight;
+package bio.terra.landingzone.library.landingzones.definition.factories;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

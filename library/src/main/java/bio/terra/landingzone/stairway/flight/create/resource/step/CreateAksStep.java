@@ -2,11 +2,11 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -58,16 +58,16 @@ public class CreateAksStep extends BaseResourceCreateStep {
     boolean costSavingsSpotNodesEnabled =
         Boolean.parseBoolean(
             parametersResolver.getValue(
-                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
+                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
                     .name()));
     boolean costSavingsVpaEnabled =
         Boolean.parseBoolean(
             parametersResolver.getValue(
-                CromwellBaseResourcesFactory.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()));
+                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()));
     boolean autoScalingEnabled =
         Boolean.parseBoolean(
             parametersResolver.getValue(
-                CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
+                LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
 
     var aks =
         createAks(
@@ -123,30 +123,30 @@ public class CreateAksStep extends BaseResourceCreateStep {
               .withAgentPoolResourceGroup(getNodeResourceGroup(getMRGName(context)))
               .withAzureActiveDirectoryGroup(
                   parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
+                      LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
                           .name()))
               .defineAgentPool(resourceNameProvider.getName(getResourceType() + POOL_SUFFIX_KEY))
               .withVirtualMachineSize(
                   ContainerServiceVMSizeTypes.fromString(
                       parametersResolver.getValue(
-                          CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name())))
+                          LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name())))
               .withAgentPoolVirtualMachineCount(
                   Integer.parseInt(
                       parametersResolver.getValue(
-                          CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name())))
+                          LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name())))
               .withAgentPoolMode(AgentPoolMode.SYSTEM)
-              .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
+              .withVirtualNetwork(vNetId, LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name());
 
       // Add autoscaling to system nodepool
       if (autoScalingEnabled) {
         int min =
             Integer.parseInt(
                 parametersResolver.getValue(
-                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MIN.name()));
+                    LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MIN.name()));
         int max =
             Integer.parseInt(
                 parametersResolver.getValue(
-                    CromwellBaseResourcesFactory.ParametersNames.AKS_AUTOSCALING_MAX.name()));
+                    LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MAX.name()));
         aksPartial = aksPartial.withAutoScaling(min, max);
       }
 
@@ -276,13 +276,13 @@ public class CreateAksStep extends BaseResourceCreateStep {
       var machineSize =
           !StringUtils.isEmpty(
                   parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
+                      LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
               ? ContainerServiceVMSizeTypes.fromString(
                   parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
+                      LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
               : ContainerServiceVMSizeTypes.fromString(
                   parametersResolver.getValue(
-                      CromwellBaseResourcesFactory.ParametersNames.AKS_MACHINE_TYPE.name()));
+                      LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name()));
 
       // spot nodes should always use auto scaler per MS documentation:
       // https://learn.microsoft.com/en-us/azure/aks/spot-node-pool
@@ -292,7 +292,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
       int max =
           Integer.parseInt(
               parametersResolver.getValue(
-                  CromwellBaseResourcesFactory.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()));
+                  LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()));
 
       var aksPartialUpdate =
           aks.update()
@@ -301,11 +301,11 @@ public class CreateAksStep extends BaseResourceCreateStep {
               .withAgentPoolVirtualMachineCount(
                   Integer.parseInt(
                       parametersResolver.getValue(
-                          CromwellBaseResourcesFactory.ParametersNames.AKS_NODE_COUNT.name())))
+                          LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name())))
               .withSpotPriorityVirtualMachine()
               .withAgentPoolMode(AgentPoolMode.USER)
               .withAutoScaling(1, max)
-              .withVirtualNetwork(vNetId, CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name());
+              .withVirtualNetwork(vNetId, LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name());
 
       var attach = aksPartialUpdate.attach();
       attach.apply();

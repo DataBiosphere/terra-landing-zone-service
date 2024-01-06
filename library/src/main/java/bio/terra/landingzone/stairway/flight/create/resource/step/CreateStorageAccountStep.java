@@ -2,11 +2,11 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -49,7 +49,7 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
                 StorageAccountSkuType.fromSkuName(
                     SkuName.fromString(
                         parametersResolver.getValue(
-                            CromwellBaseResourcesFactory.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE
+                            LandingZoneDefaultParameters.ParametersNames.STORAGE_ACCOUNT_SKU_TYPE
                                 .name()))))
             .disableBlobPublicAccess()
             .withTags(

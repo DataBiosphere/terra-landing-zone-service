@@ -13,8 +13,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.library.landingzones.definition.factories.CromwellBaseResourcesFactory;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
+import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
@@ -183,16 +183,16 @@ class CreateVnetStepTest extends BaseStepTest {
 
   private void setupParameterResolver() {
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.ParametersNames.VNET_ADDRESS_SPACE.name()))
+            LandingZoneDefaultParameters.ParametersNames.VNET_ADDRESS_SPACE.name()))
         .thenReturn("10.1.0.0/27");
-    when(mockParametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.AKS_SUBNET.name()))
+    when(mockParametersResolver.getValue(LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name()))
         .thenReturn("10.1.0.0/29");
-    when(mockParametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.BATCH_SUBNET.name()))
+    when(mockParametersResolver.getValue(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name()))
         .thenReturn("10.1.0.8/29");
     when(mockParametersResolver.getValue(
-            CromwellBaseResourcesFactory.Subnet.POSTGRESQL_SUBNET.name()))
+            LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name()))
         .thenReturn("10.1.0.16/29");
-    when(mockParametersResolver.getValue(CromwellBaseResourcesFactory.Subnet.COMPUTE_SUBNET.name()))
+    when(mockParametersResolver.getValue(LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name()))
         .thenReturn("10.1.0.24/29");
   }
 }

@@ -1,4 +1,4 @@
-package bio.terra.landingzone.stairway.flight;
+package bio.terra.landingzone.library.landingzones.definition.factories;
 
 public class LandingZoneStepsDefinitionProviderFactory {
   private LandingZoneStepsDefinitionProviderFactory() {}
