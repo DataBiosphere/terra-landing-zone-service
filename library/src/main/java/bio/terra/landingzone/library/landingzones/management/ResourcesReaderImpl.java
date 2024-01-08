@@ -11,6 +11,7 @@ import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -185,7 +186,8 @@ public class ResourcesReaderImpl implements ResourcesReader {
   private DeployedVNet toDeployedVNet(Network network) {
     HashMap<SubnetResourcePurpose, DeployedSubnet> subnetHashMap = new HashMap<>();
 
-    SubnetResourcePurpose.values()
+    Arrays.stream(SubnetResourcePurpose.values())
+        .toList()
         .forEach(
             p -> {
               var subnetName = network.tags().get(p.toString());
