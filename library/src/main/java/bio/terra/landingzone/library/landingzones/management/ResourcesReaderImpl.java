@@ -12,7 +12,7 @@ import com.azure.resourcemanager.network.models.Network;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -184,7 +184,8 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   private DeployedVNet toDeployedVNet(Network network) {
-    HashMap<SubnetResourcePurpose, DeployedSubnet> subnetHashMap = new HashMap<>();
+    EnumMap<SubnetResourcePurpose, DeployedSubnet> subnetHashMap =
+        new EnumMap<>(SubnetResourcePurpose.class);
 
     Arrays.stream(SubnetResourcePurpose.values())
         .toList()
