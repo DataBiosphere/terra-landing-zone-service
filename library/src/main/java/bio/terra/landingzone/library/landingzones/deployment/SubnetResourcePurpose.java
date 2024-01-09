@@ -1,32 +1,25 @@
 package bio.terra.landingzone.library.landingzones.deployment;
 
-import com.azure.core.util.ExpandableStringEnum;
-import java.util.Collection;
-
 /** Enum of the subnet purposes */
-public final class SubnetResourcePurpose extends ExpandableStringEnum<SubnetResourcePurpose>
-    implements LandingZonePurpose {
-  public static final SubnetResourcePurpose WORKSPACE_COMPUTE_SUBNET =
-      fromString("WORKSPACE_COMPUTE_SUBNET");
-  public static final SubnetResourcePurpose WORKSPACE_STORAGE_SUBNET =
-      fromString("WORKSPACE_STORAGE_SUBNET");
-  public static final SubnetResourcePurpose AKS_NODE_POOL_SUBNET =
-      fromString("AKS_NODE_POOL_SUBNET");
-  public static final SubnetResourcePurpose POSTGRESQL_SUBNET = fromString("POSTGRESQL_SUBNET");
-  public static final SubnetResourcePurpose WORKSPACE_BATCH_SUBNET =
-      fromString("WORKSPACE_BATCH_SUBNET");
+public enum SubnetResourcePurpose implements LandingZonePurpose {
+  WORKSPACE_COMPUTE_SUBNET("WORKSPACE_COMPUTE_SUBNET"),
+  WORKSPACE_STORAGE_SUBNET("WORKSPACE_STORAGE_SUBNET"),
+  AKS_NODE_POOL_SUBNET("AKS_NODE_POOL_SUBNET"),
+  POSTGRESQL_SUBNET("POSTGRESQL_SUBNET"),
+  WORKSPACE_BATCH_SUBNET("WORKSPACE_BATCH_SUBNET");
 
-  /**
-   * Creates or finds a {@link SubnetResourcePurpose} from its string representation.
-   *
-   * @param name a name to look for
-   * @return the corresponding {@link SubnetResourcePurpose}
-   */
-  public static SubnetResourcePurpose fromString(String name) {
-    return fromString(name, SubnetResourcePurpose.class);
+  private String value;
+
+  SubnetResourcePurpose(String value) {
+    this.value = value;
   }
 
-  public static Collection<SubnetResourcePurpose> values() {
-    return values(SubnetResourcePurpose.class);
+  public String getValue() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    return value;
   }
 }

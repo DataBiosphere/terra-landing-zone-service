@@ -534,14 +534,15 @@ public class LandingZoneService {
         .collect(
             Collectors.groupingBy(
                 r ->
-                    ResourcePurpose.fromString(
+                    ResourcePurpose.valueOf(
                         r.tags().get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()))));
   }
 
   private Map<LandingZonePurpose, List<LandingZoneResource>> listSubnetResourcesWithPurposes(
       String landingZoneId, LandingZoneManager landingZoneManager) {
     Map<LandingZonePurpose, List<LandingZoneResource>> subnetPurposeMap = new HashMap<>();
-    SubnetResourcePurpose.values()
+    Arrays.stream(SubnetResourcePurpose.values())
+        .toList()
         .forEach(
             p ->
                 subnetPurposeMap.put(

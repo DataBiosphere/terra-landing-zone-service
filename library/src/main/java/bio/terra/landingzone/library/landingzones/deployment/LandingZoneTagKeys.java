@@ -1,32 +1,25 @@
 package bio.terra.landingzone.library.landingzones.deployment;
 
-import com.azure.core.util.ExpandableStringEnum;
-import java.util.Collection;
-
 /** Enum of tag keys for resources in the landing zone. */
-public final class LandingZoneTagKeys extends ExpandableStringEnum<LandingZoneTagKeys> {
-  public static final LandingZoneTagKeys LANDING_ZONE_ID = fromString("WLZ-ID");
-  public static final LandingZoneTagKeys LANDING_ZONE_PURPOSE = fromString("WLZ-PURPOSE");
-  public static final LandingZoneTagKeys PGBOUNCER_ENABLED = fromString("pgbouncer-enabled");
-  public static final LandingZoneTagKeys AKS_COST_SAVING_SPOT_NODES_ENABLED =
-      fromString("aks-cost-spot-nodes-enabled");
-  public static final LandingZoneTagKeys AKS_COST_SAVING_VPA_ENABLED =
-      fromString("aks-cost-vpa-enabled");
+public enum LandingZoneTagKeys {
+  LANDING_ZONE_ID("WLZ-ID"),
+  LANDING_ZONE_PURPOSE("WLZ-PURPOSE"),
+  PGBOUNCER_ENABLED("pgbouncer-enabled"),
+  AKS_COST_SAVING_SPOT_NODES_ENABLED("aks-cost-spot-nodes-enabled"),
+  AKS_COST_SAVING_VPA_ENABLED("aks-cost-vpa-enabled");
 
-  /**
-   * Creates or finds a {@link LandingZoneTagKeys} from its string representation.
-   *
-   * @param name a name to look for
-   * @return the corresponding {@link LandingZoneTagKeys}
-   */
-  public static LandingZoneTagKeys fromString(String name) {
-    return fromString(name, LandingZoneTagKeys.class);
+  private String value;
+
+  LandingZoneTagKeys(String value) {
+    this.value = value;
   }
 
-  /**
-   * @return known LandingZoneTagKeys values.
-   */
-  public static Collection<LandingZoneTagKeys> values() {
-    return values(LandingZoneTagKeys.class);
+  public String getValue() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    return value;
   }
 }
