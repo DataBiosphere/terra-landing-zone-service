@@ -1,0 +1,14 @@
+# The schema for a landing zone
+databaseChangeLog:
+  - changeSet:
+      id: add region field.
+      author: bgeno
+      changes:
+        - addColumn:
+            tableName: landingzone
+            columns:
+              - column:
+                  name: region
+                  type: text
+                  remarks: |
+                    Region of a landing zone.

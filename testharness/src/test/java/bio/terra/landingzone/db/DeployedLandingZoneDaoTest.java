@@ -26,6 +26,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
   private static final String VERSION = "v1";
   private static final String DISPLAY_NAME = "lzDisplayName";
   private static final String DESCRIPTION = "lzDescription";
+  private static final String REGION = "eastus";
   private static final Map<String, String> properties = Map.of("key1", "value1");
   private static final OffsetDateTime CREATED_DATE = Instant.now().atOffset(ZoneOffset.UTC);
   @Autowired private LandingZoneDao landingZoneDao;
@@ -43,6 +44,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -71,6 +73,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -85,6 +88,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, lz.version());
       assertEquals(SUBSCRIPTION, lz.subscriptionId());
       assertEquals(TENANT, lz.tenantId());
+      assertEquals(REGION, lz.region());
       assertEquals(BILLING_PROFILE, lz.billingProfileId());
       assertEquals(DISPLAY_NAME, lz.displayName().get());
       assertEquals(DESCRIPTION, lz.description().get());
@@ -114,6 +118,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE);
       landingZoneDao.createLandingZone(lz);
 
@@ -150,6 +155,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
             SUBSCRIPTION,
             TENANT,
             BILLING_PROFILE,
+            REGION,
             CREATED_DATE);
     landingZoneDao.createLandingZone(lz);
 
@@ -169,6 +175,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -190,6 +197,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, records.get(0).version());
       assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
       assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(REGION, records.get(0).region());
       assertEquals(BILLING_PROFILE, records.get(0).billingProfileId());
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());
@@ -218,6 +226,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -231,6 +240,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               UUID.randomUUID(),
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -275,6 +285,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
               SUBSCRIPTION,
               TENANT,
               BILLING_PROFILE,
+              REGION,
               CREATED_DATE,
               Optional.of(DISPLAY_NAME),
               Optional.of(DESCRIPTION),
@@ -297,6 +308,7 @@ public class DeployedLandingZoneDaoTest extends LibraryTestBase {
       assertEquals(VERSION, records.get(0).version());
       assertEquals(SUBSCRIPTION, records.get(0).subscriptionId());
       assertEquals(TENANT, records.get(0).tenantId());
+      assertEquals(REGION, records.get(0).region());
       assertEquals(BILLING_PROFILE, records.get(0).billingProfileId());
       assertEquals(DISPLAY_NAME, records.get(0).displayName().get());
       assertEquals(DESCRIPTION, records.get(0).description().get());

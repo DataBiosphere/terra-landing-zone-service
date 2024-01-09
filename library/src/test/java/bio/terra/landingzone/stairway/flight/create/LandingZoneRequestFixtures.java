@@ -46,6 +46,7 @@ public class LandingZoneRequestFixtures {
         azureProfile.getSubscriptionId(),
         azureProfile.getTenantId(),
         profile.getId(),
+        null,
         OffsetDateTime.now(),
         Optional.of("displayName"),
         Optional.of("name"),
