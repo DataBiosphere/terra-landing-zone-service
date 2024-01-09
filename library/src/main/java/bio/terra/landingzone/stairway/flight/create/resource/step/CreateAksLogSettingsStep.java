@@ -44,10 +44,9 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   public CreateAksLogSettingsStep(
-      ArmManagers armManagers,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(armManagers, resourceNameProvider);
+    super(resourceNameProvider);
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 
@@ -101,7 +100,7 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // do nothing
   }
 

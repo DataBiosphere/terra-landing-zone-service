@@ -25,10 +25,9 @@ public class CreateSentinelRunPlaybookAutomationRule extends BaseResourceCreateS
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   public CreateSentinelRunPlaybookAutomationRule(
-      ArmManagers armManagers,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(armManagers, resourceNameProvider);
+    super(resourceNameProvider);
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 
@@ -74,7 +73,7 @@ public class CreateSentinelRunPlaybookAutomationRule extends BaseResourceCreateS
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // nothing to delete here since an automation rule will be deleted together with sentinel
   }
 

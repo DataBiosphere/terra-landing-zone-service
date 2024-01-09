@@ -20,8 +20,8 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAppInsightsStep.class);
   public static final String APP_INSIGHT_ID = "APP_INSIGHT_ID";
 
-  public CreateAppInsightsStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateAppInsightsStep(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -58,7 +58,9 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.applicationInsightsManager().components().deleteById(resourceId);
   }
 

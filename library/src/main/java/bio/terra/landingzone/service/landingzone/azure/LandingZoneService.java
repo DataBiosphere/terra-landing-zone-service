@@ -26,7 +26,6 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
 import bio.terra.landingzone.model.LandingZoneTarget;
-import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
@@ -43,9 +42,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCre
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneDeletion;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
-import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneResourcesFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
-import bio.terra.profile.model.ProfileModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,7 +67,6 @@ public class LandingZoneService {
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneSamService samService;
-  private final LandingZoneBillingProfileManagerService bpmService;
   private final LandingZoneTestingConfiguration testingConfiguration;
 
   @Autowired
@@ -79,13 +75,11 @@ public class LandingZoneService {
       LandingZoneManagerProvider landingZoneManagerProvider,
       LandingZoneDao landingZoneDao,
       LandingZoneSamService samService,
-      LandingZoneBillingProfileManagerService bpmService,
       LandingZoneTestingConfiguration landingZoneTestingConfiguration) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.landingZoneDao = landingZoneDao;
     this.samService = samService;
-    this.bpmService = bpmService;
     this.testingConfiguration = landingZoneTestingConfiguration;
   }
 
@@ -166,39 +160,15 @@ public class LandingZoneService {
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+
+    MetricUtils.incrementLandingZoneCreation(azureLandingZoneRequest.definition());
+
     return azureLandingZoneJobService.retrieveStartingAsyncJobResult(
         jobBuilder.submit(),
         new StartLandingZoneCreation(
             landingZoneId,
             azureLandingZoneRequest.definition(),
             azureLandingZoneRequest.version()));
-  }
-
-  public String startLandingZoneResourceCreationJob(
-      String jobId,
-      LandingZoneRequest landingZoneRequest,
-      ProfileModel billingProfile,
-      UUID landingZoneId,
-      BearerToken bearerToken,
-      String resultPath) {
-    var jobDescription =
-        "Inner flight to create landing zone resources. definition='%s', version='%s'";
-    MetricUtils.incrementLandingZoneCreation(landingZoneRequest.definition());
-    return azureLandingZoneJobService
-        .newJob()
-        .jobId(jobId)
-        .description(
-            String.format(
-                jobDescription, landingZoneRequest.definition(), landingZoneRequest.version()))
-        .flightClass(CreateLandingZoneResourcesFlight.class)
-        .landingZoneRequest(landingZoneRequest)
-        .operationType(OperationType.CREATE)
-        .bearerToken(bearerToken)
-        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, landingZoneRequest)
-        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
-        .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
-        .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile)
-        .submit();
   }
 
   private void checkIfLandingZoneWithIdExists(UUID landingZoneId) {

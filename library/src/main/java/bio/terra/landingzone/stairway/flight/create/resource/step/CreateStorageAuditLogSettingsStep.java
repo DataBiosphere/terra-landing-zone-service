@@ -17,9 +17,8 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
 
   public static final String STORAGE_AUDIT_LOG_SETTINGS_KEY = "STORAGE_AUDIT_LOG_SETTINGS";
 
-  public CreateStorageAuditLogSettingsStep(
-      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateStorageAuditLogSettingsStep(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -60,7 +59,7 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // do nothing
   }
 

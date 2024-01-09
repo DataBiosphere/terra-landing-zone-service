@@ -3,6 +3,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
@@ -25,17 +26,16 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
   private static final Logger logger =
       LoggerFactory.getLogger(CreateLandingZoneFederatedIdentityStep.class);
   public static final String k8sNamespace = "default";
-  private final ArmManagers armManagers;
   private final KubernetesClientProvider kubernetesClientProvider;
 
-  public CreateLandingZoneFederatedIdentityStep(
-      ArmManagers armManagers, KubernetesClientProvider kubernetesClientProvider) {
-    this.armManagers = armManagers;
+  public CreateLandingZoneFederatedIdentityStep(KubernetesClientProvider kubernetesClientProvider) {
     this.kubernetesClientProvider = kubernetesClientProvider;
   }
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     var uami =
         FlightUtils.getRequired(
             context.getWorkingMap(),
@@ -55,11 +55,16 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
             context.getWorkingMap(), CreateAksStep.AKS_RESOURCE_KEY, LandingZoneResource.class);
     var mrgName = getMRGName(context);
 
-    createFederatedCredentials(context, k8sNamespace, uamiName, oidcIssuer);
+    createFederatedCredentials(context, armManagers, k8sNamespace, uamiName, oidcIssuer);
 
     try {
       createK8sServiceAccount(
-          k8sNamespace, uamiName, uamiClientId, aksResource.resourceName().orElseThrow(), mrgName);
+          armManagers,
+          k8sNamespace,
+          uamiName,
+          uamiClientId,
+          aksResource.resourceName().orElseThrow(),
+          mrgName);
     } catch (ApiException e) {
       logger.info("Failed to create k8s service account", e);
       if (e.getCode() >= HttpStatus.INTERNAL_SERVER_ERROR.value()) {
@@ -73,6 +78,7 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
   }
 
   private void createK8sServiceAccount(
+      ArmManagers armManagers,
       String k8sNamespace,
       String uamiName,
       String uamiClientId,
@@ -94,7 +100,11 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
   }
 
   private void deleteK8sServiceAccount(
-      String k8sNamespace, String uamiName, String aksClusterName, String mrgName)
+      ArmManagers armManagers,
+      String k8sNamespace,
+      String uamiName,
+      String aksClusterName,
+      String mrgName)
       throws ApiException {
     CoreV1Api api =
         kubernetesClientProvider.createCoreApiClient(armManagers, mrgName, aksClusterName);
@@ -104,7 +114,11 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
   }
 
   private void createFederatedCredentials(
-      FlightContext context, String k8sNamespace, String uamiName, String oidcIssuer) {
+      FlightContext context,
+      ArmManagers armManagers,
+      String k8sNamespace,
+      String uamiName,
+      String oidcIssuer) {
     armManagers
         .azureResourceManager()
         .identities()
@@ -121,7 +135,8 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
                 .withSubject(String.format("system:serviceaccount:%s:%s", k8sNamespace, uamiName)));
   }
 
-  private void deleteFederatedCredentials(FlightContext context, String uamiName) {
+  private void deleteFederatedCredentials(
+      FlightContext context, ArmManagers armManagers, String uamiName) {
     armManagers
         .azureResourceManager()
         .identities()
@@ -147,14 +162,15 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
 
     var uamiName = uami.resourceName().orElseThrow();
     var mrgName = getMRGName(context);
-
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     try {
       deleteK8sServiceAccount(
-          k8sNamespace, uamiName, aksResource.resourceName().orElseThrow(), mrgName);
+          armManagers, k8sNamespace, uamiName, aksResource.resourceName().orElseThrow(), mrgName);
     } catch (ApiException e) {
       logger.info("Failed to delete k8s service account", e);
     }
-    deleteFederatedCredentials(context, uamiName);
+    deleteFederatedCredentials(context, armManagers, uamiName);
     return StepResult.getStepResultSuccess();
   }
 

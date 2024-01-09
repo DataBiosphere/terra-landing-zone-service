@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
@@ -16,8 +17,8 @@ public class CreateSentinelStep extends BaseResourceCreateStep {
   public static final String SENTINEL_ID = "SENTINEL_ID";
   public static final String SENTINEL_RESOURCE_KEY = "SENTINEL";
 
-  public CreateSentinelStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateSentinelStep(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -55,7 +56,9 @@ public class CreateSentinelStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.securityInsightsManager().sentinelOnboardingStates().deleteById(resourceId);
   }
 

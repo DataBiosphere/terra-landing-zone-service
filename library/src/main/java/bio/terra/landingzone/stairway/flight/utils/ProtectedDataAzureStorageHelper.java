@@ -12,13 +12,8 @@ public class ProtectedDataAzureStorageHelper {
   private static final Logger logger =
       LoggerFactory.getLogger(ProtectedDataAzureStorageHelper.class);
 
-  private final ArmManagers armManagers;
-
-  public ProtectedDataAzureStorageHelper(ArmManagers armManagers) {
-    this.armManagers = armManagers;
-  }
-
   public DataExport createLogAnalyticsDataExport(
+      ArmManagers armManagers,
       String exportName,
       String mrgName,
       String logAnalyticsWorkspaceResourceName,
@@ -35,7 +30,7 @@ public class ProtectedDataAzureStorageHelper {
         .create();
   }
 
-  public void deleteDataExport(String dataExportResourceId) {
+  public void deleteDataExport(ArmManagers armManagers, String dataExportResourceId) {
     try {
       armManagers.logAnalyticsManager().dataExports().deleteById(dataExportResourceId);
     } catch (ManagementException e) {

@@ -14,9 +14,8 @@ import org.slf4j.LoggerFactory;
 public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateBatchLogSettingsStep.class);
 
-  public CreateBatchLogSettingsStep(
-      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateBatchLogSettingsStep(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -52,7 +51,7 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // do nothing
   }
 

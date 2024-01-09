@@ -20,9 +20,8 @@ import org.slf4j.LoggerFactory;
 public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateStorageAccountCorsRules.class);
 
-  public CreateStorageAccountCorsRules(
-      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateStorageAccountCorsRules(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -44,7 +43,7 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // do nothing
   }
 

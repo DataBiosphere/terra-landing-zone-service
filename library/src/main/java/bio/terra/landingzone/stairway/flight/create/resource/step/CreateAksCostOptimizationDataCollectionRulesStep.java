@@ -89,9 +89,8 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
     }
   }
 
-  public CreateAksCostOptimizationDataCollectionRulesStep(
-      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateAksCostOptimizationDataCollectionRulesStep(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -106,14 +105,15 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
             String.class);
     var aksId = getParameterOrThrow(context.getWorkingMap(), CreateAksStep.AKS_ID, String.class);
 
-    var dataCollectionRuleId = createRule(landingZoneId, logAnalyticsWorkspaceId, context);
+    var dataCollectionRuleId =
+        createRule(landingZoneId, logAnalyticsWorkspaceId, context, armManagers);
     // associate rule with aks resource.
-    createRuleAssociation(aksId, dataCollectionRuleId);
+    createRuleAssociation(aksId, dataCollectionRuleId, armManagers);
     logger.info(RESOURCE_CREATED, getResourceType(), dataCollectionRuleId, getMRGName(context));
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // do nothing
   }
 
@@ -135,7 +135,10 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
   }
 
   private String createRule(
-      UUID landingZoneId, String logAnalyticsWorkspaceId, FlightContext context) {
+      UUID landingZoneId,
+      String logAnalyticsWorkspaceId,
+      FlightContext context,
+      ArmManagers armManagers) {
     var aksResource =
         getParameterOrThrow(
             context.getWorkingMap(), CreateAksStep.AKS_RESOURCE_KEY, LandingZoneResource.class);
@@ -145,6 +148,7 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
     // "MSCI-k8sRegion-k8sName".
     var dataCollectionRuleName =
         getRuleName(aksResource.region(), aksResource.resourceName().orElseThrow());
+
     try {
       var dataCollectionRule =
           armManagers
@@ -179,7 +183,8 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
     }
   }
 
-  private void createRuleAssociation(String aksId, String dataCollectionRuleId) {
+  private void createRuleAssociation(
+      String aksId, String dataCollectionRuleId, ArmManagers armManagers) {
     final String RULE_ASSOCIATION_DESCRIPTION =
         "Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster.";
     var ruleAssociation =

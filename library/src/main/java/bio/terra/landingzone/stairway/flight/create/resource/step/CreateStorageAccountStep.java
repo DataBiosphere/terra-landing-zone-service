@@ -24,9 +24,8 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
   public static final String STORAGE_ACCOUNT_ID = "STORAGE_ACCOUNT_ID";
   public static final String STORAGE_ACCOUNT_RESOURCE_KEY = "STORAGE_ACCOUNT";
 
-  public CreateStorageAccountStep(
-      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateStorageAccountStep(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -76,7 +75,9 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.azureResourceManager().storageAccounts().deleteById(resourceId);
   }
 

@@ -10,14 +10,12 @@ import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRuleTempl
 import java.time.Duration;
 
 public class AlertRulesHelper {
-  private final SecurityInsightsManager securityInsightsManager;
-
-  public AlertRulesHelper(SecurityInsightsManager securityInsightsManager) {
-    this.securityInsightsManager = securityInsightsManager;
-  }
 
   public AlertRuleInner buildScheduledAlertRuleFromTemplate(
-      String mrgName, String workspaceName, String ruleTemplateId) {
+      SecurityInsightsManager securityInsightsManager,
+      String mrgName,
+      String workspaceName,
+      String ruleTemplateId) {
     var template =
         (AlertRuleTemplateImpl)
             securityInsightsManager
@@ -48,7 +46,10 @@ public class AlertRulesHelper {
   }
 
   public NrtAlertRule buildNrtAlertRuleFromTemplate(
-      String mrgName, String workspaceName, String ruleTemplateId) {
+      SecurityInsightsManager securityInsightsManager,
+      String mrgName,
+      String workspaceName,
+      String ruleTemplateId) {
     var template =
         (AlertRuleTemplateImpl)
             securityInsightsManager
@@ -74,7 +75,11 @@ public class AlertRulesHelper {
   }
 
   public void createAlertRule(
-      AlertRuleInner alertRule, String ruleId, String mrgName, String workspaceName) {
+      SecurityInsightsManager securityInsightsManager,
+      AlertRuleInner alertRule,
+      String ruleId,
+      String mrgName,
+      String workspaceName) {
     securityInsightsManager.alertRules().createOrUpdate(mrgName, workspaceName, ruleId, alertRule);
   }
 }

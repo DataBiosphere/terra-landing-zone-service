@@ -11,6 +11,7 @@ public class LandingZoneFlightMapKeys {
   public static final String CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID =
       "createLandingZoneResourcesInnerFlightJobId";
   public static final String CREATE_LANDING_ZONE_PARAMETERS_RESOLVER = "parametersResolver";
+  public static final String ARM_MANAGERS_KEY = "armManagers";
 
   private LandingZoneFlightMapKeys() {}
 }

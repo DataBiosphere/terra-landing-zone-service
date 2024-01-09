@@ -2,7 +2,6 @@ package bio.terra.landingzone.library.landingzones.definition.factories;
 
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.stairway.flight.ParametersResolverProvider;
@@ -44,7 +43,6 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
 
   @Override
   public List<Pair<Step, RetryRule>> get(
-      ArmManagers armManagers,
       ParametersResolverProvider parametersResolverProvider,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
@@ -52,7 +50,6 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
     var protectedDataSteps =
         new ArrayList<>(
             super.get(
-                armManagers,
                 parametersResolverProvider,
                 resourceNameProvider,
                 landingZoneProtectedDataConfiguration));
@@ -60,34 +57,30 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
     protectedDataSteps.add(
         Pair.of(
             new ConnectLongTermLogStorageStep(
-                armManagers,
                 resourceNameProvider,
-                new ProtectedDataAzureStorageHelper(armManagers),
+                new ProtectedDataAzureStorageHelper(),
                 landingZoneProtectedDataConfiguration.getLongTermStorageTableNames(),
                 landingZoneProtectedDataConfiguration.getLongTermStorageAccountIds()),
             RetryRules.cloud()));
 
     protectedDataSteps.add(
-        Pair.of(new CreateSentinelStep(armManagers, resourceNameProvider), RetryRules.cloud()));
+        Pair.of(new CreateSentinelStep(resourceNameProvider), RetryRules.cloud()));
 
     protectedDataSteps.add(
         Pair.of(
-            new CreateSentinelRunPlaybookAutomationRule(
-                armManagers, resourceNameProvider, landingZoneProtectedDataConfiguration),
+            new CreateSentinelRunPlaybookAutomationRule(resourceNameProvider, landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
 
     protectedDataSteps.add(
         Pair.of(
             new CreateSentinelAlertRulesStep(
-                armManagers,
                 resourceNameProvider,
-                new AlertRulesHelper(armManagers.securityInsightsManager()),
+                new AlertRulesHelper(),
                 landingZoneProtectedDataConfiguration),
             RetryRules.cloudLongRunning()));
     protectedDataSteps.add(
         Pair.of(
-            new CreateAksLogSettingsStep(
-                armManagers, resourceNameProvider, landingZoneProtectedDataConfiguration),
+            new CreateAksLogSettingsStep(resourceNameProvider, landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
 
     return protectedDataSteps;

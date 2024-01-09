@@ -26,8 +26,8 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   public static final String VNET_ID = "VNET_ID";
   public static final String VNET_RESOURCE_KEY = "VNET";
 
-  public CreateVnetStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateVnetStep(ResourceNameProvider resourceNameProvider) {
+    super( resourceNameProvider);
   }
 
   @Override
@@ -128,7 +128,9 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.azureResourceManager().networks().deleteById(resourceId);
   }
 

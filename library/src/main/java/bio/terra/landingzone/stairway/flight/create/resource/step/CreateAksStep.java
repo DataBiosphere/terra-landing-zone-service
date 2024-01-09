@@ -45,8 +45,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
   // it's always true, false is only for testing; see denySleepWhilePoolingForAksStatus() method
   private boolean sleepWhilePollingAksStatus = true;
 
-  public CreateAksStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
-    super(armManagers, resourceNameProvider);
+  public CreateAksStep(ResourceNameProvider resourceNameProvider) {
+    super(resourceNameProvider);
   }
 
   @Override
@@ -114,6 +114,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     var aksName = resourceNameProvider.getName(getResourceType());
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
 
     KubernetesCluster aks;
     try {
@@ -183,10 +185,13 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
   private KubernetesCluster handleConflictAndMaybeGetAks(
       FlightContext context, String aksName, ManagementException e) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     return switch (e.getValue().getCode().toLowerCase()) {
         /*duplicate request (Stairway has resumed flight after interruption)
         but resource is not ready for use and is still being provisioned*/
-      case "operationnotallowed" -> waitAndMaybeGetAksProvisioned(getMRGName(context), aksName);
+      case "operationnotallowed" -> waitAndMaybeGetAksProvisioned(
+          getMRGName(context), aksName, armManagers);
         /*duplicate request (Stairway resume flight after interruption), but resource is ready for use*/
       case "conflict" ->
           armManagers
@@ -197,7 +202,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
     };
   }
 
-  private KubernetesCluster waitAndMaybeGetAksProvisioned(String mrgName, String aksName) {
+  private KubernetesCluster waitAndMaybeGetAksProvisioned(
+      String mrgName, String aksName, ArmManagers armManagers) {
     final int pollCycleNumberMax = 30;
     final int sleepDurationSeconds = 30;
     int pollCycleNumber = 0;
@@ -328,7 +334,9 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.azureResourceManager().kubernetesClusters().deleteById(resourceId);
   }
 
