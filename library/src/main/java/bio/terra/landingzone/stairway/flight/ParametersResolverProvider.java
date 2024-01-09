@@ -26,23 +26,18 @@ public class ParametersResolverProvider {
    * region is not found, it falls back to the global defaults.
    */
   public ParametersResolver create(Map<String, String> inputParameters, String region) {
-    var parameters = new HashMap<String, String>();
-    parameters.putAll(LandingZoneDefaultParameters.get());
+    var parameters = new HashMap<>(LandingZoneDefaultParameters.get());
 
-    if (region != null) {
-      parameters.putAll(
-          landingZoneAzureRegionConfiguration
-              .getDefaultParameters()
-              .getOrDefault(
-                  region,
-                  landingZoneAzureRegionConfiguration
-                      .getDefaultParameters()
-                      .getOrDefault(GLOBAL_KEY, new HashMap<>())));
-    } else {
-      parameters.putAll(
-          landingZoneAzureRegionConfiguration
-              .getDefaultParameters()
-              .getOrDefault(GLOBAL_KEY, new HashMap<>()));
+    var regionalParameters = landingZoneAzureRegionConfiguration.getDefaultParameters();
+
+    if (regionalParameters != null) {
+      if (region != null) {
+        parameters.putAll(
+            regionalParameters.getOrDefault(
+                region, regionalParameters.getOrDefault(GLOBAL_KEY, new HashMap<>())));
+      } else {
+        parameters.putAll(regionalParameters.getOrDefault(GLOBAL_KEY, new HashMap<>()));
+      }
     }
     if (inputParameters != null) {
       parameters.putAll(inputParameters);

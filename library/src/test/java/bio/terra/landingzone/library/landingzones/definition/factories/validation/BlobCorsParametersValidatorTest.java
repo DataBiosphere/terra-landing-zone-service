@@ -155,17 +155,23 @@ public class BlobCorsParametersValidatorTest {
       String allowedHeaders,
       String exposedHeaders,
       String maxAge) {
-    Map<String, String> parameters = new HashMap<>(Map.of(
-        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),
-        STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
-        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS.name(),
-        STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
-        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS.name(),
-        STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
-        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS.name(),
-        STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
-        StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
-        STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT));
+    Map<String, String> parameters =
+        new HashMap<>(
+            Map.of(
+                StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS
+                    .name(),
+                STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT,
+                StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS
+                    .name(),
+                STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT,
+                StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS
+                    .name(),
+                STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_HEADERS_DEFAULT,
+                StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS
+                    .name(),
+                STORAGE_ACCOUNT_BLOB_CORS_EXPOSED_HEADERS_DEFAULT,
+                StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE.name(),
+                STORAGE_ACCOUNT_BLOB_CORS_MAX_AGE_DEFAULT));
     if (allowedOrigins != null) {
       parameters.put(
           StorageAccountBlobCorsParametersNames.STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS.name(),

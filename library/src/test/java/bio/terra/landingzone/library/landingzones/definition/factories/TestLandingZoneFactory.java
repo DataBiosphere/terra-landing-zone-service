@@ -4,6 +4,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
+import bio.terra.landingzone.stairway.flight.ParametersResolverProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
@@ -34,7 +35,7 @@ public class TestLandingZoneFactory implements StepsDefinitionProvider {
   @Override
   public List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
-      ParametersResolver parametersResolver,
+      ParametersResolverProvider parametersResolverProvider,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     return Collections.emptyList();

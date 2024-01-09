@@ -20,13 +20,13 @@ class ParametersResolverProviderTest {
       new LandingZoneAzureRegionConfiguration();
   private final ParametersResolverProvider provider =
       new ParametersResolverProvider(regionConfiguration);
-  private Map<String, String> parameters;
+  private Map<String, String> inputParameters;
   private Map<String, String> regionalDefaults;
   private String testingKey;
 
   @BeforeEach
   void setUp() {
-    parameters = new HashMap<>();
+    inputParameters = new HashMap<>();
     regionalDefaults = new HashMap<>();
     regionConfiguration.setDefaultParameters(
         Map.of(REGION, regionalDefaults, GLOBAL, new HashMap<>()));
@@ -40,8 +40,8 @@ class ParametersResolverProviderTest {
   @Test
   void getValue_inputParametersOverrideRegionAndBaseDefaults() {
     regionalDefaults.put(testingKey, "FOO");
-    parameters.put(testingKey, "BAR");
-    var resolver = provider.create(parameters, REGION);
+    inputParameters.put(testingKey, "BAR");
+    var resolver = provider.create(inputParameters, REGION);
 
     assertThat(resolver.getValue(testingKey), equalTo("BAR"));
   }
@@ -49,14 +49,14 @@ class ParametersResolverProviderTest {
   @Test
   void getValue_regionParametersOverrideBaseDefaults() {
     regionalDefaults.put(testingKey, "FOO");
-    var resolver = provider.create(parameters, REGION);
+    var resolver = provider.create(inputParameters, REGION);
 
     assertThat(resolver.getValue(testingKey), equalTo("FOO"));
   }
 
   @Test
   void getValue_fallsBackToBaseDefault() {
-    var resolver = provider.create(parameters, REGION);
+    var resolver = provider.create(inputParameters, REGION);
 
     assertThat(
         resolver.getValue(testingKey), equalTo(LandingZoneDefaultParameters.get().get(testingKey)));
@@ -68,7 +68,7 @@ class ParametersResolverProviderTest {
     regionConfiguration.setDefaultParameters(
         Map.of(REGION, regionalDefaults, GLOBAL, globalParameters));
 
-    var resolver = provider.create(parameters, "nonexistent region");
+    var resolver = provider.create(inputParameters, "nonexistent region");
 
     assertThat(resolver.getValue(testingKey), equalTo("FOO"));
   }
@@ -82,10 +82,19 @@ class ParametersResolverProviderTest {
   }
 
   @Test
+  void getValue_fallsBackToBaseDefaultIfRegionalConfigNotFound() {
+    regionConfiguration.setDefaultParameters(null);
+    var resolver = provider.create(null, REGION);
+
+    assertThat(
+        resolver.getValue(testingKey), equalTo(LandingZoneDefaultParameters.get().get(testingKey)));
+  }
+
+  @Test
   void getValue_fallsBackToBaseDefaultIfGlobalDefaultNotFound() {
     regionConfiguration.setDefaultParameters(Map.of(REGION, regionalDefaults));
 
-    var resolver = provider.create(parameters, "nonexistent region");
+    var resolver = provider.create(inputParameters, "nonexistent region");
 
     assertThat(
         resolver.getValue(testingKey), equalTo(LandingZoneDefaultParameters.get().get(testingKey)));
@@ -93,7 +102,7 @@ class ParametersResolverProviderTest {
 
   @Test
   void getValue_returnsEmptyStringIfKeyNotFound() {
-    var resolver = provider.create(parameters, REGION);
+    var resolver = provider.create(inputParameters, REGION);
 
     assertThat(resolver.getValue("nonexistent key"), equalTo(""));
   }
