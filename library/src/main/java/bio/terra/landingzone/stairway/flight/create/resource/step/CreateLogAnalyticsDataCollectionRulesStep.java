@@ -39,14 +39,14 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
       LoggerFactory.getLogger(CreateLogAnalyticsDataCollectionRulesStep.class);
 
   public CreateLogAnalyticsDataCollectionRulesStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ParametersResolver parametersResolver, ResourceNameProvider resourceNameProvider) {
+    super(parametersResolver, resourceNameProvider);
   }
 
   @Override
   public StepResult undoStep(FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     var dataCollectionRuleName =
         context.getWorkingMap().get(DATA_COLLECTION_RULE_NAME, String.class);
     try {
@@ -151,7 +151,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // do nothing
   }
 

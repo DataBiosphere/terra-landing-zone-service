@@ -45,15 +45,11 @@ public abstract class BaseResourceCreateStep implements Step {
       "Failed attempt to delete {}. Id={}";
   private static final String RESOURCE_DELETED = "{} resource with id={} deleted.";
 
-  protected final ArmManagers armManagers;
   protected final ResourceNameProvider resourceNameProvider;
   protected final ParametersResolver parametersResolver;
 
   protected BaseResourceCreateStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    this.armManagers = armManagers;
+      ParametersResolver parametersResolver, ResourceNameProvider resourceNameProvider) {
     this.parametersResolver = parametersResolver;
     this.resourceNameProvider = resourceNameProvider;
     registerForNameGeneration(resourceNameProvider, this);
@@ -75,6 +71,8 @@ public abstract class BaseResourceCreateStep implements Step {
             context.getInputParameters(),
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             LandingZoneRequest.class);
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     try {
       var stepDuration =
           MetricUtils.configureTimerForLzStepDuration(
@@ -104,8 +102,9 @@ public abstract class BaseResourceCreateStep implements Step {
   public StepResult undoStep(FlightContext flightContext) throws InterruptedException {
     var resourceId = getResourceId(flightContext);
     try {
+
       if (resourceId.isPresent()) {
-        deleteResource(resourceId.get());
+        deleteResource(resourceId.get(), flightContext);
         logger.info(RESOURCE_DELETED, getResourceType(), resourceId.get());
       }
     } catch (ManagementException e) {
@@ -123,7 +122,7 @@ public abstract class BaseResourceCreateStep implements Step {
 
   protected abstract void createResource(FlightContext context, ArmManagers armManagers);
 
-  protected abstract void deleteResource(String resourceId);
+  protected abstract void deleteResource(String resourceId, FlightContext context);
 
   protected abstract String getResourceType();
 

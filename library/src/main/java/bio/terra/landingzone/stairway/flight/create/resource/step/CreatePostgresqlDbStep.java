@@ -46,10 +46,8 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   public static final String POSTGRESQL_RESOURCE_KEY = "POSTGRESQL";
 
   public CreatePostgresqlDbStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ParametersResolver parametersResolver, ResourceNameProvider resourceNameProvider) {
+    super(parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -58,7 +56,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
     var postgres = createServer(context, armManagers, postgresName);
 
-    enablePgBouncer(getMRGName(context), postgresName);
+    enablePgBouncer(getMRGName(context), postgresName, armManagers);
 
     createAdminUser(context, armManagers, postgresName);
 
@@ -184,7 +182,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
         .create();
   }
 
-  private void enablePgBouncer(String mrgName, String postgresName) {
+  private void enablePgBouncer(String mrgName, String postgresName, ArmManagers armManagers) {
     // Note: azure sdk does not allow this to be done with one call, let alone while creating the
     // server
     if (Boolean.parseBoolean(
@@ -238,7 +236,9 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.postgreSqlManager().servers().deleteById(resourceId);
   }
 

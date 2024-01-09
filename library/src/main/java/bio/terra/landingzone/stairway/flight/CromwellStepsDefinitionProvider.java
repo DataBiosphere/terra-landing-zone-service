@@ -3,7 +3,6 @@ package bio.terra.landingzone.stairway.flight;
 import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapFileReaderImpl;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParametersValidationFactory;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksCostOptimizationDataCollectionRulesStep;
@@ -39,7 +38,6 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
   // TODO: this doesn't take into account versioning
   @Override
   public List<Pair<Step, RetryRule>> get(
-      ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
@@ -50,79 +48,66 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
                     StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE),
                 parametersResolver),
             RetryRules.shortExponential()),
-        Pair.of(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud()),
+        Pair.of(new GetManagedResourceGroupInfo(), RetryRules.cloud()),
         Pair.of(
-            new CreateNetworkSecurityGroupStep(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateNetworkSecurityGroupStep(parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(new CreateVnetStep(parametersResolver, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateLogAnalyticsWorkspaceStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateVnetStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreatePostgresqlDNSStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateLogAnalyticsWorkspaceStep(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateVirtualNetworkLinkStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreatePostgresqlDNSStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateLandingZoneIdentityStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateVirtualNetworkLinkStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreatePostgresqlDbStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateLandingZoneIdentityStep(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateStorageAccountStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreatePostgresqlDbStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateBatchAccountStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateStorageAccountStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateStorageAccountCorsRules(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateBatchAccountStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateLogAnalyticsDataCollectionRulesStep(parametersResolver, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(new CreateAksStep(parametersResolver, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateLandingZoneFederatedIdentityStep(new KubernetesClientProviderImpl()),
             RetryRules.cloud()),
         Pair.of(
-            new CreateStorageAccountCorsRules(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateRelayNamespaceStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateLogAnalyticsDataCollectionRulesStep(
-                armManagers, parametersResolver, resourceNameProvider),
+            new CreateStorageAuditLogSettingsStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateAksStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateBatchLogSettingsStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateLandingZoneFederatedIdentityStep(
-                armManagers, new KubernetesClientProviderImpl()),
+            new CreatePostgresLogSettingsStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
-            new CreateRelayNamespaceStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAuditLogSettingsStep(
-                armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateBatchLogSettingsStep(armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreatePostgresLogSettingsStep(
-                armManagers, parametersResolver, resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateAppInsightsStep(armManagers, parametersResolver, resourceNameProvider),
+            new CreateAppInsightsStep(parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
             new CreateAksCostOptimizationDataCollectionRulesStep(
-                armManagers, parametersResolver, resourceNameProvider),
+                parametersResolver, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
             new EnableAksContainerLogV2Step(
-                armManagers,
                 new KubernetesClientProviderImpl(),
                 new AksConfigMapFileReaderImpl(EnableAksContainerLogV2Step.CONFIG_MAP_PATH)),
             RetryRules.cloud()),
-        Pair.of(new EnableAksContainerInsightsStep(armManagers), RetryRules.cloud()));
+        Pair.of(new EnableAksContainerInsightsStep(), RetryRules.cloud()));
   }
 }

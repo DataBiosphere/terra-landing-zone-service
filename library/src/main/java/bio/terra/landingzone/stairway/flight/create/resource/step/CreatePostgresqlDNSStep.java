@@ -23,10 +23,8 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
   public static final String POSTGRES_DNS_SUFFIX = ".private.postgres.database.azure.com";
 
   public CreatePostgresqlDNSStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ParametersResolver parametersResolver, ResourceNameProvider resourceNameProvider) {
+    super(parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -63,7 +61,9 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.azureResourceManager().privateDnsZones().deleteById(resourceId);
   }
 

@@ -6,6 +6,7 @@ import bio.terra.landingzone.common.utils.HttpResponseUtils;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
@@ -29,15 +30,11 @@ public class EnableAksContainerLogV2Step implements Step {
 
   private static final Logger logger = LoggerFactory.getLogger(EnableAksContainerLogV2Step.class);
 
-  private final ArmManagers armManagers;
   private final KubernetesClientProvider kubernetesClientProvider;
   private final AksConfigMapReader aksConfigMapReader;
 
   public EnableAksContainerLogV2Step(
-      ArmManagers armManagers,
-      KubernetesClientProvider kubernetesClientProvider,
-      AksConfigMapReader aksConfigMapReader) {
-    this.armManagers = armManagers;
+      KubernetesClientProvider kubernetesClientProvider, AksConfigMapReader aksConfigMapReader) {
     this.kubernetesClientProvider = kubernetesClientProvider;
     this.aksConfigMapReader = aksConfigMapReader;
   }
@@ -55,10 +52,16 @@ public class EnableAksContainerLogV2Step implements Step {
             context.getWorkingMap(),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             TargetManagedResourceGroup.class);
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     try {
       var containerLogV2ConfigMap = aksConfigMapReader.read();
       createContainerLogV2ConfigMap(
-          containerLogV2ConfigMap, mrg.name(), aks.resourceName().orElseThrow(), "kube-system");
+          containerLogV2ConfigMap,
+          armManagers,
+          mrg.name(),
+          aks.resourceName().orElseThrow(),
+          "kube-system");
       logger.info(
           "ContainerLogV2 ConfigMap has been successfully applied to AKS with id='{}'",
           aks.resourceId());
@@ -87,6 +90,7 @@ public class EnableAksContainerLogV2Step implements Step {
 
   private void createContainerLogV2ConfigMap(
       V1ConfigMap containerLogV2ConfigMap,
+      ArmManagers armManagers,
       String managedResourceGroupName,
       String aksResourceName,
       String aksNamespace)

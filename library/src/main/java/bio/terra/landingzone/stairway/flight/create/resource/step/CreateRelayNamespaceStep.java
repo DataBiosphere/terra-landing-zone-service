@@ -23,10 +23,8 @@ public class CreateRelayNamespaceStep extends BaseResourceCreateStep {
   public static final String RELAY_NAMESPACE_RESOURCE_KEY = "RELAY_NAMESPACE";
 
   public CreateRelayNamespaceStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ParametersResolver parametersResolver, ResourceNameProvider resourceNameProvider) {
+    super(parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -66,7 +64,9 @@ public class CreateRelayNamespaceStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     armManagers.relayManager().namespaces().deleteById(resourceId);
   }
 

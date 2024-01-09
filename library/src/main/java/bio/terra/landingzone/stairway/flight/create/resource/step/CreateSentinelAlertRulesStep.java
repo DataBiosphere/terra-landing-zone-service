@@ -12,6 +12,7 @@ import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.management.exception.ManagementException;
+import com.azure.resourcemanager.securityinsights.SecurityInsightsManager;
 import com.azure.resourcemanager.securityinsights.models.AlertSeverity;
 import com.azure.resourcemanager.securityinsights.models.MLBehaviorAnalyticsAlertRule;
 import com.azure.resourcemanager.securityinsights.models.ScheduledAlertRule;
@@ -29,12 +30,11 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   public CreateSentinelAlertRulesStep(
-      ArmManagers armManagers,
       ParametersResolver parametersResolver,
       ResourceNameProvider resourceNameProvider,
       AlertRulesHelper alertRuleAdapter,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+    super(parametersResolver, resourceNameProvider);
     this.alertRulesHelper = alertRuleAdapter;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
@@ -57,11 +57,11 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
     logger.info("Creating sentinel alert rules...");
     var mrgName = getMRGName(context);
     var lawName = logAnalyticsWorkspaceResourceName.get();
-
-    createScheduledAlertRules(mrgName, lawName);
-    createMlAlertRules(mrgName, lawName);
-    createNrtAlertRules(mrgName, lawName);
-    createCustomRules(mrgName, lawName);
+    var securityInsightsManager = armManagers.securityInsightsManager();
+    createScheduledAlertRules(securityInsightsManager, mrgName, lawName);
+    createMlAlertRules(securityInsightsManager, mrgName, lawName);
+    createNrtAlertRules(securityInsightsManager, mrgName, lawName);
+    createCustomRules(securityInsightsManager, mrgName, lawName);
   }
 
   @Override
@@ -84,7 +84,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // noop
   }
 
@@ -98,19 +98,22 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
     return Optional.empty();
   }
 
-  private void createScheduledAlertRules(String mrgName, String workspaceName) {
+  private void createScheduledAlertRules(
+      SecurityInsightsManager securityInsightsManager, String mrgName, String workspaceName) {
     landingZoneProtectedDataConfiguration
         .getSentinelScheduledAlertRuleTemplateIds()
         .forEach(
             ruleTemplateId -> {
               var rule =
                   alertRulesHelper.buildScheduledAlertRuleFromTemplate(
-                      mrgName, workspaceName, ruleTemplateId);
-              alertRulesHelper.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
+                      securityInsightsManager, mrgName, workspaceName, ruleTemplateId);
+              alertRulesHelper.createAlertRule(
+                  securityInsightsManager, rule, ruleTemplateId, mrgName, workspaceName);
             });
   }
 
-  private void createMlAlertRules(String mrgName, String workspaceName) {
+  private void createMlAlertRules(
+      SecurityInsightsManager securityInsightsManager, String mrgName, String workspaceName) {
     landingZoneProtectedDataConfiguration
         .getSentinelMlRuleTemplateIds()
         .forEach(
@@ -119,23 +122,27 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
                   new MLBehaviorAnalyticsAlertRule()
                       .withAlertRuleTemplateName(ruleTemplateId)
                       .withEnabled(true);
-              alertRulesHelper.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
+              alertRulesHelper.createAlertRule(
+                  securityInsightsManager, rule, ruleTemplateId, mrgName, workspaceName);
             });
   }
 
-  private void createNrtAlertRules(String mrgName, String workspaceName) {
+  private void createNrtAlertRules(
+      SecurityInsightsManager securityInsightsManager, String mrgName, String workspaceName) {
     landingZoneProtectedDataConfiguration
         .getSentinelNrtRuleTemplateIds()
         .forEach(
             ruleTemplateId -> {
               var rule =
                   alertRulesHelper.buildNrtAlertRuleFromTemplate(
-                      mrgName, workspaceName, ruleTemplateId);
-              alertRulesHelper.createAlertRule(rule, ruleTemplateId, mrgName, workspaceName);
+                      securityInsightsManager, mrgName, workspaceName, ruleTemplateId);
+              alertRulesHelper.createAlertRule(
+                  securityInsightsManager, rule, ruleTemplateId, mrgName, workspaceName);
             });
   }
 
-  private void createCustomRules(String mrgName, String workspaceName) {
+  private void createCustomRules(
+      SecurityInsightsManager securityInsightsManager, String mrgName, String workspaceName) {
     var fileAccessAttemptsRule =
         new ScheduledAlertRule()
             .withDisplayName("File access attempts by unauthorized user accounts")
@@ -160,7 +167,11 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
             .withTriggerOperator(TriggerOperator.GREATER_THAN)
             .withTriggerThreshold(0);
     alertRulesHelper.createAlertRule(
-        fileAccessAttemptsRule, "UnauthorizedFileAccessAttempts", mrgName, workspaceName);
+        securityInsightsManager,
+        fileAccessAttemptsRule,
+        "UnauthorizedFileAccessAttempts",
+        mrgName,
+        workspaceName);
   }
 
   @Override

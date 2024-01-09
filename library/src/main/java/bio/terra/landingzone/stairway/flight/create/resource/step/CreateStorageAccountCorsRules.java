@@ -21,10 +21,8 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateStorageAccountCorsRules.class);
 
   public CreateStorageAccountCorsRules(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ParametersResolver parametersResolver, ResourceNameProvider resourceNameProvider) {
+    super(parametersResolver, resourceNameProvider);
   }
 
   @Override
@@ -46,7 +44,7 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId) {
+  protected void deleteResource(String resourceId, FlightContext context) {
     // do nothing
   }
 

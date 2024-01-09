@@ -12,14 +12,10 @@ import bio.terra.stairway.exception.RetryException;
 public class GetManagedResourceGroupInfo implements Step {
   public static final String TARGET_MRG_KEY = "TARGET_MRG";
 
-  private final ArmManagers armManagers;
-
-  public GetManagedResourceGroupInfo(ArmManagers armManagers) {
-    this.armManagers = armManagers;
-  }
-
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    var armManagers =
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     var billingProfile =
         context
             .getInputParameters()
