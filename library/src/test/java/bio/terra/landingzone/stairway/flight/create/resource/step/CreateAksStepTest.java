@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -135,7 +136,6 @@ class CreateAksStepTest extends BaseStepTest {
   void testCostSavingSpotNodesInStep() throws InterruptedException {
     costSavingsSpotNodesEnabled = "true";
     setupCostSavingLZ();
-    setupParameterResolver();
     setupCostSavingK8sMocks();
 
     var stepResult = testStep.doStep(mockFlightContext);
@@ -291,24 +291,26 @@ class CreateAksStepTest extends BaseStepTest {
   }
 
   private void setupParameterResolver() {
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name()))
-        .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name()))
-        .thenReturn("1");
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
-        .thenReturn("false");
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name()))
-        .thenReturn(costSavingsSpotNodesEnabled);
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()))
-        .thenReturn(costSavingsVpaEnabled);
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
-        .thenReturn("00000000-0000-0000-0000-000000000000");
+    mockParametersResolver =
+        new ParametersResolver(
+            Map.of(
+                LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name(),
+                ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString(),
+                LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name(),
+                "1",
+                LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name(),
+                "false",
+                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
+                    .name(),
+                costSavingsSpotNodesEnabled,
+                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name(),
+                costSavingsVpaEnabled,
+                LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name(),
+                "00000000-0000-0000-0000-000000000000",
+                LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name(),
+                "10",
+                LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_MACHINE_TYPE.name(),
+                ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString()));
   }
 
   private void setupArmManagersForDoStep() {
@@ -380,12 +382,6 @@ class CreateAksStepTest extends BaseStepTest {
   }
 
   private void setupCostSavingK8sMocks() {
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()))
-        .thenReturn("10");
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
-        .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
     KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
     when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);
     var mockK8sAPDefinitionStagesBlank =

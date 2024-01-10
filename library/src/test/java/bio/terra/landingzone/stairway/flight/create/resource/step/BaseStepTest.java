@@ -34,7 +34,7 @@ class BaseStepTest {
 
   @Mock protected ArmManagers mockArmManagers;
   @Mock protected AzureResourceManager mockAzureResourceManager;
-  @Mock protected ParametersResolver mockParametersResolver;
+  protected ParametersResolver mockParametersResolver;
   @Mock protected ResourceNameProvider mockResourceNameProvider;
   @Mock protected FlightContext mockFlightContext;
 

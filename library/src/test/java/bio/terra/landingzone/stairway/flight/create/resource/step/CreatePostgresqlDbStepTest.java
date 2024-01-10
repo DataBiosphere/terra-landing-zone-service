@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -101,6 +102,8 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
     final String adminName = "adminName";
     final String adminPrincipalId = "adminPrincipalId";
+    setupMocksForDefaultValues(serverVersion, postgresqlSku, skuTier, backupRetention, storageSize);
+
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -127,8 +130,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             mockParametersResolver));
     setupArmManagersForDoStep(
         POSTGRESQL_ID, POSTGRESQL_NAME, mrg.region(), mrg.name(), adminPrincipalId, adminName);
-
-    setupMocksForDefaultValues(serverVersion, postgresqlSku, skuTier, backupRetention, storageSize);
 
     StepResult stepResult = createPostgresqlDbStep.doStep(mockFlightContext);
 
@@ -193,6 +194,8 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
     final String adminName = "adminName";
     final String adminPrincipalId = "adminPrincipalId";
+    setupMocksForDefaultValues(serverVersion, postgresqlSku, skuTier, backupRetention, storageSize);
+
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -217,8 +220,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
             adminPrincipalId,
             LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
             mockParametersResolver));
-
-    setupMocksForDefaultValues(serverVersion, postgresqlSku, skuTier, backupRetention, storageSize);
 
     var errorJson =
         "{\"code\":\"ResourceOperationFailure\",\"message\":\"The resource operation completed with terminal provisioning state 'Failed'.\",\"details\":[{\"code\":\"InternalServerError\",\"message\":\"An unexpected error occured while processing the request. Tracking ID: '8a04238e-7145-42d6-a71e-8a82d6f9f819'\"}]}";
@@ -330,25 +331,22 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
       SkuTier skuTier,
       String backupRetention,
       String storageSize) {
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_VERSION.name()))
-        .thenReturn(serverVersion.toString());
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU.name()))
-        .thenReturn(postgresqlSku);
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU_TIER.name()))
-        .thenReturn(skuTier.toString());
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
-                .name()))
-        .thenReturn(backupRetention);
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name()))
-        .thenReturn(storageSize);
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.ENABLE_PGBOUNCER.name()))
-        .thenReturn("true");
+    mockParametersResolver =
+        new ParametersResolver(
+            Map.of(
+                LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_VERSION.name(),
+                serverVersion.toString(),
+                LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU.name(),
+                postgresqlSku,
+                LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_SKU_TIER.name(),
+                skuTier.toString(),
+                LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_BACKUP_RETENTION_DAYS
+                    .name(),
+                backupRetention,
+                LandingZoneDefaultParameters.ParametersNames.POSTGRES_SERVER_STORAGE_SIZE_GB.name(),
+                storageSize,
+                LandingZoneDefaultParameters.ParametersNames.ENABLE_PGBOUNCER.name(),
+                "true"));
   }
 
   private void verifyServerProperties(

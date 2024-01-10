@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -10,22 +9,22 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.exception.InvalidInputParameterException;
-import bio.terra.landingzone.library.landingzones.definition.factories.validation.BlobCorsParametersValidator;
 import bio.terra.landingzone.library.landingzones.definition.factories.validation.InputParameterValidator;
+import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightContext;
+import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -35,7 +34,16 @@ class ValidateLandingZoneParametersStepTest {
   private ValidateLandingZoneParametersStep validateLandingZoneParametersStep;
 
   @Mock private FlightContext mockFlightContext;
-  @Mock private ParametersResolver mockParametersResolver;
+  private ParametersResolver parametersResolver;
+
+  @BeforeEach
+  void init() {
+    parametersResolver = new ParametersResolver(new HashMap<>());
+    var flightMap = new FlightMap();
+    flightMap.put(
+        LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER, parametersResolver);
+    when(mockFlightContext.getWorkingMap()).thenReturn(flightMap);
+  }
 
   @Test
   void testSuccessfulValidation() throws InterruptedException {
@@ -64,16 +72,5 @@ class ValidateLandingZoneParametersStepTest {
     assertThat(
         stepResult.getException().get().getClass(), equalTo(InvalidInputParameterException.class));
     verify(validator, times(1)).validate(any());
-  }
-
-  @ParameterizedTest
-  @MethodSource("initializationParameters")
-  void testInitialization(List<InputParameterValidator> validators) {
-    assertThrows(
-        NullPointerException.class, () -> new ValidateLandingZoneParametersStep(validators));
-  }
-
-  private static Stream<Arguments> initializationParameters() {
-    return Stream.of(Arguments.of(List.of(new BlobCorsParametersValidator())), Arguments.of(null));
   }
 }
