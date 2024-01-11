@@ -1,0 +1,13 @@
+test {
+    systemProperties['pact.rootDir'] = "$buildDir/pacts"
+    systemProperties['pact.provider.version'] = "$project.version"
+}
+
+tasks.register("pactTests", Test) {
+    useJUnitPlatform {
+        includeTags "pact-test"
+    }
+    testLogging {
+        showStandardStreams = true
+    }
+}
