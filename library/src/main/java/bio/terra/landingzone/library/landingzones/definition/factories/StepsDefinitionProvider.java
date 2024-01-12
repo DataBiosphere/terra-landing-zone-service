@@ -4,6 +4,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfi
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
+import bio.terra.landingzone.stairway.flight.ParametersResolverProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
@@ -43,14 +44,14 @@ public interface StepsDefinitionProvider {
    * should go first in the list definition.
    *
    * @param ArmManagers armManagers
-   * @param ParametersResolver parametersResolver
+   * @param ParametersResolverProvider parametersResolverProvider
    * @param ResourceNameProvider resourceNameProvider
    * @param LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration
    * @return List of pairs of steps and step's retry rule
    */
   List<Pair<Step, RetryRule>> get(
       ArmManagers armManagers,
-      ParametersResolver parametersResolver,
+      ParametersResolverProvider parametersResolverProvider,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration);
 }

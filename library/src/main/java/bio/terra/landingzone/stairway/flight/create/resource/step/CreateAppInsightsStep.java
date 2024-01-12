@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -21,11 +20,8 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAppInsightsStep.class);
   public static final String APP_INSIGHT_ID = "APP_INSIGHT_ID";
 
-  public CreateAppInsightsStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+  public CreateAppInsightsStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override

@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -23,10 +22,8 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
   public static final String POSTGRES_DNS_SUFFIX = ".private.postgres.database.azure.com";
 
   public CreatePostgresqlDNSStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override

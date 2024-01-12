@@ -48,8 +48,7 @@ public class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createNetworkSecurityGroupStep =
-        new CreateNetworkSecurityGroupStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+        new CreateNetworkSecurityGroupStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

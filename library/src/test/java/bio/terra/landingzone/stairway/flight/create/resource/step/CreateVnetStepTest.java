@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -66,14 +67,14 @@ class CreateVnetStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createVnetStep =
-        new CreateVnetStep(mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    createVnetStep = new CreateVnetStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
   void doStepSuccess() throws InterruptedException {
     when(mockResourceNameProvider.getName(createVnetStep.getResourceType())).thenReturn(VNET_NAME);
 
+    setupParameterResolver();
     setupFlightContext(
         mockFlightContext,
         Map.of(
@@ -87,8 +88,9 @@ class CreateVnetStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             ResourceStepFixture.createDefaultMrg(),
             CreateNetworkSecurityGroupStep.NSG_ID,
-            "nsgId"));
-    setupParameterResolver();
+            "nsgId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
 
     var network = mock(Network.class);
 
@@ -182,17 +184,18 @@ class CreateVnetStepTest extends BaseStepTest {
   }
 
   private void setupParameterResolver() {
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.VNET_ADDRESS_SPACE.name()))
-        .thenReturn("10.1.0.0/27");
-    when(mockParametersResolver.getValue(LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name()))
-        .thenReturn("10.1.0.0/29");
-    when(mockParametersResolver.getValue(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name()))
-        .thenReturn("10.1.0.8/29");
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name()))
-        .thenReturn("10.1.0.16/29");
-    when(mockParametersResolver.getValue(LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name()))
-        .thenReturn("10.1.0.24/29");
+    mockParametersResolver =
+        new ParametersResolver(
+            Map.of(
+                LandingZoneDefaultParameters.ParametersNames.VNET_ADDRESS_SPACE.name(),
+                "10.1.0.0/27",
+                LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name(),
+                "10.1.0.0/29",
+                LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name(),
+                "10.1.0.8/29",
+                LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name(),
+                "10.1.0.16/29",
+                LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name(),
+                "10.1.0.24/29"));
   }
 }

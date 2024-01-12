@@ -9,6 +9,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneTestingConfigurati
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
+import bio.terra.landingzone.stairway.flight.ParametersResolverProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -24,6 +25,7 @@ public class LandingZoneFlightBeanBag {
   private final LandingZoneBillingProfileManagerService bpmService;
   private final ObjectMapper objectMapper;
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
+  private final ParametersResolverProvider parametersResolverProvider;
   private final AzureCustomerUsageConfiguration azureCustomerUsageConfiguration;
   private final AzureCredentialsProvider azureCredentialsProvider;
 
@@ -37,6 +39,7 @@ public class LandingZoneFlightBeanBag {
       LandingZoneSamService samService,
       LandingZoneBillingProfileManagerService bpmService,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration,
+      ParametersResolverProvider parametersResolverProvider,
       AzureCustomerUsageConfiguration azureCustomerUsageConfiguration,
       AzureCredentialsProvider azureCredentialsProvider,
       ObjectMapper objectMapper) {
@@ -47,6 +50,7 @@ public class LandingZoneFlightBeanBag {
     this.samService = samService;
     this.bpmService = bpmService;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
+    this.parametersResolverProvider = parametersResolverProvider;
     this.azureCustomerUsageConfiguration = azureCustomerUsageConfiguration;
     this.azureCredentialsProvider = azureCredentialsProvider;
     this.objectMapper = objectMapper;
@@ -86,6 +90,10 @@ public class LandingZoneFlightBeanBag {
 
   public LandingZoneProtectedDataConfiguration getLandingZoneProtectedDataConfiguration() {
     return landingZoneProtectedDataConfiguration;
+  }
+
+  public ParametersResolverProvider getParametersResolverProvider() {
+    return parametersResolverProvider;
   }
 
   public AzureCustomerUsageConfiguration getAzureCustomerUsageConfiguration() {

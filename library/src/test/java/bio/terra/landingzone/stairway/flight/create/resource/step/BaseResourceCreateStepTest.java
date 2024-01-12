@@ -25,8 +25,7 @@ public class BaseResourceCreateStepTest extends BaseStepTest {
   @Test
   void testDoStepThrowsInterruptedException() {
     var step =
-        new BaseResourceCreateStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider) {
+        new BaseResourceCreateStep(mockArmManagers, mockResourceNameProvider) {
           @Override
           public List<ResourceNameRequirements> getResourceNameRequirements() {
             return null;

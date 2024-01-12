@@ -60,8 +60,7 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createRelayNamespaceStep =
-        new CreateRelayNamespaceStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+        new CreateRelayNamespaceStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

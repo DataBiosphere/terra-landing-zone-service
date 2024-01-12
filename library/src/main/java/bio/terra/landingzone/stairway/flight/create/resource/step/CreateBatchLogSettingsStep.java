@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
@@ -16,10 +15,8 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateBatchLogSettingsStep.class);
 
   public CreateBatchLogSettingsStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override

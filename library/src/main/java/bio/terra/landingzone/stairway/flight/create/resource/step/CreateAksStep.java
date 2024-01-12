@@ -45,11 +45,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
   // it's always true, false is only for testing; see denySleepWhilePoolingForAksStatus() method
   private boolean sleepWhilePollingAksStatus = true;
 
-  public CreateAksStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+  public CreateAksStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
@@ -57,17 +54,21 @@ public class CreateAksStep extends BaseResourceCreateStep {
     var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
     boolean costSavingsSpotNodesEnabled =
         Boolean.parseBoolean(
-            parametersResolver.getValue(
-                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
-                    .name()));
+            getParametersResolver(context)
+                .getValue(
+                    LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
+                        .name()));
     boolean costSavingsVpaEnabled =
         Boolean.parseBoolean(
-            parametersResolver.getValue(
-                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()));
+            getParametersResolver(context)
+                .getValue(
+                    LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED
+                        .name()));
     boolean autoScalingEnabled =
         Boolean.parseBoolean(
-            parametersResolver.getValue(
-                LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
+            getParametersResolver(context)
+                .getValue(
+                    LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
 
     var aks =
         createAks(
@@ -77,7 +78,12 @@ public class CreateAksStep extends BaseResourceCreateStep {
             costSavingsVpaEnabled,
             autoScalingEnabled);
     enableWorkloadIdentity(aks);
-    enableCostSavings(aks, vNetId, costSavingsSpotNodesEnabled, costSavingsVpaEnabled);
+    enableCostSavings(
+        aks,
+        vNetId,
+        costSavingsSpotNodesEnabled,
+        costSavingsVpaEnabled,
+        getParametersResolver(context));
 
     context.getWorkingMap().put(AKS_ID, aks.id());
     context
@@ -122,18 +128,22 @@ public class CreateAksStep extends BaseResourceCreateStep {
               .withSystemAssignedManagedServiceIdentity()
               .withAgentPoolResourceGroup(getNodeResourceGroup(getMRGName(context)))
               .withAzureActiveDirectoryGroup(
-                  parametersResolver.getValue(
-                      LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
-                          .name()))
+                  getParametersResolver(context)
+                      .getValue(
+                          LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID
+                              .name()))
               .defineAgentPool(resourceNameProvider.getName(getResourceType() + POOL_SUFFIX_KEY))
               .withVirtualMachineSize(
                   ContainerServiceVMSizeTypes.fromString(
-                      parametersResolver.getValue(
-                          LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name())))
+                      getParametersResolver(context)
+                          .getValue(
+                              LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE
+                                  .name())))
               .withAgentPoolVirtualMachineCount(
                   Integer.parseInt(
-                      parametersResolver.getValue(
-                          LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name())))
+                      getParametersResolver(context)
+                          .getValue(
+                              LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name())))
               .withAgentPoolMode(AgentPoolMode.SYSTEM)
               .withVirtualNetwork(vNetId, LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name());
 
@@ -141,12 +151,14 @@ public class CreateAksStep extends BaseResourceCreateStep {
       if (autoScalingEnabled) {
         int min =
             Integer.parseInt(
-                parametersResolver.getValue(
-                    LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MIN.name()));
+                getParametersResolver(context)
+                    .getValue(
+                        LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MIN.name()));
         int max =
             Integer.parseInt(
-                parametersResolver.getValue(
-                    LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MAX.name()));
+                getParametersResolver(context)
+                    .getValue(
+                        LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_MAX.name()));
         aksPartial = aksPartial.withAutoScaling(min, max);
       }
 
@@ -256,7 +268,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
       KubernetesCluster aks,
       String vNetId,
       boolean costSavingsSpotNodesEnabled,
-      boolean costSavingsVpaEnabled) {
+      boolean costSavingsVpaEnabled,
+      ParametersResolver parametersResolver) {
     // enable Vertical Pod Autoscaler on the AKS cluster if this option for cost savings is enabled
     if (costSavingsVpaEnabled) {
       KubernetesCluster.Update update = aks.update();

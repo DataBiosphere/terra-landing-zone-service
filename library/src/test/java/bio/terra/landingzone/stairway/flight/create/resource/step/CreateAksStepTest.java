@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -56,6 +57,7 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 class CreateAksStepTest extends BaseStepTest {
+
   private static final String RESOURCE_ID = "aksId";
 
   @Mock private KubernetesClusters mockKubernetesClusters;
@@ -90,7 +92,7 @@ class CreateAksStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateAksStep(mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    testStep = new CreateAksStep(mockArmManagers, mockResourceNameProvider);
     testStep.denySleepWhilePoolingForAksStatus();
   }
 
@@ -115,7 +117,9 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStep();
 
     var stepResult = testStep.doStep(mockFlightContext);
@@ -227,7 +231,9 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStepRetryWhenAksIsNotProvisionedYet();
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -261,7 +267,9 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStepRetryWhenAksIsAlreadyProvisioned();
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -283,24 +291,26 @@ class CreateAksStepTest extends BaseStepTest {
   }
 
   private void setupParameterResolver() {
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name()))
-        .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name()))
-        .thenReturn("1");
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name()))
-        .thenReturn("false");
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED.name()))
-        .thenReturn(costSavingsSpotNodesEnabled);
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name()))
-        .thenReturn(costSavingsVpaEnabled);
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name()))
-        .thenReturn("00000000-0000-0000-0000-000000000000");
+    mockParametersResolver =
+        new ParametersResolver(
+            Map.of(
+                LandingZoneDefaultParameters.ParametersNames.AKS_MACHINE_TYPE.name(),
+                ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString(),
+                LandingZoneDefaultParameters.ParametersNames.AKS_NODE_COUNT.name(),
+                "1",
+                LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name(),
+                "false",
+                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_SPOT_NODES_ENABLED
+                    .name(),
+                costSavingsSpotNodesEnabled,
+                LandingZoneDefaultParameters.ParametersNames.AKS_COST_SAVING_VPA_ENABLED.name(),
+                costSavingsVpaEnabled,
+                LandingZoneDefaultParameters.ParametersNames.AKS_AAD_PROFILE_USER_GROUP_ID.name(),
+                "00000000-0000-0000-0000-000000000000",
+                LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name(),
+                "10",
+                LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_MACHINE_TYPE.name(),
+                ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString()));
   }
 
   private void setupArmManagersForDoStep() {
@@ -365,17 +375,13 @@ class CreateAksStepTest extends BaseStepTest {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
-            "logAnalyticsWorkspaceId"));
+            "logAnalyticsWorkspaceId",
+            LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+            mockParametersResolver));
     setupArmManagersForDoStep();
   }
 
   private void setupCostSavingK8sMocks() {
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_AUTOSCALING_MAX.name()))
-        .thenReturn("10");
-    when(mockParametersResolver.getValue(
-            LandingZoneDefaultParameters.ParametersNames.AKS_SPOT_MACHINE_TYPE.name()))
-        .thenReturn(ContainerServiceVMSizeTypes.STANDARD_A2_V2.toString());
     KubernetesCluster.Update mockK8sUpdate = mock(KubernetesCluster.Update.class);
     when(mockKubernetesCluster.update()).thenReturn(mockK8sUpdate);
     var mockK8sAPDefinitionStagesBlank =

@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDiagnosticSetting;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -19,10 +18,8 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
   public static final String STORAGE_AUDIT_LOG_SETTINGS_KEY = "STORAGE_AUDIT_LOG_SETTINGS";
 
   public CreateStorageAuditLogSettingsStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override

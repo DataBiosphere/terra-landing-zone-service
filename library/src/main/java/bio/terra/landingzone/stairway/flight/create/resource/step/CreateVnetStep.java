@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
@@ -27,11 +26,8 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   public static final String VNET_ID = "VNET_ID";
   public static final String VNET_RESOURCE_KEY = "VNET";
 
-  public CreateVnetStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+  public CreateVnetStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
@@ -74,32 +70,34 @@ public class CreateVnetStep extends BaseResourceCreateStep {
           .withRegion(getMRGRegionName(context))
           .withExistingResourceGroup(getMRGName(context))
           .withAddressSpace(
-              parametersResolver.getValue(
-                  LandingZoneDefaultParameters.ParametersNames.VNET_ADDRESS_SPACE.name()))
+              getParametersResolver(context)
+                  .getValue(LandingZoneDefaultParameters.ParametersNames.VNET_ADDRESS_SPACE.name()))
           .defineSubnet(LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name())
           .withAddressPrefix(
-              parametersResolver.getValue(LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name()))
+              getParametersResolver(context)
+                  .getValue(LandingZoneDefaultParameters.Subnet.AKS_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .attach()
           .defineSubnet(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name())
           .withAddressPrefix(
-              parametersResolver.getValue(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name()))
+              getParametersResolver(context)
+                  .getValue(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
           .withAccessFromService(ServiceEndpointType.MICROSOFT_SQL)
           .attach()
           .defineSubnet(LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name())
           .withAddressPrefix(
-              parametersResolver.getValue(
-                  LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name()))
+              getParametersResolver(context)
+                  .getValue(LandingZoneDefaultParameters.Subnet.POSTGRESQL_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .withDelegation("Microsoft.DBforPostgreSQL/flexibleServers")
           .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
           .attach()
           .defineSubnet(LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name())
           .withAddressPrefix(
-              parametersResolver.getValue(
-                  LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name()))
+              getParametersResolver(context)
+                  .getValue(LandingZoneDefaultParameters.Subnet.COMPUTE_SUBNET.name()))
           .withExistingNetworkSecurityGroup(networkSecurityGroupId)
           .attach()
           .withTags(

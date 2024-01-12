@@ -55,7 +55,6 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
     var step =
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
-            mockParametersResolver,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
@@ -86,7 +85,6 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
     var step =
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
-            mockParametersResolver,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
@@ -100,7 +98,6 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
     var step =
         new ConnectLongTermLogStorageStep(
             mockArmManagers,
-            mockParametersResolver,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),

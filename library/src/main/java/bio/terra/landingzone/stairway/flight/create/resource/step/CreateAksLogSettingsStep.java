@@ -5,7 +5,6 @@ import static java.util.Map.entry;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
@@ -46,10 +45,9 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
 
   public CreateAksLogSettingsStep(
       ArmManagers armManagers,
-      ParametersResolver parametersResolver,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+    super(armManagers, resourceNameProvider);
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 

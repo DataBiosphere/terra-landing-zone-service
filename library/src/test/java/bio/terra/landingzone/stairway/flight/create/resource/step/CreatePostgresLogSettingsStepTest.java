@@ -60,8 +60,7 @@ class CreatePostgresLogSettingsStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createPostgresLogSettingsStep =
-        new CreatePostgresLogSettingsStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+        new CreatePostgresLogSettingsStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

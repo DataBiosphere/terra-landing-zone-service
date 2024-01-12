@@ -59,8 +59,7 @@ class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createStorageAuditLogSettingsStep =
-        new CreateStorageAuditLogSettingsStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+        new CreateStorageAuditLogSettingsStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

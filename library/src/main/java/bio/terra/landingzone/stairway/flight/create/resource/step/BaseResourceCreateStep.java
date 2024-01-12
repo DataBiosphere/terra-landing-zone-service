@@ -47,14 +47,10 @@ public abstract class BaseResourceCreateStep implements Step {
 
   protected final ArmManagers armManagers;
   protected final ResourceNameProvider resourceNameProvider;
-  protected final ParametersResolver parametersResolver;
 
   protected BaseResourceCreateStep(
-      ArmManagers armManagers,
-      ParametersResolver parametersResolver,
-      ResourceNameProvider resourceNameProvider) {
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
     this.armManagers = armManagers;
-    this.parametersResolver = parametersResolver;
     this.resourceNameProvider = resourceNameProvider;
     registerForNameGeneration(resourceNameProvider, this);
   }
@@ -148,6 +144,13 @@ public abstract class BaseResourceCreateStep implements Step {
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             TargetManagedResourceGroup.class)
         .region();
+  }
+
+  protected ParametersResolver getParametersResolver(FlightContext context) {
+    return getParameterOrThrow(
+        context.getWorkingMap(),
+        LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
+        ParametersResolver.class);
   }
 
   private <T extends BaseResourceCreateStep> void registerForNameGeneration(

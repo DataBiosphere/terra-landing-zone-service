@@ -1,7 +1,6 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
@@ -31,12 +30,11 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
 
   public ConnectLongTermLogStorageStep(
       ArmManagers armManagers,
-      ParametersResolver parametersResolver,
       ResourceNameProvider resourceNameProvider,
       ProtectedDataAzureStorageHelper storageHelper,
       List<String> tableNames,
       Map<String, String> longTermStorageAccountIds) {
-    super(armManagers, parametersResolver, resourceNameProvider);
+    super(armManagers, resourceNameProvider);
     this.tableNames = tableNames;
     this.storageHelper = storageHelper;
     this.longTermStorageAccountIds = longTermStorageAccountIds;

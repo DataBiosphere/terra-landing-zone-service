@@ -69,9 +69,7 @@ class CreateBatchAccountStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createBatchAccountStep =
-        new CreateBatchAccountStep(
-            mockArmManagers, mockParametersResolver, mockResourceNameProvider);
+    createBatchAccountStep = new CreateBatchAccountStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

@@ -7,14 +7,13 @@ import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfigurati
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneStepsDefinitionProviderFactory;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionProvider;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.ParametersResolverProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
@@ -31,7 +30,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
   private final LandingZoneRequest landingZoneRequest;
   private final ArmManagers armManagers;
   private final ResourceNameProvider resourceNameProvider;
-  private final ParametersResolver parametersResolver;
+  private final ParametersResolverProvider parametersResolverProvider;
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
   private final AzureCredentialsProvider azureCredentialsProvider;
 
@@ -67,8 +66,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
             StepsDefinitionFactoryType.fromString(landingZoneRequest.definition()));
     armManagers =
         initializeArmManagers(inputParameters, flightBeanBag.getAzureCustomerUsageConfiguration());
-    parametersResolver =
-        new ParametersResolver(landingZoneRequest.parameters(), LandingZoneDefaultParameters.get());
+    parametersResolverProvider = flightBeanBag.getParametersResolverProvider();
 
     addCreateSteps();
   }
@@ -77,7 +75,7 @@ public class CreateLandingZoneResourcesFlight extends Flight {
     stepsDefinitionProvider
         .get(
             armManagers,
-            parametersResolver,
+            parametersResolverProvider,
             resourceNameProvider,
             landingZoneProtectedDataConfiguration)
         .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
