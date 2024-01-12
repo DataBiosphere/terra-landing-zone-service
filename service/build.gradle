@@ -14,7 +14,7 @@ project.ext {
 
 apply(from: "$includeDir/generators.gradle")
 apply(from: "$includeDir/publishing.gradle")
-apply(from: "$includeDir/pact.gradle")
+apply(from: "$includeDir/testing.gradle")
 
 dependencies {
     implementation project(':library')
