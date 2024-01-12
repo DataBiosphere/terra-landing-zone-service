@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ParametersResolverProvider {
 
-  private final String GLOBAL_KEY = "global";
   private final LandingZoneAzureRegionConfiguration landingZoneAzureRegionConfiguration;
 
   @Autowired
@@ -22,8 +21,7 @@ public class ParametersResolverProvider {
   /**
    * Returns a ParametersResolver for a set of input parameters and Azure region. Input parameters
    * take precedence over regional default parameters, which in turn take precedence over default
-   * landing zone parameters defined in `LandingZoneDefaultParameters`. If the specified Azure
-   * region is not found, it falls back to the global defaults.
+   * landing zone parameters defined in `LandingZoneDefaultParameters`.
    */
   public ParametersResolver create(Map<String, String> inputParameters, String region) {
     var parameters = new HashMap<>(LandingZoneDefaultParameters.get());
@@ -31,12 +29,10 @@ public class ParametersResolverProvider {
     var regionalParameters = landingZoneAzureRegionConfiguration.getDefaultParameters();
 
     if (regionalParameters != null) {
-      if (region != null) {
-        parameters.putAll(
-            regionalParameters.getOrDefault(
-                region, regionalParameters.getOrDefault(GLOBAL_KEY, new HashMap<>())));
+      if (region == null) {
+        throw new IllegalArgumentException("Region must not be null.");
       } else {
-        parameters.putAll(regionalParameters.getOrDefault(GLOBAL_KEY, new HashMap<>()));
+        parameters.putAll(regionalParameters.getOrDefault(region, new HashMap<>()));
       }
     }
     if (inputParameters != null) {

@@ -67,11 +67,7 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
     return List.of(
-        Pair.of(
-            new GetManagedResourceGroupInfo(armManagers),
-            RetryRules
-                .cloud()), // todo: maybe move this before the parameter validation to avoid having
-        // to pass all regional defaults into parameterResolvers?
+        Pair.of(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud()),
         Pair.of(new GetParametersResolver(parametersResolverProvider), RetryRules.shortDatabase()),
         Pair.of(
             new ValidateLandingZoneParametersStep(
