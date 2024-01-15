@@ -30,7 +30,7 @@ dependencies {
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
         exclude group: 'io.projectreactor', module: 'reactor-core'
     }
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.14'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.15'
     implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.14'
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.1'
 
