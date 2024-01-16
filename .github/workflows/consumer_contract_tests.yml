@@ -124,7 +124,7 @@ jobs:
       - name: Output consumer contract as non-breaking base64 string
         id: encode-pact
         run: |
-          NON_BREAKING_B64=$(cat service/build/pacts/lzs-sam.json | base64 -w 0)
+          NON_BREAKING_B64=$(cat service/build/pacts/terra-landing-zone-service-sam.json | base64 -w 0)
           echo "pact-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
 
   publish-contracts:
