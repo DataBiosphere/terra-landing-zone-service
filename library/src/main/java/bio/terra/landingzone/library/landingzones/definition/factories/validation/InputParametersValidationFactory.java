@@ -9,7 +9,8 @@ public class InputParametersValidationFactory {
   public static List<InputParameterValidator> buildValidators(StepsDefinitionFactoryType type) {
     return switch (type) {
       case CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE -> buildCromwellLandingZoneValidators();
-      case PROTECTED_DATA_DEFINITION_STEPS_PROVIDER_NAME -> buildProtectedDataLandingZoneValidators();
+      case PROTECTED_DATA_DEFINITION_STEPS_PROVIDER_NAME ->
+          buildProtectedDataLandingZoneValidators();
     };
   }
 
