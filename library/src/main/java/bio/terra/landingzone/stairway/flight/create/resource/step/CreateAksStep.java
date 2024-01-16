@@ -188,10 +188,11 @@ public class CreateAksStep extends BaseResourceCreateStep {
         but resource is not ready for use and is still being provisioned*/
       case "operationnotallowed" -> waitAndMaybeGetAksProvisioned(getMRGName(context), aksName);
         /*duplicate request (Stairway resume flight after interruption), but resource is ready for use*/
-      case "conflict" -> armManagers
-          .azureResourceManager()
-          .kubernetesClusters()
-          .getByResourceGroup(getMRGName(context), aksName);
+      case "conflict" ->
+          armManagers
+              .azureResourceManager()
+              .kubernetesClusters()
+              .getByResourceGroup(getMRGName(context), aksName);
       default -> throw e;
     };
   }
