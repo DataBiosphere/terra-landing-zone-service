@@ -35,48 +35,13 @@ public class SamServiceConsumerPactTest {
       """
           [
             {
-              "resourceId": "%s",
-              "direct": {
-                "roles": [
-                  "string"
-                ],
-                "actions": [
-                  "string"
-                ]
-              },
-              "inherited": {
-                "roles": [
-                  "string"
-                ],
-                "actions": [
-                  "string"
-                ]
-              },
-              "public": {
-                "roles": [
-                  "string"
-                ],
-                "actions": [
-                  "string"
-                ]
-              },
-              "authDomainGroups": [
-                "string"
-              ],
-              "missingAuthDomainGroups": [
-                "string"
-              ]
+              "resourceId": "%s"
             }
           ]
           """
           .formatted(RESOURCE_ID);
 
-  //  private static final UUID BILLING_PROFILE_ID =
-  // UUID.fromString("04063380-b0f1-11ee-acde-00155df9466d");
-  //  private static final UUID LANDING_ZONE_ID =
-  // UUID.fromString("0979c4e4-b0f1-11ee-a0d3-00155df9466d");
-
-  @Pact(consumer = "lzs", provider = "sam")
+  @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact statusApiPact(PactDslWithProvider builder) {
     return builder
         .given("Sam is ok")
@@ -89,7 +54,7 @@ public class SamServiceConsumerPactTest {
         .toPact();
   }
 
-  @Pact(consumer = "lzs", provider = "sam")
+  @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact resourceExistingPermissionV2Pact(PactDslWithProvider builder) {
     return builder
         .given("permission exists")
@@ -102,7 +67,7 @@ public class SamServiceConsumerPactTest {
         .toPact();
   }
 
-  @Pact(consumer = "lzs", provider = "sam")
+  @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact userStatusInfoPact(PactDslWithProvider builder) {
     var responseBody =
         new PactDslJsonBody()
@@ -114,21 +79,19 @@ public class SamServiceConsumerPactTest {
         .uponReceiving("a request for the user's status")
         .path("/register/user/v2/self/info")
         .method("GET")
-        .headers("Authorization", "Bearer accessToken")
         .willRespondWith()
         .status(200)
         .body(responseBody)
         .toPact();
   }
 
-  @Pact(consumer = "lzs", provider = "sam")
+  @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact listLandingZoneResourceIdsPact(PactDslWithProvider builder) {
     return builder
         .given("landing zone resource identifiers exist")
         .uponReceiving("a request to list landing zone resource ids")
         .path("/api/resources/v2/%s".formatted(SamConstants.SamResourceType.LANDING_ZONE))
         .method("GET")
-        .headers("Authorization", "Bearer accessToken")
         .willRespondWith()
         .body(SAM_LISTRESOURCESANDPOLICIESV2_RESPONSE_BODY)
         .toPact();
