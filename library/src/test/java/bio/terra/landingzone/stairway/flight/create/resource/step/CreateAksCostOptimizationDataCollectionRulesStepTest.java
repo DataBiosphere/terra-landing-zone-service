@@ -15,11 +15,9 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.http.HttpResponse;
@@ -97,8 +95,8 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
   @BeforeEach
   void setup() {
     testStep =
-        new CreateAksCostOptimizationDataCollectionRulesStep(
-            mockArmManagers, mockResourceNameProvider);
+        new CreateAksCostOptimizationDataCollectionRulesStep(mockResourceNameProvider);
+
   }
 
   @Test
@@ -184,9 +182,7 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
@@ -194,19 +190,16 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
   @ParameterizedTest
   @MethodSource("workingParametersProvider")
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                new ProfileModel().id(UUID.randomUUID()),
-                LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-                LANDING_ZONE_ID,
-                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-                ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()));
-    FlightMap flightMapWorkingParameters =
-        FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
-    when(mockFlightContext.getWorkingMap()).thenReturn(flightMapWorkingParameters);
+    var inputParameters =
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone());
+
+    setupFlightContext(mockFlightContext, inputParameters, workingParameters);
 
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }

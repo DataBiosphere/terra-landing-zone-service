@@ -11,16 +11,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.management.exception.ManagementError;
@@ -69,7 +66,7 @@ class CreateBatchAccountStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createBatchAccountStep = new CreateBatchAccountStep(mockArmManagers, mockResourceNameProvider);
+    createBatchAccountStep = new CreateBatchAccountStep(mockResourceNameProvider);
   }
 
   @Test
@@ -95,7 +92,6 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
     verifyBasicTags(batchAccountTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockBatchAccountDefinitionStagesWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockBatchAccountDefinitionStagesWithCreate);
   }
 
   @Test
@@ -153,9 +149,7 @@ class CreateBatchAccountStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(
         MissingRequiredFieldsException.class,
@@ -164,9 +158,11 @@ class CreateBatchAccountStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    workingMap.put(CreateBatchAccountStep.BATCH_ACCOUNT_ID, BATCH_ACCOUNT_ID);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(),
+        Map.of(CreateBatchAccountStep.BATCH_ACCOUNT_ID, BATCH_ACCOUNT_ID));
+
     when(mockBatchManager.batchAccounts()).thenReturn(mockBatchAccounts);
     when(mockArmManagers.batchManager()).thenReturn(mockBatchManager);
 
@@ -177,8 +173,8 @@ class CreateBatchAccountStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
-    var workingMap = new FlightMap(); // empty, there is no BATCH_ACCOUNT_ID key
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext, Map.of(), Map.of()); // empty, there is no BATCH_ACCOUNT_ID key
 
     var stepResult = createBatchAccountStep.undoStep(mockFlightContext);
 

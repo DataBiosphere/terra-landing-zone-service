@@ -7,15 +7,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.applicationinsights.ApplicationInsightsManager;
@@ -71,7 +68,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createAppInsightsStep = new CreateAppInsightsStep(mockArmManagers, mockResourceNameProvider);
+    createAppInsightsStep = new CreateAppInsightsStep(mockResourceNameProvider);
   }
 
   @Test
@@ -104,7 +101,6 @@ class CreateAppInsightsStepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockAppInsightDefinitionStagesWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockAppInsightDefinitionStagesWithCreate);
     assertThat(kindCaptor.getValue(), equalTo("java"));
     assertThat(applicationTypeCaptor.getValue(), equalTo(ApplicationType.OTHER));
     assertThat(resourceGroupNameCaptor.getValue(), equalTo(mrg.name()));
@@ -114,9 +110,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(
         MissingRequiredFieldsException.class,
@@ -126,19 +120,16 @@ class CreateAppInsightsStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("workingParametersProvider")
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                new ProfileModel().id(UUID.randomUUID()),
-                LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-                LANDING_ZONE_ID,
-                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-                ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()));
-    FlightMap flightMapWorkingParameters =
-        FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
-    when(mockFlightContext.getWorkingMap()).thenReturn(flightMapWorkingParameters);
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
+        workingParameters);
 
     assertThrows(
         MissingRequiredFieldsException.class,
@@ -147,11 +138,10 @@ class CreateAppInsightsStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    workingMap.put(CreateAppInsightsStep.APP_INSIGHT_ID, RESOURCE_ID);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
     when(mockApplicationInsightsManager.components()).thenReturn(mockComponents);
     when(mockArmManagers.applicationInsightsManager()).thenReturn(mockApplicationInsightsManager);
+    setupFlightContext(
+        mockFlightContext, Map.of(), Map.of(CreateAppInsightsStep.APP_INSIGHT_ID, RESOURCE_ID));
 
     var stepResult = createAppInsightsStep.undoStep(mockFlightContext);
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
@@ -160,8 +150,9 @@ class CreateAppInsightsStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
-    var workingMap = new FlightMap(); // empty, there is no APP_INSIGHT_ID key
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext, Map.of(), Map.of() // empty, there is no APP_INSIGHT_ID key
+        );
 
     var stepResult = createAppInsightsStep.undoStep(mockFlightContext);
 

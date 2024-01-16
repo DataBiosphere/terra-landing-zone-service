@@ -28,13 +28,12 @@ public class InitializeArmManagersStep implements Step {
             inputMap,
             flightBeanBag.getAzureCustomerUsageConfiguration(),
             flightBeanBag.getAzureCredentialsProvider());
-    context.getWorkingMap().put(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, armManagers);
+    flightBeanBag.setArmManagers(armManagers);
     return StepResult.getStepResultSuccess();
   }
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
-
     return StepResult.getStepResultSuccess();
   }
 

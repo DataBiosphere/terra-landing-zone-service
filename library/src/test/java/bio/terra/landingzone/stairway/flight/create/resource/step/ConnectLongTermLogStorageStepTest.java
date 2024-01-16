@@ -3,8 +3,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,11 +49,10 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
     var mockDataExport = mock(DataExport.class);
     when(mockResourceNameProvider.getName(anyString())).thenReturn("fake");
     when(mockStorageHelper.createLogAnalyticsDataExport(
-            anyString(), anyString(), anyString(), anyList(), anyString()))
+            any(), anyString(), anyString(), anyString(), anyList(), anyString()))
         .thenReturn(mockDataExport);
     var step =
         new ConnectLongTermLogStorageStep(
-            mockArmManagers,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
@@ -84,7 +82,6 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
 
     var step =
         new ConnectLongTermLogStorageStep(
-            mockArmManagers,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
@@ -97,14 +94,13 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
   void deleteResource_success() {
     var step =
         new ConnectLongTermLogStorageStep(
-            mockArmManagers,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
             Map.of());
 
-    step.deleteResource("fake_resource");
+    step.deleteResource("fake_resource", mockArmManagers);
 
-    verify(mockStorageHelper).deleteDataExport(anyString());
+    verify(mockStorageHelper).deleteDataExport(any(), anyString());
   }
 }

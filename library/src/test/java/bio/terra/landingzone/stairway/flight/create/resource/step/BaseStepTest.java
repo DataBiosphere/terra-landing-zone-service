@@ -4,8 +4,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 class BaseStepTest {
   protected static final UUID LANDING_ZONE_ID = UUID.randomUUID();
@@ -37,20 +38,28 @@ class BaseStepTest {
   protected ParametersResolver mockParametersResolver;
   @Mock protected ResourceNameProvider mockResourceNameProvider;
   @Mock protected FlightContext mockFlightContext;
-
+  @Mock protected LandingZoneFlightBeanBag mockLandingZoneFlightBeanBag;
   @Captor protected ArgumentCaptor<Map<String, String>> tagsCaptor;
 
   protected void setupFlightContext(
       FlightContext flightContext,
       Map<String, Object> inputParameters,
       Map<String, Object> workingMap) {
+
+    Mockito.lenient()
+        .when(mockLandingZoneFlightBeanBag.getArmManagers())
+        .thenReturn(mockArmManagers);
+    Mockito.lenient()
+        .when(flightContext.getApplicationContext())
+        .thenReturn(mockLandingZoneFlightBeanBag);
+
     if (inputParameters != null) {
       FlightMap inputParamsMap = FlightTestUtils.prepareFlightInputParameters(inputParameters);
-      when(flightContext.getInputParameters()).thenReturn(inputParamsMap);
+      Mockito.lenient().when(flightContext.getInputParameters()).thenReturn(inputParamsMap);
     }
     if (workingMap != null) {
       FlightMap workingParamMap = FlightTestUtils.prepareFlightWorkingParameters(workingMap);
-      when(flightContext.getWorkingMap()).thenReturn(workingParamMap);
+      Mockito.lenient().when(flightContext.getWorkingMap()).thenReturn(workingParamMap);
     }
   }
 

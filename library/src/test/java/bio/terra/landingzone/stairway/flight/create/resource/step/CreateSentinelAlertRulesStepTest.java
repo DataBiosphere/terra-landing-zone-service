@@ -67,12 +67,11 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
         .thenReturn(nrtRuleIds);
     var mockRule = mock(AlertRuleInner.class);
     when(mockAlertRuleAdapter.buildScheduledAlertRuleFromTemplate(
-            anyString(), anyString(), anyString()))
+            any(), anyString(), anyString(), anyString()))
         .thenReturn(mockRule);
 
     var createSentinelAlertRulesStep =
         new CreateSentinelAlertRulesStep(
-            mockArmManagers,
             mockResourceNameProvider,
             mockAlertRuleAdapter,
             mockLandingZoneProtectedDataConfiguration);
@@ -83,15 +82,15 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
     scheduledRuleIds.forEach(
         u ->
             verify(mockAlertRuleAdapter, times(1))
-                .createAlertRule(any(), eq(u), anyString(), anyString()));
+                .createAlertRule(any(), any(), eq(u), anyString(), anyString()));
     nrtRuleIds.forEach(
         u ->
             verify(mockAlertRuleAdapter, times(1))
-                .createAlertRule(any(), eq(u), anyString(), anyString()));
+                .createAlertRule(any(), any(), eq(u), anyString(), anyString()));
     mlRuleIds.forEach(
         u ->
             verify(mockAlertRuleAdapter, times(1))
-                .createAlertRule(any(), eq(u), anyString(), anyString()));
+                .createAlertRule(any(), any(), eq(u), anyString(), anyString()));
   }
 
   @Test
@@ -109,7 +108,6 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
 
     var createSentinelAlertRulesStep =
         new CreateSentinelAlertRulesStep(
-            mockArmManagers,
             mockResourceNameProvider,
             mockAlertRuleAdapter,
             mockLandingZoneProtectedDataConfiguration);
@@ -140,11 +138,10 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
     when(mockLandingZoneProtectedDataConfiguration.getSentinelScheduledAlertRuleTemplateIds())
         .thenReturn(scheduledRuleIds);
     when(mockAlertRuleAdapter.buildScheduledAlertRuleFromTemplate(
-            anyString(), anyString(), anyString()))
+            any(), anyString(), anyString(), anyString()))
         .thenThrow(new ManagementException("error", null, new ManagementError(errorCode, "error")));
     var createSentinelAlertRulesStep =
         new CreateSentinelAlertRulesStep(
-            mockArmManagers,
             mockResourceNameProvider,
             mockAlertRuleAdapter,
             mockLandingZoneProtectedDataConfiguration);

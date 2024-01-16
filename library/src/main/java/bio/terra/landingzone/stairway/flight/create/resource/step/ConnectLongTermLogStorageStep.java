@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
-import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
@@ -89,9 +88,7 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, FlightContext context) {
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+  protected void deleteResource(String resourceId, ArmManagers armManagers) {
     storageHelper.deleteDataExport(armManagers, resourceId);
   }
 

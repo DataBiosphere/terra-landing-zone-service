@@ -83,9 +83,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, FlightContext context) {
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+  protected void deleteResource(String resourceId, ArmManagers armManagers) {
     armManagers.azureResourceManager().networkSecurityGroups().deleteById(resourceId);
   }
 

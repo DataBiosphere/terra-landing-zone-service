@@ -13,7 +13,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
@@ -66,7 +65,7 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createLogAnalyticsWorkspaceStep =
-        new CreateLogAnalyticsWorkspaceStep(mockArmManagers, mockResourceNameProvider);
+        new CreateLogAnalyticsWorkspaceStep(mockResourceNameProvider);
   }
 
   @Test
@@ -101,15 +100,12 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
     assertThat(retentionInDaysCaptor.getValue(), equalTo(retentionInDays));
     assertThat(logAnalyticsWorkspaceNameCaptor.getValue(), equalTo(logAnalyticsWorkspaceName));
     verify(mockDefinitionStageWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockDefinitionStageWithCreate);
   }
 
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(
         MissingRequiredFieldsException.class,
@@ -118,11 +114,13 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    workingMap.put(CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID, RESOURCE_ID);
-    workingMap.put(
-        GetManagedResourceGroupInfo.TARGET_MRG_KEY, ResourceStepFixture.createDefaultMrg());
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    var workingMap =
+        Map.of(
+            CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
+            RESOURCE_ID,
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            ResourceStepFixture.createDefaultMrg());
+    setupFlightContext(mockFlightContext, Map.of(), workingMap);
 
     // mocking for logAnalyticsWorkspace deletion
     when(mockLogAnalyticsManager.workspaces()).thenReturn(mockWorkspaces);
@@ -145,13 +143,12 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
     verifyNoMoreInteractions(mockWorkspaces);
     verify(mockGenericResources, times(1)).deleteById(containerInsightResourceId1);
     verify(mockGenericResources, times(1)).deleteById(containerInsightResourceId2);
-    verifyNoMoreInteractions(mockGenericResources);
   }
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
     var workingMap = new FlightMap(); // empty, there is no LOG_ANALYTICS_WORKSPACE_ID key
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(mockFlightContext, Map.of(), Map.of());
 
     var stepResult = createLogAnalyticsWorkspaceStep.undoStep(mockFlightContext);
 

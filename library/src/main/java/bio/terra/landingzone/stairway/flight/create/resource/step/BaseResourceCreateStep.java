@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
 
+import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.MetricUtils;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -68,14 +69,12 @@ public abstract class BaseResourceCreateStep implements Step {
             context.getInputParameters(),
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             LandingZoneRequest.class);
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
     try {
       var stepDuration =
           MetricUtils.configureTimerForLzStepDuration(
               azureLandingZoneRequest.definition(), getResourceType());
       var start = Instant.now().toEpochMilli();
-      createResource(context, armManagers);
+      createResource(context, getArmManagers(context));
       var finish = Instant.now().toEpochMilli();
       stepDuration.record(Duration.ofMillis(finish - start));
     } catch (ManagementException e) {
@@ -101,7 +100,8 @@ public abstract class BaseResourceCreateStep implements Step {
     try {
 
       if (resourceId.isPresent()) {
-        deleteResource(resourceId.get(), flightContext);
+        var armManagers = getArmManagers(flightContext);
+        deleteResource(resourceId.get(), armManagers);
         logger.info(RESOURCE_DELETED, getResourceType(), resourceId.get());
       }
     } catch (ManagementException e) {
@@ -119,11 +119,15 @@ public abstract class BaseResourceCreateStep implements Step {
 
   protected abstract void createResource(FlightContext context, ArmManagers armManagers);
 
-  protected abstract void deleteResource(String resourceId, FlightContext context);
+  protected abstract void deleteResource(String resourceId, ArmManagers armManagers);
 
   protected abstract String getResourceType();
 
   protected abstract Optional<String> getResourceId(FlightContext context);
+
+  protected ArmManagers getArmManagers(FlightContext context) {
+    return LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
+  }
 
   protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
     FlightUtils.validateRequiredEntries(parameters, name);

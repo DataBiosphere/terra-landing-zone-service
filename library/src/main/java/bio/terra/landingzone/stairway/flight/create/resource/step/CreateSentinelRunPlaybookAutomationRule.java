@@ -73,7 +73,7 @@ public class CreateSentinelRunPlaybookAutomationRule extends BaseResourceCreateS
   }
 
   @Override
-  protected void deleteResource(String resourceId, FlightContext context) {
+  protected void deleteResource(String resourceId, ArmManagers armManagers) {
     // nothing to delete here since an automation rule will be deleted together with sentinel
   }
 

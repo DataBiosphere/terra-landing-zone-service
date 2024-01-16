@@ -66,7 +66,7 @@ class ResourceNameProviderTest {
   private static BaseResourceCreateStep createDummyStep(
       ResourceNameProvider resourceNameProvider,
       ResourceNameRequirements resourceNameRequirements) {
-    return new BaseResourceCreateStep(mock(ArmManagers.class), resourceNameProvider) {
+    return new BaseResourceCreateStep(resourceNameProvider) {
       @Override
       public List<ResourceNameRequirements> getResourceNameRequirements() {
         return List.of(
@@ -80,7 +80,7 @@ class ResourceNameProviderTest {
       }
 
       @Override
-      protected void deleteResource(String resourceId) {
+      protected void deleteResource(String resourceId, ArmManagers armManagers) {
         // we don't need implementation here
       }
 

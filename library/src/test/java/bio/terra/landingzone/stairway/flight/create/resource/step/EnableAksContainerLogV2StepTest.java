@@ -16,9 +16,7 @@ import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapReader;
 import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapReaderException;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepStatus;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -54,8 +52,7 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     testStep =
-        new EnableAksContainerLogV2Step(
-            mockArmManagers, mockKubernetesClientProvider, mockAksConfigMapReader);
+        new EnableAksContainerLogV2Step(mockKubernetesClientProvider, mockAksConfigMapReader);
   }
 
   @Test
@@ -95,10 +92,7 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("workingParametersProvider")
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
-    FlightMap flightMapWorkingParameters =
-        FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
-    when(mockFlightContext.getWorkingMap()).thenReturn(flightMapWorkingParameters);
-
+    setupFlightContext(mockFlightContext, Map.of(), workingParameters);
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 

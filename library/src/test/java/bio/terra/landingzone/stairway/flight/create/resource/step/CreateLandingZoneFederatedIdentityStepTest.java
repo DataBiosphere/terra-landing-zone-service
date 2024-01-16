@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.msi.MsiManager;
@@ -49,8 +48,7 @@ public class CreateLandingZoneFederatedIdentityStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep =
-        new CreateLandingZoneFederatedIdentityStep(mockArmManagers, mockKubernetesClientProvider);
+    testStep = new CreateLandingZoneFederatedIdentityStep(mockKubernetesClientProvider);
   }
 
   @Test
@@ -97,20 +95,21 @@ public class CreateLandingZoneFederatedIdentityStepTest extends BaseStepTest {
   @Test
   void undoStepSuccess() throws InterruptedException, ApiException {
     final String uamiName = UUID.randomUUID().toString();
-    var workingMap = new FlightMap();
     var resourceId = "resourceId";
-    workingMap.put(CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_ID, resourceId);
     final TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    workingMap.put(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg);
 
-    workingMap.put(
-        CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
-        LandingZoneResource.builder().resourceName(uamiName).build());
-    workingMap.put(
-        CreateAksStep.AKS_RESOURCE_KEY,
-        LandingZoneResource.builder().resourceName(UUID.randomUUID().toString()).build());
+    var workingMap =
+        Map.of(
+            CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_ID,
+            resourceId,
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
+            LandingZoneResource.builder().resourceName(uamiName).build(),
+            CreateAksStep.AKS_RESOURCE_KEY,
+            LandingZoneResource.builder().resourceName(UUID.randomUUID().toString()).build());
 
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(mockFlightContext, Map.of(), workingMap);
 
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
     when(mockAzureResourceManager.identities()).thenReturn(mockIdentities);

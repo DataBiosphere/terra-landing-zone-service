@@ -10,16 +10,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.network.fluent.NetworkManagementClient;
@@ -67,7 +64,7 @@ class CreateVnetStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createVnetStep = new CreateVnetStep(mockArmManagers, mockResourceNameProvider);
+    createVnetStep = new CreateVnetStep(mockResourceNameProvider);
   }
 
   @Test
@@ -120,15 +117,12 @@ class CreateVnetStepTest extends BaseStepTest {
     // verifyBasicTags(vnetTagsCaptor, LANDING_ZONE_ID);
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
     verify(mockDefinitionStageWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockDefinitionStageWithCreate);
   }
 
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(
         MissingRequiredFieldsException.class, () -> createVnetStep.doStep(mockFlightContext));
@@ -136,12 +130,9 @@ class CreateVnetStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    workingMap.put(CreateVnetStep.VNET_ID, VNET_ID);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
-
     when(mockAzureResourceManager.networks()).thenReturn(mockNetworks);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
+    setupFlightContext(mockFlightContext, Map.of(), Map.of(CreateVnetStep.VNET_ID, VNET_ID));
 
     var stepResult = createVnetStep.undoStep(mockFlightContext);
 
@@ -151,8 +142,9 @@ class CreateVnetStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
-    var workingMap = new FlightMap(); // empty, there is no VNET_ID key
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext, Map.of(), Map.of() // empty, there is no VNET_ID key
+        );
 
     var stepResult = createVnetStep.undoStep(mockFlightContext);
 

@@ -121,7 +121,6 @@ public class LandingZoneServiceTest {
             landingZoneManagerProvider,
             landingZoneDao,
             samService,
-            bpmService,
             testingConfiguration);
   }
 

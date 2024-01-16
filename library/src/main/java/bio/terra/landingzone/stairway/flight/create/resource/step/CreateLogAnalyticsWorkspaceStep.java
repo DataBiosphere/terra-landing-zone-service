@@ -40,8 +40,7 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
     if (getResourceId(context).isEmpty()) {
       return StepResult.getStepResultSuccess();
     }
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+    var armManagers = getArmManagers(context);
 
     try {
       // Deploying AKS with monitoring connected to a log analytics workspace also deploys a
@@ -131,9 +130,7 @@ public class CreateLogAnalyticsWorkspaceStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, FlightContext context) {
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+  protected void deleteResource(String resourceId, ArmManagers armManagers) {
     armManagers.logAnalyticsManager().workspaces().deleteById(resourceId);
   }
 

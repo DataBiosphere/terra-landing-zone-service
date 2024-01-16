@@ -43,8 +43,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
 
   @Override
   public StepResult undoStep(FlightContext context) {
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+    var armManagers = getArmManagers(context);
     var dataCollectionRuleName =
         context.getWorkingMap().get(DATA_COLLECTION_RULE_NAME, String.class);
     try {
@@ -149,7 +148,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   }
 
   @Override
-  protected void deleteResource(String resourceId, FlightContext context) {
+  protected void deleteResource(String resourceId, ArmManagers armManagers) {
     // do nothing
   }
 

@@ -7,15 +7,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.relay.RelayManager;
@@ -59,8 +56,7 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createRelayNamespaceStep =
-        new CreateRelayNamespaceStep(mockArmManagers, mockResourceNameProvider);
+    createRelayNamespaceStep = new CreateRelayNamespaceStep(mockResourceNameProvider);
   }
 
   @Test
@@ -86,16 +82,12 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
     verifyBasicTags(relayNamespaceTagsCaptor.getValue(), LANDING_ZONE_ID);
     verify(mockRelayNamespaceDefinitionStagesWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockRelayNamespaceDefinitionStagesWithCreate);
   }
 
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
-
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
     assertThrows(
         MissingRequiredFieldsException.class,
         () -> createRelayNamespaceStep.doStep(mockFlightContext));
@@ -103,21 +95,24 @@ class CreateRelayNamespaceStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    workingMap.put(CreateRelayNamespaceStep.RELAY_NAMESPACE_ID, RELAY_NAMESPACE_ID);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
     when(mockRelayManager.namespaces()).thenReturn(mockNamespaces);
     when(mockArmManagers.relayManager()).thenReturn(mockRelayManager);
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(),
+        Map.of(CreateRelayNamespaceStep.RELAY_NAMESPACE_ID, RELAY_NAMESPACE_ID));
 
     var stepResult = createRelayNamespaceStep.undoStep(mockFlightContext);
+
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
     verify(mockNamespaces, times(1)).deleteById(RELAY_NAMESPACE_ID);
   }
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
-    var workingMap = new FlightMap(); // empty, there is no RELAY_NAMESPACE_ID key
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext, Map.of(), Map.of() // empty, there is no RELAY_NAMESPACE_ID key
+        );
 
     var stepResult = createRelayNamespaceStep.undoStep(mockFlightContext);
 

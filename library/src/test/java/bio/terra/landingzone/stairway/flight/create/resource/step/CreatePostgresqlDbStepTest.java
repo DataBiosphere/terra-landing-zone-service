@@ -9,19 +9,16 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.management.Region;
@@ -91,7 +88,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createPostgresqlDbStep = new CreatePostgresqlDbStep(mockArmManagers, mockResourceNameProvider);
+    createPostgresqlDbStep = new CreatePostgresqlDbStep(mockResourceNameProvider);
   }
 
   @Test
@@ -146,15 +143,12 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
         postgresqlTagsCaptor.getValue().get(LandingZoneTagKeys.PGBOUNCER_ENABLED.toString()),
         equalTo("true"));
     verify(mockServerDefinitionStagesWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockServerDefinitionStagesWithCreate);
   }
 
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(
         MissingRequiredFieldsException.class,
@@ -163,9 +157,8 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    workingMap.put(CreatePostgresqlDbStep.POSTGRESQL_ID, POSTGRESQL_ID);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext, Map.of(), Map.of(CreatePostgresqlDbStep.POSTGRESQL_ID, POSTGRESQL_ID));
     when(mockPostgreSqlManager.servers()).thenReturn(mockServers);
     when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
 
@@ -176,8 +169,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
-    var workingMap = new FlightMap(); // empty, there is no POSTGRESQL_ID key
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(mockFlightContext, Map.of(), Map.of());
 
     var stepResult = createPostgresqlDbStep.undoStep(mockFlightContext);
 

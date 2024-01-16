@@ -1,5 +1,6 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
+import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -114,8 +115,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     var aksName = resourceNameProvider.getName(getResourceType());
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+    var armManagers = getArmManagers(context);
 
     KubernetesCluster aks;
     try {
@@ -186,7 +186,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private KubernetesCluster handleConflictAndMaybeGetAks(
       FlightContext context, String aksName, ManagementException e) {
     var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
     return switch (e.getValue().getCode().toLowerCase()) {
         /*duplicate request (Stairway has resumed flight after interruption)
         but resource is not ready for use and is still being provisioned*/
@@ -334,9 +334,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, FlightContext context) {
-    var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+  protected void deleteResource(String resourceId, ArmManagers armManagers) {
     armManagers.azureResourceManager().kubernetesClusters().deleteById(resourceId);
   }
 

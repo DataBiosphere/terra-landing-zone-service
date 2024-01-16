@@ -49,7 +49,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateVirtualNetworkLinkStep(mockArmManagers, mockResourceNameProvider);
+    testStep = new CreateVirtualNetworkLinkStep(mockResourceNameProvider);
   }
 
   @Test
@@ -110,7 +110,6 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
     var mrg = ResourceStepFixture.createDefaultMrg();
     var dnsZoneName = UUID.randomUUID().toString();
     var linkName = UUID.randomUUID().toString();
@@ -118,15 +117,17 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
         String.format(
             "/subscriptions/ffd1069e-e34f-4d87-a8b8-44abfcba39af/resourceGroups/%s/providers/Microsoft.Network/privateDnsZones/%s/virtualNetworkLinks/%s",
             mrg.name(), dnsZoneName, linkName);
-    workingMap.put(CreateVirtualNetworkLinkStep.VNET_LINK_ID, resourceId);
-    workingMap.put(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
-
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
     when(mockAzureResourceManager.privateDnsZones()).thenReturn(mockPrivateDnsZones);
     when(mockPrivateDnsZones.manager()).thenReturn(mockDnsManager);
     when(mockDnsManager.serviceClient()).thenReturn(mockServiceClient);
     when(mockServiceClient.getVirtualNetworkLinks()).thenReturn(mockVirtualNetworkLinks);
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(),
+        Map.of(
+            CreateVirtualNetworkLinkStep.VNET_LINK_ID, resourceId,
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
 
     var stepResult = testStep.undoStep(mockFlightContext);
 

@@ -1,8 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.common.utils.HttpResponseUtils;
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
-import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
@@ -41,7 +40,8 @@ public class EnableAksContainerInsightsStep implements Step {
     var aksId =
         FlightUtils.getRequired(context.getWorkingMap(), CreateAksStep.AKS_ID, String.class);
     var armManagers =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.ARM_MANAGERS_KEY, ArmManagers.class);
+        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
+
     final Map<String, ManagedClusterAddonProfile> addonProfileMap = new HashMap<>();
     addonProfileMap.put(
         "omsagent",

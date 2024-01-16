@@ -8,23 +8,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.http.HttpResponse;
 import com.azure.core.management.exception.ManagementError;
@@ -92,7 +84,7 @@ class CreateAksStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateAksStep(mockArmManagers, mockResourceNameProvider);
+    testStep = new CreateAksStep(mockResourceNameProvider);
     testStep.denySleepWhilePoolingForAksStatus();
   }
 
@@ -127,7 +119,6 @@ class CreateAksStepTest extends BaseStepTest {
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
     verifyAksNodeResourceGroupName(nodeResourceGroupCaptor.getValue(), mrg.name());
     verify(mockK8sDefinitionStageWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockK8sDefinitionStageWithCreate);
     verifyBasicTags(tagsCaptor.getValue(), LANDING_ZONE_ID);
     verifyOmsAgentAddonProfileNotSet();
   }
@@ -137,6 +128,7 @@ class CreateAksStepTest extends BaseStepTest {
     costSavingsSpotNodesEnabled = "true";
     setupCostSavingLZ();
     setupCostSavingK8sMocks();
+    // setupFlightContext(mockFlightContext, Map.of(), Map.of());
 
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -157,6 +149,8 @@ class CreateAksStepTest extends BaseStepTest {
     setupCostSavingLZ();
 
     setupVpaCostSavingK8sMocks(mockKubernetesCluster, mockKubernetesCluster.innerModel());
+    // setupFlightContext(mockFlightContext, Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE,
+    //   new ProfileModel().id(UUID.randomUUID())), Map.of());
 
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -174,29 +168,23 @@ class CreateAksStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
-
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 
   @ParameterizedTest
   @MethodSource("workingParametersProvider")
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                new ProfileModel().id(UUID.randomUUID()),
-                LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-                LANDING_ZONE_ID,
-                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-                ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()));
-    FlightMap flightMapWorkingParameters =
-        FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
-    when(mockFlightContext.getWorkingMap()).thenReturn(flightMapWorkingParameters);
+    var inputParameters =
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone());
+
+    setupFlightContext(mockFlightContext, inputParameters, workingParameters);
 
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }

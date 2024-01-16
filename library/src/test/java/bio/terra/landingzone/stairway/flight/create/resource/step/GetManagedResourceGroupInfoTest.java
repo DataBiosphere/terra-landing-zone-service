@@ -35,7 +35,7 @@ class GetManagedResourceGroupInfoTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    getManagedResourceGroupInfo = new GetManagedResourceGroupInfo(mockArmManagers);
+    getManagedResourceGroupInfo = new GetManagedResourceGroupInfo();
   }
 
   @Test

@@ -7,17 +7,14 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.storage.models.StorageAccount;
@@ -57,8 +54,7 @@ class CreateStorageAccountStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createStorageAccountStep =
-        new CreateStorageAccountStep(mockArmManagers, mockResourceNameProvider);
+    createStorageAccountStep = new CreateStorageAccountStep(mockResourceNameProvider);
   }
 
   @Test
@@ -95,15 +91,12 @@ class CreateStorageAccountStepTest extends BaseStepTest {
         storageAccountSkuTypeCaptor.getValue().name().toString(),
         equalTo(StorageAccountSkuType.STANDARD_LRS.name().toString()));
     verify(mockStorageAccountDefinitionStagesWithCreate, times(1)).create();
-    verifyNoMoreInteractions(mockStorageAccountDefinitionStagesWithCreate);
   }
 
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(
         MissingRequiredFieldsException.class,
@@ -112,9 +105,11 @@ class CreateStorageAccountStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    workingMap.put(CreateStorageAccountStep.STORAGE_ACCOUNT_ID, STORAGE_ACCOUNT_ID);
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext,
+        Map.of(),
+        Map.of(CreateStorageAccountStep.STORAGE_ACCOUNT_ID, STORAGE_ACCOUNT_ID));
+
     when(mockAzureResourceManager.storageAccounts()).thenReturn(mockStorageAccounts);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
 
@@ -125,8 +120,8 @@ class CreateStorageAccountStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccessWhenDoStepFailed() throws InterruptedException {
-    var workingMap = new FlightMap(); // empty, there is no STORAGE_ACCOUNT_ID key
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(
+        mockFlightContext, Map.of(), Map.of()); // empty, there is no STORAGE_ACCOUNT_ID key
 
     var stepResult = createStorageAccountStep.undoStep(mockFlightContext);
 

@@ -10,9 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.http.HttpResponse;
@@ -49,7 +47,7 @@ class EnableAksContainerInsightsStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new EnableAksContainerInsightsStep(mockArmManagers);
+    testStep = new EnableAksContainerInsightsStep();
   }
 
   @Test
@@ -116,10 +114,7 @@ class EnableAksContainerInsightsStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("workingParametersProvider")
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
-    FlightMap flightMapWorkingParameters =
-        FlightTestUtils.prepareFlightWorkingParameters(workingParameters);
-    when(mockFlightContext.getWorkingMap()).thenReturn(flightMapWorkingParameters);
-
+    setupFlightContext(mockFlightContext, Map.of(), workingParameters);
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 

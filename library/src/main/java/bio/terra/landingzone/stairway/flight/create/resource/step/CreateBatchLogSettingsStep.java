@@ -51,7 +51,7 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, FlightContext context) {
+  protected void deleteResource(String resourceId, ArmManagers armManagers) {
     // do nothing
   }
 

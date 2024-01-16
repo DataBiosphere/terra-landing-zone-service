@@ -8,11 +8,9 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.never;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.network.NetworkManager;
@@ -48,7 +46,7 @@ public class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createNetworkSecurityGroupStep =
-        new CreateNetworkSecurityGroupStep(mockArmManagers, mockResourceNameProvider);
+        new CreateNetworkSecurityGroupStep(mockResourceNameProvider);
   }
 
   @Test
@@ -80,9 +78,7 @@ public class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(
         MissingRequiredFieldsException.class,
@@ -91,8 +87,7 @@ public class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    setupFlightContext(mockFlightContext, Map.of(), Map.of());
 
     var stepResult = createNetworkSecurityGroupStep.undoStep(mockFlightContext);
 

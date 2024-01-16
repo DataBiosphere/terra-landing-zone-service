@@ -9,11 +9,9 @@ import static org.mockito.Mockito.*;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.msi.models.Identities;
@@ -41,7 +39,7 @@ public class CreateLandingZoneIdentityStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateLandingZoneIdentityStep(mockArmManagers, mockResourceNameProvider);
+    testStep = new CreateLandingZoneIdentityStep(mockResourceNameProvider);
   }
 
   @Test
@@ -95,21 +93,21 @@ public class CreateLandingZoneIdentityStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
+    setupFlightContext(mockFlightContext, inputParameters, Map.of());
 
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 
   @Test
   void undoStepSuccess() throws InterruptedException {
-    var workingMap = new FlightMap();
     var resourceId = "resourceId";
-    workingMap.put(CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_ID, resourceId);
-    workingMap.put(
-        GetManagedResourceGroupInfo.TARGET_MRG_KEY, ResourceStepFixture.createDefaultMrg());
-    when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
+    var workingMap =
+        Map.of(
+            CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_ID,
+            resourceId,
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            ResourceStepFixture.createDefaultMrg());
+    setupFlightContext(mockFlightContext, Map.of(), workingMap);
 
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
     when(mockAzureResourceManager.identities()).thenReturn(mockIdentities);

@@ -2,15 +2,14 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
-import bio.terra.stairway.FlightMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
@@ -25,7 +24,7 @@ public class BaseResourceCreateStepTest extends BaseStepTest {
   @Test
   void testDoStepThrowsInterruptedException() {
     var step =
-        new BaseResourceCreateStep(mockArmManagers, mockResourceNameProvider) {
+        new BaseResourceCreateStep(mockResourceNameProvider) {
           @Override
           public List<ResourceNameRequirements> getResourceNameRequirements() {
             return null;
@@ -37,7 +36,7 @@ public class BaseResourceCreateStepTest extends BaseStepTest {
           }
 
           @Override
-          protected void deleteResource(String resourceId) {}
+          protected void deleteResource(String resourceId, ArmManagers armManagers) {}
 
           @Override
           protected String getResourceType() {
@@ -50,14 +49,17 @@ public class BaseResourceCreateStepTest extends BaseStepTest {
           }
         };
 
-    FlightMap inputParamsMap = new FlightMap();
-    inputParamsMap.put(
-        LandingZoneFlightMapKeys.BILLING_PROFILE, new ProfileModel().id(UUID.randomUUID()));
-    inputParamsMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, LANDING_ZONE_ID);
-    inputParamsMap.put(
-        LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-        ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone());
-    when(mockFlightContext.getInputParameters()).thenReturn(inputParamsMap);
+    var inputParamsMap =
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
+            LANDING_ZONE_ID,
+            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+            ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone());
+
+    setupFlightContext(mockFlightContext, inputParamsMap, Map.of());
+
     Assertions.assertThrows(InterruptedException.class, () -> step.doStep(mockFlightContext));
     assertThat(Thread.currentThread().isInterrupted(), equalTo(true));
   }
