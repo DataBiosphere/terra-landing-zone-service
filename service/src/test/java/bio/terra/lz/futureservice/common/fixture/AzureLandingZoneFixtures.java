@@ -69,14 +69,16 @@ public class AzureLandingZoneFixtures {
       String jobId, UUID landingZoneId, ApiJobReport.StatusEnum jobStatus) {
     var jobReport = buildApiJobReport(jobId, jobStatus);
     return switch (jobStatus) {
-      case SUCCEEDED -> new ApiDeleteAzureLandingZoneJobResult()
-          .jobReport(jobReport)
-          .landingZoneId(landingZoneId)
-          .resources(List.of("resource/id1", "resource/id2"));
+      case SUCCEEDED ->
+          new ApiDeleteAzureLandingZoneJobResult()
+              .jobReport(jobReport)
+              .landingZoneId(landingZoneId)
+              .resources(List.of("resource/id1", "resource/id2"));
       case RUNNING -> new ApiDeleteAzureLandingZoneJobResult().jobReport(jobReport);
-      case FAILED -> new ApiDeleteAzureLandingZoneJobResult()
-          .jobReport(jobReport)
-          .errorReport(buildApiErrorReport(500));
+      case FAILED ->
+          new ApiDeleteAzureLandingZoneJobResult()
+              .jobReport(jobReport)
+              .errorReport(buildApiErrorReport(500));
     };
   }
 
