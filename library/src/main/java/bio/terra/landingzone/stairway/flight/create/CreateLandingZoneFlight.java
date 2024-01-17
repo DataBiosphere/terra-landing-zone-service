@@ -2,6 +2,9 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
+
+import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneStepsDefinitionProviderFactory;
+import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
@@ -47,14 +50,25 @@ public class CreateLandingZoneFlight extends Flight {
         new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
 
     if (!requestedLandingZone.isAttaching()) {
-      addStep(
-          new CreateLandingZoneResourcesFlightStep(
-              flightBeanBag.getLandingZoneService(),
-              requestedLandingZone,
-              LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
-      addStep(
-          new AwaitCreateLandingZoneResourcesFlightStep(
-              LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_RESOURCES_INNER_FLIGHT_JOB_ID));
+      var stepsDefinitionProvider =
+          LandingZoneStepsDefinitionProviderFactory.create(
+              StepsDefinitionFactoryType.fromString(requestedLandingZone.definition()));
+      var landingZoneId = getLandingZoneId(inputParameters, requestedLandingZone);
+      var resourceNameProvider = new ResourceNameProvider(landingZoneId);
+
+      var parametersResolver =
+          new ParametersResolver(
+              requestedLandingZone.parameters(), LandingZoneDefaultParameters.get());
+      var landingZoneProtectedDataConfiguration =
+          flightBeanBag.getLandingZoneProtectedDataConfiguration();
+
+      addStep(new InitializeArmManagersStep(), RetryRules.shortExponential());
+      stepsDefinitionProvider
+          .get(resourceNameProvider, landingZoneProtectedDataConfiguration)
+          .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
+
+      // last step to aggregate results
+      addStep(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential());
     }
 
     addStep(

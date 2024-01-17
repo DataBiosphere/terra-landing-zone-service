@@ -128,7 +128,6 @@ class CreateAksStepTest extends BaseStepTest {
     costSavingsSpotNodesEnabled = "true";
     setupCostSavingLZ();
     setupCostSavingK8sMocks();
-    // setupFlightContext(mockFlightContext, Map.of(), Map.of());
 
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -149,8 +148,6 @@ class CreateAksStepTest extends BaseStepTest {
     setupCostSavingLZ();
 
     setupVpaCostSavingK8sMocks(mockKubernetesCluster, mockKubernetesCluster.innerModel());
-    // setupFlightContext(mockFlightContext, Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE,
-    //   new ProfileModel().id(UUID.randomUUID())), Map.of());
 
     var stepResult = testStep.doStep(mockFlightContext);
 
