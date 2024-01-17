@@ -8,6 +8,8 @@ updates:
       minor-patch-dependencies:
         patterns:
           - "*"
+        exclude-patterns:
+          - "spotless-plugin-gradle" # likely to require reformatting of code
         update-types:
           - "minor"
           - "patch"
@@ -22,10 +24,10 @@ updates:
       - "dependency"
       - "gradle"
     commit-message:
-      prefix: "[No Ticket]"
+      prefix: "[WOR-1448]"
     ignore:
       - dependency-name: "org.springframework.boot:spring-boot-gradle-plugin"
-        update-types: ["version-update:semver-major"]
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "org.springframework.boot:spring-boot-starter-data-jdbc"
         update-types: ["version-update:semver-patch", "version-update:semver-minor"]
       - dependency-name: "org.springframework.boot:spring-boot-starter-web"
