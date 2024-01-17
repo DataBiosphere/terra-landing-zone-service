@@ -192,8 +192,6 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
     var inputParameters =
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
@@ -209,13 +207,13 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
     setupFlightContext(
         mockFlightContext,
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
@@ -380,9 +378,16 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
 
   private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
-        Arguments.of(Map.of(CreateAksStep.AKS_ID, "aksId")),
         Arguments.of(
             Map.of(
+                CreateAksStep.AKS_ID,
+                "aksId",
+                LandingZoneFlightMapKeys.BILLING_PROFILE,
+                new ProfileModel().id(UUID.randomUUID()))),
+        Arguments.of(
+            Map.of(
+                LandingZoneFlightMapKeys.BILLING_PROFILE,
+                new ProfileModel().id(UUID.randomUUID()),
                 CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
                 "logAnalyticsWorkspaceId")));
   }

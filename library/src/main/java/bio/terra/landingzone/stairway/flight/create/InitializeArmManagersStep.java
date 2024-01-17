@@ -20,12 +20,12 @@ public class InitializeArmManagersStep implements Step {
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    FlightMap inputMap = context.getInputParameters();
+    FlightMap workingMap = context.getWorkingMap();
     LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext());
     var armManagers =
         initializeArmManagers(
-            inputMap,
+            workingMap,
             flightBeanBag.getAzureCustomerUsageConfiguration(),
             flightBeanBag.getAzureCredentialsProvider());
     flightBeanBag.setArmManagers(armManagers);
@@ -38,11 +38,11 @@ public class InitializeArmManagersStep implements Step {
   }
 
   private ArmManagers initializeArmManagers(
-      FlightMap inputParameters,
+      FlightMap workingMap,
       AzureCustomerUsageConfiguration azureCustomerUsageConfiguration,
       AzureCredentialsProvider azureCredentialsProvider) {
     var billingProfile =
-        inputParameters.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+        workingMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
     var azureProfile =
         new AzureProfile(

@@ -11,11 +11,9 @@ import static org.mockito.Mockito.when;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.resourcemanager.privatedns.PrivateDnsZoneManager;
@@ -64,13 +62,13 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateVnetStep.VNET_ID,
@@ -101,10 +99,10 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
   @ParameterizedTest
   @MethodSource("inputParameterProvider")
   void doStepMissingInputParameterThrowsException(Map<String, Object> inputParameters) {
-    FlightMap flightMapInputParameters =
-        FlightTestUtils.prepareFlightInputParameters(inputParameters);
-    when(mockFlightContext.getInputParameters()).thenReturn(flightMapInputParameters);
-
+    setupFlightContext(
+        mockFlightContext,
+        inputParameters,
+        Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE, new ProfileModel().id(UUID.randomUUID())));
     assertThrows(MissingRequiredFieldsException.class, () -> testStep.doStep(mockFlightContext));
   }
 

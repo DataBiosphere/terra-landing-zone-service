@@ -51,14 +51,15 @@ public class BaseResourceCreateStepTest extends BaseStepTest {
 
     var inputParamsMap =
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone());
 
-    setupFlightContext(mockFlightContext, inputParamsMap, Map.of());
+    setupFlightContext(
+        mockFlightContext,
+        inputParamsMap,
+        Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE, new ProfileModel().id(UUID.randomUUID())));
 
     Assertions.assertThrows(InterruptedException.class, () -> step.doStep(mockFlightContext));
     assertThat(Thread.currentThread().isInterrupted(), equalTo(true));

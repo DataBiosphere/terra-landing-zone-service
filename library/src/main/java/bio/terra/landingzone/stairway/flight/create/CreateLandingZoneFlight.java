@@ -56,9 +56,6 @@ public class CreateLandingZoneFlight extends Flight {
       var landingZoneId = getLandingZoneId(inputParameters, requestedLandingZone);
       var resourceNameProvider = new ResourceNameProvider(landingZoneId);
 
-      var parametersResolver =
-          new ParametersResolver(
-              requestedLandingZone.parameters(), LandingZoneDefaultParameters.get());
       var landingZoneProtectedDataConfiguration =
           flightBeanBag.getLandingZoneProtectedDataConfiguration();
 

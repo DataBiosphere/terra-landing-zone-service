@@ -4,18 +4,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import com.azure.resourcemanager.resources.models.ResourceGroup;
 import com.azure.resourcemanager.resources.models.ResourceGroups;
-import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -46,10 +43,10 @@ class GetManagedResourceGroupInfoTest extends BaseStepTest {
 
     setupFlightContext(
         mockFlightContext,
-        Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile),
-        new HashMap<>());
+        Map.of(),
+        Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile));
     setupArmManagersForDoStep(resourceGroupName, resourceGroupRegionName);
-    FlightMap spyWorkingMap = spy(mockFlightContext.getWorkingMap());
+    // FlightMap spyWorkingMap = spy(mockFlightContext.getWorkingMap());
 
     StepResult stepResult = getManagedResourceGroupInfo.doStep(mockFlightContext);
 
@@ -57,8 +54,9 @@ class GetManagedResourceGroupInfoTest extends BaseStepTest {
     verify(mockResourceGroups, times(1)).getByName(billingProfile.getManagedResourceGroupId());
     // verify that mrg info has been saved for future use
     var requiredWorkingMapElement =
-        spyWorkingMap.get(
-            GetManagedResourceGroupInfo.TARGET_MRG_KEY, TargetManagedResourceGroup.class);
+        mockFlightContext
+            .getWorkingMap()
+            .get(GetManagedResourceGroupInfo.TARGET_MRG_KEY, TargetManagedResourceGroup.class);
     assertNotNull(requiredWorkingMapElement);
     assertThat(requiredWorkingMapElement.name(), equalTo(resourceGroupName));
     assertThat(requiredWorkingMapElement.region(), equalTo(resourceGroupRegionName));

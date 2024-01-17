@@ -83,13 +83,13 @@ class CreateLogAnalyticsDataCollectionRulesStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
@@ -221,7 +221,11 @@ class CreateLogAnalyticsDataCollectionRulesStepTest extends BaseStepTest {
 
   private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
-        // intentionally return empty map, to check required parameter validation
-        Arguments.of(Map.of()));
+        // intentionally return empty map (except billing profile), to check required parameter
+        // validation
+        Arguments.of(
+            Map.of(
+                LandingZoneFlightMapKeys.BILLING_PROFILE,
+                new ProfileModel().id(UUID.randomUUID()))));
   }
 }

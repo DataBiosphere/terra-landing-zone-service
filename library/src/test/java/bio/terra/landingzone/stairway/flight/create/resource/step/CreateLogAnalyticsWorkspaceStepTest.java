@@ -80,15 +80,17 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneDefaultParameters.ParametersNames.AUDIT_LOG_RETENTION_DAYS.name(),
             retentionInDays,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
+        Map.of(
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID())));
     setupArmManagersForDoStep();
 
     StepResult stepResult = createLogAnalyticsWorkspaceStep.doStep(mockFlightContext);

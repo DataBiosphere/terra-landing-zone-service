@@ -78,13 +78,15 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
+        Map.of(
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg,
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID())));
     setupArmManagersForDoStep(BATCH_ACCOUNT_ID, BATCH_ACCOUNT_NAME, mrg.region(), mrg.name());
 
     var stepResult = createBatchAccountStep.doStep(mockFlightContext);
@@ -103,13 +105,15 @@ class CreateBatchAccountStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
+        Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg));
     setupMocks(BATCH_ACCOUNT_NAME, mrg.region(), mrg.name());
     var batchAccountQuotaException = mockBatchQuotaException();
     doThrow(batchAccountQuotaException).when(mockBatchAccountDefinitionStagesWithCreate).create();

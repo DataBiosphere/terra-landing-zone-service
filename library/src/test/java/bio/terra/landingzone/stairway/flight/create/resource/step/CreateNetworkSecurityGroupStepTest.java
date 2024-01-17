@@ -59,12 +59,12 @@ public class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
 
     setupFlightContext(
         mockFlightContext,
+        Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_ID, LANDING_ZONE_ID),
         Map.of(
             LandingZoneFlightMapKeys.BILLING_PROFILE,
             new ProfileModel().id(UUID.randomUUID()),
-            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            LANDING_ZONE_ID),
-        Map.of(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg));
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            mrg));
     setupArmManagersForDoStep(nsgName, mrg.region(), mrg.name());
 
     var stepResult = createNetworkSecurityGroupStep.doStep(mockFlightContext);

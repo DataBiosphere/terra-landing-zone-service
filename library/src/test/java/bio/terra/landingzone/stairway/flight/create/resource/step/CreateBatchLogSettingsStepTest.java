@@ -71,13 +71,13 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
@@ -110,8 +110,6 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
     var inputParameters =
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
@@ -141,9 +139,16 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
 
   private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
-        Arguments.of(Map.of(CreateBatchAccountStep.BATCH_ACCOUNT_ID, "batchAccountId")),
         Arguments.of(
             Map.of(
+                LandingZoneFlightMapKeys.BILLING_PROFILE,
+                new ProfileModel().id(UUID.randomUUID()),
+                CreateBatchAccountStep.BATCH_ACCOUNT_ID,
+                "batchAccountId")),
+        Arguments.of(
+            Map.of(
+                LandingZoneFlightMapKeys.BILLING_PROFILE,
+                new ProfileModel().id(UUID.randomUUID()),
                 CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
                 "logAnalyticsWorkspaceId")));
   }

@@ -57,9 +57,7 @@ public abstract class BaseResourceCreateStep implements Step {
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     var billingProfile =
         getParameterOrThrow(
-            context.getInputParameters(),
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            ProfileModel.class);
+            context.getWorkingMap(), LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     var landingZoneId =
         getParameterOrThrow(

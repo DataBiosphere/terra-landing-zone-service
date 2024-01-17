@@ -17,9 +17,7 @@ public class GetManagedResourceGroupInfo implements Step {
     var armManagers =
         LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
     var billingProfile =
-        context
-            .getInputParameters()
-            .get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+        context.getWorkingMap().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     var resourceGroup =
         armManagers
