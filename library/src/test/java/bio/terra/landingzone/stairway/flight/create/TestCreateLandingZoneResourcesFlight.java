@@ -28,7 +28,9 @@ public class TestCreateLandingZoneResourcesFlight extends Flight {
     @Override
     public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
       ProfileModel profile =
-          context.getInputParameters().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+          context
+              .getInputParameters()
+              .get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
       context.getWorkingMap().put(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
       return StepResult.getStepResultSuccess();
     }
@@ -39,7 +41,8 @@ public class TestCreateLandingZoneResourcesFlight extends Flight {
     }
   }
 
-  public TestCreateLandingZoneResourcesFlight(FlightMap inputParameters, Object applicationContext) {
+  public TestCreateLandingZoneResourcesFlight(
+      FlightMap inputParameters, Object applicationContext) {
     super(inputParameters, applicationContext);
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
