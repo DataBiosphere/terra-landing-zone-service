@@ -24,15 +24,11 @@ public class TestCreateLandingZoneResourcesFlight extends Flight {
   // This is a step to add the billing profile to the working map, without calling bpm with the
   // GetBillingProfileStep
   public class TestBillingProfileStep implements Step {
-    private final ProfileModel profile;
-
-    public TestBillingProfileStep(ProfileModel profile) {
-      super();
-      this.profile = profile;
-    }
 
     @Override
     public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+      ProfileModel profile =
+          context.getInputParameters().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
       context.getWorkingMap().put(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
       return StepResult.getStepResultSuccess();
     }
@@ -43,12 +39,11 @@ public class TestCreateLandingZoneResourcesFlight extends Flight {
     }
   }
 
-  public TestCreateLandingZoneResourcesFlight(
-      FlightMap inputParameters, Object applicationContext, ProfileModel profile) {
+  public TestCreateLandingZoneResourcesFlight(FlightMap inputParameters, Object applicationContext) {
     super(inputParameters, applicationContext);
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
-    addStep(new TestBillingProfileStep(profile), RetryRules.shortExponential());
+    addStep(new TestBillingProfileStep(), RetryRules.shortExponential());
     addCreateSteps(flightBeanBag, inputParameters);
   }
 
