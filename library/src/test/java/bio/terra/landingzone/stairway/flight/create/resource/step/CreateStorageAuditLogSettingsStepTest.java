@@ -55,7 +55,8 @@ class CreateStorageAuditLogSettingsStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createStorageAuditLogSettingsStep = new CreateStorageAuditLogSettingsStep(mockResourceNameProvider);
+    createStorageAuditLogSettingsStep =
+        new CreateStorageAuditLogSettingsStep(mockResourceNameProvider);
   }
 
   @Test

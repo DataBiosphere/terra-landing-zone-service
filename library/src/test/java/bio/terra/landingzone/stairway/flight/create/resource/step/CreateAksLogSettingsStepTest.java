@@ -61,7 +61,8 @@ public class CreateAksLogSettingsStepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     createAksLogSettingsStep =
-        new CreateAksLogSettingsStep(mockResourceNameProvider, mockLandingZoneProtectedDataConfiguration);
+        new CreateAksLogSettingsStep(
+            mockResourceNameProvider, mockLandingZoneProtectedDataConfiguration);
   }
 
   @Test

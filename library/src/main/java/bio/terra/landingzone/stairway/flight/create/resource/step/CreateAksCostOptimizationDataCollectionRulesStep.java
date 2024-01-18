@@ -89,7 +89,8 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
     }
   }
 
-  public CreateAksCostOptimizationDataCollectionRulesStep(ResourceNameProvider resourceNameProvider) {
+  public CreateAksCostOptimizationDataCollectionRulesStep(
+      ResourceNameProvider resourceNameProvider) {
     super(resourceNameProvider);
   }
 

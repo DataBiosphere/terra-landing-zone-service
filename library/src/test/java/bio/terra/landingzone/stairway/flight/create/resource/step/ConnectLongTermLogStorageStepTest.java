@@ -94,10 +94,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
   void deleteResource_success() {
     var step =
         new ConnectLongTermLogStorageStep(
-            mockResourceNameProvider,
-            mockStorageHelper,
-            List.of("FakeTableName"),
-            Map.of());
+            mockResourceNameProvider, mockStorageHelper, List.of("FakeTableName"), Map.of());
 
     step.deleteResource("fake_resource", mockArmManagers);
 

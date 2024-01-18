@@ -68,7 +68,8 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
 
     protectedDataSteps.add(
         Pair.of(
-            new CreateSentinelRunPlaybookAutomationRule(resourceNameProvider, landingZoneProtectedDataConfiguration),
+            new CreateSentinelRunPlaybookAutomationRule(
+                resourceNameProvider, landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
 
     protectedDataSteps.add(
@@ -80,7 +81,8 @@ public class ProtectedDataStepsDefinitionProvider extends CromwellStepsDefinitio
             RetryRules.cloudLongRunning()));
     protectedDataSteps.add(
         Pair.of(
-            new CreateAksLogSettingsStep(resourceNameProvider, landingZoneProtectedDataConfiguration),
+            new CreateAksLogSettingsStep(
+                resourceNameProvider, landingZoneProtectedDataConfiguration),
             RetryRules.cloud()));
 
     return protectedDataSteps;

@@ -27,7 +27,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   public static final String VNET_RESOURCE_KEY = "VNET";
 
   public CreateVnetStep(ResourceNameProvider resourceNameProvider) {
-    super( resourceNameProvider);
+    super(resourceNameProvider);
   }
 
   @Override

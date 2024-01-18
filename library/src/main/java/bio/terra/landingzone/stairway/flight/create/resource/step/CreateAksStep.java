@@ -190,8 +190,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
     return switch (e.getValue().getCode().toLowerCase()) {
         /*duplicate request (Stairway has resumed flight after interruption)
         but resource is not ready for use and is still being provisioned*/
-      case "operationnotallowed" -> waitAndMaybeGetAksProvisioned(
-          getMRGName(context), aksName, armManagers);
+      case "operationnotallowed" ->
+          waitAndMaybeGetAksProvisioned(getMRGName(context), aksName, armManagers);
         /*duplicate request (Stairway resume flight after interruption), but resource is ready for use*/
       case "conflict" ->
           armManagers

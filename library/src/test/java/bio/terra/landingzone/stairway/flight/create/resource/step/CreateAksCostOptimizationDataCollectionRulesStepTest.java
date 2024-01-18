@@ -94,9 +94,7 @@ class CreateAksCostOptimizationDataCollectionRulesStepTest extends BaseStepTest 
 
   @BeforeEach
   void setup() {
-    testStep =
-        new CreateAksCostOptimizationDataCollectionRulesStep(mockResourceNameProvider);
-
+    testStep = new CreateAksCostOptimizationDataCollectionRulesStep(mockResourceNameProvider);
   }
 
   @Test

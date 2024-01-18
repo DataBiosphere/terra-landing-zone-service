@@ -3,10 +3,8 @@ package bio.terra.landingzone.stairway.flight.create;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneStepsDefinitionProviderFactory;
-import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
 import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
@@ -69,15 +67,14 @@ public class TestCreateLandingZoneResourcesFlight extends Flight {
 
     var resourceNameProvider = new ResourceNameProvider(landingZoneId);
 
-    var parametersResolver =
-        new ParametersResolver(
-            requestedLandingZone.parameters(), LandingZoneDefaultParameters.get());
+    var parametersResolverProvider = flightBeanBag.getParametersResolverProvider();
     var landingZoneProtectedDataConfiguration =
         flightBeanBag.getLandingZoneProtectedDataConfiguration();
 
     addStep(new InitializeArmManagersStep(), RetryRules.shortExponential());
     stepsDefinitionProvider
-        .get(parametersResolver, resourceNameProvider, landingZoneProtectedDataConfiguration)
+        .get(
+            parametersResolverProvider, resourceNameProvider, landingZoneProtectedDataConfiguration)
         .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
 
     // last step to aggregate results

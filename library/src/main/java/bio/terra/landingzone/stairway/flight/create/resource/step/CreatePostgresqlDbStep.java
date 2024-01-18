@@ -191,7 +191,10 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   }
 
   private void enablePgBouncer(
-      String mrgName, String postgresName, ParametersResolver parametersResolver, ArmManagers armManagers) {
+      String mrgName,
+      String postgresName,
+      ParametersResolver parametersResolver,
+      ArmManagers armManagers) {
     // Note: azure sdk does not allow this to be done with one call, let alone while creating the
     // server
     if (Boolean.parseBoolean(

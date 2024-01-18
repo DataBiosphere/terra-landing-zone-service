@@ -13,7 +13,6 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneFederatedIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
@@ -72,44 +71,25 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
                 InputParametersValidationFactory.buildValidators(
                     StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE)),
             RetryRules.shortExponential()),
-        Pair.of(
-            new CreateNetworkSecurityGroupStep(resourceNameProvider),
-            RetryRules.cloud()),
+        Pair.of(new CreateNetworkSecurityGroupStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreateVnetStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(
-            new CreateLogAnalyticsWorkspaceStep(resourceNameProvider),
-            RetryRules.cloud()),
+        Pair.of(new CreateLogAnalyticsWorkspaceStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreatePostgresqlDNSStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(
-            new CreateVirtualNetworkLinkStep(resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateLandingZoneIdentityStep(resourceNameProvider),
-            RetryRules.cloud()),
+        Pair.of(new CreateVirtualNetworkLinkStep(resourceNameProvider), RetryRules.cloud()),
+        Pair.of(new CreateLandingZoneIdentityStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreatePostgresqlDbStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAccountStep(resourceNameProvider), RetryRules.cloud()),
+        Pair.of(new CreateStorageAccountStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreateBatchAccountStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAccountCorsRules(resourceNameProvider),
-            RetryRules.cloud()),
+        Pair.of(new CreateStorageAccountCorsRules(resourceNameProvider), RetryRules.cloud()),
         Pair.of(
             new CreateLogAnalyticsDataCollectionRulesStep(resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(new CreateAksStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(
-            new CreatePostgresLogSettingsStep(resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateRelayNamespaceStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(
-            new CreateStorageAuditLogSettingsStep(resourceNameProvider),
-            RetryRules.cloud()),
-        Pair.of(
-            new CreateBatchLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(
-            new CreatePostgresLogSettingsStep(resourceNameProvider),
-            RetryRules.cloud()),
+        Pair.of(new CreatePostgresLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
+        Pair.of(new CreateRelayNamespaceStep(resourceNameProvider), RetryRules.cloud()),
+        Pair.of(new CreateStorageAuditLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
+        Pair.of(new CreateBatchLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
+        Pair.of(new CreatePostgresLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreateAppInsightsStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(
             new CreateAksCostOptimizationDataCollectionRulesStep(resourceNameProvider),
