@@ -109,7 +109,6 @@ public class LandingZoneServiceTest {
   @Mock private LandingZoneManagerProvider landingZoneManagerProvider;
   @Mock private LandingZoneDao landingZoneDao;
   @Mock private LandingZoneSamService samService;
-  @Mock private LandingZoneBillingProfileManagerService bpmService;
   @Mock private LandingZoneTestingConfiguration testingConfiguration;
   @Captor ArgumentCaptor<UUID> captorLandingZoneId;
 
@@ -121,7 +120,6 @@ public class LandingZoneServiceTest {
             landingZoneManagerProvider,
             landingZoneDao,
             samService,
-            bpmService,
             testingConfiguration);
   }
 

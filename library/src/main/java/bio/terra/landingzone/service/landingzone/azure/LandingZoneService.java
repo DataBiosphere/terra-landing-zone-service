@@ -68,7 +68,6 @@ public class LandingZoneService {
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneSamService samService;
-  private LandingZoneBillingProfileManagerService bpmService;
   private final LandingZoneTestingConfiguration testingConfiguration;
 
   @Autowired
@@ -77,13 +76,11 @@ public class LandingZoneService {
       LandingZoneManagerProvider landingZoneManagerProvider,
       LandingZoneDao landingZoneDao,
       LandingZoneSamService samService,
-      LandingZoneBillingProfileManagerService bpmService,
       LandingZoneTestingConfiguration landingZoneTestingConfiguration) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.landingZoneDao = landingZoneDao;
     this.samService = samService;
-    this.bpmService = bpmService;
     this.testingConfiguration = landingZoneTestingConfiguration;
   }
 
@@ -147,9 +144,6 @@ public class LandingZoneService {
     checkIfLandingZoneWithIdExists(landingZoneId);
     checkIfAttaching(azureLandingZoneRequest);
 
-    var profile =
-        bpmService.getBillingProfile(bearerToken, azureLandingZoneRequest.billingProfileId());
-
     final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
             .newJob()
@@ -166,8 +160,7 @@ public class LandingZoneService {
             .addParameter(
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
-            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
-            .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
+            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
 
     MetricUtils.incrementLandingZoneCreation(azureLandingZoneRequest.definition());
 
