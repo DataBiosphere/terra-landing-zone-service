@@ -89,7 +89,6 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(new CreateRelayNamespaceStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreateStorageAuditLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreateBatchLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
-        Pair.of(new CreatePostgresLogSettingsStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreateAppInsightsStep(resourceNameProvider), RetryRules.cloud()),
         Pair.of(
             new CreateAksCostOptimizationDataCollectionRulesStep(resourceNameProvider),
