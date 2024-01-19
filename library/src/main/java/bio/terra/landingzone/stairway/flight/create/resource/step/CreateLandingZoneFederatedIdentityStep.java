@@ -1,6 +1,5 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -27,16 +26,16 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
       LoggerFactory.getLogger(CreateLandingZoneFederatedIdentityStep.class);
   public static final String k8sNamespace = "default";
   private final KubernetesClientProvider kubernetesClientProvider;
+  private final ArmManagers armManagers;
 
-  public CreateLandingZoneFederatedIdentityStep(KubernetesClientProvider kubernetesClientProvider) {
+  public CreateLandingZoneFederatedIdentityStep(
+      ArmManagers armManagers, KubernetesClientProvider kubernetesClientProvider) {
+    this.armManagers = armManagers;
     this.kubernetesClientProvider = kubernetesClientProvider;
   }
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    var armManagers =
-        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
-
     var uami =
         FlightUtils.getRequired(
             context.getWorkingMap(),
@@ -163,8 +162,7 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
 
     var uamiName = uami.resourceName().orElseThrow();
     var mrgName = getMRGName(context);
-    var armManagers =
-        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
+
     try {
       deleteK8sServiceAccount(
           armManagers, k8sNamespace, uamiName, aksResource.resourceName().orElseThrow(), mrgName);

@@ -72,6 +72,7 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
 
     var createSentinelAlertRulesStep =
         new CreateSentinelAlertRulesStep(
+            mockArmManagers,
             mockResourceNameProvider,
             mockAlertRuleAdapter,
             mockLandingZoneProtectedDataConfiguration);
@@ -106,6 +107,7 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
 
     var createSentinelAlertRulesStep =
         new CreateSentinelAlertRulesStep(
+            mockArmManagers,
             mockResourceNameProvider,
             mockAlertRuleAdapter,
             mockLandingZoneProtectedDataConfiguration);
@@ -140,6 +142,7 @@ class CreateSentinelAlertRulesStepTest extends BaseStepTest {
         .thenThrow(new ManagementException("error", null, new ManagementError(errorCode, "error")));
     var createSentinelAlertRulesStep =
         new CreateSentinelAlertRulesStep(
+            mockArmManagers,
             mockResourceNameProvider,
             mockAlertRuleAdapter,
             mockLandingZoneProtectedDataConfiguration);

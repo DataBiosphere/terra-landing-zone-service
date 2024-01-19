@@ -32,7 +32,7 @@ class GetManagedResourceGroupInfoTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    getManagedResourceGroupInfo = new GetManagedResourceGroupInfo();
+    getManagedResourceGroupInfo = new GetManagedResourceGroupInfo(mockArmManagers);
   }
 
   @Test
@@ -43,8 +43,8 @@ class GetManagedResourceGroupInfoTest extends BaseStepTest {
 
     setupFlightContext(
         mockFlightContext,
-        Map.of(),
-        Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile));
+        Map.of(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile),
+        Map.of());
     setupArmManagersForDoStep(resourceGroupName, resourceGroupRegionName);
     // FlightMap spyWorkingMap = spy(mockFlightContext.getWorkingMap());
 

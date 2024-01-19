@@ -44,14 +44,15 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   public CreateAksLogSettingsStep(
+      ArmManagers armManagers,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(resourceNameProvider);
+    super(armManagers, resourceNameProvider);
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var aksId = getParameterOrThrow(context.getWorkingMap(), CreateAksStep.AKS_ID, String.class);
 
     String lzRegion = getMRGRegionName(context);
@@ -100,7 +101,7 @@ public class CreateAksLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // do nothing
   }
 

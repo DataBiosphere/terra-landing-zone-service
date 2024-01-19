@@ -29,11 +29,12 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   private Map<String, String> longTermStorageAccountIds;
 
   public ConnectLongTermLogStorageStep(
+      ArmManagers armManagers,
       ResourceNameProvider resourceNameProvider,
       ProtectedDataAzureStorageHelper storageHelper,
       List<String> tableNames,
       Map<String, String> longTermStorageAccountIds) {
-    super(resourceNameProvider);
+    super(armManagers, resourceNameProvider);
     this.tableNames = tableNames;
     this.storageHelper = storageHelper;
     this.longTermStorageAccountIds = longTermStorageAccountIds;
@@ -45,7 +46,7 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var logAnalyticsWorkspace =
         getParameterOrThrow(
             context.getWorkingMap(),
@@ -88,7 +89,7 @@ public class ConnectLongTermLogStorageStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     storageHelper.deleteDataExport(armManagers, resourceId);
   }
 

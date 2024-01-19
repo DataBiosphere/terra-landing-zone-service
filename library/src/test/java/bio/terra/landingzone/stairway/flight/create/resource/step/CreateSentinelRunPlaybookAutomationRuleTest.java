@@ -67,7 +67,7 @@ class CreateSentinelRunPlaybookAutomationRuleTest extends BaseStepTest {
   void setup() {
     createSentinelRunPlaybookAutomationRule =
         new CreateSentinelRunPlaybookAutomationRule(
-            mockResourceNameProvider, mockLandingZoneProtectedDataConfiguration);
+            mockArmManagers, mockResourceNameProvider, mockLandingZoneProtectedDataConfiguration);
   }
 
   @Test

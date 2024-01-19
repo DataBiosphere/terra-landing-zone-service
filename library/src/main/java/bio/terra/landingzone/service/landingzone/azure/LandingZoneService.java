@@ -26,6 +26,7 @@ import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpo
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.quotas.ResourceQuota;
 import bio.terra.landingzone.model.LandingZoneTarget;
+import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
@@ -67,6 +68,7 @@ public class LandingZoneService {
   private final LandingZoneManagerProvider landingZoneManagerProvider;
   private final LandingZoneDao landingZoneDao;
   private final LandingZoneSamService samService;
+  private final LandingZoneBillingProfileManagerService bpmService;
   private final LandingZoneTestingConfiguration testingConfiguration;
 
   @Autowired
@@ -75,11 +77,13 @@ public class LandingZoneService {
       LandingZoneManagerProvider landingZoneManagerProvider,
       LandingZoneDao landingZoneDao,
       LandingZoneSamService samService,
+      LandingZoneBillingProfileManagerService bpmService,
       LandingZoneTestingConfiguration landingZoneTestingConfiguration) {
     this.azureLandingZoneJobService = azureLandingZoneJobService;
     this.landingZoneManagerProvider = landingZoneManagerProvider;
     this.landingZoneDao = landingZoneDao;
     this.samService = samService;
+    this.bpmService = bpmService;
     this.testingConfiguration = landingZoneTestingConfiguration;
   }
 
@@ -137,6 +141,9 @@ public class LandingZoneService {
                 SamConstants.SamSpendProfileAction.LINK),
         IS_AUTHORIZED);
 
+    var profile =
+        bpmService.getBillingProfile(bearerToken, azureLandingZoneRequest.billingProfileId());
+
     checkIfRequestedFactoryExists(azureLandingZoneRequest);
     String jobDescription = "Creating Azure Landing Zone. Definition=%s, Version=%s";
     UUID landingZoneId = azureLandingZoneRequest.landingZoneId().orElseGet(() -> UUID.randomUUID());
@@ -159,7 +166,8 @@ public class LandingZoneService {
             .addParameter(
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
-            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
+            .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
 
     MetricUtils.incrementLandingZoneCreation(azureLandingZoneRequest.definition());
 

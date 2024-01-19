@@ -3,7 +3,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapReader;
 import bio.terra.landingzone.common.k8s.configmap.reader.AksConfigMapReaderException;
 import bio.terra.landingzone.common.utils.HttpResponseUtils;
-import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
@@ -32,9 +31,13 @@ public class EnableAksContainerLogV2Step implements Step {
 
   private final KubernetesClientProvider kubernetesClientProvider;
   private final AksConfigMapReader aksConfigMapReader;
+  private final ArmManagers armManagers;
 
   public EnableAksContainerLogV2Step(
-      KubernetesClientProvider kubernetesClientProvider, AksConfigMapReader aksConfigMapReader) {
+      ArmManagers armManagers,
+      KubernetesClientProvider kubernetesClientProvider,
+      AksConfigMapReader aksConfigMapReader) {
+    this.armManagers = armManagers;
     this.kubernetesClientProvider = kubernetesClientProvider;
     this.aksConfigMapReader = aksConfigMapReader;
   }
@@ -52,8 +55,6 @@ public class EnableAksContainerLogV2Step implements Step {
             context.getWorkingMap(),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             TargetManagedResourceGroup.class);
-    var armManagers =
-        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
 
     try {
       var containerLogV2ConfigMap = aksConfigMapReader.read();

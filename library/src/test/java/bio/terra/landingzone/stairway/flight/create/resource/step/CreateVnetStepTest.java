@@ -64,7 +64,7 @@ class CreateVnetStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createVnetStep = new CreateVnetStep(mockResourceNameProvider);
+    createVnetStep = new CreateVnetStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

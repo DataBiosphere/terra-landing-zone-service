@@ -52,7 +52,8 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
   @BeforeEach
   void setup() {
     testStep =
-        new EnableAksContainerLogV2Step(mockKubernetesClientProvider, mockAksConfigMapReader);
+        new EnableAksContainerLogV2Step(
+            mockArmManagers, mockKubernetesClientProvider, mockAksConfigMapReader);
   }
 
   @Test

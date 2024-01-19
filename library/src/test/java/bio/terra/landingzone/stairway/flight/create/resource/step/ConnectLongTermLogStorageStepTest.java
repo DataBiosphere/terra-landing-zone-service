@@ -35,13 +35,13 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             new TargetManagedResourceGroup("fake_mrg", matchingRegionName),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
@@ -53,6 +53,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
         .thenReturn(mockDataExport);
     var step =
         new ConnectLongTermLogStorageStep(
+            mockArmManagers,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
@@ -68,13 +69,13 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             new TargetManagedResourceGroup("fake_mrg", "NON_MATCHING_REGION_NAME"),
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_RESOURCE_KEY,
@@ -82,6 +83,7 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
 
     var step =
         new ConnectLongTermLogStorageStep(
+            mockArmManagers,
             mockResourceNameProvider,
             mockStorageHelper,
             List.of("FakeTableName"),
@@ -94,9 +96,13 @@ class ConnectLongTermLogStorageStepTest extends BaseStepTest {
   void deleteResource_success() {
     var step =
         new ConnectLongTermLogStorageStep(
-            mockResourceNameProvider, mockStorageHelper, List.of("FakeTableName"), Map.of());
+            mockArmManagers,
+            mockResourceNameProvider,
+            mockStorageHelper,
+            List.of("FakeTableName"),
+            Map.of());
 
-    step.deleteResource("fake_resource", mockArmManagers);
+    step.deleteResource("fake_resource");
 
     verify(mockStorageHelper).deleteDataExport(any(), anyString());
   }

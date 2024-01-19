@@ -1,8 +1,9 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
@@ -12,12 +13,19 @@ import bio.terra.stairway.exception.RetryException;
 public class GetManagedResourceGroupInfo implements Step {
   public static final String TARGET_MRG_KEY = "TARGET_MRG";
 
+  private final ArmManagers armManagers;
+
+  public GetManagedResourceGroupInfo(ArmManagers armManagers) {
+    this.armManagers = armManagers;
+  }
+
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
-    var armManagers =
-        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
     var billingProfile =
-        context.getWorkingMap().get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+        FlightUtils.getRequired(
+            context.getInputParameters(),
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            ProfileModel.class);
 
     var resourceGroup =
         armManagers

@@ -45,12 +45,13 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   public static final String POSTGRESQL_ID = "POSTGRESQL_ID";
   public static final String POSTGRESQL_RESOURCE_KEY = "POSTGRESQL";
 
-  public CreatePostgresqlDbStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreatePostgresqlDbStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var postgresName = resourceNameProvider.getName(getResourceType());
 
     var postgres = createServer(context, armManagers, postgresName);
@@ -248,7 +249,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     armManagers.postgreSqlManager().servers().deleteById(resourceId);
   }
 

@@ -90,12 +90,12 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
   }
 
   public CreateAksCostOptimizationDataCollectionRulesStep(
-      ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -114,7 +114,7 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // do nothing
   }
 

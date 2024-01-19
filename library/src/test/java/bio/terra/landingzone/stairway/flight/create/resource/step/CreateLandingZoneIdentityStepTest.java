@@ -39,7 +39,7 @@ public class CreateLandingZoneIdentityStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateLandingZoneIdentityStep(mockResourceNameProvider);
+    testStep = new CreateLandingZoneIdentityStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

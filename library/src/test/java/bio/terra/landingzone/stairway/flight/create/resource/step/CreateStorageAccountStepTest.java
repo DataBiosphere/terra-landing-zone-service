@@ -54,7 +54,8 @@ class CreateStorageAccountStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createStorageAccountStep = new CreateStorageAccountStep(mockResourceNameProvider);
+    createStorageAccountStep =
+        new CreateStorageAccountStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

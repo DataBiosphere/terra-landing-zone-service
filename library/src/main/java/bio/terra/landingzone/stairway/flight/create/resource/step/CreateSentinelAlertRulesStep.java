@@ -29,16 +29,17 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   private final LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration;
 
   public CreateSentinelAlertRulesStep(
+      ArmManagers armManagers,
       ResourceNameProvider resourceNameProvider,
       AlertRulesHelper alertRuleAdapter,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration) {
-    super(resourceNameProvider);
+    super(armManagers, resourceNameProvider);
     this.alertRulesHelper = alertRuleAdapter;
     this.landingZoneProtectedDataConfiguration = landingZoneProtectedDataConfiguration;
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var logAnalyticsWorkspace =
         getParameterOrThrow(
             context.getWorkingMap(),
@@ -82,7 +83,7 @@ public class CreateSentinelAlertRulesStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // noop
   }
 

@@ -23,12 +23,13 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
   public static final String VNET_LINK_ID = "VNET_LINK_ID";
   public static final String VNET_LINK_RESOURCE_KEY = "VNET_LINK";
 
-  public CreateVirtualNetworkLinkStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateVirtualNetworkLinkStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -75,7 +76,7 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     VirtualNetworkLinkResourceHelper.delete(armManagers, resourceId);
   }
 

@@ -47,7 +47,7 @@ class EnableAksContainerInsightsStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new EnableAksContainerInsightsStep();
+    testStep = new EnableAksContainerInsightsStep(mockArmManagers);
   }
 
   @Test

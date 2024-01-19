@@ -14,8 +14,9 @@ import org.slf4j.LoggerFactory;
 public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateBatchLogSettingsStep.class);
 
-  public CreateBatchLogSettingsStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateBatchLogSettingsStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
@@ -25,7 +26,7 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var batchAccountId =
         getParameterOrThrow(
             context.getWorkingMap(), CreateBatchAccountStep.BATCH_ACCOUNT_ID, String.class);
@@ -51,7 +52,7 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // do nothing
   }
 

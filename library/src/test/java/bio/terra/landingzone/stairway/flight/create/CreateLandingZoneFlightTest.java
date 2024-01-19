@@ -70,10 +70,7 @@ class CreateLandingZoneFlightTest {
 
   void validateSteps(List<Step> steps, boolean isAttaching) {
     assertThat(steps.stream().filter(s -> s instanceof CreateSamResourceStep).count(), equalTo(1L));
-    assertThat(steps.stream().filter(s -> s instanceof GetBillingProfileStep).count(), equalTo(1L));
     if (!isAttaching) {
-      assertThat(
-          steps.stream().filter(s -> s instanceof InitializeArmManagersStep).count(), equalTo(1L));
 
       assertThat(
           steps.stream()

@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
 
-import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.MetricUtils;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -11,6 +10,7 @@ import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.landingzone.stairway.flight.exception.translation.FlightExceptionTranslator;
 import bio.terra.landingzone.stairway.flight.exception.utils.ManagementExceptionUtils;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
@@ -46,9 +46,12 @@ public abstract class BaseResourceCreateStep implements Step {
       "Failed attempt to delete {}. Id={}";
   private static final String RESOURCE_DELETED = "{} resource with id={} deleted.";
 
+  protected final ArmManagers armManagers;
   protected final ResourceNameProvider resourceNameProvider;
 
-  protected BaseResourceCreateStep(ResourceNameProvider resourceNameProvider) {
+  protected BaseResourceCreateStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    this.armManagers = armManagers;
     this.resourceNameProvider = resourceNameProvider;
     registerForNameGeneration(resourceNameProvider, this);
   }
@@ -56,8 +59,7 @@ public abstract class BaseResourceCreateStep implements Step {
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     var billingProfile =
-        getParameterOrThrow(
-            context.getWorkingMap(), LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+        getParameterOrThrow(context, LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
 
     var landingZoneId =
         getParameterOrThrow(
@@ -72,7 +74,7 @@ public abstract class BaseResourceCreateStep implements Step {
           MetricUtils.configureTimerForLzStepDuration(
               azureLandingZoneRequest.definition(), getResourceType());
       var start = Instant.now().toEpochMilli();
-      createResource(context, getArmManagers(context));
+      createResource(context);
       var finish = Instant.now().toEpochMilli();
       stepDuration.record(Duration.ofMillis(finish - start));
     } catch (ManagementException e) {
@@ -98,8 +100,7 @@ public abstract class BaseResourceCreateStep implements Step {
     try {
 
       if (resourceId.isPresent()) {
-        var armManagers = getArmManagers(flightContext);
-        deleteResource(resourceId.get(), armManagers);
+        deleteResource(resourceId.get());
         logger.info(RESOURCE_DELETED, getResourceType(), resourceId.get());
       }
     } catch (ManagementException e) {
@@ -115,23 +116,31 @@ public abstract class BaseResourceCreateStep implements Step {
 
   public abstract List<ResourceNameRequirements> getResourceNameRequirements();
 
-  protected abstract void createResource(FlightContext context, ArmManagers armManagers);
+  protected abstract void createResource(FlightContext context);
 
-  protected abstract void deleteResource(String resourceId, ArmManagers armManagers);
+  protected abstract void deleteResource(String resourceId);
 
   protected abstract String getResourceType();
 
   protected abstract Optional<String> getResourceId(FlightContext context);
-
-  protected ArmManagers getArmManagers(FlightContext context) {
-    return LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
-  }
 
   protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
     FlightUtils.validateRequiredEntries(parameters, name);
     return parameters.get(name, clazz);
   }
 
+  protected <T> T getParameterOrThrow(FlightContext context, String name, Class<T> clazz) {
+    var value = FlightUtils.getInputParameterOrWorkingValue(context, name, name, clazz);
+    if (null == value) {
+      throw new MissingRequiredFieldsException(
+          String.format("Required entry with key %s missing from flight map.", name));
+    }
+    return value;
+  }
+
+  /*
+
+  */
   protected String getMRGName(FlightContext context) {
     return getParameterOrThrow(
             context.getWorkingMap(),

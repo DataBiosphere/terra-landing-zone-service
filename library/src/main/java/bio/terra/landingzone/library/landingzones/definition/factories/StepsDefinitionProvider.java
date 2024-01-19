@@ -1,6 +1,7 @@
 package bio.terra.landingzone.library.landingzones.definition.factories;
 
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionHeader;
 import bio.terra.landingzone.library.landingzones.definition.DefinitionVersion;
 import bio.terra.landingzone.stairway.flight.ParametersResolverProvider;
@@ -42,12 +43,14 @@ public interface StepsDefinitionProvider {
    * another required information for resource2 (using flight working map). So, step for resource1
    * should go first in the list definition.
    *
+   * @param ArmManagers armManagers
    * @param ParametersResolverProvider parametersResolverProvider
    * @param ResourceNameProvider resourceNameProvider
    * @param LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration
    * @return List of pairs of steps and step's retry rule
    */
   List<Pair<Step, RetryRule>> get(
+      ArmManagers armManagers,
       ParametersResolverProvider parametersResolverProvider,
       ResourceNameProvider resourceNameProvider,
       LandingZoneProtectedDataConfiguration landingZoneProtectedDataConfiguration);

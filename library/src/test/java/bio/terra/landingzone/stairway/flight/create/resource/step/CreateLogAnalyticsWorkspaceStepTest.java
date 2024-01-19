@@ -64,7 +64,8 @@ class CreateLogAnalyticsWorkspaceStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createLogAnalyticsWorkspaceStep = new CreateLogAnalyticsWorkspaceStep(mockResourceNameProvider);
+    createLogAnalyticsWorkspaceStep =
+        new CreateLogAnalyticsWorkspaceStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

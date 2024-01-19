@@ -55,7 +55,8 @@ class CreateBatchLogSettingsStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createBatchLogSettingsStep = new CreateBatchLogSettingsStep(mockResourceNameProvider);
+    createBatchLogSettingsStep =
+        new CreateBatchLogSettingsStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

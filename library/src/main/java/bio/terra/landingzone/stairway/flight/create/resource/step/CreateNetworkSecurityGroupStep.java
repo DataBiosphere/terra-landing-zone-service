@@ -25,12 +25,13 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
   public static final String NSG_ID = "NSG_ID";
   public static final String NSG_RESOURCE_KEY = "NSG";
 
-  public CreateNetworkSecurityGroupStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateNetworkSecurityGroupStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
 
     var landingZoneId =
         getParameterOrThrow(
@@ -83,7 +84,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     armManagers.azureResourceManager().networkSecurityGroups().deleteById(resourceId);
   }
 

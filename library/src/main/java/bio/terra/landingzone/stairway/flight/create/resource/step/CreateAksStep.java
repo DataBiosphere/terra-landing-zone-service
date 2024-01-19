@@ -1,6 +1,5 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -46,12 +45,12 @@ public class CreateAksStep extends BaseResourceCreateStep {
   // it's always true, false is only for testing; see denySleepWhilePoolingForAksStatus() method
   private boolean sleepWhilePollingAksStatus = true;
 
-  public CreateAksStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateAksStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
     boolean costSavingsSpotNodesEnabled =
         Boolean.parseBoolean(
@@ -115,7 +114,6 @@ public class CreateAksStep extends BaseResourceCreateStep {
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     var aksName = resourceNameProvider.getName(getResourceType());
-    var armManagers = getArmManagers(context);
 
     KubernetesCluster aks;
     try {
@@ -185,8 +183,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
 
   private KubernetesCluster handleConflictAndMaybeGetAks(
       FlightContext context, String aksName, ManagementException e) {
-    var armManagers =
-        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
+
     return switch (e.getValue().getCode().toLowerCase()) {
         /*duplicate request (Stairway has resumed flight after interruption)
         but resource is not ready for use and is still being provisioned*/
@@ -334,7 +331,7 @@ public class CreateAksStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     armManagers.azureResourceManager().kubernetesClusters().deleteById(resourceId);
   }
 

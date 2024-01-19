@@ -47,7 +47,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateVirtualNetworkLinkStep(mockResourceNameProvider);
+    testStep = new CreateVirtualNetworkLinkStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
