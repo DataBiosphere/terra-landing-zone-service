@@ -6,7 +6,6 @@ import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
-import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
@@ -29,7 +28,6 @@ public class LandingZoneFlightBeanBag {
   private final ParametersResolverProvider parametersResolverProvider;
   private final AzureCustomerUsageConfiguration azureCustomerUsageConfiguration;
   private final AzureCredentialsProvider azureCredentialsProvider;
-  private ArmManagers armManagers = null;
 
   @Lazy
   @Autowired
@@ -104,13 +102,5 @@ public class LandingZoneFlightBeanBag {
 
   public AzureCredentialsProvider getAzureCredentialsProvider() {
     return azureCredentialsProvider;
-  }
-
-  public void setArmManagers(ArmManagers armManagers) {
-    this.armManagers = armManagers;
-  }
-
-  public ArmManagers getArmManagers() {
-    return armManagers;
   }
 }

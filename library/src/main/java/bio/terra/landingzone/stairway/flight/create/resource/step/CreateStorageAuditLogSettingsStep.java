@@ -17,12 +17,13 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
 
   public static final String STORAGE_AUDIT_LOG_SETTINGS_KEY = "STORAGE_AUDIT_LOG_SETTINGS";
 
-  public CreateStorageAuditLogSettingsStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateStorageAuditLogSettingsStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var storageAccountId =
         getParameterOrThrow(
             context.getWorkingMap(), CreateStorageAccountStep.STORAGE_ACCOUNT_ID, String.class);
@@ -59,7 +60,7 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // do nothing
   }
 

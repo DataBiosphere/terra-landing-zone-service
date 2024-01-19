@@ -14,6 +14,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
+import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
 import com.azure.resourcemanager.AzureResourceManager;
@@ -45,9 +46,6 @@ class BaseStepTest {
       Map<String, Object> inputParameters,
       Map<String, Object> workingMap) {
 
-    Mockito.lenient()
-        .when(mockLandingZoneFlightBeanBag.getArmManagers())
-        .thenReturn(mockArmManagers);
     Mockito.lenient()
         .when(flightContext.getApplicationContext())
         .thenReturn(mockLandingZoneFlightBeanBag);
@@ -86,6 +84,10 @@ class BaseStepTest {
 
   protected static Stream<Arguments> inputParameterProvider() {
     return Stream.of(
-        Arguments.of(Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_ID, LANDING_ZONE_ID)));
+        Arguments.of(Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_ID, LANDING_ZONE_ID)),
+        Arguments.of(
+            Map.of(
+                LandingZoneFlightMapKeys.BILLING_PROFILE,
+                new ProfileModel().id(UUID.randomUUID()))));
   }
 }

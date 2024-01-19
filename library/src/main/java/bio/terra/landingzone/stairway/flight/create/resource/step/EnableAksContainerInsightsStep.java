@@ -1,7 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.common.utils.HttpResponseUtils;
-import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.Step;
@@ -27,6 +27,12 @@ public class EnableAksContainerInsightsStep implements Step {
   private static final Logger logger =
       LoggerFactory.getLogger(EnableAksContainerInsightsStep.class);
 
+  private final ArmManagers armManagers;
+
+  public EnableAksContainerInsightsStep(ArmManagers armManagers) {
+    this.armManagers = armManagers;
+  }
+
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
     FlightUtils.validateRequiredEntries(
@@ -39,8 +45,6 @@ public class EnableAksContainerInsightsStep implements Step {
     FlightUtils.validateRequiredEntries(context.getWorkingMap(), CreateAksStep.AKS_ID);
     var aksId =
         FlightUtils.getRequired(context.getWorkingMap(), CreateAksStep.AKS_ID, String.class);
-    var armManagers =
-        LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext()).getArmManagers();
 
     final Map<String, ManagedClusterAddonProfile> addonProfileMap = new HashMap<>();
     addonProfileMap.put(

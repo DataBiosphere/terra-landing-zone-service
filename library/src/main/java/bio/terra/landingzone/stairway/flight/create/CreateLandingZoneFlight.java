@@ -2,17 +2,20 @@ package bio.terra.landingzone.stairway.flight.create;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.common.utils.RetryRules;
+import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.LandingZoneStepsDefinitionProviderFactory;
 import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
+import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
+import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
-import bio.terra.stairway.Flight;
-import bio.terra.stairway.FlightMap;
-import bio.terra.stairway.RetryRule;
-import bio.terra.stairway.Step;
+import bio.terra.profile.model.ProfileModel;
+import bio.terra.stairway.*;
+import com.azure.core.management.AzureEnvironment;
+import com.azure.core.management.profile.AzureProfile;
 import java.util.UUID;
 
 /** Flight for creation of a Landing Zone */
@@ -48,9 +51,6 @@ public class CreateLandingZoneFlight extends Flight {
     addStep(
         new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
 
-    addStep(
-        new GetBillingProfileStep(flightBeanBag.getBpmService()), RetryRules.shortExponential());
-
     if (!requestedLandingZone.isAttaching()) {
       var stepsDefinitionProvider =
           LandingZoneStepsDefinitionProviderFactory.create(
@@ -61,10 +61,11 @@ public class CreateLandingZoneFlight extends Flight {
 
       var landingZoneProtectedDataConfiguration =
           flightBeanBag.getLandingZoneProtectedDataConfiguration();
+      var armManagers = getArmManagers(flightBeanBag, inputParameters);
 
-      addStep(new InitializeArmManagersStep(), RetryRules.shortExponential());
       stepsDefinitionProvider
           .get(
+              armManagers,
               parametersResolverProvider,
               resourceNameProvider,
               landingZoneProtectedDataConfiguration)
@@ -90,5 +91,21 @@ public class CreateLandingZoneFlight extends Flight {
       }
       return landingZoneId;
     }
+  }
+
+  protected ArmManagers getArmManagers(
+      LandingZoneFlightBeanBag flightBeanBag, FlightMap inputParameters) {
+    var billingProfile =
+        inputParameters.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
+    var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
+    var azureProfile =
+        new AzureProfile(
+            landingZoneTarget.azureTenantId(),
+            landingZoneTarget.azureSubscriptionId(),
+            AzureEnvironment.AZURE);
+    return LandingZoneManager.createArmManagers(
+        flightBeanBag.getAzureCredentialsProvider().getTokenCredential(),
+        azureProfile,
+        flightBeanBag.getAzureCustomerUsageConfiguration().getUsageAttribute());
   }
 }

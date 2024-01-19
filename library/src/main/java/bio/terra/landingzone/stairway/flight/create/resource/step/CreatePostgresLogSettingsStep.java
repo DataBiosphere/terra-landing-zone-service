@@ -14,12 +14,13 @@ public class CreatePostgresLogSettingsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreatePostgresLogSettingsStep.class);
 
   public CreatePostgresLogSettingsStep(
+      ArmManagers armManagers,
       bio.terra.landingzone.stairway.flight.ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var postgreSqlId =
         getParameterOrThrow(
             context.getWorkingMap(), CreatePostgresqlDbStep.POSTGRESQL_ID, String.class);
@@ -47,7 +48,7 @@ public class CreatePostgresLogSettingsStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // do nothing
   }
 

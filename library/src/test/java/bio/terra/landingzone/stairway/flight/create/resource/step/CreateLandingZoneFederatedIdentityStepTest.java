@@ -48,7 +48,8 @@ public class CreateLandingZoneFederatedIdentityStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateLandingZoneFederatedIdentityStep(mockKubernetesClientProvider);
+    testStep =
+        new CreateLandingZoneFederatedIdentityStep(mockArmManagers, mockKubernetesClientProvider);
   }
 
   @Test

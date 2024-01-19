@@ -24,12 +24,13 @@ public class CreateLandingZoneIdentityStep extends BaseResourceCreateStep {
   public static final String LANDING_ZONE_IDENTITY_RESOURCE_KEY = "LANDING_ZONE_IDENTITY";
   public static final String LANDING_ZONE_IDENTITY_CLIENT_ID = "LANDING_ZONE_IDENTITY_CLIENT_ID";
 
-  public CreateLandingZoneIdentityStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateLandingZoneIdentityStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -69,7 +70,7 @@ public class CreateLandingZoneIdentityStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     armManagers.azureResourceManager().identities().deleteById(resourceId);
   }
 

@@ -20,12 +20,13 @@ import org.slf4j.LoggerFactory;
 public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateStorageAccountCorsRules.class);
 
-  public CreateStorageAccountCorsRules(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateStorageAccountCorsRules(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var storageAccountName =
         getParameterOrThrow(
             context.getWorkingMap(), LandingZoneFlightMapKeys.STORAGE_ACCOUNT_NAME, String.class);
@@ -43,7 +44,7 @@ public class CreateStorageAccountCorsRules extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // do nothing
   }
 

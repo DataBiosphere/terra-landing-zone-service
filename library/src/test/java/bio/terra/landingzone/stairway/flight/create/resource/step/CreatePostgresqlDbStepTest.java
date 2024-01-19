@@ -88,7 +88,7 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createPostgresqlDbStep = new CreatePostgresqlDbStep(mockResourceNameProvider);
+    createPostgresqlDbStep = new CreatePostgresqlDbStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

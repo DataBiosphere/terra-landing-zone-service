@@ -39,7 +39,7 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreatePostgresqlDNSStep(mockResourceNameProvider);
+    testStep = new CreatePostgresqlDNSStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test

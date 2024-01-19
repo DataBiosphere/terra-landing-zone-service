@@ -16,12 +16,12 @@ public class CreateSentinelStep extends BaseResourceCreateStep {
   public static final String SENTINEL_ID = "SENTINEL_ID";
   public static final String SENTINEL_RESOURCE_KEY = "SENTINEL";
 
-  public CreateSentinelStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateSentinelStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var logAnalyticsWorkspace =
         getParameterOrThrow(
             context.getWorkingMap(),
@@ -55,7 +55,7 @@ public class CreateSentinelStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     armManagers.securityInsightsManager().sentinelOnboardingStates().deleteById(resourceId);
   }
 

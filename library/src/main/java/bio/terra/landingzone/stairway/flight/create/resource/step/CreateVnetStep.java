@@ -26,12 +26,12 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   public static final String VNET_ID = "VNET_ID";
   public static final String VNET_RESOURCE_KEY = "VNET";
 
-  public CreateVnetStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateVnetStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  public void createResource(FlightContext context, ArmManagers armManagers) {
+  public void createResource(FlightContext context) {
     String vNetName = resourceNameProvider.getName(getResourceType());
     var nsgId =
         getParameterOrThrow(
@@ -128,7 +128,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     armManagers.azureResourceManager().networks().deleteById(resourceId);
   }
 

@@ -68,7 +68,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    createAppInsightsStep = new CreateAppInsightsStep(mockResourceNameProvider);
+    createAppInsightsStep = new CreateAppInsightsStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
@@ -83,13 +83,13 @@ class CreateAppInsightsStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             mrg,
             CreateLogAnalyticsWorkspaceStep.LOG_ANALYTICS_WORKSPACE_ID,
@@ -123,6 +123,8 @@ class CreateAppInsightsStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
@@ -184,11 +186,7 @@ class CreateAppInsightsStepTest extends BaseStepTest {
 
   private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
-        // intentionally return empty map (except for billing profile), to check required parameter
-        // validation
-        Arguments.of(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                new ProfileModel().id(UUID.randomUUID()))));
+        // intentionally return empty map to check required parametervalidation
+        Arguments.of(Map.of()));
   }
 }

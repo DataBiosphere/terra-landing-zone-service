@@ -37,13 +37,13 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   private static final Logger logger =
       LoggerFactory.getLogger(CreateLogAnalyticsDataCollectionRulesStep.class);
 
-  public CreateLogAnalyticsDataCollectionRulesStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateLogAnalyticsDataCollectionRulesStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
   public StepResult undoStep(FlightContext context) {
-    var armManagers = getArmManagers(context);
     var dataCollectionRuleName =
         context.getWorkingMap().get(DATA_COLLECTION_RULE_NAME, String.class);
     try {
@@ -69,7 +69,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     final String DESTINATION_NAME = "lz_workspace";
     final String PERF_COUNTER_NAME = "VMInsightsPerfCounters";
     final String SYSLOG_NAME = "syslog";
@@ -148,7 +148,7 @@ public class CreateLogAnalyticsDataCollectionRulesStep extends BaseResourceCreat
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     // do nothing
   }
 

@@ -84,7 +84,7 @@ class CreateAksStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateAksStep(mockResourceNameProvider);
+    testStep = new CreateAksStep(mockArmManagers, mockResourceNameProvider);
     testStep.denySleepWhilePoolingForAksStatus();
   }
 
@@ -97,13 +97,13 @@ class CreateAksStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             CreateVnetStep.VNET_ID,
             "vNetId",
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
@@ -174,6 +174,8 @@ class CreateAksStepTest extends BaseStepTest {
   void doStepMissingWorkingParameterThrowsException(Map<String, Object> workingParameters) {
     var inputParameters =
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
@@ -202,13 +204,13 @@ class CreateAksStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             CreateVnetStep.VNET_ID,
             "vNetId",
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
@@ -238,13 +240,13 @@ class CreateAksStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             CreateVnetStep.VNET_ID,
             "vNetId",
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
@@ -346,13 +348,13 @@ class CreateAksStepTest extends BaseStepTest {
     setupFlightContext(
         mockFlightContext,
         Map.of(
+            LandingZoneFlightMapKeys.BILLING_PROFILE,
+            new ProfileModel().id(UUID.randomUUID()),
             LandingZoneFlightMapKeys.LANDING_ZONE_ID,
             LANDING_ZONE_ID,
             LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
             ResourceStepFixture.createLandingZoneRequestForCromwellLandingZone()),
         Map.of(
-            LandingZoneFlightMapKeys.BILLING_PROFILE,
-            new ProfileModel().id(UUID.randomUUID()),
             CreateVnetStep.VNET_ID,
             "vNetId",
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
@@ -460,12 +462,8 @@ class CreateAksStepTest extends BaseStepTest {
 
   private static Stream<Arguments> workingParametersProvider() {
     return Stream.of(
-        // intentionally return empty map (except billing profile), to check required parameter
-        // validation
-        Arguments.of(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                new ProfileModel().id(UUID.randomUUID()))));
+        // intentionally return empty map to check required parameter
+        Arguments.of(Map.of()));
   }
 
   // provides pairs of mrg name and expected name of node resource group

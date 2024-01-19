@@ -21,12 +21,13 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
   public static final String BATCH_ACCOUNT_ID = "BATCH_ACCOUNT_ID";
   public static final String BATCH_ACCOUNT_RESOURCE_KEY = "BATCH_ACCOUNT";
 
-  public CreateBatchAccountStep(ResourceNameProvider resourceNameProvider) {
-    super(resourceNameProvider);
+  public CreateBatchAccountStep(
+      ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
+    super(armManagers, resourceNameProvider);
   }
 
   @Override
-  protected void createResource(FlightContext context, ArmManagers armManagers) {
+  protected void createResource(FlightContext context) {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -62,7 +63,7 @@ public class CreateBatchAccountStep extends BaseResourceCreateStep {
   }
 
   @Override
-  protected void deleteResource(String resourceId, ArmManagers armManagers) {
+  protected void deleteResource(String resourceId) {
     armManagers.batchManager().batchAccounts().deleteById(resourceId);
   }
 
