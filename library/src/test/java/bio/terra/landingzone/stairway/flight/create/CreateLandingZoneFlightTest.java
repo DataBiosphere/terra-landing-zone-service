@@ -3,6 +3,7 @@ package bio.terra.landingzone.stairway.flight.create;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.mockito.Mockito.*;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
@@ -28,30 +29,10 @@ class CreateLandingZoneFlightTest {
   private static final UUID BILLING_PROFILE_ID = UUID.randomUUID();
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
 
-  private CreateLandingZoneFlight createLandingZoneFlight;
-
   @Mock private LandingZoneFlightBeanBag mockApplicationContext;
 
-  @Test
-  void testInitializationWhenIsNotAttaching() {
-    final boolean isAttaching = false;
-    LandingZoneRequest defaultLandingZoneRequest = createDefaultLandingZoneRequest(isAttaching);
-
-    FlightMap inputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, defaultLandingZoneRequest));
-
-    createLandingZoneFlight = new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
-
-    var steps = createLandingZoneFlight.getSteps();
-
-    // if not attaching, we have: CreateSamResourceStep, GetBillingProfileStep, and
-    // CreateAzureLandingZoneDbRecordStep
-    // if is attaching, we also have all the resource steps
-    assertThat(steps.size(), greaterThan(5));
-    validateSteps(steps, isAttaching);
-  }
-
+  // tests for initialization when not attaching had to be moved to an integration test,
+  // because of arm manager initialization
   @Test
   void testInitializationWhenAttaching() {
     final boolean isAttaching = true;
@@ -61,10 +42,11 @@ class CreateLandingZoneFlightTest {
         FlightTestUtils.prepareFlightInputParameters(
             Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, defaultLandingZoneRequest));
 
-    createLandingZoneFlight = new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
+    var createLandingZoneFlight =
+        new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
 
     var steps = createLandingZoneFlight.getSteps();
-    assertThat(steps.size(), equalTo(3));
+    assertThat(steps.size(), equalTo(2));
     validateSteps(steps, isAttaching);
   }
 
