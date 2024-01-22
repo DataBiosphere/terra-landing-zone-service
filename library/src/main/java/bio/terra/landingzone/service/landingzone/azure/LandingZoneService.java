@@ -43,9 +43,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCre
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneDeletion;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneFlight;
-import bio.terra.landingzone.stairway.flight.create.CreateLandingZoneResourcesFlight;
 import bio.terra.landingzone.stairway.flight.delete.DeleteLandingZoneFlight;
-import bio.terra.profile.model.ProfileModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -149,6 +147,9 @@ public class LandingZoneService {
     checkIfLandingZoneWithIdExists(landingZoneId);
     checkIfAttaching(azureLandingZoneRequest);
 
+    var profile =
+        bpmService.getBillingProfile(bearerToken, azureLandingZoneRequest.billingProfileId());
+
     final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
             .newJob()
@@ -165,40 +166,17 @@ public class LandingZoneService {
             .addParameter(
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
+            .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, profile)
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+
+    MetricUtils.incrementLandingZoneCreation(azureLandingZoneRequest.definition());
+
     return azureLandingZoneJobService.retrieveStartingAsyncJobResult(
         jobBuilder.submit(),
         new StartLandingZoneCreation(
             landingZoneId,
             azureLandingZoneRequest.definition(),
             azureLandingZoneRequest.version()));
-  }
-
-  public String startLandingZoneResourceCreationJob(
-      String jobId,
-      LandingZoneRequest landingZoneRequest,
-      ProfileModel billingProfile,
-      UUID landingZoneId,
-      BearerToken bearerToken,
-      String resultPath) {
-    var jobDescription =
-        "Inner flight to create landing zone resources. definition='%s', version='%s'";
-    MetricUtils.incrementLandingZoneCreation(landingZoneRequest.definition());
-    return azureLandingZoneJobService
-        .newJob()
-        .jobId(jobId)
-        .description(
-            String.format(
-                jobDescription, landingZoneRequest.definition(), landingZoneRequest.version()))
-        .flightClass(CreateLandingZoneResourcesFlight.class)
-        .landingZoneRequest(landingZoneRequest)
-        .operationType(OperationType.CREATE)
-        .bearerToken(bearerToken)
-        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, landingZoneRequest)
-        .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
-        .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
-        .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, billingProfile)
-        .submit();
   }
 
   private void checkIfLandingZoneWithIdExists(UUID landingZoneId) {
