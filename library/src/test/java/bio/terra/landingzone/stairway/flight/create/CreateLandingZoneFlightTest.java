@@ -31,8 +31,6 @@ class CreateLandingZoneFlightTest {
 
   @Mock private LandingZoneFlightBeanBag mockApplicationContext;
 
-  // tests for initialization when not attaching had to be moved to an integration test,
-  // because of arm manager initialization
   @Test
   void testInitializationWhenAttaching() {
     final boolean isAttaching = true;

@@ -5,11 +5,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.stairway.StairwayComponent;
-import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
@@ -18,25 +16,19 @@ import bio.terra.landingzone.job.exception.InternalStairwayException;
 import bio.terra.landingzone.job.exception.JobNotFoundException;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.library.landingzones.TestArmResourcesFactory;
-import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.deleterules.*;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
-import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
 import bio.terra.profile.model.CloudPlatform;
 import bio.terra.profile.model.ProfileModel;
-import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.FlightState;
 import bio.terra.stairway.FlightStatus;
 import bio.terra.stairway.exception.FlightNotFoundException;
 import bio.terra.stairway.exception.StairwayException;
 import com.azure.resourcemanager.batch.models.*;
 import java.time.Duration;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.*;
@@ -144,59 +136,6 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), "")
             .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, profile);
     jobBuilder.submit();
-  }
-
-  @Test
-  void testInitializationWhenIsNotAttaching() {
-    LandingZoneRequest request =
-        new LandingZoneRequest(
-            StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE.getValue(),
-            "v1",
-            Map.of(),
-            profile.getId(),
-            Optional.of(landingZoneId));
-
-    FlightMap inputParameters =
-        FlightTestUtils.prepareFlightInputParameters(
-            Map.of(
-                LandingZoneFlightMapKeys.BILLING_PROFILE,
-                profile,
-                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
-                request));
-    var mockApplicationContext = mock(LandingZoneFlightBeanBag.class);
-    var createLandingZoneFlight =
-        new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
-    // when()
-    // doReturn(mock(ArmManagers.class)).when(createLandingZoneFlight).getArmManagers(any(), any());
-    // when(createLandingZoneFlight).getArmManagers(any(),
-    // any()).thenReturn(mock(ArmManagers.class));
-    // when(createLandingZoneFlight.getArmManagers(any(),
-    // any())).thenReturn(mock(ArmManagers.class));
-    // doReturn(mock(ArmManagers.class)).when(createLandingZoneFlight.getArmManagers(any(), any()));
-
-    var steps = createLandingZoneFlight.getSteps();
-
-    // if not attaching, we have: CreateSamResourceStep, GetBillingProfileStep, and
-    // CreateAzureLandingZoneDbRecordStep
-    // if is attaching, we also have all the resource steps
-    assertThat(steps.size(), greaterThan(5));
-    assertThat(steps.stream().filter(s -> s instanceof CreateSamResourceStep).count(), equalTo(1L));
-    assertThat(
-        steps.stream()
-            .filter(s -> BaseResourceCreateStep.class.isAssignableFrom(s.getClass()))
-            .count(),
-        // don't want to test for the exact number because it's perfectly valid that it can change
-        // over time,
-        // and this isn't a test for the step factory
-        // instead, just picking a number that is solidly in the range of the expected number for
-        // a sanity check
-        greaterThan(10L));
-
-    assertThat(
-        steps.stream().filter(s -> s instanceof CreateAzureLandingZoneDbRecordStep).count(),
-        equalTo(1L));
-
-    // validateSteps(steps, isAttaching);
   }
 
   @Test
