@@ -44,7 +44,7 @@ class CreateLandingZoneFlightTest {
     createLandingZoneFlight = new CreateLandingZoneFlight(inputParameters, mockApplicationContext);
 
     var steps = createLandingZoneFlight.getSteps();
-    assertThat(steps.size(), equalTo(3));
+    assertThat(steps.size(), equalTo(2));
     validateSteps(steps, isAttaching);
   }
 
