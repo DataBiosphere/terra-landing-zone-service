@@ -4,7 +4,9 @@ import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
+import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.utils.FlightUtils;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightContext;
@@ -43,6 +45,14 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
     var billingProfile = inputMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
 
+    // Read Working Map parameters
+    var mrg =
+        FlightUtils.getRequired(
+            context.getWorkingMap(),
+            GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+            TargetManagedResourceGroup.class);
+
+
     // Persist the landing zone record
     landingZoneDao.createLandingZone(
         LandingZoneRecord.builder()
@@ -59,6 +69,7 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
             .resourceGroupId(landingZoneTarget.azureResourceGroupId())
             .tenantId(landingZoneTarget.azureTenantId())
             .subscriptionId(landingZoneTarget.azureSubscriptionId())
+            .region(mrg.region())
             .billingProfileId(requestedExternalLandingZoneResource.billingProfileId())
             .createdDate(OffsetDateTime.ofInstant(Instant.now(), ZoneOffset.UTC))
             .build());
