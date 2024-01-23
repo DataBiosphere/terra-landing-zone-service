@@ -3,6 +3,7 @@ package bio.terra.landingzone.stairway.flight.create;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.definition.factories.StepsDefinitionFactoryType;
@@ -10,6 +11,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
+import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
 import java.util.List;
@@ -31,6 +33,9 @@ class CreateLandingZoneFlightTest {
   private CreateLandingZoneFlight createLandingZoneFlight;
 
   @Mock private LandingZoneFlightBeanBag mockApplicationContext;
+
+  // validating here only failed instantiation, otherwise it is required to
+  // inject real value of tenant, subscription, mrg to initialize arm managers
 
   @Test
   void testInitializationWhenAttaching() {
@@ -65,6 +70,37 @@ class CreateLandingZoneFlightTest {
     assertThat(
         steps.stream().filter(s -> s instanceof CreateAzureLandingZoneDbRecordStep).count(),
         equalTo(1L));
+  }
+
+  @Test
+  void testInstantiationWhenLandingZoneRequestParamDoesntExistThrowsException() {
+    FlightMap inputParamsMap =
+        FlightTestUtils.prepareFlightInputParameters(
+            Map.of(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.randomUUID()));
+
+    assertThrows(
+        LandingZoneCreateException.class,
+        () -> new CreateLandingZoneFlight(inputParamsMap, mockApplicationContext));
+  }
+
+  @Test
+  void testInstantiationWhenLandingZoneIdParamDoesntExistThrowsException() {
+    FlightMap inputParamsMap =
+        FlightTestUtils.prepareFlightInputParameters(
+            Map.of(
+                LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS,
+                new LandingZoneRequest(
+                    StepsDefinitionFactoryType.CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE
+                        .getValue(),
+                    "v1",
+                    Map.of(),
+                    BILLING_PROFILE_ID,
+                    Optional.empty()) // no landing zone id, so the flight will look for one in the
+                // input parameters
+                ));
+    assertThrows(
+        LandingZoneCreateException.class,
+        () -> new CreateLandingZoneFlight(inputParamsMap, mockApplicationContext));
   }
 
   LandingZoneRequest createDefaultLandingZoneRequest(boolean isAttaching) {
