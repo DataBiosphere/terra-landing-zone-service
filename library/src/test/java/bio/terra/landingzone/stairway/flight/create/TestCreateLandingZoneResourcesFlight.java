@@ -18,25 +18,17 @@ import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import java.util.UUID;
 
-/** Flight for creation of a Landing Zone */
-public class CreateLandingZoneFlight extends Flight {
+/**
+ * This is a test flight only. It is intended to test the creation of LZ resources in an isolation
+ * without Sam and Db interactions.
+ */
+public class TestCreateLandingZoneResourcesFlight extends Flight {
 
-  @Override
-  public void addStep(Step step, RetryRule retryRule) {
-    super.addStep(step, retryRule);
-  }
-
-  /**
-   * All subclasses must provide a constructor with this signature.
-   *
-   * @param inputParameters FlightMap of the inputs for the flight
-   * @param applicationContext Anonymous context meaningful to the application using Stairway
-   */
-  public CreateLandingZoneFlight(FlightMap inputParameters, Object applicationContext) {
+  public TestCreateLandingZoneResourcesFlight(
+      FlightMap inputParameters, Object applicationContext) {
     super(inputParameters, applicationContext);
     final LandingZoneFlightBeanBag flightBeanBag =
         LandingZoneFlightBeanBag.getFromObject(applicationContext);
-
     addCreateSteps(flightBeanBag, inputParameters);
   }
 
@@ -48,53 +40,33 @@ public class CreateLandingZoneFlight extends Flight {
       throw new LandingZoneCreateException("Unable to find requested landing zone in input map");
     }
 
-    addStep(
-        new CreateSamResourceStep(flightBeanBag.getSamService()), RetryRules.shortExponential());
+    var stepsDefinitionProvider =
+        LandingZoneStepsDefinitionProviderFactory.create(
+            StepsDefinitionFactoryType.fromString(requestedLandingZone.definition()));
+    var landingZoneId = inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
-    if (!requestedLandingZone.isAttaching()) {
-      var stepsDefinitionProvider =
-          LandingZoneStepsDefinitionProviderFactory.create(
-              StepsDefinitionFactoryType.fromString(requestedLandingZone.definition()));
-      var landingZoneId = getLandingZoneId(inputParameters, requestedLandingZone);
-      var resourceNameProvider = new ResourceNameProvider(landingZoneId);
-      var parametersResolverProvider = flightBeanBag.getParametersResolverProvider();
+    var resourceNameProvider = new ResourceNameProvider(landingZoneId);
 
-      var landingZoneProtectedDataConfiguration =
-          flightBeanBag.getLandingZoneProtectedDataConfiguration();
-      var armManagers = getArmManagers(flightBeanBag, inputParameters);
+    var parametersResolverProvider = flightBeanBag.getParametersResolverProvider();
+    var landingZoneProtectedDataConfiguration =
+        flightBeanBag.getLandingZoneProtectedDataConfiguration();
+    var armManagers = getArmManagers(flightBeanBag, inputParameters);
 
-      stepsDefinitionProvider
-          .get(
-              armManagers,
-              parametersResolverProvider,
-              resourceNameProvider,
-              landingZoneProtectedDataConfiguration)
-          .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
+    stepsDefinitionProvider
+        .get(
+            armManagers,
+            parametersResolverProvider,
+            resourceNameProvider,
+            landingZoneProtectedDataConfiguration)
+        .forEach(pair -> addStep(pair.getLeft(), pair.getRight()));
 
-      // last step to aggregate results
-      addStep(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential());
-    }
-
-    addStep(
-        new CreateAzureLandingZoneDbRecordStep(flightBeanBag.getLandingZoneDao()),
-        RetryRules.shortDatabase());
-  }
-
-  private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {
-    // landing zone identifier can come in request's body or we generate it and keep it separately
-    if (landingZoneRequest.landingZoneId().isPresent()) {
-      return landingZoneRequest.landingZoneId().get();
-    } else {
-      var landingZoneId = inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-      if (landingZoneId == null) {
-        throw new LandingZoneCreateException("Unable to find landing zone identifier in input map");
-      }
-      return landingZoneId;
-    }
+    // last step to aggregate results
+    addStep(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential());
   }
 
   protected ArmManagers getArmManagers(
       LandingZoneFlightBeanBag flightBeanBag, FlightMap inputParameters) {
+
     var billingProfile =
         inputParameters.get(LandingZoneFlightMapKeys.BILLING_PROFILE, ProfileModel.class);
     var landingZoneTarget = LandingZoneTarget.fromBillingProfile(billingProfile);
