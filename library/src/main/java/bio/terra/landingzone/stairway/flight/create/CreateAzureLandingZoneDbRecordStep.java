@@ -1,6 +1,6 @@
 package bio.terra.landingzone.stairway.flight.create;
 
-import bio.terra.landingzone.db.LandingZoneDao;
+import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
@@ -24,14 +24,12 @@ import org.slf4j.LoggerFactory;
 public class CreateAzureLandingZoneDbRecordStep implements Step {
   private static final Logger logger =
       LoggerFactory.getLogger(CreateAzureLandingZoneDbRecordStep.class);
-  private final LandingZoneDao landingZoneDao;
-
-  public CreateAzureLandingZoneDbRecordStep(LandingZoneDao landingZoneDao) {
-    this.landingZoneDao = landingZoneDao;
-  }
 
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
+    var beanBag = LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext());
+    var landingZoneDao = beanBag.getLandingZoneDao();
+
     // Read input parameters
     final FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(
@@ -51,7 +49,6 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
             context.getWorkingMap(),
             GetManagedResourceGroupInfo.TARGET_MRG_KEY,
             TargetManagedResourceGroup.class);
-
 
     // Persist the landing zone record
     landingZoneDao.createLandingZone(
@@ -78,6 +75,9 @@ public class CreateAzureLandingZoneDbRecordStep implements Step {
 
   @Override
   public StepResult undoStep(FlightContext context) throws InterruptedException {
+    var beanBag = LandingZoneFlightBeanBag.getFromObject(context.getApplicationContext());
+    var landingZoneDao = beanBag.getLandingZoneDao();
+
     final FlightMap inputMap = context.getInputParameters();
     FlightUtils.validateRequiredEntries(inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_ID);
     var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);

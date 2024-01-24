@@ -75,9 +75,7 @@ public class CreateLandingZoneFlight extends Flight {
       addStep(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential());
     }
 
-    addStep(
-        new CreateAzureLandingZoneDbRecordStep(flightBeanBag.getLandingZoneDao()),
-        RetryRules.shortDatabase());
+    addStep(new CreateAzureLandingZoneDbRecordStep(), RetryRules.shortDatabase());
   }
 
   private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {
