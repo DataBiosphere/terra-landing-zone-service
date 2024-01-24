@@ -115,5 +115,4 @@ public class CreateAzureLandingZoneDbRecordStepTest {
 
     verify(landingZoneDao).deleteLandingZone(landingZoneId);
   }
-
 }
