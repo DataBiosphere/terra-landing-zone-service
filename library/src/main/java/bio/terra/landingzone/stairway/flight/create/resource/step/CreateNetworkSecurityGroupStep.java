@@ -11,6 +11,7 @@ import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.network.models.NetworkSecurityGroup;
+import com.azure.resourcemanager.network.models.SecurityRuleProtocol;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +25,8 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
       LoggerFactory.getLogger(CreateNetworkSecurityGroupStep.class);
   public static final String NSG_ID = "NSG_ID";
   public static final String NSG_RESOURCE_KEY = "NSG";
+  public static final String BATCH_NSG_ID = "BATCH_NSG_ID";
+  public static final String BATCH_NSG_RESOURCE_KEY = "BATCH_NSG";
 
   public CreateNetworkSecurityGroupStep(
       ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
@@ -36,16 +39,57 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     var nsgName = resourceNameProvider.getName(getResourceType());
+    var batchNsgName = resourceNameProvider.getName(getResourceType());
 
+    NetworkSecurityGroup defaultNsg = createNSG(nsgName, context, landingZoneId, false);
+    context.getWorkingMap().put(NSG_ID, defaultNsg.id());
+    context
+        .getWorkingMap()
+        .put(
+            NSG_RESOURCE_KEY,
+            LandingZoneResource.builder()
+                .resourceId(defaultNsg.id())
+                .resourceType(defaultNsg.type())
+                .tags(defaultNsg.tags())
+                .region(defaultNsg.regionName())
+                .resourceName(defaultNsg.name())
+                .build());
+    logger.info(RESOURCE_CREATED, getResourceType(), defaultNsg.id(), getMRGName(context));
+
+    NetworkSecurityGroup batchNsg = createNSG(batchNsgName, context, landingZoneId, true);
+    context.getWorkingMap().put(BATCH_NSG_ID, batchNsg.id());
+    context
+        .getWorkingMap()
+        .put(
+            BATCH_NSG_RESOURCE_KEY,
+            LandingZoneResource.builder()
+                .resourceId(batchNsg.id())
+                .resourceType(batchNsg.type())
+                .tags(batchNsg.tags())
+                .region(batchNsg.regionName())
+                .resourceName(batchNsg.name())
+                .build());
+    logger.info(RESOURCE_CREATED, getResourceType(), batchNsg.id(), getMRGName(context));
+  }
+
+  private NetworkSecurityGroup createNSG(
+      String nsgName, FlightContext context, UUID landingZoneId, boolean isBatchNsg) {
     NetworkSecurityGroup nsg = null;
     try {
-      nsg =
+      var withCreate =
           armManagers
               .azureResourceManager()
               .networkSecurityGroups()
               .define(nsgName)
               .withRegion(getMRGRegionName(context))
-              .withExistingResourceGroup(getMRGName(context))
+              .withExistingResourceGroup(getMRGName(context));
+
+      if (isBatchNsg) {
+        withCreate = attachBatchNSGRules(withCreate, context);
+      }
+
+      nsg =
+          withCreate
               .withTags(
                   Map.of(
                       LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
@@ -66,20 +110,39 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
         throw e;
       }
     }
+    return nsg;
+  }
 
-    context.getWorkingMap().put(NSG_ID, nsg.id());
-    context
-        .getWorkingMap()
-        .put(
-            NSG_RESOURCE_KEY,
-            LandingZoneResource.builder()
-                .resourceId(nsg.id())
-                .resourceType(nsg.type())
-                .tags(nsg.tags())
-                .region(nsg.regionName())
-                .resourceName(nsg.name())
-                .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), nsg.id(), getMRGName(context));
+  private NetworkSecurityGroup.DefinitionStages.WithCreate attachBatchNSGRules(
+      NetworkSecurityGroup.DefinitionStages.WithCreate withCreate, FlightContext context) {
+    return withCreate
+        .defineRule("ALLOW_IN_BATCH_SERVICE")
+        .allowInbound()
+        .withSourceApplicationSecurityGroup(
+            String.format("BatchNodeManagement.%s", getMRGRegionName(context)))
+        .fromAnyPort()
+        .toAnyAddress()
+        .toPortRanges("29876-29877")
+        .withProtocol(SecurityRuleProtocol.TCP)
+        .attach()
+        .defineRule("ALLOW_OUT_BATCH_SERVICE")
+        .allowOutbound()
+        .fromAnyAddress()
+        .fromAnyPort()
+        .withDestinationApplicationSecurityGroup(
+            String.format("BatchNodeManagement.%s", getMRGRegionName(context)))
+        .toPort(443)
+        .withAnyProtocol()
+        .attach()
+        .defineRule("ALLOW_OUT_STORAGE")
+        .allowOutbound()
+        .fromAnyAddress()
+        .fromAnyPort()
+        .withDestinationApplicationSecurityGroup(
+            String.format("Storage.%s", getMRGRegionName(context)))
+        .toPort(443)
+        .withProtocol(SecurityRuleProtocol.TCP)
+        .attach();
   }
 
   @Override
