@@ -97,7 +97,7 @@ public class CreateAzureLandingZoneDbRecordStepTest {
               assertThat(
                   landingZone.billingProfileId(), equalTo(expectedLandingZone.billingProfileId()));
               assertThat(landingZone.region(), equalTo(expectedLandingZone.region()));
-              return expectedLandingZone.landingZoneId();
+              return landingZone.landingZoneId();
             });
     new CreateAzureLandingZoneDbRecordStep().doStep(context);
     verify(landingZoneDao).createLandingZone(any());
