@@ -118,8 +118,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
     return withCreate
         .defineRule("ALLOW_IN_BATCH_SERVICE")
         .allowInbound()
-        .fromAddress(
-            String.format("BatchNodeManagement.%s", getMRGRegionName(context)))
+        .fromAddress(String.format("BatchNodeManagement.%s", getMRGRegionName(context)))
         .fromAnyPort()
         .toAnyAddress()
         .toPortRanges("29876-29877")
@@ -129,8 +128,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
         .allowOutbound()
         .fromAnyAddress()
         .fromAnyPort()
-        .toAddress(
-            String.format("BatchNodeManagement.%s", getMRGRegionName(context)))
+        .toAddress(String.format("BatchNodeManagement.%s", getMRGRegionName(context)))
         .toPort(443)
         .withAnyProtocol()
         .attach()
@@ -138,8 +136,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
         .allowOutbound()
         .fromAnyAddress()
         .fromAnyPort()
-        .toAddress(
-            String.format("Storage.%s", getMRGRegionName(context)))
+        .toAddress(String.format("Storage.%s", getMRGRegionName(context)))
         .toPort(443)
         .withProtocol(SecurityRuleProtocol.TCP)
         .attach();
