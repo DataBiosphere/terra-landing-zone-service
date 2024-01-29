@@ -25,8 +25,6 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
       LoggerFactory.getLogger(CreateNetworkSecurityGroupStep.class);
   public static final String NSG_ID = "NSG_ID";
   public static final String NSG_RESOURCE_KEY = "NSG";
-  public static final String BATCH_NSG_ID = "BATCH_NSG_ID";
-  public static final String BATCH_NSG_RESOURCE_KEY = "BATCH_NSG";
 
   public CreateNetworkSecurityGroupStep(
       ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
@@ -41,7 +39,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
     var nsgName = resourceNameProvider.getName(getResourceType());
     var batchNsgName = resourceNameProvider.getName(getResourceType());
 
-    NetworkSecurityGroup defaultNsg = createNSG(nsgName, context, landingZoneId, false);
+    NetworkSecurityGroup defaultNsg = createNSG(nsgName, context, landingZoneId);
     context.getWorkingMap().put(NSG_ID, defaultNsg.id());
     context
         .getWorkingMap()
@@ -55,25 +53,10 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
                 .resourceName(defaultNsg.name())
                 .build());
     logger.info(RESOURCE_CREATED, getResourceType(), defaultNsg.id(), getMRGName(context));
-
-    NetworkSecurityGroup batchNsg = createNSG(batchNsgName, context, landingZoneId, true);
-    context.getWorkingMap().put(BATCH_NSG_ID, batchNsg.id());
-    context
-        .getWorkingMap()
-        .put(
-            BATCH_NSG_RESOURCE_KEY,
-            LandingZoneResource.builder()
-                .resourceId(batchNsg.id())
-                .resourceType(batchNsg.type())
-                .tags(batchNsg.tags())
-                .region(batchNsg.regionName())
-                .resourceName(batchNsg.name())
-                .build());
-    logger.info(RESOURCE_CREATED, getResourceType(), batchNsg.id(), getMRGName(context));
   }
 
   private NetworkSecurityGroup createNSG(
-      String nsgName, FlightContext context, UUID landingZoneId, boolean isBatchNsg) {
+      String nsgName, FlightContext context, UUID landingZoneId) {
     NetworkSecurityGroup nsg = null;
     try {
       var withCreate =
@@ -83,11 +66,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
               .define(nsgName)
               .withRegion(getMRGRegionName(context))
               .withExistingResourceGroup(getMRGName(context));
-
-      if (isBatchNsg) {
-        withCreate = attachBatchNSGRules(withCreate, context);
-      }
-
+      withCreate = attachBatchNSGRules(withCreate, context);
       nsg =
           withCreate
               .withTags(
