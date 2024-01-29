@@ -123,6 +123,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
         .toAnyAddress()
         .toPortRanges("29876-29877")
         .withProtocol(SecurityRuleProtocol.TCP)
+        .withPriority(100)
         .attach()
         .defineRule("ALLOW_OUT_BATCH_SERVICE")
         .allowOutbound()
@@ -131,6 +132,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
         .toAddress(String.format("BatchNodeManagement.%s", getMRGRegionName(context)))
         .toPort(443)
         .withAnyProtocol()
+        .withPriority(101)
         .attach()
         .defineRule("ALLOW_OUT_STORAGE")
         .allowOutbound()
@@ -139,6 +141,7 @@ public class CreateNetworkSecurityGroupStep extends BaseResourceCreateStep {
         .toAddress(String.format("Storage.%s", getMRGRegionName(context)))
         .toPort(443)
         .withProtocol(SecurityRuleProtocol.TCP)
+        .withPriority(102)
         .attach();
   }
 
