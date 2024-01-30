@@ -77,6 +77,9 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(
             new CreateNetworkSecurityGroupStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
+        Pair.of(
+            new CreateBatchNetworkSecurityGroupStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
         Pair.of(new CreateVnetStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(
             new CreateLogAnalyticsWorkspaceStep(armManagers, resourceNameProvider),

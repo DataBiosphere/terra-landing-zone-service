@@ -36,7 +36,10 @@ public class CreateVnetStep extends BaseResourceCreateStep {
     var nsgId =
         getParameterOrThrow(
             context.getWorkingMap(), CreateNetworkSecurityGroupStep.NSG_ID, String.class);
-    Network vNet = createVnetAndSubnets(context, armManagers, vNetName, nsgId);
+    var batchNsgId =
+        getParameterOrThrow(
+            context.getWorkingMap(), CreateBatchNetworkSecurityGroupStep.NSG_ID, String.class);
+    Network vNet = createVnetAndSubnets(context, armManagers, vNetName, nsgId, batchNsgId);
 
     context.getWorkingMap().put(VNET_ID, vNet.id());
     context
@@ -57,7 +60,8 @@ public class CreateVnetStep extends BaseResourceCreateStep {
       FlightContext context,
       ArmManagers armManagers,
       String vNetName,
-      String networkSecurityGroupId) {
+      String networkSecurityGroupId,
+      String batchNetworkSecurityGroupId) {
     var landingZoneId =
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -82,7 +86,7 @@ public class CreateVnetStep extends BaseResourceCreateStep {
           .withAddressPrefix(
               getParametersResolver(context)
                   .getValue(LandingZoneDefaultParameters.Subnet.BATCH_SUBNET.name()))
-          .withExistingNetworkSecurityGroup(networkSecurityGroupId)
+          .withExistingNetworkSecurityGroup(batchNetworkSecurityGroupId)
           .withAccessFromService(ServiceEndpointType.MICROSOFT_STORAGE)
           .withAccessFromService(ServiceEndpointType.MICROSOFT_SQL)
           .attach()
