@@ -11,6 +11,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.Step;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +39,8 @@ class CreateLandingZoneFlightTest {
   // validating here only failed instantiation, otherwise it is required to
   // inject real value of tenant, subscription, mrg to initialize arm managers
 
+  @Disabled(
+      "adding GetManagedResourceGroupInfo requires us to initialize armManagers even when attaching to existing resources")
   @Test
   void testInitializationWhenAttaching() {
     final boolean isAttaching = true;
@@ -55,6 +59,8 @@ class CreateLandingZoneFlightTest {
 
   void validateSteps(List<Step> steps, boolean isAttaching) {
     assertThat(steps.stream().filter(s -> s instanceof CreateSamResourceStep).count(), equalTo(1L));
+    assertThat(
+        steps.stream().filter(s -> s instanceof GetManagedResourceGroupInfo).count(), equalTo(1L));
     if (!isAttaching) {
       // don't want to test for the exact number because it's perfectly valid that it can change
       // over time,

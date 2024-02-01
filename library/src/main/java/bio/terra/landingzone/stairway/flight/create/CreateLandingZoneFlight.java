@@ -11,6 +11,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.create.resource.step.AggregateLandingZoneResourcesStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.*;
@@ -73,11 +74,20 @@ public class CreateLandingZoneFlight extends Flight {
 
       // last step to aggregate results
       addStep(new AggregateLandingZoneResourcesStep(), RetryRules.shortExponential());
+    } else {
+      // GetManagedResourceGroupInfo is needed when we *are* attaching, in order to create the db
+      // record
+      // armManagers is instantiated here separately to avoid disrupting tests that run on
+      // non-attach mode
+      // and that are expected to error before the armManagers are instantiated
+      // If we moved it outside the conditional block, it would happen before other logic in that
+      // branch,
+      // and fail for unexpected reasons
+      var armManagers = getArmManagers(flightBeanBag, inputParameters);
+      addStep(new GetManagedResourceGroupInfo(armManagers), RetryRules.cloud());
     }
 
-    addStep(
-        new CreateAzureLandingZoneDbRecordStep(flightBeanBag.getLandingZoneDao()),
-        RetryRules.shortDatabase());
+    addStep(new CreateAzureLandingZoneDbRecordStep(), RetryRules.shortDatabase());
   }
 
   private UUID getLandingZoneId(FlightMap inputParameters, LandingZoneRequest landingZoneRequest) {
