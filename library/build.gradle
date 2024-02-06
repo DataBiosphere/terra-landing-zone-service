@@ -23,7 +23,7 @@ dependencies {
     implementation 'bio.terra:billing-profile-manager-client:0.1.484-SNAPSHOT'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
     implementation 'org.postgresql:postgresql:42.7.1'
-    implementation group: 'com.azure', name: 'azure-core', version: '1.45.1'
+    implementation group: 'com.azure', name: 'azure-core', version: '1.46.0'
     implementation (group: 'com.azure', name: 'azure-identity', version: '1.11.1') {
         // azure-identity is still pulling in an old version of reactor-netty-http
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-http'
@@ -63,7 +63,7 @@ dependencies {
     liquibaseRuntime 'org.postgresql:postgresql:42.7.1'
     liquibaseRuntime 'ch.qos.logback:logback-classic'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
