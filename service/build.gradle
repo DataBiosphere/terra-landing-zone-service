@@ -38,3 +38,13 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+task minniekenny(type:Exec) {
+    workingDir rootDir
+
+    commandLine './minnie-kenny.sh'
+}
+
+build {
+    dependsOn(minniekenny)
+}

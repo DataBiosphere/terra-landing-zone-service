@@ -45,6 +45,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
+      - name: Git secrets setup
+        run: |
+          git clone https://github.com/awslabs/git-secrets.git ~/git-secrets
+          cd ~/git-secrets
+          sudo make install
+
+      - name: Secrets check
+        run: |
+          sudo ln -s "$(which echo)" /usr/local/bin/say
+          ./minnie-kenny.sh --force
+          git secrets --scan-history
+
       - name: Build the test harness and, by dependency, the library
         run: ./gradlew --build-cache build -x test
 

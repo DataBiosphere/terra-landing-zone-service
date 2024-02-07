@@ -235,6 +235,13 @@ The table below describes the current Landing Zone Definitions available in the 
   </tbody>
 </table>
 
+## Development
+
+### Requirements
+
+- Java 17
+- Make sure [git-secrets](https://github.com/awslabs/git-secrets) installed. This tool prevents developers from committing passwords and secrets to git.
+
 ## Testing
 
 The Landing Zone Service contains unit and integration tests. These tests are run as part of the CI pipeline during the PR process,
