@@ -240,7 +240,7 @@ The table below describes the current Landing Zone Definitions available in the 
 ### Requirements
 
 - Java 17
-- Make sure [git-secret](https://github.com/awslabs/git-secrets) installed. This tool prevents developers from committing passwords and secrets to git.
+- Make sure [git-secrets](https://github.com/awslabs/git-secrets) installed. This tool prevents developers from committing passwords and secrets to git.
 
 ## Testing
 
