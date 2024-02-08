@@ -150,8 +150,6 @@ jobs:
             az account clear
 
   jib:
-    #disable until we need it
-    if: false
     needs: [ build ]
     runs-on: ubuntu-latest
 
