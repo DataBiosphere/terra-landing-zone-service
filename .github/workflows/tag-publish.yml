@@ -44,10 +44,6 @@ env:
   GOOGLE_PROJECT: broad-dsp-gcr-public
 
 jobs:
-  tag:
-    uses: ./.github/workflows/tag.yml
-    secrets: inherit
-
   bump-check:
     runs-on: ubuntu-latest
     outputs:
@@ -61,7 +57,7 @@ jobs:
           event-name: ${{ github.event_name }}
 
   publish-job:
-    needs: [ bump-check, tag ]
+    needs: [ bump-check ]
     runs-on: ubuntu-latest
     if: needs.bump-check.outputs.is-bump == 'no'
     steps:
@@ -84,6 +80,19 @@ jobs:
       with:
         ref: ${{ steps.controls.outputs.checkout-branch }}
         token: ${{ secrets.BROADBOT_TOKEN }}
+
+    - name: Bump the tag to a new version
+      uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
+      id: tag
+      env:
+        DEFAULT_BUMP: patch
+        GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+        HOTFIX_BRANCHES: hotfix.*
+        OVERRIDE_BUMP: ${{ steps.controls.outputs.semver-part }}
+        RELEASE_BRANCHES: main
+        VERSION_FILE_PATH: settings.gradle
+        VERSION_LINE_MATCH: "^gradle.ext.releaseVersion\\s*=\\s*\".*\""
+        VERSION_SUFFIX: SNAPSHOT
 
     - name: Set up AdoptOpenJDK
       uses: actions/setup-java@v2
@@ -121,7 +130,7 @@ jobs:
       uses: ncipollo/release-action@v1
       id: create_release
       with:
-        tag: ${{ needs.tag.outputs.tag }}
+        tag: ${{ steps.tag.outputs.tag }}
 
     - name: Auth to GCR
       uses: google-github-actions/setup-gcloud@v0
@@ -134,7 +143,7 @@ jobs:
 
     - name: Construct docker image name and tag
       id: image-name
-      run: echo "name=gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ needs.tag.outputs.tag }}" >> $GITHUB_OUTPUT
+      run: echo "name=gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.tag }}" >> $GITHUB_OUTPUT
 
     - name: Build image locally with jib
       run: |
