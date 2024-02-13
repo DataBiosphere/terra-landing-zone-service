@@ -53,7 +53,7 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.35.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
-    implementation group: "io.kubernetes", name: "client-java", version: "19.0.0"
+    implementation group: "io.kubernetes", name: "client-java", version: "20.0.0-legacy"
     // io.kubernetes:client-java brings in snakeyaml 2.0 which breaks whatever version of liquibase was pulled in before
     implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.26.0'
     implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.2'
