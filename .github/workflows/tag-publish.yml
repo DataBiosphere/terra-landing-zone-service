@@ -133,7 +133,7 @@ jobs:
         tag: ${{ steps.tag.outputs.tag }}
 
     - name: Auth to GCR
-      uses: google-github-actions/auth@v0
+      uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCR_PUBLISH_KEY_B64 }}
 
