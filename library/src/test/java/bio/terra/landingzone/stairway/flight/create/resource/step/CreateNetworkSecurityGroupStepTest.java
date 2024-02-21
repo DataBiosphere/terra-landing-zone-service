@@ -37,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
+class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
   private static final String RESOURCE_ID = "networkSecurityGroupId";
 
   @Mock private NetworkManager mockNetworkManager;
