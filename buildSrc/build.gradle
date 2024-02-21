@@ -17,5 +17,5 @@ dependencies {
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:4.4.1.3373'
     implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.1.2'
     // This is required due to a dependency conflict between jib and srcclr. Removing it will cause jib to fail.
-    implementation 'org.apache.commons:commons-compress:1.25.0'
+    implementation 'org.apache.commons:commons-compress:1.26.0'
 }
