@@ -21,6 +21,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnaly
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateNetworkSecurityGroupStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbAdminStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
@@ -89,6 +90,8 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             new CreateLandingZoneIdentityStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(new CreatePostgresqlDbStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreatePostgresqlDbAdminStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(
             new CreateStorageAccountStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(new CreateBatchAccountStep(armManagers, resourceNameProvider), RetryRules.cloud()),
