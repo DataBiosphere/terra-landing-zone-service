@@ -279,14 +279,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     when(mockConfigurations.define(any())).thenReturn(mockConfigurationsDefinitionStagesBlank);
     when(mockPostgreSqlManager.configurations()).thenReturn(mockConfigurations);
     when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
-
-    when(mockPostgreSqlManager.administrators()).thenReturn(mockAdministrators);
-    when(mockAdministrators.define(adminPrincipalId)).thenReturn(mockAdministrator);
-    when(mockAdministrator.withExistingFlexibleServer(resourceGroup, name))
-        .thenReturn(mockAdminWithCreate);
-    when(mockAdminWithCreate.withPrincipalName(adminName)).thenReturn(mockAdminWithCreate);
-    when(mockAdminWithCreate.withPrincipalType(PrincipalType.SERVICE_PRINCIPAL))
-        .thenReturn(mockAdminWithCreate);
   }
 
   private void setupArmManagersForFailedPostgresProvisioning(
