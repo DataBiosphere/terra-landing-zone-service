@@ -54,7 +54,7 @@ public class CreatePostgresqlDbAdminStep extends BaseResourceCreateStep {
               .withPrincipalName(uami.resourceName().orElseThrow())
               .withPrincipalType(PrincipalType.SERVICE_PRINCIPAL)
               .create();
-      context.getWorkingMap().put(POSTGRESQL_ADMIN_ID, administrator.id());
+      context.getWorkingMap().put(POSTGRESQL_ADMIN_ID, administrator.objectId());
     } catch (ManagementException e) {
       if (e.getResponse() != null
           && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
