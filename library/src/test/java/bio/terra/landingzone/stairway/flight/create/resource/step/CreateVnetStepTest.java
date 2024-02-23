@@ -89,6 +89,8 @@ class CreateVnetStepTest extends BaseStepTest {
             ResourceStepFixture.createDefaultMrg(),
             CreateNetworkSecurityGroupStep.NSG_ID,
             "nsgId",
+            CreateBatchNetworkSecurityGroupStep.NSG_ID,
+            "batchNsgId",
             LandingZoneFlightMapKeys.CREATE_LANDING_ZONE_PARAMETERS_RESOLVER,
             mockParametersResolver));
 
