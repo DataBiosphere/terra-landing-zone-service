@@ -25,6 +25,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgres
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountPrivateEndpointStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
@@ -95,7 +96,11 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(new CreatePostgresqlDbStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(
             new CreateStorageAccountStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAccountPrivateEndpointStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
         Pair.of(new CreateBatchAccountStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        // create batch account private link
         Pair.of(
             new CreateStorageAccountCorsRules(armManagers, resourceNameProvider),
             RetryRules.cloud()),
@@ -109,6 +114,7 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.cloud()),
         Pair.of(
             new CreateRelayNamespaceStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        // create relay private link
         Pair.of(
             new CreateStorageAuditLogSettingsStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
