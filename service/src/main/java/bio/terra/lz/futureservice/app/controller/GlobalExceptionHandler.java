@@ -2,6 +2,7 @@ package bio.terra.lz.futureservice.app.controller;
 
 import bio.terra.common.exception.AbstractGlobalExceptionHandler;
 import bio.terra.lz.futureservice.generated.model.ApiErrorReport;
+import io.sentry.Sentry;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,9 @@ public class GlobalExceptionHandler extends AbstractGlobalExceptionHandler<ApiEr
   @Override
   public ApiErrorReport generateErrorReport(
       Throwable ex, HttpStatus statusCode, List<String> causes) {
+    if (statusCode.is5xxServerError()) {
+      Sentry.captureException(ex);
+    }
     return new ApiErrorReport()
         .message(ex.getMessage())
         .statusCode(statusCode.value())
