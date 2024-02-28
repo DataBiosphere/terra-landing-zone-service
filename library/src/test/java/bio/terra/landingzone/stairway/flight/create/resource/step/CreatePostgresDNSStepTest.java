@@ -1,6 +1,6 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
-import static bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSStep.POSTGRES_DNS_SUFFIX;
+import static bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSZoneStep.POSTGRES_DNS_SUFFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,7 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
 public class CreatePostgresDNSStepTest extends BaseStepTest {
-  private CreatePostgresqlDNSStep testStep;
+  private CreatePostgresqlDNSZoneStep testStep;
   @Mock private PrivateDnsZones mockPrivateDnsZones;
   @Mock private PrivateDnsZone.DefinitionStages.Blank mockDefine;
   @Mock private PrivateDnsZone.DefinitionStages.WithCreate mockWithCreate;
@@ -41,7 +41,7 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreatePostgresqlDNSStep(mockArmManagers, mockResourceNameProvider);
+    testStep = new CreatePostgresqlDNSZoneStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
@@ -72,7 +72,7 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
     assertThat(
         mockFlightContext
             .getWorkingMap()
-            .get(CreatePostgresqlDNSStep.POSTGRESQL_DNS_ID, String.class),
+            .get(CreatePostgresqlDNSZoneStep.POSTGRESQL_DNS_ID, String.class),
         equalTo(dnsId));
 
     var tags = tagsCaptor.getValue();
@@ -96,7 +96,7 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
   void undoStepSuccess() throws InterruptedException {
     var workingMap = new FlightMap();
     var resourceId = "resourceId";
-    workingMap.put(CreatePostgresqlDNSStep.POSTGRESQL_DNS_ID, resourceId);
+    workingMap.put(CreatePostgresqlDNSZoneStep.POSTGRESQL_DNS_ID, resourceId);
     workingMap.put(
         GetManagedResourceGroupInfo.TARGET_MRG_KEY, ResourceStepFixture.createDefaultMrg());
     when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);

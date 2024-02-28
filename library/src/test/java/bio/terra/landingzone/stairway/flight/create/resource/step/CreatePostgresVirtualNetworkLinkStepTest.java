@@ -38,8 +38,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
-  private CreateVirtualNetworkLinkStep testStep;
+public class CreatePostgresVirtualNetworkLinkStepTest extends BaseStepTest {
+  private CreatePostgresVirtualNetworkLinkStep testStep;
   @Mock private PrivateDnsZones mockPrivateDnsZones;
   @Mock private PrivateDnsZoneManager mockDnsManager;
   @Mock private PrivateDnsManagementClient mockServiceClient;
@@ -49,7 +49,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
 
   @BeforeEach
   void setup() {
-    testStep = new CreateVirtualNetworkLinkStep(mockArmManagers, mockResourceNameProvider);
+    testStep = new CreatePostgresVirtualNetworkLinkStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
@@ -75,7 +75,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
             mrg,
             CreateVnetStep.VNET_ID,
             vnetId,
-            CreatePostgresqlDNSStep.POSTGRESQL_DNS_RESOURCE_KEY,
+            CreatePostgresqlDNSZoneStep.POSTGRESQL_DNS_RESOURCE_KEY,
             LandingZoneResource.builder().resourceName(dnsZoneName).build()));
     setupArmManagersForDoStep(dnsZoneName, mrg, resourceName);
 
@@ -87,7 +87,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
     assertThat(
         mockFlightContext
             .getWorkingMap()
-            .get(CreateVirtualNetworkLinkStep.VNET_LINK_ID, String.class),
+            .get(CreatePostgresVirtualNetworkLinkStep.VNET_LINK_ID, String.class),
         equalTo(resourceName));
 
     var tags = vnetLinkInnerCaptor.getValue().tags();
@@ -118,7 +118,7 @@ public class CreateVirtualNetworkLinkStepTest extends BaseStepTest {
         String.format(
             "/subscriptions/ffd1069e-e34f-4d87-a8b8-44abfcba39af/resourceGroups/%s/providers/Microsoft.Network/privateDnsZones/%s/virtualNetworkLinks/%s",
             mrg.name(), dnsZoneName, linkName);
-    workingMap.put(CreateVirtualNetworkLinkStep.VNET_LINK_ID, resourceId);
+    workingMap.put(CreatePostgresVirtualNetworkLinkStep.VNET_LINK_ID, resourceId);
     workingMap.put(GetManagedResourceGroupInfo.TARGET_MRG_KEY, mrg);
     when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
 

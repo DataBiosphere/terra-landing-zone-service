@@ -17,11 +17,11 @@ public class ResourceNameGenerator {
   public static final int MAX_RELAY_NS_NAME_LENGTH = 50;
   public static final int MAX_POSTGRESQL_SERVER_NAME_LENGTH = 63;
   public static final int MAX_PRIVATE_DNS_ZONE_NAME_LENGTH = 24;
+  public static final int MAX_PRIVATE_DNS_ZONE_GROUP_NAME_LENGTH = 64;
   public static final int UAMI_NAME_LENGTH = 20;
   public static final int MAX_PRIVATE_VNET_LINK_NAME_LENGTH = 80;
   public static final int MAX_LOG_ANALYTICS_WORKSPACE_NAME_LENGTH = 63;
-  public static final int MAX_PRIVATE_ENDPOINT_NAME_LENGTH = 23; // TODO verify this
-  public static final int MAX_PRIVATE_LINK_CONNECTION_NAME_LENGTH = 10; // TODO verify this
+  public static final int MAX_PRIVATE_ENDPOINT_NAME_LENGTH = 64;
   // This is not the maximum value of 63. This lower value is to reduce the risk of deployment
   // errors as the cluster name is added to the node pool resource group name.
   // The node pool name resource group name can't be longer than 80 characters,

@@ -18,12 +18,14 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
-  private static final Logger logger = LoggerFactory.getLogger(CreateVirtualNetworkLinkStep.class);
-  public static final String VNET_LINK_ID = "VNET_LINK_ID";
-  public static final String VNET_LINK_RESOURCE_KEY = "VNET_LINK";
+/** Links the storage account private DNS Zone with the VNet. */
+public class CreateStorageAccountVirtualNetworkLinkStep extends BaseResourceCreateStep {
+  private static final Logger logger =
+      LoggerFactory.getLogger(CreatePostgresVirtualNetworkLinkStep.class);
+  public static final String STORAGE_VNET_LINK_ID = "STORAGE_VNET_LINK_ID";
+  public static final String STORAGE_VNET_LINK_RESOURCE_KEY = "STORAGE_VNET_LINK";
 
-  public CreateVirtualNetworkLinkStep(
+  public CreateStorageAccountVirtualNetworkLinkStep(
       ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
     super(armManagers, resourceNameProvider);
   }
@@ -35,10 +37,10 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
-    var dns =
+    var storageDns =
         getParameterOrThrow(
             context.getWorkingMap(),
-            CreatePostgresqlDNSStep.POSTGRESQL_DNS_RESOURCE_KEY,
+            CreateStorageAccountDNSZoneStep.STORAGE_ACCOUNT_DNS_RESOURCE_KEY,
             LandingZoneResource.class);
 
     var vnetLink =
@@ -50,7 +52,7 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
             .getVirtualNetworkLinks()
             .createOrUpdate(
                 getMRGName(context),
-                dns.resourceName().orElseThrow(),
+                storageDns.resourceName().orElseThrow(),
                 resourceNameProvider.getName(getResourceType()),
                 new VirtualNetworkLinkInner()
                     .withLocation("global")
@@ -61,11 +63,11 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
                     .withVirtualNetwork(new SubResource().withId(vNetId))
                     .withRegistrationEnabled(false));
 
-    context.getWorkingMap().put(VNET_LINK_ID, vnetLink.id());
+    context.getWorkingMap().put(STORAGE_VNET_LINK_ID, vnetLink.id());
     context
         .getWorkingMap()
         .put(
-            VNET_LINK_RESOURCE_KEY,
+            STORAGE_VNET_LINK_RESOURCE_KEY,
             LandingZoneResource.builder()
                 .resourceId(vnetLink.id())
                 .resourceType(vnetLink.type())
@@ -82,12 +84,12 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
 
   @Override
   protected String getResourceType() {
-    return "VirtualNetworkLink";
+    return "StorageAccountVirtualNetworkLink";
   }
 
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
-    return Optional.ofNullable(context.getWorkingMap().get(VNET_LINK_ID, String.class));
+    return Optional.ofNullable(context.getWorkingMap().get(STORAGE_VNET_LINK_ID, String.class));
   }
 
   @Override

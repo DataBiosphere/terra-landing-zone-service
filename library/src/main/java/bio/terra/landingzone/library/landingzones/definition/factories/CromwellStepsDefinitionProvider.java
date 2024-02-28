@@ -21,14 +21,17 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnaly
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateNetworkSecurityGroupStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresVirtualNetworkLinkStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSZoneStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountDNSZoneGroupStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountDNSZoneStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountPrivateEndpointStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountVirtualNetworkLinkStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAuditLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVirtualNetworkLinkStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.EnableAksContainerLogV2Step;
@@ -86,9 +89,16 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(
             new CreateLogAnalyticsWorkspaceStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
-        Pair.of(new CreatePostgresqlDNSStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(
-            new CreateVirtualNetworkLinkStep(armManagers, resourceNameProvider),
+            new CreatePostgresqlDNSZoneStep(armManagers, resourceNameProvider), RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAccountDNSZoneStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreatePostgresVirtualNetworkLinkStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAccountVirtualNetworkLinkStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(
             new CreateLandingZoneIdentityStep(armManagers, resourceNameProvider),
@@ -99,8 +109,11 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
         Pair.of(
             new CreateStorageAccountPrivateEndpointStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
+        Pair.of(
+            new CreateStorageAccountDNSZoneGroupStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
         Pair.of(new CreateBatchAccountStep(armManagers, resourceNameProvider), RetryRules.cloud()),
-        // create batch account private link
+        // TODO create batch account private endpoint
         Pair.of(
             new CreateStorageAccountCorsRules(armManagers, resourceNameProvider),
             RetryRules.cloud()),
@@ -114,7 +127,7 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.cloud()),
         Pair.of(
             new CreateRelayNamespaceStep(armManagers, resourceNameProvider), RetryRules.cloud()),
-        // create relay private link
+        // TODO create relay private endpoint
         Pair.of(
             new CreateStorageAuditLogSettingsStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
