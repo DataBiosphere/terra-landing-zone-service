@@ -60,6 +60,8 @@ jobs:
     needs: [ bump-check ]
     runs-on: ubuntu-latest
     if: needs.bump-check.outputs.is-bump == 'no'
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
     - name: Set part of semantic version to bump
       id: controls
@@ -152,3 +154,27 @@ jobs:
 
     - name: Push GCR image
       run: docker push ${{ steps.image-name.outputs.name }}
+
+  report-to-sherlock:
+    # Report new version to Broad DevOps
+    uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
+    needs: publish-job
+    with:
+      new-version: ${{ needs.publish-job.outputs.tag }}
+      chart-name: 'landingzone'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+  set-version-in-dev:
+    # Put new version in Broad dev environment
+    uses: broadinstitute/sherlock/.github/workflows/client-set-environment-app-version.yaml@main
+    needs: [publish-job, report-to-sherlock]
+    with:
+      new-version: ${{ needs.publish-job.outputs.tag }}
+      chart-name: 'landingzone'
+      environment-name: 'dev'
+    secrets:
+      sync-git-token: ${{ secrets.BROADBOT_TOKEN }}
+    permissions:
+      id-token: 'write'
