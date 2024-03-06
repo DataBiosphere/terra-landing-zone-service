@@ -36,7 +36,7 @@ public class CreatePostgresVirtualNetworkLinkStep extends BaseResourceCreateStep
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     var vNetId = getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
-    var postgresDns =
+    var dns =
         getParameterOrThrow(
             context.getWorkingMap(),
             CreatePostgresqlDNSZoneStep.POSTGRESQL_DNS_RESOURCE_KEY,
@@ -51,7 +51,7 @@ public class CreatePostgresVirtualNetworkLinkStep extends BaseResourceCreateStep
             .getVirtualNetworkLinks()
             .createOrUpdate(
                 getMRGName(context),
-                postgresDns.resourceName().orElseThrow(),
+                dns.resourceName().orElseThrow(),
                 resourceNameProvider.getName(getResourceType()),
                 new VirtualNetworkLinkInner()
                     .withLocation("global")

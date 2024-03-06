@@ -1,5 +1,6 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
+import bio.terra.landingzone.common.DnsZoneGroupResourceHelper;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
@@ -33,11 +34,11 @@ public class CreateStorageAccountDNSZoneGroupStep extends BaseResourceCreateStep
             CreateStorageAccountPrivateEndpointStep.STORAGE_ACCOUNT_PRIVATE_ENDPOINT_RESOURCE_KEY,
             LandingZoneResource.class);
 
-    var privateDns =
+    var privateDnsId =
         getParameterOrThrow(
             context.getWorkingMap(),
-            CreateStorageAccountDNSZoneStep.STORAGE_ACCOUNT_DNS_RESOURCE_KEY,
-            LandingZoneResource.class);
+            CreateStorageAccountDNSZoneStep.STORAGE_ACCOUNT_DNS_ID,
+            String.class);
 
     var dnsZoneGroup =
         armManagers
@@ -54,7 +55,7 @@ public class CreateStorageAccountDNSZoneGroupStep extends BaseResourceCreateStep
                     .withPrivateDnsZoneConfigs(
                         List.of(
                             new PrivateDnsZoneConfig()
-                                .withPrivateDnsZoneId(privateDns.resourceId())
+                                .withPrivateDnsZoneId(privateDnsId)
                                 .withName(
                                     CreateStorageAccountDNSZoneStep.STORAGE_ACCOUNT_DNS_NAME
                                         .replace('.', '_')))));
@@ -66,9 +67,7 @@ public class CreateStorageAccountDNSZoneGroupStep extends BaseResourceCreateStep
 
   @Override
   protected void deleteResource(String resourceId) {
-    // TODO delete helper
-    //
-    // armManagers.azureResourceManager().privateEndpoints().manager().serviceClient().getPrivateDnsZoneGroups().delete();
+    DnsZoneGroupResourceHelper.delete(armManagers, resourceId);
   }
 
   @Override

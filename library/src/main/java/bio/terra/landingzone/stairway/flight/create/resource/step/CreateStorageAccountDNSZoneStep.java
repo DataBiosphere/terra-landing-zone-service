@@ -1,6 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
+import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -75,6 +76,8 @@ public class CreateStorageAccountDNSZoneStep extends BaseResourceCreateStep {
 
   @Override
   public List<ResourceNameRequirements> getResourceNameRequirements() {
-    return List.of();
+    return List.of(
+        new ResourceNameRequirements(
+            getResourceType(), ResourceNameGenerator.MAX_PRIVATE_DNS_ZONE_NAME_LENGTH));
   }
 }
