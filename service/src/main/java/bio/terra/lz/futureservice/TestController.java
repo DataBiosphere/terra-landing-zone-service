@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-//this controller should be deleted
+// this controller should be deleted
 public class TestController {
   // no usage for now, but just make sure that lz library is linked
   LandingZoneService lzService;
