@@ -132,6 +132,7 @@ jobs:
         ARTIFACTORY_REPO_KEY: libs-snapshot-local
 
     - name: Make release
+      if: ${{ github.ref_name == 'main' }}
       uses: ncipollo/release-action@v1
       id: create_release
       with:
