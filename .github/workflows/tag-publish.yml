@@ -161,7 +161,6 @@ jobs:
     # Report new version to Broad DevOps
     uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
     needs: publish-job
-    if: ${{ github.ref_name == 'main' }}
     with:
       new-version: ${{ needs.publish-job.outputs.tag }}
       chart-name: 'landingzone'
