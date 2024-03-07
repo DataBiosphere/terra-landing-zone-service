@@ -18,6 +18,7 @@ name: Bump, Tag, Publish
 # - ARTIFACTORY_USERNAME - username for publishing the client to artifactory
 # - BROADBOT_TOKEN - the broadbot token, so we can avoid two reviewer rule on GHA operations
 on:
+  pull_request:
   push:
     branches:
     - main
