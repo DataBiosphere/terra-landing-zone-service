@@ -14,6 +14,7 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateAppInsightsStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchAccountStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateBatchNetworkSecurityGroupStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneFederatedIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
@@ -77,6 +78,9 @@ public class CromwellStepsDefinitionProvider implements StepsDefinitionProvider 
             RetryRules.shortExponential()),
         Pair.of(
             new CreateNetworkSecurityGroupStep(armManagers, resourceNameProvider),
+            RetryRules.cloud()),
+        Pair.of(
+            new CreateBatchNetworkSecurityGroupStep(armManagers, resourceNameProvider),
             RetryRules.cloud()),
         Pair.of(new CreateVnetStep(armManagers, resourceNameProvider), RetryRules.cloud()),
         Pair.of(

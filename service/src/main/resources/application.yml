@@ -16,6 +16,9 @@ env:
   tracing:
     exportEnabled: ${CLOUD_TRACE_ENABLED:false}
     samplingRate: ${SAMPLING_PROBABILITY:0}
+  sentry:
+    dsn: ${SENTRY_DSN:}
+    environment: ${SENTRY_ENVIRONMENT:}
 
 spring:
   application.name: landingzone
@@ -80,6 +83,9 @@ landingzone:
       - SentinelHealth
       - StorageBlobLogs
       - Syslog
+  sentry:
+    dsn: ${env.sentry.dsn}
+    environment: ${env.sentry.environment}
 
 terra.common:
   tracing:

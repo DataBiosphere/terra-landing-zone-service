@@ -21,6 +21,8 @@ import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.network.fluent.NetworkManagementClient;
 import com.azure.resourcemanager.network.models.NetworkSecurityGroup;
 import com.azure.resourcemanager.network.models.NetworkSecurityGroups;
+import com.azure.resourcemanager.network.models.NetworkSecurityRule;
+import com.azure.resourcemanager.network.models.SecurityRuleProtocol;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import java.util.Map;
 import java.util.UUID;
@@ -37,7 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
+class CreateBatchNetworkSecurityGroupStepTest extends BaseStepTest {
   private static final String RESOURCE_ID = "networkSecurityGroupId";
 
   @Mock private NetworkManager mockNetworkManager;
@@ -49,14 +51,33 @@ class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
   @Mock private NetworkSecurityGroup.DefinitionStages.WithGroup mockNsgWithGroup;
   @Mock private NetworkSecurityGroup.DefinitionStages.WithCreate mockNsgWithCreate;
 
-  private CreateNetworkSecurityGroupStep createNetworkSecurityGroupStep;
+  @Mock
+  private NetworkSecurityRule.DefinitionStages.Blank<
+          NetworkSecurityGroup.DefinitionStages.WithCreate>
+      mockNsgRuleBlank;
+
+  @Mock
+  private NetworkSecurityRule.DefinitionStages.WithSourceAddressOrSecurityGroup
+      mockNsgRuleWithSourceIp;
+
+  @Mock private NetworkSecurityRule.DefinitionStages.WithSourcePort mockNsgRuleWithSourcePort;
+
+  @Mock
+  private NetworkSecurityRule.DefinitionStages.WithDestinationAddressOrSecurityGroup
+      mockNsgRuleDestAddr;
+
+  @Mock private NetworkSecurityRule.DefinitionStages.WithDestinationPort mockNsgRuleDestPort;
+  @Mock private NetworkSecurityRule.DefinitionStages.WithProtocol mockNsgRuleProtocol;
+  @Mock private NetworkSecurityRule.DefinitionStages.WithAttach mockNsgRuleAttach;
+
+  private CreateBatchNetworkSecurityGroupStep createBatchNetworkSecurityGroupStep;
 
   @Captor ArgumentCaptor<Map<String, String>> nsgTagsCaptor;
 
   @BeforeEach
   void setup() {
-    createNetworkSecurityGroupStep =
-        new CreateNetworkSecurityGroupStep(mockArmManagers, mockResourceNameProvider);
+    createBatchNetworkSecurityGroupStep =
+        new CreateBatchNetworkSecurityGroupStep(mockArmManagers, mockResourceNameProvider);
   }
 
   @Test
@@ -64,8 +85,9 @@ class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
     final String nsgName = "networkSecurityGroupName";
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
-    when(mockResourceNameProvider.getName(createNetworkSecurityGroupStep.getResourceType()))
+    when(mockResourceNameProvider.getName(createBatchNetworkSecurityGroupStep.getResourceType()))
         .thenReturn(nsgName);
+
     mockParametersResolver =
         new ParametersResolver(
             Map.of(
@@ -87,7 +109,7 @@ class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
             mockParametersResolver));
     setupArmManagersForDoStep(nsgName, mrg.region(), mrg.name());
 
-    var stepResult = createNetworkSecurityGroupStep.doStep(mockFlightContext);
+    var stepResult = createBatchNetworkSecurityGroupStep.doStep(mockFlightContext);
 
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
     verifyBasicTags(nsgTagsCaptor.getValue(), LANDING_ZONE_ID);
@@ -104,7 +126,7 @@ class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
 
     assertThrows(
         MissingRequiredFieldsException.class,
-        () -> createNetworkSecurityGroupStep.doStep(mockFlightContext));
+        () -> createBatchNetworkSecurityGroupStep.doStep(mockFlightContext));
   }
 
   @Test
@@ -112,7 +134,7 @@ class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
     var workingMap = new FlightMap();
     when(mockFlightContext.getWorkingMap()).thenReturn(workingMap);
 
-    var stepResult = createNetworkSecurityGroupStep.undoStep(mockFlightContext);
+    var stepResult = createBatchNetworkSecurityGroupStep.undoStep(mockFlightContext);
 
     verify(mockNsgs, never()).deleteById(anyString());
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
@@ -127,5 +149,19 @@ class CreateNetworkSecurityGroupStepTest extends BaseStepTest {
     when(mockNsgs.define(name)).thenReturn(mockNsgStageBlank);
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
     when(mockAzureResourceManager.networkSecurityGroups()).thenReturn(mockNsgs);
+    when(mockNsgWithCreate.defineRule(any())).thenReturn(mockNsgRuleBlank);
+    when(mockNsgRuleBlank.allowInbound()).thenReturn(mockNsgRuleWithSourceIp);
+    when(mockNsgRuleBlank.allowOutbound()).thenReturn(mockNsgRuleWithSourceIp);
+    when(mockNsgRuleWithSourceIp.fromAddress(any())).thenReturn(mockNsgRuleWithSourcePort);
+    when(mockNsgRuleWithSourceIp.fromAnyAddress()).thenReturn(mockNsgRuleWithSourcePort);
+    when(mockNsgRuleWithSourcePort.fromAnyPort()).thenReturn(mockNsgRuleDestAddr);
+    when(mockNsgRuleDestAddr.toAnyAddress()).thenReturn(mockNsgRuleDestPort);
+    when(mockNsgRuleDestAddr.toAddress(any())).thenReturn(mockNsgRuleDestPort);
+    when(mockNsgRuleDestPort.toPortRanges(any())).thenReturn(mockNsgRuleProtocol);
+    when(mockNsgRuleDestPort.toPort(443)).thenReturn(mockNsgRuleProtocol);
+    when(mockNsgRuleProtocol.withProtocol(SecurityRuleProtocol.TCP)).thenReturn(mockNsgRuleAttach);
+    when(mockNsgRuleProtocol.withAnyProtocol()).thenReturn(mockNsgRuleAttach);
+    when(mockNsgRuleAttach.withPriority(anyInt())).thenReturn(mockNsgRuleAttach);
+    when(mockNsgRuleAttach.attach()).thenReturn(mockNsgWithCreate);
   }
 }
