@@ -27,7 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 
-class BaseStepTest {
+public class BaseStepTest {
   protected static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   protected static final String VNET_NAME = "vNet";
   protected static final String VNET_ID = "networkId";

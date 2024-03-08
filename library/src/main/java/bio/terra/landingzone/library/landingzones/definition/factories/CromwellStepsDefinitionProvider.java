@@ -20,10 +20,6 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZ
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsDataCollectionRulesStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateNetworkSecurityGroupStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresLogSettingsStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDNSStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbAdminStep;
-import bio.terra.landingzone.stairway.flight.create.resource.step.CreatePostgresqlDbStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateRelayNamespaceStep;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountCorsRules;
 import bio.terra.landingzone.stairway.flight.create.resource.step.CreateStorageAccountStep;
@@ -36,6 +32,10 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedReso
 import bio.terra.landingzone.stairway.flight.create.resource.step.GetParametersResolver;
 import bio.terra.landingzone.stairway.flight.create.resource.step.KubernetesClientProviderImpl;
 import bio.terra.landingzone.stairway.flight.create.resource.step.ValidateLandingZoneParametersStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.postgres.CreatePostgresLogSettingsStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.postgres.CreatePostgresqlDNSStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.postgres.CreatePostgresqlDbAdminStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.postgres.CreatePostgresqlDbStep;
 import bio.terra.stairway.RetryRule;
 import bio.terra.stairway.Step;
 import java.util.List;

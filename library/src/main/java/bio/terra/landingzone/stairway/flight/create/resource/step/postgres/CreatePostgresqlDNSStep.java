@@ -1,4 +1,4 @@
-package bio.terra.landingzone.stairway.flight.create.resource.step;
+package bio.terra.landingzone.stairway.flight.create.resource.step.postgres;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
@@ -7,6 +7,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
 import bio.terra.stairway.FlightContext;
 import java.util.List;
 import java.util.Map;

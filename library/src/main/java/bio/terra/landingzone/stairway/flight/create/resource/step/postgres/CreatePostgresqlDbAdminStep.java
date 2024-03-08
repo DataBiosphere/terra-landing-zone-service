@@ -1,9 +1,11 @@
-package bio.terra.landingzone.stairway.flight.create.resource.step;
+package bio.terra.landingzone.stairway.flight.create.resource.step.postgres;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
 import bio.terra.stairway.FlightContext;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.PrincipalType;
@@ -14,9 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
+/** Creates an admin for the Postgresql database linked to a previously provisioned UAMI. */
 public class CreatePostgresqlDbAdminStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDbStep.class);
-  private static final String POSTGRESQL_ADMIN_ID = "POSTGRESQL_ADMIN_ID";
+  protected static final String POSTGRESQL_ADMIN_ID = "POSTGRESQL_ADMIN_ID";
 
   public CreatePostgresqlDbAdminStep(
       ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
@@ -71,6 +74,7 @@ public class CreatePostgresqlDbAdminStep extends BaseResourceCreateStep {
   @Override
   protected void deleteResource(String resourceId) {
     if (resourceId == null) {
+      logger.warn("No resource id found for postgres admin deletion, skipping delete");
       return;
     }
 
