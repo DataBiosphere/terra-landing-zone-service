@@ -12,7 +12,7 @@ shared. These resources have a different lifecycle than resources in workspaces.
 
 ## Current state
 
-The Landing Zone "Service" is currently being used as a library attached to Workspace Manager. It is in the process of being stood up as a standalone service (see the stub service [README.md] (./service/README.md)).
+The Landing Zone "Service" is currently being used as a library attached to Workspace Manager. It is in the process of being stood up as a standalone service (see the stub service [README.md](./service/README.md)).
 
 ## Landing Zone Manager
 
