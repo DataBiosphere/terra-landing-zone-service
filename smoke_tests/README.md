@@ -1,4 +1,4 @@
-
+# Smoke Tests for Landing Zone Service
 
 ## Purpose
 To provide a low overhead way to check that Landing Zone service is basically operational in a given environment.
@@ -26,6 +26,6 @@ Verifying _basic_ functionality, based on arguments passed:
 
 
 ## Running as part of post-deployment steps:
-* Do setup as described above above
+* Do setup as described above
 * Get a user access token. Eg: `gcloud auth print-access-token`
 * Run script in poetry shell: `python smoke_tests.py "${LZ_HOST}" "${USER_ACCESS_TOKEN}"`
