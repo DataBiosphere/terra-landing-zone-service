@@ -1,4 +1,4 @@
-package bio.terra.landingzone.stairway.flight.create.resource.step;
+package bio.terra.landingzone.stairway.flight.create.resource.step.postgres;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
@@ -10,6 +10,8 @@ import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
 import bio.terra.landingzone.stairway.flight.exception.utils.ManagementExceptionUtils;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
@@ -24,7 +26,6 @@ import com.azure.resourcemanager.postgresqlflexibleserver.models.HighAvailabilit
 import com.azure.resourcemanager.postgresqlflexibleserver.models.HighAvailabilityMode;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Network;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.PasswordAuthEnum;
-import com.azure.resourcemanager.postgresqlflexibleserver.models.PrincipalType;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Server;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.ServerVersion;
 import com.azure.resourcemanager.postgresqlflexibleserver.models.Sku;
@@ -44,6 +45,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDbStep.class);
   public static final String POSTGRESQL_ID = "POSTGRESQL_ID";
   public static final String POSTGRESQL_RESOURCE_KEY = "POSTGRESQL";
+  public static final String POSTGRESQL_NAME = "POSTGRESQL_NAME";
 
   public CreatePostgresqlDbStep(
       ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
@@ -58,8 +60,6 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
 
     enablePgBouncer(getMRGName(context), postgresName, getParametersResolver(context));
 
-    createAdminUser(context, armManagers, postgresName);
-
     context.getWorkingMap().put(POSTGRESQL_ID, postgres.id());
     context
         .getWorkingMap()
@@ -72,6 +72,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
                 .region(postgres.region().name())
                 .resourceName(postgres.name())
                 .build());
+    context.getWorkingMap().put(POSTGRESQL_NAME, postgresName);
     logger.info(RESOURCE_CREATED, getResourceType(), postgres.id(), getMRGName(context));
   }
 
@@ -166,29 +167,6 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
         throw e;
       }
     }
-  }
-
-  private void createAdminUser(
-      FlightContext context, ArmManagers armManagers, String postgresName) {
-    var uami =
-        context
-            .getWorkingMap()
-            .get(
-                CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_RESOURCE_KEY,
-                LandingZoneResource.class);
-    var uamiPrincipalId =
-        context
-            .getWorkingMap()
-            .get(CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_PRINCIPAL_ID, String.class);
-
-    armManagers
-        .postgreSqlManager()
-        .administrators()
-        .define(uamiPrincipalId)
-        .withExistingFlexibleServer(getMRGName(context), postgresName)
-        .withPrincipalName(uami.resourceName().orElseThrow())
-        .withPrincipalType(PrincipalType.SERVICE_PRINCIPAL)
-        .create();
   }
 
   private void enablePgBouncer(

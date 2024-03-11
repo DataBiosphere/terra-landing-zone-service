@@ -1,4 +1,4 @@
-package bio.terra.landingzone.stairway.flight.create.resource.step;
+package bio.terra.landingzone.stairway.flight.create.resource.step.postgres;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -19,6 +19,11 @@ import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneDefaultParameters;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.create.resource.step.BaseStepTest;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLandingZoneIdentityStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateVnetStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedResourceGroupInfo;
+import bio.terra.landingzone.stairway.flight.create.resource.step.ResourceStepFixture;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
@@ -279,14 +284,6 @@ class CreatePostgresqlDbStepTest extends BaseStepTest {
     when(mockConfigurations.define(any())).thenReturn(mockConfigurationsDefinitionStagesBlank);
     when(mockPostgreSqlManager.configurations()).thenReturn(mockConfigurations);
     when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
-
-    when(mockPostgreSqlManager.administrators()).thenReturn(mockAdministrators);
-    when(mockAdministrators.define(adminPrincipalId)).thenReturn(mockAdministrator);
-    when(mockAdministrator.withExistingFlexibleServer(resourceGroup, name))
-        .thenReturn(mockAdminWithCreate);
-    when(mockAdminWithCreate.withPrincipalName(adminName)).thenReturn(mockAdminWithCreate);
-    when(mockAdminWithCreate.withPrincipalType(PrincipalType.SERVICE_PRINCIPAL))
-        .thenReturn(mockAdminWithCreate);
   }
 
   private void setupArmManagersForFailedPostgresProvisioning(

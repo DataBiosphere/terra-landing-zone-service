@@ -1,8 +1,10 @@
-package bio.terra.landingzone.stairway.flight.create.resource.step;
+package bio.terra.landingzone.stairway.flight.create.resource.step.postgres;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
+import bio.terra.landingzone.stairway.flight.create.resource.step.CreateLogAnalyticsWorkspaceStep;
 import bio.terra.stairway.FlightContext;
 import java.time.Duration;
 import java.util.List;

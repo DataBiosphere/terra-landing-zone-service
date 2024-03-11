@@ -8,6 +8,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
+import bio.terra.landingzone.stairway.flight.create.resource.step.postgres.CreatePostgresqlDNSStep;
 import bio.terra.stairway.FlightContext;
 import com.azure.core.management.SubResource;
 import com.azure.resourcemanager.privatedns.fluent.models.VirtualNetworkLinkInner;

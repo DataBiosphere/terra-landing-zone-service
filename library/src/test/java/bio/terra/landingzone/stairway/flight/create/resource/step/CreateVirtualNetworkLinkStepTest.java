@@ -13,6 +13,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.landingzone.stairway.flight.create.resource.step.postgres.CreatePostgresqlDNSStep;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
