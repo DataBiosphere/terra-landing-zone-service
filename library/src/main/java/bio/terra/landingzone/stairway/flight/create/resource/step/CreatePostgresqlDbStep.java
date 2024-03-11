@@ -85,7 +85,7 @@ public class CreatePostgresqlDbStep extends BaseResourceCreateStep {
           getParameterOrThrow(context.getWorkingMap(), CreateVnetStep.VNET_ID, String.class);
       var dnsId =
           getParameterOrThrow(
-              context.getWorkingMap(), CreatePostgresqlDNSStep.POSTGRESQL_DNS_ID, String.class);
+              context.getWorkingMap(), CreatePostgresqlDNSZoneStep.POSTGRESQL_DNS_ID, String.class);
 
       return armManagers
           .postgreSqlManager()

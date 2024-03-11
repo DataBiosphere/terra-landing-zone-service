@@ -18,12 +18,13 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
-  private static final Logger logger = LoggerFactory.getLogger(CreateVirtualNetworkLinkStep.class);
-  public static final String VNET_LINK_ID = "VNET_LINK_ID";
-  public static final String VNET_LINK_RESOURCE_KEY = "VNET_LINK";
+public class CreatePostgresVirtualNetworkLinkStep extends BaseResourceCreateStep {
+  private static final Logger logger =
+      LoggerFactory.getLogger(CreatePostgresVirtualNetworkLinkStep.class);
+  public static final String POSTGRES_VNET_LINK_ID = "POSTGRES_VNET_LINK_ID";
+  public static final String POSTGRES_VNET_LINK_RESOURCE_KEY = "POSTGRES_VNET_LINK";
 
-  public CreateVirtualNetworkLinkStep(
+  public CreatePostgresVirtualNetworkLinkStep(
       ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
     super(armManagers, resourceNameProvider);
   }
@@ -38,7 +39,7 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
     var dns =
         getParameterOrThrow(
             context.getWorkingMap(),
-            CreatePostgresqlDNSStep.POSTGRESQL_DNS_RESOURCE_KEY,
+            CreatePostgresqlDNSZoneStep.POSTGRESQL_DNS_RESOURCE_KEY,
             LandingZoneResource.class);
 
     var vnetLink =
@@ -61,11 +62,11 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
                     .withVirtualNetwork(new SubResource().withId(vNetId))
                     .withRegistrationEnabled(false));
 
-    context.getWorkingMap().put(VNET_LINK_ID, vnetLink.id());
+    context.getWorkingMap().put(POSTGRES_VNET_LINK_ID, vnetLink.id());
     context
         .getWorkingMap()
         .put(
-            VNET_LINK_RESOURCE_KEY,
+            POSTGRES_VNET_LINK_RESOURCE_KEY,
             LandingZoneResource.builder()
                 .resourceId(vnetLink.id())
                 .resourceType(vnetLink.type())
@@ -82,12 +83,12 @@ public class CreateVirtualNetworkLinkStep extends BaseResourceCreateStep {
 
   @Override
   protected String getResourceType() {
-    return "VirtualNetworkLink";
+    return "PostgresVirtualNetworkLink";
   }
 
   @Override
   protected Optional<String> getResourceId(FlightContext context) {
-    return Optional.ofNullable(context.getWorkingMap().get(VNET_LINK_ID, String.class));
+    return Optional.ofNullable(context.getWorkingMap().get(POSTGRES_VNET_LINK_ID, String.class));
   }
 
   @Override
