@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
 
 /** Creates an admin for the Postgresql database linked to a previously provisioned UAMI. */
 public class CreatePostgresqlDbAdminStep extends BaseResourceCreateStep {
-  private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDbStep.class);
+  private static final Logger logger = LoggerFactory.getLogger(CreatePostgresqlDbAdminStep.class);
   protected static final String POSTGRESQL_ADMIN_ID = "POSTGRESQL_ADMIN_ID";
 
   public CreatePostgresqlDbAdminStep(
@@ -73,11 +73,6 @@ public class CreatePostgresqlDbAdminStep extends BaseResourceCreateStep {
 
   @Override
   protected void deleteResource(String resourceId) {
-    if (resourceId == null) {
-      logger.warn("No resource id found for postgres admin deletion, skipping delete");
-      return;
-    }
-
     armManagers.postgreSqlManager().administrators().deleteById(resourceId);
   }
 
