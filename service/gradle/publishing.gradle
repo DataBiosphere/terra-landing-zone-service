@@ -29,7 +29,7 @@ jib {
     }
     container {
         filesModificationTime = ZonedDateTime.now().toString() // to prevent ui caching
-        mainClass = 'bio.terra.lz.futureservice'
+        mainClass = 'bio.terra.lz.futureservice.app.LandingZoneApplication'
         jvmFlags = [
                 "-agentpath:" + cloudProfilerLocation + "/profiler_java_agent.so=" +
                         "-cprof_service=bio.terra.javatemplate" +
