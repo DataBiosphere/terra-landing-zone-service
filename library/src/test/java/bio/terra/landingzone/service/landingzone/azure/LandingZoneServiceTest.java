@@ -344,8 +344,8 @@ public class LandingZoneServiceTest {
             landingZoneId.toString());
     var deployedResources =
         List.of(
-            new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTags, REGION),
-            new DeployedResource(VNET_SUBNET_1, SUBNET, purposeTags, REGION));
+            new DeployedResource(VNET_1, VIRTUAL_NETWORK, purposeTags, REGION, "fake"),
+            new DeployedResource(VNET_SUBNET_1, SUBNET, purposeTags, REGION, "fake"));
     ResourcesReader resourceReader = mock(ResourcesReader.class);
     when(resourceReader.listResourcesByPurpose(any(), any())).thenReturn(deployedResources);
     when(landingZoneManager.reader()).thenReturn(resourceReader);
@@ -847,8 +847,8 @@ public class LandingZoneServiceTest {
             LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
             ResourcePurpose.WLZ_RESOURCE.toString());
     return List.of(
-        new DeployedResource(STORAGE_ACCOUNT_1, STORAGE_ACCOUNT, purposeTagSet1, REGION),
-        new DeployedResource(STORAGE_ACCOUNT_2, STORAGE_ACCOUNT, purposeTagSet2, REGION));
+        new DeployedResource(STORAGE_ACCOUNT_1, STORAGE_ACCOUNT, purposeTagSet1, REGION, "fake"),
+        new DeployedResource(STORAGE_ACCOUNT_2, STORAGE_ACCOUNT, purposeTagSet2, REGION, "fake"));
   }
 
   private LandingZoneJobBuilder createMockJobBuilder(OperationType operationType) {

@@ -3,6 +3,7 @@ package bio.terra.lz.futureservice.app.controller;
 import static bio.terra.lz.futureservice.app.controller.common.ResponseUtils.getAsyncResponseCode;
 
 import bio.terra.common.iam.BearerTokenFactory;
+import bio.terra.landingzone.terraform.TerraformService;
 import bio.terra.lz.futureservice.app.service.LandingZoneAppService;
 import bio.terra.lz.futureservice.generated.api.LandingZonesApi;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZone;
@@ -16,6 +17,7 @@ import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneJobRe
 import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneRequestBody;
 import bio.terra.lz.futureservice.generated.model.ApiDeleteAzureLandingZoneResult;
 import bio.terra.lz.futureservice.generated.model.ApiResourceQuota;
+import bio.terra.lz.futureservice.generated.model.ApiTerraformPlanOutput;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +31,18 @@ public class LandingZoneApiController implements LandingZonesApi {
   private final HttpServletRequest request;
   private final BearerTokenFactory bearerTokenFactory;
   private final LandingZoneAppService landingZoneAppService;
+  private final TerraformService terraformMain;
 
   @Autowired
   public LandingZoneApiController(
       HttpServletRequest request,
       BearerTokenFactory bearerTokenFactory,
-      LandingZoneAppService landingZoneAppService) {
+      LandingZoneAppService landingZoneAppService,
+      TerraformService terraformMain) {
     this.request = request;
     this.bearerTokenFactory = bearerTokenFactory;
     this.landingZoneAppService = landingZoneAppService;
+    this.terraformMain = terraformMain;
   }
 
   @Override
@@ -121,5 +126,12 @@ public class LandingZoneApiController implements LandingZonesApi {
             bearerTokenFactory.from(request), landingZoneId, azureResourceId);
 
     return new ResponseEntity<>(result, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<ApiTerraformPlanOutput> terraformPlan(UUID landingZoneId) {
+    var result = terraformMain.terraformPlan(landingZoneId, bearerTokenFactory.from(request));
+
+    return new ResponseEntity<>(new ApiTerraformPlanOutput().result(result), HttpStatus.OK);
   }
 }

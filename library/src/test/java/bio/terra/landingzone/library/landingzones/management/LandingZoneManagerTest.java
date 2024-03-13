@@ -50,7 +50,8 @@ class LandingZoneManagerTest {
                     STUB_BATCH_ACCOUNT_ID,
                     AzureResourceTypeUtils.AZURE_BATCH_TYPE,
                     null,
-                    "eastus")));
+                    "eastus",
+                    "fakename")));
 
     landingZoneManager.resourceQuota(STUB_LZ_ID, STUB_BATCH_ACCOUNT_ID);
 

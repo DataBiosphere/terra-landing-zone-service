@@ -11,4 +11,4 @@ import java.util.Map;
  * @param region region name.
  */
 public record DeployedResource(
-    String resourceId, String resourceType, Map<String, String> tags, String region) {}
+    String resourceId, String resourceType, Map<String, String> tags, String region, String name) {}

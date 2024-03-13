@@ -152,7 +152,7 @@ public class ResourcesReaderImpl implements ResourcesReader {
   private DeployedResource toLandingZoneDeployedResource(GenericResource r) {
     logger.verbose(
         "To landing zone deployed resource: {} type: {} tags: {}", r.id(), r.type(), r.tags());
-    return new DeployedResource(r.id(), r.type(), r.tags(), r.region().name());
+    return new DeployedResource(r.id(), r.type(), r.tags(), r.region().name(), r.name());
   }
 
   private DeployedVNet toDeployedVNet(DeployedResource resource) {

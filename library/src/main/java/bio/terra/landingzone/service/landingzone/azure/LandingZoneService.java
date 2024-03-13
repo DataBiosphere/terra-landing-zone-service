@@ -500,6 +500,7 @@ public class LandingZoneService {
         .resourceType(resource.resourceType())
         .tags(resource.tags())
         .region(resource.region())
+        .resourceName(resource.name())
         .build();
   }
 

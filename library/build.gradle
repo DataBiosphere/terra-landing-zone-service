@@ -47,6 +47,13 @@ dependencies {
     implementation group: 'org.liquibase', name: 'liquibase-core', version: '4.26.0'
     implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.3'
 
+
+    // Terraform experimentation
+    implementation 'com.hashicorp:cdktf-provider-azurerm:12.9.0'
+    implementation "com.hashicorp:cdktf:0.20.4"
+    implementation "software.constructs:constructs:10.1.167"
+
+
     liquibaseRuntime 'org.liquibase:liquibase-core:4.26.0'
     liquibaseRuntime 'info.picocli:picocli:4.7.5'
     liquibaseRuntime 'org.postgresql:postgresql:42.7.2'
