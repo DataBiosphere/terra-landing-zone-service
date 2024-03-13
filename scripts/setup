@@ -56,7 +56,7 @@ verify_tool() {
 }
 
 log "verifying minnie-kinney is installed"
-../minnie-kenny.sh -s
+$(dirname $0)/../minnie-kenny.sh -s
 
 log "verifying required tools are installed"
 for tool in "${TOOLS[@]}"; do

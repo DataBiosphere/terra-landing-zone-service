@@ -39,11 +39,11 @@ shift $((OPTIND-1)) # remove parsed options and args from $@ list
 COMMAND=$1
 
 start() {
-  ../service/local-dev/run_postgres.sh start
+  $(dirname $0)/../service/local-dev/run_postgres.sh start
 }
 
 stop() {
-  ../service/local-dev/run_postgres.sh stop
+  $(dirname $0)/../service/local-dev/run_postgres.sh stop
 }
 
 case "$COMMAND" in
