@@ -35,7 +35,6 @@ public class LandingZoneApiController implements LandingZonesApi {
       HttpServletRequest request,
       BearerTokenFactory bearerTokenFactory,
       LandingZoneAppService landingZoneAppService) {
-    // Dummy commit to trigger tests again.
     this.request = request;
     this.bearerTokenFactory = bearerTokenFactory;
     this.landingZoneAppService = landingZoneAppService;
