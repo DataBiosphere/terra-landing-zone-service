@@ -13,11 +13,14 @@ as well as on merge to `main`.
 ### Local Testing
 
 ```sh
-# Unit tests
-./gradlew :library:unitTest
+# Run setup to set the environment, including postgres running in docker:
+./scripts/setup
+
+# Unit tests (currently runs library and testharness tests):
+./scripts/build test
 
 # integration tests
-./gradlew :library:integrationTest
+./scripts/build integration
 ```
 
 #### Setup for Local Integration Testing
@@ -28,8 +31,10 @@ Running integration tests locally requires:
   see the related Azure [documentation](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme?view=azure-java-stable#defaultazurecredential).
 
 * A running postgres:
-```
- ./library/local-dev/run_postgres.sh start|stop
+```sh
+./scripts/setup
+# or
+./scripts/run-db start|stop
 ```
 
 ### Smoke tests
