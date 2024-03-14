@@ -49,6 +49,7 @@ public class LandingZoneDao {
 
   @Autowired
   public LandingZoneDao(LandingZoneDatabaseConfiguration landingZoneDatabaseConfiguration) {
+    // Dummy commit to execute test.
     this.landingZoneDatabaseConfiguration = landingZoneDatabaseConfiguration;
     this.jdbcLandingZoneTemplate =
         new NamedParameterJdbcTemplate(landingZoneDatabaseConfiguration.getDataSource());
