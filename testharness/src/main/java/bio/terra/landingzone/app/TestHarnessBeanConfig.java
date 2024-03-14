@@ -9,6 +9,6 @@ import org.springframework.context.annotation.Configuration;
 public class TestHarnessBeanConfig {
   @Bean
   public SmartInitializingSingleton postSetupInitialization(ApplicationContext applicationContext) {
-    return () -> StartupInitializer.initialize(applicationContext);
+    return () -> TestHarnessStartupInitializer.initialize(applicationContext);
   }
 }
