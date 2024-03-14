@@ -113,6 +113,9 @@ jobs:
       - name: Test Library and Library with coverage
         run: ./gradlew --build-cache library:test --scan
 
+      - name: Service tests
+        run: ./gradlew --build-cache service:test --scan
+
       - name: Test Harness Tests with coverage
         run: ./gradlew --build-cache testharness:test --scan
 

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.lz.futureservice.app.configuration.VersionConfiguration;
 import bio.terra.lz.futureservice.app.service.status.StatusService;
+import bio.terra.lz.futureservice.common.BaseSpringUnitTest;
 import bio.terra.lz.futureservice.common.fixture.SystemStatusFixtures;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
@@ -14,7 +15,6 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -22,9 +22,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-public class PublicApiControllerTest {
+public class PublicApiControllerTest extends BaseSpringUnitTest {
   private static final String build = "buildInfo";
   private static final String gitHash = "hash";
   private static final String gitTag = "tag";
