@@ -23,4 +23,4 @@ jobs:
       uses: gradle/gradle-build-action@v2
     - name: Run linter
       id: run_linter
-      run: ./gradlew spotlessCheck
+      run: ./scripts/build checkFormat

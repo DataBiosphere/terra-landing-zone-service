@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# execute all of the steps necessary to build the project
+set -e #-x
+
+usage() {
+  echo "usage: $0 [-h|--help] COMMAND"
+  echo ""
+  echo "[-h|--help]      print this help text"
+  echo ""
+  echo "COMMAND is one of the following:"
+  echo "- test           execute the tests (should be relatively fast)"
+  echo "- integration    execute the integration tests"
+  echo "- project        the default build command"
+  echo "- checkFormat    check formatting of files"
+  echo "- fixFormat      automatically fix formatting of files"
+}
+
+# script variables and defaults
+source $(dirname $0)/init.sh
+
+DEBUG_OPTS=""
+
+
+# process command-line options (if any)
+die() { log_error "$*" >&2; echo ""; usage; exit 2; }  # complain to STDERR and exit with error
+needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
+
+while getopts h-: OPT; do  # allow -h and -- "with arg"
+  # support long options: https://stackoverflow.com/a/28466267/519360
+  if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
+    OPT="${OPTARG%%=*}"       # extract long option name
+    OPTARG="${OPTARG#$OPT}"   # extract long option argument (may be empty)
+    OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
+  fi
+  case "$OPT" in
+    h | help )     usage; exit 0 ;;
+    \? )           usage; exit 2 ;;  # bad short option (error reported via getopts)
+    * )            die "Illegal option --$OPT" ;;            # bad long option
+  esac
+done
+shift $((OPTIND-1)) # remove parsed options and args from $@ list
+
+
+# process positional arguments (if any)
+COMMAND=$1
+shift 1
+
+# use all trailing arguments as caveats to BUILD command
+GRADLE_BUILD_OPTS=${GRADLE_BUILD_OPTS:-"$@"}
+log_debug "gradle build opts: ${GRADLE_BUILD_OPTS}"
+
+run_tests() {
+   log_info "running unit tests"
+   ./gradlew --build-cache library:test --scan
+}
+
+run_integration_tests() {
+  log_info "NOTE: Must have a credential capable of connecting to the test subscription and tenant."
+  log_info "For local testing, the Azure CLI is the best way to get the needed environment"
+  log_info "variables set via an invocation of 'az login'."
+  log_info ""
+  log_info "running integration tests (will take over 20 minutes)"
+  ./gradlew --build-cache library:integration --scan
+}
+
+build_project() {
+  cd "${ROOT_DIR}"
+  ./gradlew ${GRADLE_OPTS} build ${GRADLE_BUILD_OPTS}
+}
+
+check_format() {
+  cd "${ROOT_DIR}"
+  ./gradlew spotlessCheck
+}
+
+fix_format() {
+  cd "${ROOT_DIR}"
+  ./gradlew spotlessApply
+}
+
+case "$COMMAND" in
+  test )         run_tests ;;
+  integration )  run_integration_tests ;;
+  project )      build_project ;;
+  checkFormat )  check_format ;;
+  fixFormat )    fix_format ;;
+  * )            die "Missing or invalid positional command: '${COMMAND}'" ;;
+esac
