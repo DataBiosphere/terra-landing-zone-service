@@ -58,7 +58,7 @@ jobs:
           git secrets --scan-history
 
       - name: Build the test harness and, by dependency, the library
-        run: ./gradlew --build-cache build -x test
+        run: ./scripts/build project -x test
 
   tests-and-sonarqube:
     needs: [ bump-check, build ]
@@ -111,7 +111,7 @@ jobs:
 
       # Run tests
       - name: Test Library and Library with coverage
-        run: ./gradlew --build-cache library:test --scan
+        run: ./scripts/build test
 
       - name: Service tests
         run: ./gradlew --build-cache service:test --scan
@@ -120,7 +120,7 @@ jobs:
         run: ./gradlew --build-cache testharness:test --scan
 
       - name: Integration Test with coverage
-        run: ./gradlew --build-cache library:integration --scan
+        run: ./scripts/build integration
 
       - name: Upload Test Harness Test Reports
         uses: actions/upload-artifact@v1
