@@ -11,6 +11,7 @@ usage() {
   echo "- test           execute the tests (should be relatively fast)"
   echo "- integration    execute the integration tests"
   echo "- project        the default build command"
+  echo "- docker         build a docker image"
   echo "- checkFormat    check formatting of files"
   echo "- fixFormat      automatically fix formatting of files"
 }
@@ -68,6 +69,24 @@ build_project() {
   ./gradlew ${GRADLE_OPTS} build ${GRADLE_BUILD_OPTS}
 }
 
+build_docker() {
+  GIT_REPO_NAME=$(basename "${ROOT_DIR}")
+  GIT_SHA_SHORT=$(git rev-parse --short HEAD)
+
+  DOCKER_IMAGE_NAME=${DOCKER_IMAGE_NAME:-${GIT_REPO_NAME}}
+  DOCKER_IMAGE_NAME_AND_TAG=${DOCKER_IMAGE_NAME_AND_TAG:-"${DOCKER_IMAGE_NAME}:${GIT_SHA_SHORT}"}
+
+  cd "${ROOT_DIR}"
+  ./gradlew ${GRADLE_OPTS} :service:jibDockerBuild \
+            --image="${DOCKER_IMAGE_NAME_AND_TAG}" \
+            -Djib.console=plain
+
+  # the latest tag will allow `docker compose` to work correctly for developers
+  if [ -z "$CI" ]; then
+    docker image tag "${DOCKER_IMAGE_NAME_AND_TAG}" "${DOCKER_IMAGE_NAME}:latest"
+  fi
+}
+
 check_format() {
   cd "${ROOT_DIR}"
   ./gradlew spotlessCheck
@@ -82,6 +101,7 @@ case "$COMMAND" in
   test )         run_tests ;;
   integration )  run_integration_tests ;;
   project )      build_project ;;
+  docker )       build_docker ;;
   checkFormat )  check_format ;;
   fixFormat )    fix_format ;;
   * )            die "Missing or invalid positional command: '${COMMAND}'" ;;
