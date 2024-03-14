@@ -51,8 +51,11 @@ GRADLE_BUILD_OPTS=${GRADLE_BUILD_OPTS:-"$@"}
 log_debug "gradle build opts: ${GRADLE_BUILD_OPTS}"
 
 run_tests() {
-   log_info "running unit tests"
+   log_info "running library unit tests"
    ./gradlew --build-cache library:test --scan
+
+   log_info "running testharness unit tests"
+   ./gradlew --build-cache testharness:test --scan
 }
 
 run_integration_tests() {
