@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.common.exception.ConflictException;
 import bio.terra.common.exception.ForbiddenException;
 import bio.terra.lz.futureservice.app.service.LandingZoneAppService;
+import bio.terra.lz.futureservice.common.BaseSpringUnitTest;
 import bio.terra.lz.futureservice.common.fixture.AzureLandingZoneFixtures;
 import bio.terra.lz.futureservice.common.utils.MockMvcUtils;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZone;
@@ -42,16 +43,14 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-public class LandingZoneApiControllerTest {
+public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
   private static final String AZURE_LANDING_ZONE_PATH = "/api/landingzones/v1/azure";
   private static final String GET_CREATE_AZURE_LANDING_ZONE_RESULT =
       "/api/landingzones/v1/azure/create-result";
