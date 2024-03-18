@@ -44,12 +44,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class LandingZoneSamServiceTest {
   private static final SamUser SAM_USER =
       new SamUser("test@example.com", "Subject", new BearerToken("0123.456-789AbCd"));
-  private static final String SAM_BASE_PATH = "not_real";
   private static final String RESOURCE_TYPE = "resource_type";
   private static final String RESOURCE_ID = "resource_id";
   private static final String RESOURCE_ACTION = "action";
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final UUID BILLING_PROFILE_ID = UUID.randomUUID();
+  private static final ApiException API_EXCEPTION =
+      new ApiException("Message: SomeError\nHTTP response code: 500");
   private LandingZoneSamService samService;
 
   @Mock private LandingZoneSamClient samClient;
@@ -114,7 +115,7 @@ class LandingZoneSamServiceTest {
   void isAuthorized_throwsSamInternalServerErrorException() throws ApiException {
     var token = SAM_USER.getBearerToken();
     // Setup mocks
-    doThrow(new ApiException("..."))
+    doThrow(API_EXCEPTION)
         .when(resourcesApi)
         .resourcePermissionV2(RESOURCE_TYPE, RESOURCE_ID, RESOURCE_ACTION);
     when(samClient.resourcesApi(anyString())).thenReturn(resourcesApi);
@@ -201,7 +202,7 @@ class LandingZoneSamServiceTest {
     setupSamUserInfoMock(false);
     when(samClient.usersApi(anyString())).thenReturn(usersApi);
     when(samClient.getLandingZoneResourceUsers()).thenReturn(listOfUsers);
-    doThrow(new ApiException("..."))
+    doThrow(API_EXCEPTION)
         .when(resourcesApi)
         .createResourceV2(
             eq(SamConstants.SamResourceType.LANDING_ZONE), any(CreateResourceRequestV2.class));
@@ -244,7 +245,7 @@ class LandingZoneSamServiceTest {
   void deleteLandingZone_throws() throws ApiException {
     var token = SAM_USER.getBearerToken();
     // Setup Mocks
-    doThrow(new ApiException("..."))
+    doThrow(API_EXCEPTION)
         .when(resourcesApi)
         .deleteResourceV2(SamConstants.SamResourceType.LANDING_ZONE, LANDING_ZONE_ID.toString());
     when(samClient.resourcesApi(anyString())).thenReturn(resourcesApi);
@@ -328,10 +329,10 @@ class LandingZoneSamServiceTest {
   }
 
   @Test
-  void listLandingZoneResourceIds_throws() throws InterruptedException, ApiException {
+  void listLandingZoneResourceIds_throws() throws ApiException {
     var token = SAM_USER.getBearerToken();
     // Setup Mocks
-    doThrow(new ApiException("..."))
+    doThrow(API_EXCEPTION)
         .when(resourcesApi)
         .listResourcesAndPoliciesV2(SamConstants.SamResourceType.LANDING_ZONE);
     when(samClient.resourcesApi(anyString())).thenReturn(resourcesApi);
