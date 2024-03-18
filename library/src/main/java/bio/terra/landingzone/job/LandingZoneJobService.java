@@ -27,7 +27,7 @@ import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
 import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
+import bio.terra.landingzone.stairway.common.utils.StairwayLoggingHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightDebugInfo;
@@ -68,7 +68,7 @@ public class LandingZoneJobService {
   private final LandingZoneIngressConfiguration ingressConfig;
   private final LandingZoneStairwayDatabaseConfiguration stairwayDatabaseConfiguration;
   private final ScheduledExecutorService executor;
-  private final LandingZoneMdcHook mdcHook;
+  private final StairwayLoggingHook stairwayLoggingHook;
   private final StairwayComponent stairwayComponent;
   private final LandingZoneFlightBeanBag flightBeanBag;
   private final ObjectMapper objectMapper;
@@ -81,7 +81,7 @@ public class LandingZoneJobService {
       LandingZoneJobConfiguration jobConfig,
       LandingZoneIngressConfiguration ingressConfig,
       LandingZoneStairwayDatabaseConfiguration stairwayDatabaseConfiguration,
-      LandingZoneMdcHook mdcHook,
+      StairwayLoggingHook stairwayLoggingHook,
       @Qualifier("landingZoneStairwayComponent") StairwayComponent stairwayComponent,
       LandingZoneFlightBeanBag flightBeanBag,
       ObjectMapper objectMapper,
@@ -91,7 +91,7 @@ public class LandingZoneJobService {
     this.ingressConfig = ingressConfig;
     this.stairwayDatabaseConfiguration = stairwayDatabaseConfiguration;
     this.executor = Executors.newScheduledThreadPool(jobConfig.getMaxThreads());
-    this.mdcHook = mdcHook;
+    this.stairwayLoggingHook = stairwayLoggingHook;
     this.stairwayComponent = stairwayComponent;
     this.flightBeanBag = flightBeanBag;
     this.objectMapper = objectMapper;
@@ -101,7 +101,7 @@ public class LandingZoneJobService {
 
   // Fully fluent style of JobBuilder
   public LandingZoneJobBuilder newJob() {
-    return new LandingZoneJobBuilder(this, stairwayComponent, mdcHook, openTelemetry);
+    return new LandingZoneJobBuilder(this, stairwayComponent, openTelemetry);
   }
 
   // submit a new job to stairway
@@ -176,7 +176,7 @@ public class LandingZoneJobService {
             .newStairwayOptionsBuilder()
             .dataSource(DataSourceInitializer.initializeDataSource(stairwayDatabaseConfiguration))
             .context(flightBeanBag)
-            .addHook(mdcHook)
+            .addHook(stairwayLoggingHook)
             .addHook(new MonitoringHook(openTelemetry))
             .exceptionSerializer(new StairwayExceptionSerializer(objectMapper)));
   }
