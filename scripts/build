@@ -54,6 +54,9 @@ run_tests() {
    log_info "running library unit tests"
    ./gradlew --build-cache library:test --scan
 
+   log_info "running service unit tests"
+   ./gradlew --build-cache service:test --scan
+
    log_info "running testharness unit tests"
    ./gradlew --build-cache testharness:test --scan
 }

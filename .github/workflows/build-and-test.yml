@@ -110,11 +110,8 @@ jobs:
           subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
 
       # Run tests
-      - name: Run Library and Test Harness tests with coverage
+      - name: Run Library, Service, and Test Harness tests with coverage
         run: ./scripts/build test
-
-      - name: Service tests
-        run: ./gradlew --build-cache service:test --scan
 
       - name: Integration Test with coverage
         run: ./scripts/build integration
