@@ -94,8 +94,7 @@ public class EnableAksContainerLogV2Step implements Step {
     CoreV1Api k8sApiClient =
         kubernetesClientProvider.createCoreApiClient(
             armManagers, managedResourceGroupName, aksResourceName);
-    k8sApiClient.createNamespacedConfigMap(
-        aksNamespace, containerLogV2ConfigMap, null, null, null, null);
+    k8sApiClient.createNamespacedConfigMap(aksNamespace, containerLogV2ConfigMap).execute();
   }
 
   private boolean isK8sApiRetryableError(int httpStatusCode) {
