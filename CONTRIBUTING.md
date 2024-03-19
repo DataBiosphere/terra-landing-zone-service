@@ -1,5 +1,20 @@
 # CONTRIBUTING
 
+> **_NOTE:_**
+> For compliance reasons, all pull requests must be submitted with a Jira ID as a part of the pull
+> request.
+>
+> You should include the Jira ID near the beginning of the title for better readability.
+>
+> For example:
+> `[XX-1234]: add statement to CONTRIBUTING.md about including Jira IDs in PR titles`
+>
+> If there is more than one relevant ticket, include all associated Jira IDs.
+>
+> For example:
+> `[WOR-1997] [WOR-2002] [WOR-2005]: fix for many bugs with the same root cause`
+>
+
 ## Requirements
 
 - Java 17
@@ -16,11 +31,11 @@ as well as on merge to `main`.
 # Run setup to set the environment, including postgres running in docker:
 ./scripts/setup
 
-# Unit tests (currently runs library and testharness tests):
-./scripts/build test
+# Unit tests (currently library, service, and testharness tests):
+./scripts/run test
 
 # integration tests
-./scripts/build integration
+./scripts/run integration
 ```
 
 #### Setup for Local Integration Testing

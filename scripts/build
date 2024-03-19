@@ -8,18 +8,14 @@ usage() {
   echo "[-h|--help]      print this help text"
   echo ""
   echo "COMMAND is one of the following:"
-  echo "- test           execute the tests (should be relatively fast)"
-  echo "- integration    execute the integration tests"
   echo "- project        the default build command"
   echo "- docker         build a docker image"
-  echo "- checkFormat    check formatting of files"
+  echo "- lint           static file analysis (including formatting)"
   echo "- fixFormat      automatically fix formatting of files"
 }
 
 # script variables and defaults
 source $(dirname $0)/init.sh
-
-DEBUG_OPTS=""
 
 
 # process command-line options (if any)
@@ -50,26 +46,6 @@ shift 1
 GRADLE_BUILD_OPTS=${GRADLE_BUILD_OPTS:-"$@"}
 log_debug "gradle build opts: ${GRADLE_BUILD_OPTS}"
 
-run_tests() {
-   log_info "running library unit tests"
-   ./gradlew --build-cache library:test --scan
-
-   log_info "running service unit tests"
-   ./gradlew --build-cache service:test --scan
-
-   log_info "running testharness unit tests"
-   ./gradlew --build-cache testharness:test --scan
-}
-
-run_integration_tests() {
-  log_info "NOTE: Must have a credential capable of connecting to the test subscription and tenant."
-  log_info "For local testing, the Azure CLI is the best way to get the needed environment"
-  log_info "variables set via an invocation of 'az login'."
-  log_info ""
-  log_info "running integration tests (will take over 20 minutes)"
-  ./gradlew --build-cache library:integration --scan
-}
-
 build_project() {
   cd "${ROOT_DIR}"
   ./gradlew ${GRADLE_OPTS} build ${GRADLE_BUILD_OPTS}
@@ -93,7 +69,7 @@ build_docker() {
   fi
 }
 
-check_format() {
+lint() {
   cd "${ROOT_DIR}"
   ./gradlew spotlessCheck
 }
@@ -104,11 +80,9 @@ fix_format() {
 }
 
 case "$COMMAND" in
-  test )         run_tests ;;
-  integration )  run_integration_tests ;;
   project )      build_project ;;
   docker )       build_docker ;;
-  checkFormat )  check_format ;;
+  lint )         lint ;;
   fixFormat )    fix_format ;;
   * )            die "Missing or invalid positional command: '${COMMAND}'" ;;
 esac

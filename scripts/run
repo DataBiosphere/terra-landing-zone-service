@@ -3,13 +3,15 @@
 set -e
 
 usage() {
-  echo "usage: $0 [-h|--help] LOCATION"
-  echo ""
-  echo "[-h|--help]      print this help text"
-  echo ""
-  echo "LOCATION is one of:"
-  echo "- local            run as a local process"
-  echo "- docker           run in a docker container"
+  cat <<-'EOF'
+usage: run [-h|--help] RUNTYPE
+[-h|--help]       print this help text
+RUNTYPE is one of:
+- tests           run tests against repo
+- integration     run integration tests
+- local           run as a local terminal process
+- docker          run in a docker container
+EOF
 }
 
 # script variables and defaults
@@ -47,12 +49,32 @@ run_local() {
 }
 
 run_docker() {
-  # "$ROOT_DIR/scripts/build" docker
-  # docker compose -f "$ROOT_DIR/scripts/compose.yaml" up service -d
   echo "Running in docker is not yet implemented"
 }
 
+run_tests() {
+   log_info "running library unit tests"
+   ./gradlew --build-cache library:test --scan
+
+   log_info "running service unit tests"
+   ./gradlew --build-cache service:test --scan
+
+   log_info "running testharness unit tests"
+   ./gradlew --build-cache testharness:test --scan
+}
+
+run_integration_tests() {
+  log_info "NOTE: Must have a credential capable of connecting to the test subscription and tenant."
+  log_info "For local testing, the Azure CLI is the best way to get the needed environment"
+  log_info "variables set via an invocation of 'az login'."
+  log_info ""
+  log_info "running integration tests (will take over 20 minutes)"
+  ./gradlew --build-cache library:integration --scan
+}
+
 case "$LOCATION" in
+  test )         run_tests ;;
+  integration )  run_integration_tests ;;
   local )     run_local;;
   docker )    run_docker;;
   * )         usage; exit 2;
