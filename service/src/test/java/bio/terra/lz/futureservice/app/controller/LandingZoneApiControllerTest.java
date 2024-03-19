@@ -32,6 +32,7 @@ import bio.terra.lz.futureservice.generated.model.ApiJobReport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -311,7 +312,8 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
 
   @Test
   void getAzureLandingZoneByLandingZoneIdSuccess() throws Exception {
-    var lzCreateDate = Instant.now().atOffset(ZoneOffset.UTC);
+    // Truncating to milliseconds so that our later comparison is performed at the same granularity.
+    var lzCreateDate = Instant.now().truncatedTo(ChronoUnit.MILLIS).atOffset(ZoneOffset.UTC);
     ApiAzureLandingZone landingZone =
         AzureLandingZoneFixtures.buildDefaultApiAzureLandingZone(
             LANDING_ZONE_ID, BILLING_PROFILE_ID, "definition", "version", lzCreateDate);
