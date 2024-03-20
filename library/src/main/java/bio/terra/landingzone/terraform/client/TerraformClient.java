@@ -99,7 +99,7 @@ public class TerraformClient implements AutoCloseable {
 
   public CompletableFuture<Boolean> plan() throws IOException {
     this.checkRunningParameters();
-    return this.run(PLAN_COMMAND);
+    return this.run(INIT_COMMAND, PLAN_COMMAND);
   }
 
   public CompletableFuture<Boolean> show() throws IOException {

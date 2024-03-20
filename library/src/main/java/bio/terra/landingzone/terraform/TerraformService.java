@@ -2,20 +2,15 @@ package bio.terra.landingzone.terraform;
 
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.library.AzureCredentialsProvider;
 import bio.terra.landingzone.library.configuration.LandingZoneDatabaseConfiguration;
-import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
-import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
 import bio.terra.landingzone.terraform.client.TerraformClient;
-import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.profile.AzureProfile;
+import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.hashicorp.cdktf.App;
 import com.hashicorp.cdktf.AppConfig;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -51,13 +46,17 @@ public class TerraformService {
     // ensure access
     landingZoneService.getLandingZone(bearerToken, landingZoneId);
     var record = landingZoneDao.getLandingZoneRecord(landingZoneId);
-    var realAcct = getLandingZoneStorageAccount(record, bearerToken);
+    var resourceResolver = new ResourceResolver(landingZoneService, azureCredentialsProvider);
+    var realAcct = resourceResolver.getLandingZoneStorageAccount(record, bearerToken);
+    var realAks = resourceResolver.getLandingZoneAks(record, bearerToken);
 
     try {
       var tmpdir = Files.createTempDirectory("lz-terraform").toString();
-      synthesize(tmpdir, record.resourceGroupId(), realAcct);
-      return doPlan(tmpdir, record.resourceGroupId());
-    } catch (IOException e) {
+      synthesize(tmpdir, record.resourceGroupId(), realAcct, realAks);
+      var result = doPlan(tmpdir, record.resourceGroupId());
+      logger.info(result);
+      return result;
+    } catch (Exception e) {
       logger.error("Error creating temp directory for landing zone Terraform", e);
       throw new LandingZoneTerraformException(
           "Error creating temp directory for landing zone Terraform", e);
@@ -85,34 +84,13 @@ public class TerraformService {
     }
   }
 
-  private void synthesize(String tmpdir, String mrgId, StorageAccount realAcct) {
+  private void synthesize(
+      String tmpdir, String mrgId, StorageAccount realAcct, KubernetesCluster realAks) {
     logger.info("Synthesizing terraform...");
     AppConfig appConfig = AppConfig.builder().outdir(tmpdir).build();
     var app = new App(appConfig);
 
-    new LandingZoneStack(app, mrgId, landingZoneDatabaseConfiguration, realAcct);
+    new LandingZoneStack(app, mrgId, landingZoneDatabaseConfiguration, realAcct, realAks);
     app.synth();
-  }
-
-  private StorageAccount getLandingZoneStorageAccount(
-      LandingZoneRecord record, BearerToken bearerToken) {
-    var resources =
-        landingZoneService.listResourcesByPurpose(
-            bearerToken, record.landingZoneId(), ResourcePurpose.SHARED_RESOURCE);
-    var accts =
-        resources.stream()
-            .filter(r -> r.resourceType().equals("Microsoft.Storage/storageAccounts"))
-            .toList();
-    if (accts.size() != 1) {
-      throw new RuntimeException("Expected 1 storage account, found " + accts.size());
-    }
-
-    var azureProfile =
-        new AzureProfile(record.tenantId(), record.subscriptionId(), AzureEnvironment.AZURE);
-    var armManagers =
-        LandingZoneManager.createArmManagers(
-            azureCredentialsProvider.getTokenCredential(), azureProfile, "ignore");
-
-    return armManagers.azureResourceManager().storageAccounts().getById(accts.get(0).resourceId());
   }
 }

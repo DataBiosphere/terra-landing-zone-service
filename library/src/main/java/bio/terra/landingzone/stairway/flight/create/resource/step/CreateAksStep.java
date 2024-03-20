@@ -70,7 +70,8 @@ public class CreateAksStep extends BaseResourceCreateStep {
                 .getValue(
                     LandingZoneDefaultParameters.ParametersNames.AKS_AUTOSCALING_ENABLED.name()));
 
-    var aks =
+    KubernetesCluster aks;
+    aks =
         createAks(
             context,
             vNetId,
