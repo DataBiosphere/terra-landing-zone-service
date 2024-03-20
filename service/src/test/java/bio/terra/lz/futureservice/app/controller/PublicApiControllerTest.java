@@ -10,7 +10,6 @@ import bio.terra.lz.futureservice.app.service.status.StatusService;
 import bio.terra.lz.futureservice.common.BaseSpringUnitTest;
 import bio.terra.lz.futureservice.common.fixture.SystemStatusFixtures;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +53,7 @@ public class PublicApiControllerTest extends BaseSpringUnitTest {
   public void testServiceVersionSuccess() throws Exception {
     mockMvc
         .perform(get(AZURE_SYSTEM_VERSION_PATH))
-        .andExpect(status().is(HttpStatus.SC_OK))
+        .andExpect(status().isOk())
         .andExpect(MockMvcResultMatchers.jsonPath("$.gitTag").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.gitTag", Matchers.is(gitTag)))
         .andExpect(MockMvcResultMatchers.jsonPath("$.gitHash").exists())
@@ -75,7 +74,7 @@ public class PublicApiControllerTest extends BaseSpringUnitTest {
 
     mockMvc
         .perform(get(AZURE_SYSTEM_STATUS_PATH))
-        .andExpect(status().is(HttpStatus.SC_OK))
+        .andExpect(status().isOk())
         .andExpect(MockMvcResultMatchers.jsonPath("$.ok").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.ok", Matchers.is(true)))
         .andExpect(MockMvcResultMatchers.jsonPath("$.systems").exists())
@@ -95,7 +94,7 @@ public class PublicApiControllerTest extends BaseSpringUnitTest {
 
     mockMvc
         .perform(get(AZURE_SYSTEM_STATUS_PATH))
-        .andExpect(status().is(HttpStatus.SC_SERVICE_UNAVAILABLE))
+        .andExpect(status().isServiceUnavailable())
         .andExpect(MockMvcResultMatchers.jsonPath("$.ok").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.ok", Matchers.is(false)))
         .andExpect(MockMvcResultMatchers.jsonPath("$.systems").exists())

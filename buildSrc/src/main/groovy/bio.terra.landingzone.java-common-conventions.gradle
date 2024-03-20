@@ -42,25 +42,14 @@ dependencies {
     compileOnly "com.google.code.findbugs:annotations:3.0.1"
     implementation 'org.slf4j:slf4j-api'
     implementation 'io.swagger.core.v3:swagger-annotations:2.1.12'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.2.0'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
     testImplementation 'ch.qos.logback:logback-classic'
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
-    var openTelemetryVersion = '1.34.1'
-    implementation "io.opentelemetry:opentelemetry-api:${openTelemetryVersion}"
-    implementation "io.opentelemetry:opentelemetry-sdk:${openTelemetryVersion}"
-    implementation "io.opentelemetry:opentelemetry-sdk-metrics:${openTelemetryVersion}"
-    implementation "io.opentelemetry:opentelemetry-exporter-logging:${openTelemetryVersion}"
-
-    var openTelemetryInstrumentationVersion = '2.0.0'
-    implementation "io.opentelemetry.instrumentation:opentelemetry-spring-webmvc-6.0:${openTelemetryInstrumentationVersion}-alpha"
-    implementation "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:${openTelemetryInstrumentationVersion}"
-    implementation "io.opentelemetry.instrumentation:opentelemetry-spring-boot:${openTelemetryInstrumentationVersion}-alpha"
-
-    implementation "com.google.cloud.opentelemetry:exporter-trace:0.25.2"
-
-    implementation ('bio.terra:terra-common-lib:1.0.9-SNAPSHOT') {
+    implementation 'com.google.guava:guava:33.1.0-jre' // Needed for TCL
+    implementation ('bio.terra:terra-common-lib:1.1.0-SNAPSHOT') {
         exclude group: "org.broadinstitute.dsde.workbench", module: "sam-client_2.13"
     }
 }
