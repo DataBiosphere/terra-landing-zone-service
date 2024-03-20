@@ -56,10 +56,10 @@ check_required_tools() {
   for tool in "${tools[@]}";
   do
     [[ $(type -P "$tool") ]] || {
-      log_error "$tool not found on PATH, please install $tool"
+      log_error "'$tool' not found on PATH, please install '$tool'"
       return 1;
     }
-    log_debug "found $tool on PATH"
+    log_debug "found '$tool' on PATH"
   done
   log_info 'all required tools found on PATH'
 }

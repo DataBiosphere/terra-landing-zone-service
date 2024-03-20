@@ -15,8 +15,6 @@ source $(dirname $0)/init.sh
 
 # the list of tools required to be installed to interact with this repo
 # this is meant to verify what is also in the ./README.md#environment-setup section
-ROOT_DIR="$(cd "$(dirname "$0")/.."; pwd)"
-
 TOOLS=(java docker)
 
 # process command-line options (if any)
@@ -46,21 +44,12 @@ log() {
   log_info "$MSG_PREFIX ${@}"
 }
 
-verify_tool() {
-  if ! command -v $1 &> /dev/null; then
-      log "'$1' could not be found"
-      exit 1
-  else
-    log "verified: ${@}"
-  fi
-}
-
 log "verifying minnie-kinney is installed"
 $(dirname $0)/../minnie-kenny.sh -s
 
 log "verifying required tools are installed"
 for tool in "${TOOLS[@]}"; do
-  verify_tool $tool
+  check_required_tools "${TOOLS[@]}" || exit 1;
 done
 log_info ""
 
