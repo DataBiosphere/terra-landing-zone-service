@@ -13,6 +13,7 @@ public class TerraformClient implements AutoCloseable {
       INIT_COMMAND = "init",
       PLAN_COMMAND = "plan",
       APPLY_COMMAND = "apply",
+      SHOW_COMMAND = "show",
       DESTROY_COMMAND = "destroy";
   private static final String SUBS_ID_ENV_NAME = "ARM_SUBSCRIPTION_ID",
       CLIENT_ID_ENV_NAME = "ARM_CLIENT_ID",
@@ -21,11 +22,14 @@ public class TerraformClient implements AutoCloseable {
   private static final String USER_AGENT_ENV_NAME = "AZURE_HTTP_USER_AGENT",
       USER_AGENT_ENV_VALUE = "Java-TerraformClient",
       USER_AGENT_DELIMITER = ";";
-  private static final Map<String, String> NON_INTERACTIVE_COMMAND_MAP = new HashMap<>();
+  private static final Map<String, String[]> NON_INTERACTIVE_COMMAND_MAP = new HashMap<>();
 
   static {
-    NON_INTERACTIVE_COMMAND_MAP.put(APPLY_COMMAND, "-auto-approve");
-    NON_INTERACTIVE_COMMAND_MAP.put(DESTROY_COMMAND, "-force");
+    NON_INTERACTIVE_COMMAND_MAP.put(INIT_COMMAND, new String[] {});
+    NON_INTERACTIVE_COMMAND_MAP.put(APPLY_COMMAND, new String[] {"-auto-approve"});
+    NON_INTERACTIVE_COMMAND_MAP.put(DESTROY_COMMAND, new String[] {"-force"});
+    NON_INTERACTIVE_COMMAND_MAP.put(PLAN_COMMAND, new String[] {"-out=tf.plan"});
+    NON_INTERACTIVE_COMMAND_MAP.put(SHOW_COMMAND, new String[] {"-json", "tf.plan"});
   }
 
   private final ExecutorService executor = Executors.newWorkStealingPool();
@@ -95,7 +99,13 @@ public class TerraformClient implements AutoCloseable {
 
   public CompletableFuture<Boolean> plan() throws IOException {
     this.checkRunningParameters();
-    return this.run(INIT_COMMAND, PLAN_COMMAND);
+    return this.run(PLAN_COMMAND);
+  }
+
+  public CompletableFuture<Boolean> show() throws IOException {
+    this.checkRunningParameters();
+    ;
+    return this.run(SHOW_COMMAND);
   }
 
   public CompletableFuture<Boolean> apply() throws IOException {

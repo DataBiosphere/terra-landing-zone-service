@@ -11,6 +11,7 @@ import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import com.azure.resourcemanager.storage.models.SkuName;
+import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,8 @@ public class CreateStorageAccountStep extends BaseResourceCreateStep {
         getParameterOrThrow(
             context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
     String storageAccountName = resourceNameProvider.getName(getResourceType());
-    var storage =
+    StorageAccount storage;
+    storage =
         armManagers
             .azureResourceManager()
             .storageAccounts()
