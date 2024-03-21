@@ -1,7 +1,9 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
-    id 'bio.terra.landingzone.java-spring-library-conventions'
+    id 'bio.terra.landingzone.java-library-conventions'
+    id 'maven-publish'
+    id 'io.spring.dependency-management'
     id 'com.jfrog.artifactory'
     id 'org.hidetake.swagger.generator'
 }
