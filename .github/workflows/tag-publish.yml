@@ -152,9 +152,8 @@ jobs:
 
     - name: Build image locally with jib
       run: |
-        ./gradlew --build-cache :service:jibDockerBuild \
-        --image=${{ steps.image-name.outputs.name }} \
-        -Djib.console=plain
+        DOCKER_IMAGE_NAME_AND_TAG=${{ steps.image-name.outputs.name }} \
+        ./scripts/build docker
 
     - name: Push GCR image
       run: docker push ${{ steps.image-name.outputs.name }}

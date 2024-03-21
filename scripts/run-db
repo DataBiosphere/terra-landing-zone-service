@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# manage / interact with postgres container for local development
+
+usage() {
+    echo "Usage: $0 [-h|--help] COMMAND"
+    echo ""
+    echo "[-h|--help]      print this help text"
+    echo ""
+    echo "COMMAND is one of:"
+    echo "- start          start database server, running in docker"
+    echo "- stop           stop the database server, running in docker"
+}
+
+# script variables and defaults
+source $(dirname $0)/init.sh
+
+# process command-line options (if any)
+die() { log_error "$*" >&2; echo ""; usage; exit 2; }  # complain to STDERR and exit with error
+needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
+
+while getopts h-: OPT; do  # allow -h and -- "with arg"
+  # support long options: https://stackoverflow.com/a/28466267/519360
+  if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
+    OPT="${OPTARG%%=*}"       # extract long option name
+    OPTARG="${OPTARG#$OPT}"   # extract long option argument (may be empty)
+    OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
+  fi
+  case "$OPT" in
+    clean-db )     clean_db=true ;;
+    h | help )     usage; exit 0 ;;
+    \? )           usage; exit 2 ;;  # bad short option (error reported via getopts)
+    * )            die "Illegal option --$OPT" ;;            # bad long option
+  esac
+done
+shift $((OPTIND-1)) # remove parsed options and args from $@ list
+
+
+# process positional arguments (if any)
+COMMAND=$1
+
+start() {
+  $(dirname $0)/../service/local-dev/run_postgres.sh start
+}
+
+stop() {
+  $(dirname $0)/../service/local-dev/run_postgres.sh stop
+}
+
+case "$COMMAND" in
+  start )     start ;;
+  stop )      stop ;;
+  *     )     usage ;;
+esac

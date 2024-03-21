@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# run the service in one of different deployment modes
+set -e
+
+usage() {
+  cat <<-'EOF'
+usage: run [-h|--help] RUNTYPE
+[-h|--help]       print this help text
+RUNTYPE is one of:
+- tests           run tests against repo
+- integration     run integration tests
+- local           run as a local terminal process
+- docker          run in a docker container
+EOF
+}
+
+# script variables and defaults
+source $(dirname $0)/init.sh
+
+
+# process command-line options (if any)
+die() { log_error "$*" >&2; echo ""; usage; exit 2; }  # complain to STDERR and exit with error
+needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
+
+while getopts h-: OPT; do
+  # support long options: https://stackoverflow.com/a/28466267/519360
+  if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
+    OPT="${OPTARG%%=*}"       # extract long option name
+    OPTARG="${OPTARG#$OPT}"   # extract long option argument (may be empty)
+    OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
+  fi
+  case "$OPT" in
+    h | help )     usage; exit 0 ;;
+    \? )           usage; exit 2 ;;  # bad short option (error reported via getopts)
+    * )            die "Illegal option --$OPT" ;;            # bad long option
+  esac
+done
+shift $((OPTIND-1)) # remove parsed options and args from $@ list
+
+
+# process positional arguments (if any)
+LOCATION=${1}
+
+run_local() {
+  APP_LOGS="${TMP_DIR}/application.log"
+  echo "Application starting. Logs will be located at: ${APP_LOGS}".
+  cd "$ROOT_DIR"
+  ./gradlew :service:bootRun | tee ${APP_LOGS}
+}
+
+run_docker() {
+  echo "Running in docker is not yet implemented"
+}
+
+run_tests() {
+   log_info "running library unit tests"
+   ./gradlew --build-cache library:test --scan
+
+   log_info "running service unit tests"
+   ./gradlew --build-cache service:test --scan
+
+   log_info "running testharness unit tests"
+   ./gradlew --build-cache testharness:test --scan
+}
+
+run_integration_tests() {
+  log_info "NOTE: Must have a credential capable of connecting to the test subscription and tenant."
+  log_info "For local testing, the Azure CLI is the best way to get the needed environment"
+  log_info "variables set via an invocation of 'az login'."
+  log_info ""
+  log_info "running integration tests (will take over 20 minutes)"
+  ./gradlew --build-cache library:integration --scan
+}
+
+case "$LOCATION" in
+  test )         run_tests ;;
+  integration )  run_integration_tests ;;
+  local )     run_local;;
+  docker )    run_docker;;
+  * )         usage; exit 2;
+esac

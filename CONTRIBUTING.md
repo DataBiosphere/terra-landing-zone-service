@@ -1,5 +1,20 @@
 # CONTRIBUTING
 
+> **_NOTE:_**
+> For compliance reasons, all pull requests must be submitted with a Jira ID as a part of the pull
+> request.
+>
+> You should include the Jira ID near the beginning of the title for better readability.
+>
+> For example:
+> `[XX-1234]: add statement to CONTRIBUTING.md about including Jira IDs in PR titles`
+>
+> If there is more than one relevant ticket, include all associated Jira IDs.
+>
+> For example:
+> `[WOR-1997] [WOR-2002] [WOR-2005]: fix for many bugs with the same root cause`
+>
+
 ## Requirements
 
 - Java 17
@@ -13,11 +28,14 @@ as well as on merge to `main`.
 ### Local Testing
 
 ```sh
-# Unit tests
-./gradlew :library:unitTest
+# Run setup to set the environment, including postgres running in docker:
+./scripts/setup
+
+# Unit tests (currently library, service, and testharness tests):
+./scripts/run test
 
 # integration tests
-./gradlew :library:integrationTest
+./scripts/run integration
 ```
 
 #### Setup for Local Integration Testing
@@ -28,8 +46,10 @@ Running integration tests locally requires:
   see the related Azure [documentation](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme?view=azure-java-stable#defaultazurecredential).
 
 * A running postgres:
-```
- ./library/local-dev/run_postgres.sh start|stop
+```sh
+./scripts/setup
+# or
+./scripts/run-db start|stop
 ```
 
 ### Smoke tests
