@@ -1,4 +1,0 @@
-plugins {
-    id 'bio.terra.landingzone.java-common-conventions'
-    id 'java-library'
-}
