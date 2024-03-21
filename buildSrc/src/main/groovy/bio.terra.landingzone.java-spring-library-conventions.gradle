@@ -1,7 +1,5 @@
 plugins {
-    id 'bio.terra.landingzone.java-common-conventions'
-    id 'io.spring.dependency-management'
-    id 'org.springframework.boot'
+    id 'bio.terra.landingzone.java-spring-conventions'
     id 'java-library'
     id 'maven-publish'
 }

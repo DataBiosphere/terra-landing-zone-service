@@ -49,7 +49,7 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest:2.2'
 
     implementation 'com.google.guava:guava:33.1.0-jre' // Needed for TCL
-    implementation ('bio.terra:terra-common-lib:1.1.0-SNAPSHOT') {
+    implementation ('bio.terra:terra-common-lib:1.0.10-SNAPSHOT') {
         exclude group: "org.broadinstitute.dsde.workbench", module: "sam-client_2.13"
     }
 }
