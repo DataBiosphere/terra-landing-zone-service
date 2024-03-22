@@ -11,7 +11,6 @@ plugins {
 apply from: 'publishing.gradle'
 
 dependencies {
-    implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
