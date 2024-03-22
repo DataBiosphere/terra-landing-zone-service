@@ -3,13 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation (project(":library")) {
-        // the msal4j transitive dependency is still pulling in an old version of json-smart
-        // which is vulnerable to CVE-2023-1370
-        // see https://github.com/AzureAD/microsoft-authentication-library-for-java/issues/611
-        exclude group: 'net.minidev', module: 'json-smart'
-    }
-    implementation 'net.minidev:json-smart:2.5.0'
+    implementation project(":library")
 
     implementation 'org.apache.commons:commons-dbcp2'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
@@ -18,13 +12,7 @@ dependencies {
     implementation 'org.springframework:spring-aop'
     implementation 'org.springframework:spring-aspects'
 
-    testImplementation 'org.apache.commons:commons-lang3:3.14.0'
-
-    testImplementation('org.springframework.boot:spring-boot-starter-test') {
-        exclude group: 'com.vaadin.external.google', module: 'android-json'
-        exclude group: 'net.minidev', module: 'json-smart'
-    }
-    testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     // Allows us to mock final classes
     testImplementation 'org.mockito:mockito-inline:5.2.0'

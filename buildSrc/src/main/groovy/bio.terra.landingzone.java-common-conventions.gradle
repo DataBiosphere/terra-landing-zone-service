@@ -40,7 +40,6 @@ repositories {
 
 dependencies {
     compileOnly "com.google.code.findbugs:annotations:3.0.1"
-    implementation 'org.slf4j:slf4j-api'
     implementation 'io.swagger.core.v3:swagger-annotations:2.1.12'
     implementation 'io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.2.0'
     // Needed for @VisibleForTesting and more:
@@ -50,10 +49,7 @@ dependencies {
     implementation 'com.google.guava:guava:33.1.0-jre'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
-    testImplementation 'ch.qos.logback:logback-classic'
-    testImplementation 'org.hamcrest:hamcrest:2.2'
-
-    implementation ('bio.terra:terra-common-lib:1.0.10-SNAPSHOT') {
+    implementation ('bio.terra:terra-common-lib:1.1.0-SNAPSHOT') {
         exclude group: "org.broadinstitute.dsde.workbench", module: "sam-client_2.13"
     }
 }

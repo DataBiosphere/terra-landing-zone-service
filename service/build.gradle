@@ -28,10 +28,7 @@ dependencies {
     implementation 'org.springframework:spring-aop'
     implementation 'org.springframework:spring-aspects'
 
-    //implementation group: "org.liquibase", name: "liquibase-core", version: "4.8.0"
-
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation group: "org.hamcrest", name: "hamcrest", version: "2.2"
 
     testImplementation 'au.com.dius.pact.consumer:junit5:4.6.7'
     testImplementation("au.com.dius.pact.provider:junit5:4.6.7")
