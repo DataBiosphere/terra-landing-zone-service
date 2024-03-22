@@ -4,7 +4,6 @@ import bio.terra.common.stairway.MonitoringHook;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.model.ErrorReport;
-import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.exception.MissingRequiredFieldsException;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.FlightMap;
@@ -26,8 +25,6 @@ public class FlightUtils {
           LandingZoneRecord.class,
           JobMapKeys.SUBJECT_ID.getKeyName(),
           String.class,
-          LandingZoneMdcHook.MDC_FLIGHT_MAP_KEY,
-          Object.class,
           MonitoringHook.SUBMISSION_SPAN_CONTEXT_MAP_KEY,
           Object.class);
 

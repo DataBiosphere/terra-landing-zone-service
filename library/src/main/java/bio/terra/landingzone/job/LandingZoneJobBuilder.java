@@ -8,7 +8,6 @@ import bio.terra.landingzone.job.exception.InvalidJobIdException;
 import bio.terra.landingzone.job.exception.InvalidJobParameterException;
 import bio.terra.landingzone.job.model.OperationType;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.common.utils.LandingZoneMdcHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightMap;
@@ -20,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 public class LandingZoneJobBuilder {
   private final LandingZoneJobService jobService;
   private final StairwayComponent stairwayComponent;
-  private final LandingZoneMdcHook mdcHook;
   private final FlightMap jobParameterMap;
   private final OpenTelemetry openTelemetry;
   private Class<? extends Flight> flightClass;
@@ -33,11 +31,9 @@ public class LandingZoneJobBuilder {
   public LandingZoneJobBuilder(
       LandingZoneJobService jobService,
       StairwayComponent stairwayComponent,
-      LandingZoneMdcHook mdcHook,
       OpenTelemetry openTelemetry) {
     this.jobService = jobService;
     this.stairwayComponent = stairwayComponent;
-    this.mdcHook = mdcHook;
     this.openTelemetry = openTelemetry;
     this.jobParameterMap = new FlightMap();
   }
@@ -126,8 +122,7 @@ public class LandingZoneJobBuilder {
       jobId = stairwayComponent.get().createFlightId();
     }
 
-    // Always add the MDC logging and tracing span parameters for the mdc hook
-    addParameter(LandingZoneMdcHook.MDC_FLIGHT_MAP_KEY, mdcHook.getSerializedCurrentContext());
+    // Always add the tracing span parameters
     addParameter(
         MonitoringHook.SUBMISSION_SPAN_CONTEXT_MAP_KEY,
         MonitoringHook.serializeCurrentTracingContext(openTelemetry));

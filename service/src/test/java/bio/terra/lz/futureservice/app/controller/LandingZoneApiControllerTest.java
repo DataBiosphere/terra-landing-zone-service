@@ -32,10 +32,10 @@ import bio.terra.lz.futureservice.generated.model.ApiJobReport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
-import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,6 +44,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -83,7 +84,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
                     .content(objectMapper.writeValueAsString(requestBody))
                     .characterEncoding("utf-8"),
                 USER_REQUEST))
-        .andExpect(status().is(HttpStatus.SC_ACCEPTED))
+        .andExpect(status().isAccepted())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id", Matchers.is(JOB_ID)))
@@ -108,7 +109,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
                     .content(objectMapper.writeValueAsString(requestBody))
                     .characterEncoding("utf-8"),
                 USER_REQUEST))
-        .andExpect(status().is(HttpStatus.SC_BAD_REQUEST));
+        .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -129,7 +130,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
                     .content(objectMapper.writeValueAsString(requestBody))
                     .characterEncoding("utf-8"),
                 USER_REQUEST))
-        .andExpect(status().is(HttpStatus.SC_BAD_REQUEST));
+        .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -145,7 +146,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
         .perform(
             MockMvcUtils.addAuth(
                 get(GET_CREATE_AZURE_LANDING_ZONE_RESULT + "/{jobId}", JOB_ID), USER_REQUEST))
-        .andExpect(status().is(HttpStatus.SC_ACCEPTED))
+        .andExpect(status().isAccepted())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id", Matchers.is(JOB_ID)))
@@ -165,7 +166,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
         .perform(
             MockMvcUtils.addAuth(
                 get(GET_CREATE_AZURE_LANDING_ZONE_RESULT + "/{jobId}", JOB_ID), USER_REQUEST))
-        .andExpect(status().is(HttpStatus.SC_OK))
+        .andExpect(status().isOk())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.landingZone").exists())
@@ -229,7 +230,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
                     .content(objectMapper.writeValueAsString(requestBody))
                     .characterEncoding("utf-8"),
                 USER_REQUEST))
-        .andExpect(status().is(HttpStatus.SC_ACCEPTED))
+        .andExpect(status().isAccepted())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.landingZoneId").exists())
@@ -311,7 +312,8 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
 
   @Test
   void getAzureLandingZoneByLandingZoneIdSuccess() throws Exception {
-    var lzCreateDate = Instant.now().atOffset(ZoneOffset.UTC);
+    // Truncating to milliseconds so that our later comparison is performed at the same granularity.
+    var lzCreateDate = Instant.now().truncatedTo(ChronoUnit.MILLIS).atOffset(ZoneOffset.UTC);
     ApiAzureLandingZone landingZone =
         AzureLandingZoneFixtures.buildDefaultApiAzureLandingZone(
             LANDING_ZONE_ID, BILLING_PROFILE_ID, "definition", "version", lzCreateDate);
@@ -410,12 +412,12 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
     return Stream.of(
         Arguments.of(
             ApiJobReport.StatusEnum.SUCCEEDED,
-            HttpStatus.SC_OK,
+            HttpStatus.OK.value(),
             MockMvcResultMatchers.jsonPath("$.landingZoneId").exists(),
             MockMvcResultMatchers.jsonPath("$.resources").exists()),
         Arguments.of(
             ApiJobReport.StatusEnum.RUNNING,
-            HttpStatus.SC_ACCEPTED,
+            HttpStatus.ACCEPTED.value(),
             MockMvcResultMatchers.jsonPath("$.landingZoneId").doesNotExist(),
             MockMvcResultMatchers.jsonPath("$.resources").doesNotExist()));
   }
