@@ -59,7 +59,7 @@ public class CreatePostgresqlDbAdminStepTest extends BaseStepTest {
   void doStepSuccess() throws InterruptedException {
     setupValidFlightContext();
     var mockAdmin = mock(ActiveDirectoryAdministrator.class);
-    when(mockAdmin.objectId()).thenReturn("fakeadminId");
+    when(mockAdmin.id()).thenReturn("fakeadminId");
     when(mockArmManagers.postgreSqlManager()).thenReturn(mockPostgreSqlManager);
     when(mockPostgreSqlManager
             .administrators()

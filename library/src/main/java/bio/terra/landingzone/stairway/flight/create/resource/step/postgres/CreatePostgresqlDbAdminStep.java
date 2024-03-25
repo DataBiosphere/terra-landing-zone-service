@@ -1,5 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.resource.step.postgres;
 
+import static bio.terra.landingzone.stairway.flight.create.resource.step.postgres.CreatePostgresqlDbStep.POSTGRESQL_NAME;
+
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
@@ -43,9 +45,7 @@ public class CreatePostgresqlDbAdminStep extends BaseResourceCreateStep {
             context.getWorkingMap(),
             CreateLandingZoneIdentityStep.LANDING_ZONE_IDENTITY_PRINCIPAL_ID,
             String.class);
-    var postgresName =
-        getParameterOrThrow(
-            context.getWorkingMap(), CreatePostgresqlDbStep.POSTGRESQL_NAME, String.class);
+    var postgresName = getParameterOrThrow(context.getWorkingMap(), POSTGRESQL_NAME, String.class);
 
     try {
       var administrator =
@@ -57,7 +57,7 @@ public class CreatePostgresqlDbAdminStep extends BaseResourceCreateStep {
               .withPrincipalName(uami.resourceName().orElseThrow())
               .withPrincipalType(PrincipalType.SERVICE_PRINCIPAL)
               .create();
-      context.getWorkingMap().put(POSTGRESQL_ADMIN_ID, administrator.objectId());
+      context.getWorkingMap().put(POSTGRESQL_ADMIN_ID, administrator.id());
     } catch (ManagementException e) {
       if (e.getResponse() != null
           && HttpStatus.CONFLICT.value() == e.getResponse().getStatusCode()) {
