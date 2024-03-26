@@ -8,16 +8,22 @@ import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
+import bio.terra.stairway.StepResult;
+import bio.terra.stairway.StepStatus;
+import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.applicationinsights.models.ApplicationType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreateAppInsightsStep extends BaseResourceCreateStep {
   private static final Logger logger = LoggerFactory.getLogger(CreateAppInsightsStep.class);
+  private static final String INVALID_LAW_MSG =
+      "Could not retrieve the Log Analytics workspace from ARM";
   public static final String APP_INSIGHT_ID = "APP_INSIGHT_ID";
 
   public CreateAppInsightsStep(ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
@@ -55,6 +61,17 @@ public class CreateAppInsightsStep extends BaseResourceCreateStep {
             .create();
     context.getWorkingMap().put(APP_INSIGHT_ID, appInsight.id());
     logger.info(RESOURCE_CREATED, getResourceType(), appInsight.id(), getMRGName(context));
+  }
+
+  @Override
+  protected Optional<StepResult> maybeHandleManagementException(ManagementException e) {
+    if (StringUtils.equalsIgnoreCase(e.getValue().getCode(), "BadRequest")
+        && e.getValue().getMessage().contains(INVALID_LAW_MSG)) {
+      // the log analytics workspace may not be "visible" yet, so we retry
+      logger.warn("Bad request while creating app insights, retrying.", e);
+      return Optional.of(new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY));
+    }
+    return Optional.empty();
   }
 
   @Override
