@@ -9,6 +9,7 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.common.logging.LoggingUtils;
 import bio.terra.common.stairway.MonitoringHook;
 import bio.terra.common.stairway.StairwayComponent;
+import bio.terra.common.stairway.StairwayLoggingHook;
 import bio.terra.landingzone.common.utils.ErrorReportUtils;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.job.exception.DuplicateJobIdException;
@@ -27,7 +28,6 @@ import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
 import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
-import bio.terra.landingzone.stairway.common.utils.StairwayLoggingHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightDebugInfo;
@@ -68,7 +68,6 @@ public class LandingZoneJobService {
   private final LandingZoneIngressConfiguration ingressConfig;
   private final LandingZoneStairwayDatabaseConfiguration stairwayDatabaseConfiguration;
   private final ScheduledExecutorService executor;
-  private final StairwayLoggingHook stairwayLoggingHook;
   private final StairwayComponent stairwayComponent;
   private final LandingZoneFlightBeanBag flightBeanBag;
   private final ObjectMapper objectMapper;
@@ -81,7 +80,6 @@ public class LandingZoneJobService {
       LandingZoneJobConfiguration jobConfig,
       LandingZoneIngressConfiguration ingressConfig,
       LandingZoneStairwayDatabaseConfiguration stairwayDatabaseConfiguration,
-      StairwayLoggingHook stairwayLoggingHook,
       @Qualifier("landingZoneStairwayComponent") StairwayComponent stairwayComponent,
       LandingZoneFlightBeanBag flightBeanBag,
       ObjectMapper objectMapper,
@@ -91,7 +89,6 @@ public class LandingZoneJobService {
     this.ingressConfig = ingressConfig;
     this.stairwayDatabaseConfiguration = stairwayDatabaseConfiguration;
     this.executor = Executors.newScheduledThreadPool(jobConfig.getMaxThreads());
-    this.stairwayLoggingHook = stairwayLoggingHook;
     this.stairwayComponent = stairwayComponent;
     this.flightBeanBag = flightBeanBag;
     this.objectMapper = objectMapper;
@@ -176,7 +173,7 @@ public class LandingZoneJobService {
             .newStairwayOptionsBuilder()
             .dataSource(DataSourceInitializer.initializeDataSource(stairwayDatabaseConfiguration))
             .context(flightBeanBag)
-            .addHook(stairwayLoggingHook)
+            .addHook(new StairwayLoggingHook())
             .addHook(new MonitoringHook(openTelemetry))
             .exceptionSerializer(new StairwayExceptionSerializer(objectMapper)));
   }

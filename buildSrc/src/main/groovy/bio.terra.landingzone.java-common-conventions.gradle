@@ -24,7 +24,12 @@ java {
     }
 }
 
+// If true, search local repository (~/.m2/repository/) first for dependencies.
+def useMavenLocal = false
 repositories {
+    if (useMavenLocal) {
+        mavenLocal() // must be listed first to take effect
+    }
     maven {
         // Terra proxy for maven central
         url 'https://broadinstitute.jfrog.io/broadinstitute/maven-central/'
@@ -49,7 +54,7 @@ dependencies {
     implementation 'com.google.guava:guava:33.1.0-jre'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
-    implementation ('bio.terra:terra-common-lib:1.1.0-SNAPSHOT') {
+    implementation ('bio.terra:terra-common-lib:1.1.1-SNAPSHOT') {
         exclude group: "org.broadinstitute.dsde.workbench", module: "sam-client_2.13"
     }
 }

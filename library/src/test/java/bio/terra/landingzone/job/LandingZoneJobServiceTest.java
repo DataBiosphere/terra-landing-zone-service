@@ -27,7 +27,6 @@ import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
-import bio.terra.landingzone.stairway.common.utils.StairwayLoggingHook;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.FlightState;
@@ -57,7 +56,6 @@ class LandingZoneJobServiceTest {
   @Mock private LandingZoneJobConfiguration jobConfig;
   @Mock private LandingZoneIngressConfiguration ingressConfig;
   @Mock private LandingZoneStairwayDatabaseConfiguration dbConfig;
-  @Mock private StairwayLoggingHook stairwayLoggingHook;
   @Mock private StairwayComponent stairwayComponent;
   @Mock private LandingZoneFlightBeanBag flightBeanBag;
   @Mock private ObjectMapper mapper;
@@ -77,7 +75,6 @@ class LandingZoneJobServiceTest {
             jobConfig,
             ingressConfig,
             dbConfig,
-            stairwayLoggingHook,
             stairwayComponent,
             flightBeanBag,
             mapper,
@@ -90,7 +87,6 @@ class LandingZoneJobServiceTest {
       throws InterruptedException {
     String jobId = "myjob";
     UUID landingZoneId = UUID.randomUUID();
-    UUID flightLandingZoneId = landingZoneId;
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
     setupForDeleteAccessVerification(
