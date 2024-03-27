@@ -118,6 +118,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Publish to Artifactory
+      if: ${{ github.ref_name == 'main' }}
       run: ./gradlew :library:artifactoryPublish --scan
       env:
         ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
@@ -125,6 +126,7 @@ jobs:
         ARTIFACTORY_REPO_KEY: "libs-snapshot-local"
 
     - name: Publish API client
+      if: ${{ github.ref_name == 'main' }}
       run: ./gradlew :client:artifactoryPublish
       env:
         ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
