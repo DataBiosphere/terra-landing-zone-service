@@ -22,17 +22,17 @@ dependencies {
     implementation 'bio.terra:billing-profile-manager-client:0.1.484-SNAPSHOT'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
     implementation group: 'com.azure', name: 'azure-core', version: '1.47.0'
-    implementation (group: 'com.azure', name: 'azure-identity', version: '1.11.3') {
+    implementation (group: 'com.azure', name: 'azure-identity', version: '1.11.4') {
         // azure-identity is still pulling in an old version of reactor-netty-http
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-http'
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
         exclude group: 'io.projectreactor', module: 'reactor-core'
     }
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.15'
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.15'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.2'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.17'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.17'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.4'
 
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.36.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.37.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0'
@@ -41,7 +41,7 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
     implementation group: "io.kubernetes", name: "client-java", version: "20.0.1"
-    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.3'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.4'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
