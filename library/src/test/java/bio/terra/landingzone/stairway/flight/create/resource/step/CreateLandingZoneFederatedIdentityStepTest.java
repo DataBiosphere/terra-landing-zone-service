@@ -20,7 +20,6 @@ import com.azure.resourcemanager.msi.fluent.models.FederatedIdentityCredentialIn
 import com.azure.resourcemanager.msi.models.Identities;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import java.util.List;
 import java.util.Map;
@@ -46,14 +45,6 @@ public class CreateLandingZoneFederatedIdentityStepTest extends BaseStepTest {
   @Mock FederatedIdentityCredentialsClient mockFederatedIdentityCredentials;
   @Captor private ArgumentCaptor<FederatedIdentityCredentialInner> federatedIdentityCaptor;
   @Mock private CoreV1Api mockKubernetesClient;
-
-  @Mock
-  private CoreV1Api.APIdeleteNamespacedServiceAccountRequest
-      mockDeleteNamespacedServiceAccountRequest;
-
-  @Mock
-  private CoreV1Api.APIcreateNamespacedServiceAccountRequest
-      mockCreateNamespacedServiceAccountRequest;
 
   @Captor private ArgumentCaptor<V1ServiceAccount> serviceAccountCaptor;
 
@@ -101,8 +92,6 @@ public class CreateLandingZoneFederatedIdentityStepTest extends BaseStepTest {
     assertThat(serviceAccountCaptor.getValue().getMetadata().getName(), equalTo(uamiName));
     assertThat(serviceAccountCaptor.getValue().getMetadata().getNamespace(), equalTo(k8sNamespace));
 
-    verify(mockCreateNamespacedServiceAccountRequest).execute();
-
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
   }
 
@@ -133,19 +122,18 @@ public class CreateLandingZoneFederatedIdentityStepTest extends BaseStepTest {
 
     when(mockKubernetesClientProvider.createCoreApiClient(any(), any(), any()))
         .thenReturn(mockKubernetesClient);
-    when(mockKubernetesClient.deleteNamespacedServiceAccount(uamiName, k8sNamespace))
-        .thenReturn(mockDeleteNamespacedServiceAccountRequest);
-    when(mockDeleteNamespacedServiceAccountRequest.body(new V1DeleteOptions()))
-        .thenReturn(mockDeleteNamespacedServiceAccountRequest);
 
     var stepResult = testStep.undoStep(mockFlightContext);
 
     assertThat(stepResult, equalTo(StepResult.getStepResultSuccess()));
-    verify(mockDeleteNamespacedServiceAccountRequest).execute();
+    verify(mockKubernetesClient)
+        .deleteNamespacedServiceAccount(
+            eq(uamiName), eq(k8sNamespace), any(), any(), any(), any(), any(), any());
     verify(mockFederatedIdentityCredentials).delete(mrg.name(), uamiName, uamiName);
   }
 
-  private void setupArmManagersForDoStep(String uamiName, TargetManagedResourceGroup mrg) {
+  private void setupArmManagersForDoStep(String uamiName, TargetManagedResourceGroup mrg)
+      throws ApiException {
     when(mockArmManagers.azureResourceManager()).thenReturn(mockAzureResourceManager);
     when(mockAzureResourceManager.identities()).thenReturn(mockIdentities);
     when(mockIdentities.manager()).thenReturn(mockManager);
@@ -159,7 +147,7 @@ public class CreateLandingZoneFederatedIdentityStepTest extends BaseStepTest {
     when(mockKubernetesClientProvider.createCoreApiClient(any(), any(), any()))
         .thenReturn(mockKubernetesClient);
     when(mockKubernetesClient.createNamespacedServiceAccount(
-            eq(k8sNamespace), serviceAccountCaptor.capture()))
-        .thenReturn(mockCreateNamespacedServiceAccountRequest);
+            eq(k8sNamespace), serviceAccountCaptor.capture(), any(), any(), any(), any()))
+        .thenReturn(null);
   }
 }

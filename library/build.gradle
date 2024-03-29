@@ -2,7 +2,6 @@ plugins {
     id 'bio.terra.landingzone.java-spring-library-conventions'
     id 'de.undercouch.download'
     id 'com.google.cloud.tools.jib'
-    id 'com.srcclr.gradle'
     id 'org.sonarqube'
     id 'com.jfrog.artifactory'
     id 'org.liquibase.gradle' version '2.2.1'
@@ -40,7 +39,8 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
-    implementation group: "io.kubernetes", name: "client-java", version: "20.0.1"
+    // PF-3000: k8s client versions 20.0.0 onward without '-legacy' suffix include breaking changes
+    implementation group: 'io.kubernetes', name: 'client-java', version: '20.0.1-legacy' // keep legacy suffix
     implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.4'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'

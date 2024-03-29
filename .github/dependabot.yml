@@ -25,3 +25,6 @@ updates:
       - "gradle"
     commit-message:
       prefix: "[WOR-1448]"
+    ignore:
+      # PF-3000: k8s client versions 20.0.0 onward without '-legacy' suffix include breaking changes
+      - dependency-name: "io.kubernetes:client-java"

@@ -4,6 +4,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -42,7 +44,6 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
   @Mock private KubernetesClientProvider mockKubernetesClientProvider;
   @Mock private AksConfigMapReader mockAksConfigMapReader;
   @Mock private CoreV1Api mockCoreV1Api;
-  @Mock private CoreV1Api.APIcreateNamespacedConfigMapRequest mockCreateNamespacedConfigMapRequest;
 
   @Captor private ArgumentCaptor<String> aksNameCaptor;
   @Captor private ArgumentCaptor<String> mrgNameCaptor;
@@ -75,8 +76,9 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     when(mockKubernetesClientProvider.createCoreApiClient(
             any(), mrgNameCaptor.capture(), aksNameCaptor.capture()))
         .thenReturn(mockCoreV1Api);
-    when(mockCoreV1Api.createNamespacedConfigMap(aksNamespaceCaptor.capture(), any()))
-        .thenReturn(mockCreateNamespacedConfigMapRequest);
+    when(mockCoreV1Api.createNamespacedConfigMap(
+            aksNamespaceCaptor.capture(), any(), any(), any(), any(), any()))
+        .thenReturn(null);
 
     var stepResult = testStep.doStep(mockFlightContext);
 
@@ -85,7 +87,8 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     assertThat(mrgNameCaptor.getValue(), equalTo(targetMrg.name()));
     assertThat(aksNameCaptor.getValue(), equalTo(aksClusterName));
     verify(mockAksConfigMapReader, times(1)).read();
-    verify(mockCreateNamespacedConfigMapRequest).execute();
+    verify(mockCoreV1Api, times(1))
+        .createNamespacedConfigMap(anyString(), any(), eq(null), eq(null), eq(null), eq(null));
     assertThat(aksNamespaceCaptor.getValue(), equalTo("kube-system"));
   }
 
@@ -118,12 +121,12 @@ class EnableAksContainerLogV2StepTest extends BaseStepTest {
     when(mockKubernetesClientProvider.createCoreApiClient(
             any(), mrgNameCaptor.capture(), aksNameCaptor.capture()))
         .thenReturn(mockCoreV1Api);
-    when(mockCoreV1Api.createNamespacedConfigMap(any(), any()))
-        .thenReturn(mockCreateNamespacedConfigMapRequest);
 
     var apiNonRetryableException = mock(ApiException.class);
     when(apiNonRetryableException.getCode()).thenReturn(HttpStatus.LOOP_DETECTED.value());
-    doThrow(apiNonRetryableException).when(mockCreateNamespacedConfigMapRequest).execute();
+    doThrow(apiNonRetryableException)
+        .when(mockCoreV1Api)
+        .createNamespacedConfigMap(any(), any(), any(), any(), any(), any());
 
     var stepResult = testStep.doStep(mockFlightContext);
     assertThat(stepResult.getStepStatus(), equalTo(StepStatus.STEP_RESULT_FAILURE_FATAL));

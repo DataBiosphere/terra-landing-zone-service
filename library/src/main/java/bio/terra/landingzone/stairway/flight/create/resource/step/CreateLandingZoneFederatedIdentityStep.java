@@ -90,7 +90,7 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
                     .name(uamiName) // name of the service account is the same as the user-assigned
                     .namespace(k8sNamespace));
 
-    api.createNamespacedServiceAccount(k8sNamespace, aksServiceAccount).execute();
+    api.createNamespacedServiceAccount(k8sNamespace, aksServiceAccount, null, null, null, null);
   }
 
   private void deleteK8sServiceAccount(
@@ -99,9 +99,8 @@ public class CreateLandingZoneFederatedIdentityStep implements Step {
     CoreV1Api api =
         kubernetesClientProvider.createCoreApiClient(armManagers, mrgName, aksClusterName);
 
-    api.deleteNamespacedServiceAccount(uamiName, k8sNamespace)
-        .body(new V1DeleteOptions())
-        .execute();
+    api.deleteNamespacedServiceAccount(
+        uamiName, k8sNamespace, null, null, null, null, null, new V1DeleteOptions());
   }
 
   private void createFederatedCredentials(
