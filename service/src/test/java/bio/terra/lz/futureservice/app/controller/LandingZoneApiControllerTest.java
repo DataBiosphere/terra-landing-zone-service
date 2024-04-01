@@ -311,6 +311,8 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
 
   @Test
   void getAzureLandingZoneByLandingZoneIdSuccess() throws Exception {
+    // Defining a fixed Instant to 3 decimal places (no trailing zeros).
+    // This is so that our later String acomparison is performed at the same granularity:
     var lzCreateDate = Instant.parse("2024-04-01T12:34:56.789Z").atOffset(ZoneOffset.UTC);
     ApiAzureLandingZone landingZone =
         AzureLandingZoneFixtures.buildDefaultApiAzureLandingZone(
