@@ -25,3 +25,10 @@ updates:
       - "gradle"
     commit-message:
       prefix: "[WOR-1448]"
+    ignore:
+      # From 20.0.0 onward, k8s client publishes versions with and without '-legacy' suffix.
+      # We use the non-legacy client: the legacy client is not compatible with our code.
+      # Dependabot doesn't have an option for ignoring versions conforming to a naming convention
+      # (outside of semver major, minor, and patch designations) and will attempt to update
+      # to the latest published version.
+      - dependency-name: "io.kubernetes:client-java"

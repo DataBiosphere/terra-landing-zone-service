@@ -5,6 +5,7 @@ plugins {
 
     id 'com.diffplug.spotless'
     id 'org.hidetake.swagger.generator'
+    id 'com.srcclr.gradle'
 }
 
 boolean isGithubAction = System.getenv().containsKey("GITHUB_ACTIONS")
@@ -54,7 +55,7 @@ dependencies {
     implementation 'com.google.guava:guava:33.1.0-jre'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
-    implementation ('bio.terra:terra-common-lib:1.1.1-SNAPSHOT') {
+    implementation ('bio.terra:terra-common-lib:1.1.6-SNAPSHOT') {
         exclude group: "org.broadinstitute.dsde.workbench", module: "sam-client_2.13"
     }
 }
@@ -89,4 +90,8 @@ compileJava {
     } else {
         dependsOn(spotlessApply)
     }
+}
+
+srcclr {
+    scope = "runtimeClasspath"
 }
