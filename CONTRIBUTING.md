@@ -55,3 +55,37 @@ Running integration tests locally requires:
 ### Smoke tests
 
 For information on executing smoke tests to check that the Landing Zone service is operational in a given environment, see the smoke test [README.md](./smoke_tests/README.md).
+
+
+## SourceClear
+
+[SourceClear](https://srcclr.github.io) is a static analysis tool that scans a project's Java
+dependencies for known vulnerabilities.x If you are working on addressing dependency vulnerabilities
+in response to a SourceClear finding, you may want to run a scan off of a feature branch and/or local code.
+
+### Github Action
+
+You can trigger LZS's SCA scan on demand via its
+[Github Action](https://github.com/broadinstitute/dsp-appsec-sourceclear-github-actions/actions/workflows/z-manual-terra-landing-zone-service.yml),
+and optionally specify a Github ref (branch, tag, or SHA) to check out from the repo to scan.  By default,
+the scan is run off of LZS's `main` branch.
+
+High-level results are outputted in the Github Actions run.
+
+### Running Locally
+
+You will need to get the API token from Vault before running the Gradle `srcclr` task.
+
+```sh
+export SRCCLR_API_TOKEN=$(vault read -field=api_token secret/secops/ci/srcclr/gradle-agent)
+./gradlew srcclr
+```
+
+High-level results are outputted to the terminal.
+
+### Veracode
+
+Full results including dependency graphs are uploaded to
+[Veracode](https://sca.analysiscenter.veracode.com/workspaces/jppForw/projects/554814/issues)
+(if running off of a feature branch, navigate to Project Details > Selected Branch > Change to select your feature branch).
+You can request a Veracode account to view full results from #dsp-infosec-champions.
