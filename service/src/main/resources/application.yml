@@ -18,7 +18,7 @@ env:
     samplingRate: ${SAMPLING_PROBABILITY:0}
   sentry:
     dsn: ${SENTRY_DSN:}
-    environment: ${SENTRY_ENVIRONMENT:}
+    environment: ${DEPLOY_ENV:}
 
 spring:
   application.name: landingzone
