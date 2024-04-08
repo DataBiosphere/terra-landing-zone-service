@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.UUID;
 
 public class LandingZoneDefaultParameters {
-  // ignore
   public static final String STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_ORIGINS_DEFAULT = "*";
   public static final String STORAGE_ACCOUNT_BLOB_CORS_ALLOWED_METHODS_DEFAULT =
       "GET,HEAD,OPTIONS,PUT,PATCH,POST,MERGE,DELETE";

@@ -1,7 +1,6 @@
 test {
     systemProperties['pact.rootDir'] = "$buildDir/pacts"
     systemProperties['pact.provider.version'] = "$project.version"
-    systemProperties['spring.profiles.include'] = "human-readable-logging"
 }
 
 tasks.register("pactTests", Test) {
