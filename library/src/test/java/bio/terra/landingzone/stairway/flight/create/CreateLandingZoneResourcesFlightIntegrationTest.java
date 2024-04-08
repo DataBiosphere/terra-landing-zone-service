@@ -66,7 +66,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
   private static final int LANDING_ZONE_RESOURCES_DELETED_AWAIT_TIMEOUT_MINUTES = 2;
   private static final int LANDING_ZONE_RESOURCES_AVAILABLE_AWAIT_TIMEOUT_MINUTES = 2;
   // includes time for rollback too in case of any issues
-  private static final int LZ_CREATED_AWAIT_TIMEOUT_MINUTES = 30;
+  private static final int LZ_CREATED_AWAIT_TIMEOUT_MINUTES = 60;
   private static final int LZ_DELETED_AWAIT_TIMEOUT_MINUTES = 20;
 
   @Mock private BearerToken bearerToken;
