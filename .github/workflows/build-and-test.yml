@@ -111,7 +111,7 @@ jobs:
 
       - name: Testing
         run: |
-          az version --output json | jq '."azure-cli"'
+          az account get-access-token --output jsonc | jq .expiresOn
       # Run tests
 #      - name: Run Library, Service, and Test Harness tests with coverage
 #        run: ./scripts/run test
