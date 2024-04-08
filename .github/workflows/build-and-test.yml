@@ -116,8 +116,8 @@ jobs:
 #      - name: Run Library, Service, and Test Harness tests with coverage
 #        run: ./scripts/run test
 #
-#      - name: Integration Test with coverage
-#        run: ./scripts/run integration
+      - name: Integration Test with coverage
+        run: ./scripts/run integration
 #
 #      - name: Upload Test Harness Test Reports
 #        uses: actions/upload-artifact@v1
