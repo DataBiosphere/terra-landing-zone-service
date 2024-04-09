@@ -4,7 +4,6 @@ import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.identity.TokenCachePersistenceOptions;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
