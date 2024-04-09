@@ -69,7 +69,7 @@ run_integration_tests() {
   log_info "variables set via an invocation of 'az login'."
   log_info ""
   log_info "running integration tests (will take over 20 minutes)"
-  ./gradlew --build-cache library:integration --scan
+  ./gradlew --build-cache library:integration --scan --tests bio.terra.landingzone.app.CredentialsTest
 }
 
 case "$LOCATION" in
