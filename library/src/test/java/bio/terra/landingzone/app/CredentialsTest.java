@@ -6,6 +6,7 @@ import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenRequestContext;
 import java.util.List;
 import org.joda.time.DateTime;
+import org.joda.time.Seconds;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,10 @@ public class CredentialsTest extends BaseIntegrationTest {
     var expiration = start.plusMinutes(10);
     System.out.println("********** POLLING UNTIL " + expiration.toString());
     while (DateTime.now().isBefore(expiration)) {
-      System.out.println("********** GETTING A FRESH TOKEN");
+      System.out.println(
+          "********** GETTING A FRESH TOKEN, HAVE BEEN RUNNING FOR "
+              + Seconds.secondsBetween(DateTime.now(), start)
+              + " SECONDS");
       AccessToken token =
           tokenCredential.getTokenSync(
               new TokenRequestContext()
