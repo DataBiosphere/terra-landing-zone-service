@@ -108,6 +108,7 @@ jobs:
           client-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
           tenant-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
           subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
+          enable-AzPSSession: true
 
       # Run tests
 #      - name: Run Library, Service, and Test Harness tests with coverage

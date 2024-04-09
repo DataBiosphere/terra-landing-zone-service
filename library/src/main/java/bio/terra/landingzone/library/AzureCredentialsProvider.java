@@ -4,6 +4,7 @@ import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.identity.TokenCachePersistenceOptions;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,10 +33,14 @@ public class AzureCredentialsProvider {
     if (Objects.nonNull(azureConfiguration.getManagedAppTenantId())
         && Objects.nonNull(azureConfiguration.getManagedAppClientSecret())
         && Objects.nonNull(azureConfiguration.getManagedAppClientId())) {
+      TokenCachePersistenceOptions persistenceOptions =
+          new TokenCachePersistenceOptions().setName("az-token-cache");
+
       return new ClientSecretCredentialBuilder()
           .clientId(azureConfiguration.getManagedAppClientId())
           .clientSecret(azureConfiguration.getManagedAppClientSecret())
           .tenantId(azureConfiguration.getManagedAppTenantId())
+          .tokenCachePersistenceOptions(persistenceOptions)
           .build();
     }
 
