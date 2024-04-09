@@ -113,6 +113,10 @@ jobs:
 #      - name: Run Library, Service, and Test Harness tests with coverage
 #        run: ./scripts/run test
 
+      - name: Testing
+        run: |
+          az account get-access-token --output jsonc | jq .expiresOn
+
       - name: Integration Test with coverage
         run: ./scripts/run integration
 
