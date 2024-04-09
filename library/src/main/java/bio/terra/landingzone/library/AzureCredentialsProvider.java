@@ -4,7 +4,10 @@ import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.identity.DefaultAzureCredentialBuilder;
+
+import java.time.Duration;
 import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,25 +24,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class AzureCredentialsProvider {
 
-  private final LandingZoneAzureConfiguration azureConfiguration;
+    private final LandingZoneAzureConfiguration azureConfiguration;
 
-  @Autowired
-  public AzureCredentialsProvider(LandingZoneAzureConfiguration azureConfiguration) {
-    this.azureConfiguration = azureConfiguration;
-  }
-
-  public TokenCredential getTokenCredential() {
-    if (Objects.nonNull(azureConfiguration.getManagedAppTenantId())
-        && Objects.nonNull(azureConfiguration.getManagedAppClientSecret())
-        && Objects.nonNull(azureConfiguration.getManagedAppClientId())) {
-
-      return new ClientSecretCredentialBuilder()
-          .clientId(azureConfiguration.getManagedAppClientId())
-          .clientSecret(azureConfiguration.getManagedAppClientSecret())
-          .tenantId(azureConfiguration.getManagedAppTenantId())
-          .build();
+    @Autowired
+    public AzureCredentialsProvider(LandingZoneAzureConfiguration azureConfiguration) {
+        this.azureConfiguration = azureConfiguration;
     }
 
-    return new DefaultAzureCredentialBuilder().build();
-  }
+    public TokenCredential getTokenCredential() {
+        if (Objects.nonNull(azureConfiguration.getManagedAppTenantId())
+                && Objects.nonNull(azureConfiguration.getManagedAppClientSecret())
+                && Objects.nonNull(azureConfiguration.getManagedAppClientId())) {
+
+            return new ClientSecretCredentialBuilder()
+                    .clientId(azureConfiguration.getManagedAppClientId())
+                    .clientSecret(azureConfiguration.getManagedAppClientSecret())
+                    .tenantId(azureConfiguration.getManagedAppTenantId())
+                    .build();
+        }
+
+        return new DefaultAzureCredentialBuilder()
+                .credentialProcessTimeout(Duration.ofSeconds(10))
+                .build();
+    }
 }
