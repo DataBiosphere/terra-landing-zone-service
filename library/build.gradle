@@ -62,6 +62,8 @@ test {
     useJUnitPlatform {
         includeTags "unit", "library"
     }
+
+    systemProperty 'spring.profiles.active', 'human-readable-logging'
 }
 
 task unitTest(type: Test) {
@@ -85,6 +87,8 @@ task integrationTest(type: Test) {
     testLogging {
         events = ["passed", "failed", "skipped", "started", "standard_out", "standard_error"]
     }
+
+    systemProperty 'spring.profiles.active', 'human-readable-logging'
 }
 
 sonarqube {

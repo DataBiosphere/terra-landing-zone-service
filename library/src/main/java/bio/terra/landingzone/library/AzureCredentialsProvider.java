@@ -33,14 +33,11 @@ public class AzureCredentialsProvider {
     if (Objects.nonNull(azureConfiguration.getManagedAppTenantId())
         && Objects.nonNull(azureConfiguration.getManagedAppClientSecret())
         && Objects.nonNull(azureConfiguration.getManagedAppClientId())) {
-      TokenCachePersistenceOptions persistenceOptions =
-          new TokenCachePersistenceOptions().setName("az-token-cache");
 
       return new ClientSecretCredentialBuilder()
           .clientId(azureConfiguration.getManagedAppClientId())
           .clientSecret(azureConfiguration.getManagedAppClientSecret())
           .tenantId(azureConfiguration.getManagedAppTenantId())
-          .tokenCachePersistenceOptions(persistenceOptions)
           .build();
     }
 
