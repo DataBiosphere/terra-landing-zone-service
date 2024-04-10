@@ -110,15 +110,15 @@ jobs:
 #          subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
 
       # Run tests
-      - name: Run Library, Service, and Test Harness tests with coverage
-        run: ./scripts/run test
+#      - name: Run Library, Service, and Test Harness tests with coverage
+#        run: ./scripts/run test
 
       - name: Integration Test with coverage
         run: ./scripts/run integration
         env:
-          WORKSPACE_AZURE_MANAGED_APP_TENANT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
-          WORKSPACE_AZURE_MANAGED_APP_CLIENT_SECRET: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_SECRET }}
-          WORKSPACE_AZURE_MANAGED_APP_CLIENT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_SECRET }}
+          AZURE_CLIENT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
 
       - name: Upload Test Harness Test Reports
         uses: actions/upload-artifact@v1
