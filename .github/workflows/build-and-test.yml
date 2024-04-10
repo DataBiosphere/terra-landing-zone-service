@@ -92,11 +92,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Initialize the database
-        env:
-          PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -f ./scripts/postgres-init.sql
+#      - name: Initialize the database
+#        env:
+#          PGPASSWORD: postgres
+#        run: |
+#          psql -h localhost -U postgres -f ./scripts/postgres-init.sql
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -116,10 +116,11 @@ jobs:
 
       - name: Testing
         run: |
-          az account get-access-token --output jsonc | jq .expiresOn
+          ./scripts/tester.sh
 
-      - name: Integration Test with coverage
-        run: ./scripts/run integration
+#
+#      - name: Integration Test with coverage
+#        run: ./scripts/run integration
 
 #      - name: Upload Test Harness Test Reports
 #        uses: actions/upload-artifact@v1
