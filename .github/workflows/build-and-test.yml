@@ -101,13 +101,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      # use a federated credential to connect w/azure
-      - name: Azure CLI login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
-          tenant-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
-          subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
+#      # use a federated credential to connect w/azure
+#      - name: Azure CLI login
+#        uses: azure/login@v1
+#        with:
+#          client-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
+#          tenant-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
+#          subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
 
       # Run tests
       - name: Run Library, Service, and Test Harness tests with coverage
@@ -115,6 +115,10 @@ jobs:
 
       - name: Integration Test with coverage
         run: ./scripts/run integration
+        env:
+          WORKSPACE_AZURE_MANAGED_APP_TENANT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
+          WORKSPACE_AZURE_MANAGED_APP_CLIENT_SECRET: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_SECRET }}
+          WORKSPACE_AZURE_MANAGED_APP_CLIENT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
 
       - name: Upload Test Harness Test Reports
         uses: actions/upload-artifact@v1
