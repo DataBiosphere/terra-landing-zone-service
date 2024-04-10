@@ -136,15 +136,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Azure logout
-        uses: azure/CLI@v1
-        if: always()
-        with:
-          inlineScript: |
-            az logout
-            az cache purge
-            az account clear
-
   jib:
     needs: [ build ]
     runs-on: ubuntu-latest
