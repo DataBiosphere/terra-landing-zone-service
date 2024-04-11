@@ -101,20 +101,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      # use a federated credential to connect w/azure
-      - name: Azure CLI login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
-          tenant-id: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
-          subscription-id: f557c728-871d-408c-a28b-eb6b2141a087
-
       # Run tests
       - name: Run Library, Service, and Test Harness tests with coverage
         run: ./scripts/run test
 
+      # NB: We were using a federated credential to get the needed publisher credentials for tests previously,
+      # but the GH OIDC token expiration duration is now too short (~10 minutes), causing these tests to fail after that
+      # interval. So, we are setting the AZ env vars below instead
       - name: Integration Test with coverage
         run: ./scripts/run integration
+        env:
+          AZURE_TENANT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_SECRET }}
+          AZURE_CLIENT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
 
       - name: Upload Test Harness Test Reports
         uses: actions/upload-artifact@v1
@@ -136,15 +135,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Azure logout
-        uses: azure/CLI@v1
-        if: always()
-        with:
-          inlineScript: |
-            az logout
-            az cache purge
-            az account clear
 
   jib:
     needs: [ build ]
