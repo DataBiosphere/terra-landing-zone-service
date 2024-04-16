@@ -47,7 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Tag("integration")
-@ActiveProfiles({"test", "human-readable-logging"})
+@ActiveProfiles("test")
 @PropertySource(value = "classpath:integration_azure_env.properties", ignoreResourceNotFound = true)
 @ExtendWith(SpringExtension.class)
 @SpringBootTest()
