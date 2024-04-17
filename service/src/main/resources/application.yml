@@ -31,6 +31,12 @@ spring:
         use-last-modified: false
       static-locations: classpath:/api/
 
+#since LZ is amalgamated we need to inherit "workspace" prefix. later it should be changed to landingzone.
+workspace:
+  ingress:
+    # Default value that's overridden by Helm.
+    domain-name: localhost:8080
+
 landingzone:
   landingzone-database:
     initialize-on-start: ${env.db.init}
