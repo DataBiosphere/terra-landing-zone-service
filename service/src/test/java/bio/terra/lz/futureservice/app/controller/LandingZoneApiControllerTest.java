@@ -342,7 +342,8 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
             MockMvcResultMatchers.jsonPath(
                 "$.billingProfileId", equalTo(BILLING_PROFILE_ID.toString())))
         .andExpect(MockMvcResultMatchers.jsonPath("$.createdDate").exists())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.createdDate", equalTo("southcentralus")))
+        .andExpect(
+            MockMvcResultMatchers.jsonPath("$.createdDate", equalTo(lzCreateDate.toString())))
         .andExpect(MockMvcResultMatchers.jsonPath("$.region").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.region", equalTo("southcentralus")));
   }
