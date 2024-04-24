@@ -245,6 +245,7 @@ public class LandingZoneAppService {
         .landingZoneId(landingZone.landingZoneId())
         .definition(landingZone.definition())
         .version(landingZone.version())
+        .region(landingZone.region())
         .createdDate(landingZone.createdDate());
   }
 

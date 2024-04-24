@@ -316,7 +316,12 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
     var lzCreateDate = Instant.parse("2024-04-01T12:34:56.789Z").atOffset(ZoneOffset.UTC);
     ApiAzureLandingZone landingZone =
         AzureLandingZoneFixtures.buildDefaultApiAzureLandingZone(
-            LANDING_ZONE_ID, BILLING_PROFILE_ID, "definition", "version", lzCreateDate);
+            LANDING_ZONE_ID,
+            BILLING_PROFILE_ID,
+            "definition",
+            "version",
+            lzCreateDate,
+            "southcentralus");
     when(mockLandingZoneAppService.getAzureLandingZone(any(), eq(LANDING_ZONE_ID)))
         .thenReturn(landingZone);
     mockMvc
@@ -332,12 +337,14 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.version").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$.version", equalTo("version")))
         .andExpect(MockMvcResultMatchers.jsonPath("$.billingProfileId").exists())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.region").exists())
         .andExpect(
             MockMvcResultMatchers.jsonPath(
                 "$.billingProfileId", equalTo(BILLING_PROFILE_ID.toString())))
         .andExpect(MockMvcResultMatchers.jsonPath("$.createdDate").exists())
-        .andExpect(
-            MockMvcResultMatchers.jsonPath("$.createdDate", equalTo(lzCreateDate.toString())));
+        .andExpect(MockMvcResultMatchers.jsonPath("$.createdDate", equalTo("southcentralus")))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.region").exists())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.region", equalTo("southcentralus")));
   }
 
   @Test
@@ -345,7 +352,12 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
     var lzCreateDate = Instant.now().atOffset(ZoneOffset.UTC);
     var landingZone =
         AzureLandingZoneFixtures.buildDefaultApiAzureLandingZone(
-            LANDING_ZONE_ID, BILLING_PROFILE_ID, "definition", "version", lzCreateDate);
+            LANDING_ZONE_ID,
+            BILLING_PROFILE_ID,
+            "definition",
+            "version",
+            lzCreateDate,
+            "southcentralus");
     ApiAzureLandingZoneList landingZoneList =
         new ApiAzureLandingZoneList().landingzones(List.of(landingZone));
 
@@ -377,7 +389,10 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.landingzones[0].createdDate").exists())
         .andExpect(
             MockMvcResultMatchers.jsonPath(
-                "$.landingzones[0].createdDate", equalTo(lzCreateDate.toString())));
+                "$.landingzones[0].createdDate", equalTo(lzCreateDate.toString())))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.landingzones[0].region").exists())
+        .andExpect(
+            MockMvcResultMatchers.jsonPath("$.landingzones[0].region", equalTo("southcentralus")));
   }
 
   @Test

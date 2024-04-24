@@ -129,12 +129,14 @@ public class AzureLandingZoneFixtures {
       UUID billingProfileId,
       String definition,
       String version,
-      OffsetDateTime createDate) {
+      OffsetDateTime createDate,
+      String region) {
     return new ApiAzureLandingZone()
         .landingZoneId(landingZoneId)
         .billingProfileId(billingProfileId)
         .definition(definition)
         .version(version)
+        .region(region)
         .createdDate(createDate);
   }
 
