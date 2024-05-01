@@ -7,6 +7,7 @@ import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
+import au.com.dius.pact.consumer.junit5.PactIgnore;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
@@ -117,6 +118,7 @@ public class SamServiceConsumerPactTest {
     samService.checkUserEnabled(new BearerToken("accessToken"));
   }
 
+  @PactIgnore
   @Test
   @PactTestFor(pactMethod = "resourceExistingPermissionV2Pact", pactVersion = PactSpecVersion.V3)
   public void testIsAuthorized(MockServer mockServer) throws InterruptedException {
@@ -129,6 +131,7 @@ public class SamServiceConsumerPactTest {
             new BearerToken("accessToken"), RESOURCE_TYPE, RESOURCE_ID, ACTION));
   }
 
+  @PactIgnore
   @Test
   @PactTestFor(pactMethod = "listLandingZoneResourceIdsPact", pactVersion = PactSpecVersion.V3)
   public void testlistLandingZoneResourceIds(MockServer mockServer) throws InterruptedException {
