@@ -188,6 +188,6 @@ jobs:
           token: ${{ secrets.BROADBOT_TOKEN }} # github token for access to kick off a job in the private repo
           inputs: '{
             "run-name": "${{ env.CAN_I_DEPLOY_RUN_NAME }}",
-            "pacticipant": "bpm",
+            "pacticipant": "terra-landing-zone-service",
             "version": "${{ needs.regulated-tag-job.outputs.new-tag }}"
           }'
