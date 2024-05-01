@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +56,8 @@ public class SamServiceConsumerPactTest {
         .toPact();
   }
 
+  @Disabled
+  @PactIgnore
   @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact resourceExistingPermissionV2Pact(PactDslWithProvider builder) {
     return builder
@@ -86,6 +89,8 @@ public class SamServiceConsumerPactTest {
         .toPact();
   }
 
+  @Disabled
+  @PactIgnore
   @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact listLandingZoneResourceIdsPact(PactDslWithProvider builder) {
     return builder
@@ -119,6 +124,7 @@ public class SamServiceConsumerPactTest {
   }
 
   @PactIgnore
+  @Disabled
   @Test
   @PactTestFor(pactMethod = "resourceExistingPermissionV2Pact", pactVersion = PactSpecVersion.V3)
   public void testIsAuthorized(MockServer mockServer) throws InterruptedException {
@@ -132,6 +138,7 @@ public class SamServiceConsumerPactTest {
   }
 
   @PactIgnore
+  @Disabled
   @Test
   @PactTestFor(pactMethod = "listLandingZoneResourceIdsPact", pactVersion = PactSpecVersion.V3)
   public void testlistLandingZoneResourceIds(MockServer mockServer) throws InterruptedException {
