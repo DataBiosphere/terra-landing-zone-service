@@ -143,10 +143,9 @@ public class ResourcesReaderImpl implements ResourcesReader {
   }
 
   private Stream<GenericResource> landingZoneResources(String landingZoneId, String resourceGroup) {
-    return this.azureResourceManager
-        .genericResources()
-        .listByTag(resourceGroup, LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId)
-        .stream();
+    var key = LandingZoneTagKeys.LANDING_ZONE_ID.toString();
+    return this.azureResourceManager.genericResources().listByResourceGroup(resourceGroup).stream()
+        .filter(r -> r.tags().containsKey(key) && (r.tags().get(key).equals(landingZoneId)));
   }
 
   private DeployedResource toLandingZoneDeployedResource(GenericResource r) {

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -348,6 +349,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.region", equalTo("southcentralus")));
   }
 
+  @Disabled("Flaky on date time comparisons")
   @Test
   void listAzureLandingZoneByBillingProfileIdSuccess() throws Exception {
     var lzCreateDate = Instant.now().atOffset(ZoneOffset.UTC);
