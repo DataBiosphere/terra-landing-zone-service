@@ -15,6 +15,7 @@ import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.landingzone.job.exception.InternalStairwayException;
 import bio.terra.landingzone.job.exception.JobNotFoundException;
 import bio.terra.landingzone.job.model.OperationType;
+import bio.terra.landingzone.library.landingzones.TestArmResourcesFactory;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.library.landingzones.management.deleterules.*;
 import bio.terra.landingzone.service.landingzone.azure.LandingZoneService;
@@ -92,18 +93,16 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
   void setup() {
 
     // we need to use isolated resource group for each test
-    //    resourceGroup =
-    //        TestArmResourcesFactory.createTestResourceGroup(armManagers.azureResourceManager());
+    resourceGroup =
+        TestArmResourcesFactory.createTestResourceGroup(armManagers.azureResourceManager());
 
     jobId = UUID.randomUUID();
     landingZoneId = UUID.randomUUID();
 
     profile =
         new ProfileModel()
-            .managedResourceGroupId("20240426_DEAMALGAMATED_3") // resourceGroup.name())
-            .subscriptionId(
-                UUID.fromString(
-                    "df547342-9cfd-44ef-a6dd-df0ede32f1e3")) // UUID.fromString(azureProfile.getSubscriptionId()))
+            .managedResourceGroupId(resourceGroup.name())
+            .subscriptionId(UUID.fromString(azureProfile.getSubscriptionId()))
             .tenantId(UUID.fromString(azureProfile.getTenantId()))
             .cloudPlatform(CloudPlatform.AZURE)
             .description("dummyProfile")
@@ -112,24 +111,13 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
         LandingZoneManager.createLandingZoneManager(
             tokenCredential,
             azureProfile,
-            "20240426_DEAMALGAMATED_3",
-            // resourceGroup.name(),
+            resourceGroup.name(),
             null /*ignore this value in test*/);
-  }
-
-  @Test
-  void doSomething() {
-    var result =
-        this.armManagers
-            .azureResourceManager()
-            .genericResources()
-            .listByTag("20240426_DEAMALGAMATED_3", "WLZ-ID", "SHARED_RESOURCE");
-    System.out.println(result);
   }
 
   @AfterEach
   void cleanUpResources() {
-    //   armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
+    armManagers.azureResourceManager().resourceGroups().deleteByName(resourceGroup.name());
   }
 
   private void startResourceCreationFlight(String jobId, LandingZoneRequest request) {
