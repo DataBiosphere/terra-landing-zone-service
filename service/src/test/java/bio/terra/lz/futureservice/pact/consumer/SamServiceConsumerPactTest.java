@@ -49,26 +49,27 @@ public class SamServiceConsumerPactTest {
         .body(new PactDslJsonBody().booleanValue("ok", true))
         .toPact();
   }
-/*
-  Tests are commented out because just marking them as disabled or with @PactIgnore wasn't working,
-  and they were still being added to the contract.
+
+  /*
+    Tests are commented out because just marking them as disabled or with @PactIgnore wasn't working,
+    and they were still being added to the contract.
 
 
-  @Disabled
-  @PactIgnore
-  @Pact(consumer = "terra-landing-zone-service", provider = "sam")
-  public RequestResponsePact resourceExistingPermissionV2Pact(PactDslWithProvider builder) {
-    return builder
-        .given("permission exists")
-        .uponReceiving("a request to check permissions")
-        .path("/api/resources/v2/%s/%s/action/%s".formatted(RESOURCE_TYPE, RESOURCE_ID, ACTION))
-        .method("GET")
-        .willRespondWith()
-        .status(200)
-        .body("true")
-        .toPact();
-  }
-*/
+    @Disabled
+    @PactIgnore
+    @Pact(consumer = "terra-landing-zone-service", provider = "sam")
+    public RequestResponsePact resourceExistingPermissionV2Pact(PactDslWithProvider builder) {
+      return builder
+          .given("permission exists")
+          .uponReceiving("a request to check permissions")
+          .path("/api/resources/v2/%s/%s/action/%s".formatted(RESOURCE_TYPE, RESOURCE_ID, ACTION))
+          .method("GET")
+          .willRespondWith()
+          .status(200)
+          .body("true")
+          .toPact();
+    }
+  */
   @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact userStatusInfoPact(PactDslWithProvider builder) {
     var responseBody =
@@ -86,7 +87,8 @@ public class SamServiceConsumerPactTest {
         .body(responseBody)
         .toPact();
   }
-/*
+
+  /*
   @Disabled
   @PactIgnore
   @Pact(consumer = "terra-landing-zone-service", provider = "sam")
