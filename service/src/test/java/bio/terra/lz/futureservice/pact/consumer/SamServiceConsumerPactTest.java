@@ -1,13 +1,11 @@
 package bio.terra.lz.futureservice.pact.consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
-import au.com.dius.pact.consumer.junit5.PactIgnore;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
@@ -16,13 +14,9 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.library.configuration.LandingZoneSamConfiguration;
 import bio.terra.landingzone.service.iam.LandingZoneSamClient;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
-import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.lz.futureservice.app.service.status.SamStatusService;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +49,10 @@ public class SamServiceConsumerPactTest {
         .body(new PactDslJsonBody().booleanValue("ok", true))
         .toPact();
   }
+/*
+  Tests are commented out because just marking them as disabled or with @PactIgnore wasn't working,
+  and they were still being added to the contract.
+
 
   @Disabled
   @PactIgnore
@@ -70,7 +68,7 @@ public class SamServiceConsumerPactTest {
         .body("true")
         .toPact();
   }
-
+*/
   @Pact(consumer = "terra-landing-zone-service", provider = "sam")
   public RequestResponsePact userStatusInfoPact(PactDslWithProvider builder) {
     var responseBody =
@@ -88,7 +86,7 @@ public class SamServiceConsumerPactTest {
         .body(responseBody)
         .toPact();
   }
-
+/*
   @Disabled
   @PactIgnore
   @Pact(consumer = "terra-landing-zone-service", provider = "sam")
@@ -102,6 +100,7 @@ public class SamServiceConsumerPactTest {
         .body(SAM_LISTRESOURCESANDPOLICIESV2_RESPONSE_BODY)
         .toPact();
   }
+  */
 
   @Test
   @PactTestFor(pactMethod = "statusApiPact", pactVersion = PactSpecVersion.V3)
@@ -123,6 +122,7 @@ public class SamServiceConsumerPactTest {
     samService.checkUserEnabled(new BearerToken("accessToken"));
   }
 
+  /*
   @PactIgnore
   @Disabled
   @Test
@@ -150,6 +150,7 @@ public class SamServiceConsumerPactTest {
     assertEquals(1, response.size());
     assertEquals(RESOURCE_ID, response.get(0).toString());
   }
+  */
 
   private static LandingZoneSamConfiguration setupSamConfiguration(MockServer mockServer) {
     LandingZoneSamConfiguration config = new LandingZoneSamConfiguration();
