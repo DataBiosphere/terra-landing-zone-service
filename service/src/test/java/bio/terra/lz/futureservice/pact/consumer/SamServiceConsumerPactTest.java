@@ -82,6 +82,7 @@ public class SamServiceConsumerPactTest {
         .uponReceiving("a request for the user's status")
         .path("/register/user/v2/self/info")
         .method("GET")
+        .headers("Authorization", "Bearer accessToken")
         .willRespondWith()
         .status(200)
         .body(responseBody)
