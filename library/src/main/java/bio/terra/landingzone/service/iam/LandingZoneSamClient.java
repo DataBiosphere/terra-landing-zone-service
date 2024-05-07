@@ -34,7 +34,7 @@ public class LandingZoneSamClient {
 
   private ApiClient getApiClient(String accessToken) {
     ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(accessToken);
+    apiClient.setBearerToken(accessToken);
     return apiClient;
   }
 

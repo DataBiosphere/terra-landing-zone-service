@@ -18,7 +18,7 @@ dependencies {
     implementation 'org.springframework:spring-aop'
     implementation 'org.springframework:spring-aspects'
     //we need to expose it at service module for status checking capability
-    api 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6d19a41'
+    api 'org.broadinstitute.dsde.workbench:sam-client-javax_2.13:v0.0.226-1f1e893-SNAP'
     implementation 'bio.terra:billing-profile-manager-client:0.1.484-SNAPSHOT'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
     implementation group: 'com.azure', name: 'azure-core', version: '1.49.0'
