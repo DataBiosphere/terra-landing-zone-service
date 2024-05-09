@@ -11,3 +11,27 @@ tasks.register("pactTests", Test) {
         showStandardStreams = true
     }
 }
+
+boolean isCiServer = System.getenv().containsKey("CI")
+// verify the provider side of pacts LZS has with other services
+tasks.register("verifyPacts", Test) {
+    useJUnitPlatform {
+        includeTags "pact-verification"
+    }
+    testLogging {
+        events = ["passed", "failed", "skipped", "started", "standard_out"]
+    }
+    outputs.upToDateWhen { false }
+    if (isCiServer) {
+        systemProperty 'pact.verifier.publishResults', true
+    }
+    // to run a local pactbroker, see:
+    // https://broadworkbench.atlassian.net/wiki/spaces/IRT/pages/2829680649/Contract+Test+Local+Development
+    if (System.getenv().containsKey('PACT_BROKER_URL')) {
+        systemProperty 'pactbroker.url', System.getenv('PACT_BROKER_URL')
+    }
+    systemProperty 'pact.provider.version', System.getenv('PACT_PROVIDER_VERSION')
+    systemProperty 'pact.provider.branch', System.getenv('PACT_PROVIDER_BRANCH')
+    systemProperty 'pactbroker.auth.username', System.getenv('PACT_BROKER_USERNAME')
+    systemProperty 'pactbroker.auth.password', System.getenv('PACT_BROKER_PASSWORD')
+}
