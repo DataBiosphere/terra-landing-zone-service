@@ -109,6 +109,9 @@ landingzone:
       uaenorth:
         AKS_MACHINE_TYPE: "Standard_D4as_v5"
         POSTGRES_SERVER_SKU: "Standard_D2ds_v5"
+      australiaeast:
+        AKS_MACHINE_TYPE: "Standard_D4as_v5"
+        POSTGRES_SERVER_SKU: "Standard_D2ds_v5"
   sentry:
     dsn: ${env.sentry.dsn}
     environment: ${env.sentry.environment}
