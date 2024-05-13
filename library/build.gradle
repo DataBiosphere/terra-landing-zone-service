@@ -41,7 +41,7 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.4'
 
     implementation group: "io.kubernetes", name: "client-java", version: "20.0.1" // Do not use -legacy versions
-    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.5'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.6'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
