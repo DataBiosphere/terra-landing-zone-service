@@ -28,9 +28,9 @@ dependencies {
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
         exclude group: 'io.projectreactor', module: 'reactor-core'
     }
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.18'
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.18'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.5'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.19'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.19'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.6'
 
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.38.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
@@ -42,11 +42,11 @@ dependencies {
 
     implementation group: "io.kubernetes", name: "client-java", version: "20.0.1" // Do not use -legacy versions
     constraints {
-        implementation('org.bouncycastle:bcprov-jdk18on:1.78') {
+        implementation('org.bouncycastle:bcprov-jdk18on:1.78.1') {
             because 'https://broadworkbench.atlassian.net/browse/WOR-1650'
         }
     }
-    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.12.6'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.13.0'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
