@@ -60,6 +60,8 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
   private static final String JOB_ID = "newJobId";
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final UUID BILLING_PROFILE_ID = UUID.randomUUID();
+  final String INVALID_SANITIZED_BILLING_PROFILE_ID =
+      "%7bbase%7d%22%20or%20version()%20like%20%user";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
@@ -395,6 +397,52 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.landingzones[0].region").exists())
         .andExpect(
             MockMvcResultMatchers.jsonPath("$.landingzones[0].region", equalTo("southcentralus")));
+  }
+
+  @Test
+  void listAzureLandingZoneByBillingProfileId_invalidAndSanitizedQueryParamValue()
+      throws Exception {
+    // corresponding REST controller will receive null (for billingProfileId) because the passed
+    // value will be sanitized.
+    mockMvc
+        .perform(
+            MockMvcUtils.addAuth(
+                get(
+                    AZURE_LANDING_ZONE_PATH + "?billingProfileId={billingProfileId}",
+                    INVALID_SANITIZED_BILLING_PROFILE_ID),
+                USER_REQUEST))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void
+      listAzureLandingZoneByBillingProfileId_invalidAndSanitizedQueryParamValueTogetherWithSomeOtherParams()
+          throws Exception {
+    // corresponding REST controller will receive null (for billingProfileId) because the passed
+    // value will be sanitized.
+    mockMvc
+        .perform(
+            MockMvcUtils.addAuth(
+                get(
+                    AZURE_LANDING_ZONE_PATH + "?billingProfileId={billingProfileId}&param1=value1",
+                    INVALID_SANITIZED_BILLING_PROFILE_ID),
+                USER_REQUEST))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void listAzureLandingZoneByBillingProfileId_invalidButNotSanitizedQueryParamValue()
+      throws Exception {
+    // this value won't be sanitized, but it is still non valid UUID value.
+    final String INVALID_BILLING_PROFILE_ID = "nonUUIDValue";
+    mockMvc
+        .perform(
+            MockMvcUtils.addAuth(
+                get(
+                    AZURE_LANDING_ZONE_PATH + "?billingProfileId={billingProfileId}",
+                    INVALID_BILLING_PROFILE_ID),
+                USER_REQUEST))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
