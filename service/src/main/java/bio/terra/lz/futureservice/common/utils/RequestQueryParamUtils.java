@@ -12,6 +12,7 @@ public class RequestQueryParamUtils {
 
   public static boolean isBillingProfileIdSanitized(
       UUID billingProfileId, String requestQueryParamPairs) {
+    if (billingProfileId != null) return false;
     if (requestQueryParamPairs == null) return false;
 
     // unlikely, but we might have more than 1 parameter provided;
@@ -27,6 +28,7 @@ public class RequestQueryParamUtils {
     String[] billingProfileIdKeyValuePair = billingProfileIdQueryParamPair.get().split("=");
     String billingProfileIdQueryValue =
         billingProfileIdKeyValuePair.length == 2 ? billingProfileIdKeyValuePair[1] : null;
-    return (billingProfileId == null) && !StringUtils.isEmpty(billingProfileIdQueryValue);
+    // if we are here billingProfileId is null
+    return !StringUtils.isEmpty(billingProfileIdQueryValue);
   }
 }
