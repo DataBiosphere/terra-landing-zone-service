@@ -1,0 +1,14 @@
+landingzone:
+  sam.base-path: https://sam.dsde-dev.broadinstitute.org
+
+  landingzone-database:
+    initialize-on-start: true
+    password: landingzonepwd
+    uri: jdbc:postgresql://127.0.0.1:5432/landingzone_db
+    username: landingzoneuser
+
+  landingzone-stairway-database:
+    initialize-on-start: true
+    password: landingzonestairwaypwd
+    uri: jdbc:postgresql://127.0.0.1:5432/landingzone_stairway_db
+    username: landingzonestairwayuser

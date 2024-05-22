@@ -222,20 +222,25 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
     when(mockLandingZoneAppService.deleteLandingZone(any(), any(), any(), any()))
         .thenReturn(asyncJobResult);
 
-    mockMvc
-        .perform(
-            MockMvcUtils.addAuth(
-                post(AZURE_LANDING_ZONE_PATH + "/{landingZoneId}", LANDING_ZONE_ID)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(requestBody))
-                    .characterEncoding("utf-8"),
-                USER_REQUEST))
-        .andExpect(status().isAccepted())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport").exists())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id").exists())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.landingZoneId").exists())
-        .andExpect(
-            MockMvcResultMatchers.jsonPath("$.landingZoneId", equalTo(LANDING_ZONE_ID.toString())));
+    var foo =
+        mockMvc
+            .perform(
+                MockMvcUtils.addAuth(
+                    post(AZURE_LANDING_ZONE_PATH + "/{landingZoneId}", LANDING_ZONE_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody))
+                        .characterEncoding("utf-8"),
+                    USER_REQUEST))
+            .andExpect(status().isAccepted())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.jobReport.id").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.landingZoneId").exists())
+            .andExpect(
+                MockMvcResultMatchers.jsonPath(
+                    "$.landingZoneId", equalTo(LANDING_ZONE_ID.toString())))
+            .andReturn();
+
+    System.out.println(foo.getResponse().getContentAsString());
   }
 
   @ParameterizedTest
@@ -325,28 +330,34 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
             "southcentralus");
     when(mockLandingZoneAppService.getAzureLandingZone(any(), eq(LANDING_ZONE_ID)))
         .thenReturn(landingZone);
-    mockMvc
-        .perform(
-            MockMvcUtils.addAuth(
-                get(AZURE_LANDING_ZONE_PATH + "/{landingZoneId}", LANDING_ZONE_ID), USER_REQUEST))
-        .andExpect(status().isOk())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.landingZoneId").exists())
-        .andExpect(
-            MockMvcResultMatchers.jsonPath("$.landingZoneId", equalTo(LANDING_ZONE_ID.toString())))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.definition").exists())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.definition", equalTo("definition")))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.version").exists())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.version", equalTo("version")))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.billingProfileId").exists())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.region").exists())
-        .andExpect(
-            MockMvcResultMatchers.jsonPath(
-                "$.billingProfileId", equalTo(BILLING_PROFILE_ID.toString())))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.createdDate").exists())
-        .andExpect(
-            MockMvcResultMatchers.jsonPath("$.createdDate", equalTo(lzCreateDate.toString())))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.region").exists())
-        .andExpect(MockMvcResultMatchers.jsonPath("$.region", equalTo("southcentralus")));
+    var foo =
+        mockMvc
+            .perform(
+                MockMvcUtils.addAuth(
+                    get(AZURE_LANDING_ZONE_PATH + "/{landingZoneId}", LANDING_ZONE_ID),
+                    USER_REQUEST))
+            .andExpect(status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.landingZoneId").exists())
+            .andExpect(
+                MockMvcResultMatchers.jsonPath(
+                    "$.landingZoneId", equalTo(LANDING_ZONE_ID.toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.definition").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.definition", equalTo("definition")))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.version").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.version", equalTo("version")))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.billingProfileId").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.region").exists())
+            .andExpect(
+                MockMvcResultMatchers.jsonPath(
+                    "$.billingProfileId", equalTo(BILLING_PROFILE_ID.toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.createdDate").exists())
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.createdDate", equalTo(lzCreateDate.toString())))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.region").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.region", equalTo("southcentralus")))
+            .andReturn();
+
+    System.out.println(foo.getResponse().getContentAsString());
   }
 
   @Test
