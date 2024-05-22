@@ -6,13 +6,12 @@ import org.apache.commons.lang3.StringUtils;
 public class RequestQueryParamUtils {
   private RequestQueryParamUtils() {}
 
-  public static boolean isBillingProfileIdSanitized(UUID value, String originalRequestValue) {
-    String[] queryParam = originalRequestValue.split("=");
-    if (value != null || queryParam.length < 2) {
-      // it seems the value of the parameter wasn't initially supplied,
-      // hence the query parameter's value wasn't sanitized.
-      return false;
-    }
-    return !StringUtils.isEmpty(queryParam[1]); // value is null here;
+  public static boolean isBillingProfileIdSanitized(
+      UUID billingProfileId, String queryParamKeyPair) {
+    if (queryParamKeyPair == null) return false;
+    String[] billingProfileIdQueryParam = queryParamKeyPair.split("=");
+    String billingProfileIdQueryValue =
+        billingProfileIdQueryParam.length == 2 ? billingProfileIdQueryParam[1] : null;
+    return (billingProfileId == null) && !StringUtils.isEmpty(billingProfileIdQueryValue);
   }
 }
