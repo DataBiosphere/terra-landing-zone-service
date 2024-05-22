@@ -66,15 +66,19 @@ public class LandingZoneApiController implements LandingZonesApi {
   @Override
   public ResponseEntity<ApiAzureLandingZoneList> listAzureLandingZones(UUID billingProfileId) {
     /*
-    Sometimes billingProfileId parameter can be null here even if original query parameter of the
-    GET request contains some value for it. This might happen during Tomcat server request parameter validation,
-    even before validation for type (UUID) of the parameter. Query string parameter's value can be sanitized
-    in case it contains forbidden characters.
-    We need to differentiate when parameter was supplied and sanitized and when it wasn't initially provided.
+    In certain cases, the billingProfileId parameter may be null, even if the original query parameter
+    of the GET request contains a value for it. This situation can arise during Tomcat server request
+    parameter validation, even before validating the type (UUID) of the parameter. For instance,
+    the query string parameter’s value might be sanitized if it contains forbidden characters.
+    It is important to distinguish between scenarios where the parameter was initially supplied
+    and when it was subsequently sanitized.
+
+    Example: Following value '%7bbase%7d%22%20or%20version()%20like%20%user' will be sanitized and
+    current method will receive null.
      */
     if (RequestQueryParamUtils.isBillingProfileIdSanitized(
         billingProfileId, request.getQueryString())) {
-      throw new BadRequestException("billing profile id is not valid!");
+      throw new BadRequestException("Value of the billingProfileId parameter is not valid.");
     }
 
     ApiAzureLandingZoneList result =
