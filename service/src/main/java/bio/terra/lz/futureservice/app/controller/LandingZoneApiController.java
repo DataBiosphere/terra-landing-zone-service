@@ -2,8 +2,10 @@ package bio.terra.lz.futureservice.app.controller;
 
 import static bio.terra.lz.futureservice.app.controller.common.ResponseUtils.getAsyncResponseCode;
 
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.lz.futureservice.app.service.LandingZoneAppService;
+import bio.terra.lz.futureservice.common.utils.RequestQueryParamUtils;
 import bio.terra.lz.futureservice.generated.api.LandingZonesApi;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZone;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneDefinitionList;
@@ -63,6 +65,18 @@ public class LandingZoneApiController implements LandingZonesApi {
 
   @Override
   public ResponseEntity<ApiAzureLandingZoneList> listAzureLandingZones(UUID billingProfileId) {
+    /*
+    Sometimes billingProfileId parameter can be null here even if original query parameter of the
+    GET request contains some value for it. This might happen during Tomcat server request parameter validation,
+    even before validation for type (UUID) of the parameter. Query string parameter's value can be sanitized
+    in case it contains forbidden characters.
+    We need to differentiate when parameter was supplied and sanitized and when it wasn't initially provided.
+     */
+    if (RequestQueryParamUtils.isBillingProfileIdSanitized(
+        billingProfileId, request.getQueryString())) {
+      throw new BadRequestException("billing profile id is not valid!");
+    }
+
     ApiAzureLandingZoneList result =
         landingZoneAppService.listAzureLandingZones(
             bearerTokenFactory.from(request), billingProfileId);
