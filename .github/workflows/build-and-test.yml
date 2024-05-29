@@ -57,7 +57,7 @@ jobs:
           ./minnie-kenny.sh --force
           git secrets --scan-history
 
-      - name: Build the test harness and, by dependency, the library
+      - name: Build the project
         run: ./scripts/build project -x test
 
   tests-and-sonarqube:
@@ -102,7 +102,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       # Run tests
-      - name: Run Library, Service, and Test Harness tests with coverage
+      - name: Run Library and Service with coverage
         run: ./scripts/run test
 
       # NB: We were using a federated credential to get the needed publisher credentials for tests previously,
@@ -114,13 +114,6 @@ jobs:
           AZURE_TENANT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_TENANT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_SECRET }}
           AZURE_CLIENT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
-
-      - name: Upload Test Harness Test Reports
-        uses: actions/upload-artifact@v1
-        if: always()
-        with:
-          name: Test Harness Reports
-          path: testharness/build/reports/tests
 
       - name: Upload Library Test Reports
         uses: actions/upload-artifact@v1
