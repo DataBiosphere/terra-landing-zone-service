@@ -51,10 +51,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * To run these tests against a local set of pacts, comment out the @PactBroker annotation and
+ * replace with an @PactFolder annotation with a path to your pacts
+ */
 @AutoConfigureMockMvc
 @Tag("pact-provider-test")
 @Provider("terra-landing-zone-service")
 @PactBroker
+// @PactFolder("/path/to/pacts")
 @SpringBootTest(
     properties = {"otel.instrumentation.spring-webmvc.enabled=false"},
     classes = LandingZoneApplication.class)

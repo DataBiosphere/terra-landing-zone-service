@@ -135,6 +135,37 @@ The table below describes the current Landing Zone Definitions available in the 
   </tbody>
 </table>
 
+
+## Testing
+
+### Contract Testing
+
+We use [pact](https://pact.io) for contract testing between the landing zone service and other services.
+
+#### Consumer Contract Tests
+
+Contract tests are excluded from the base "tests" gradle task. To run the consumer tests, use the following 
+gradle invocation from the repository root:
+
+```
+./gradlew :service:pactConsumerTests
+```
+
+#### Provider Contract Tests
+
+Provider contract tests require a running postgres:
+```
+./service/local-dev/run_postgres.sh start
+```
+
+They also require input pacts, either pulled from a broker or stored locally. To run against a broker, use this invocation:
+
+```
+PACT_BROKER_USERNAME="<brokerusername>" PACT_BROKER_PASSWORD"<brokerpassword>" PACT_BROKER_URL="<brokerurl>" ./gradlew :service:verifyPacts
+```
+
+The required broker information is stored in vault. Ask in #dsp-workspaces for more info. 
+
 ## Additional information
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for more information about the process of
