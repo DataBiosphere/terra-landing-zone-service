@@ -115,13 +115,6 @@ jobs:
           AZURE_CLIENT_SECRET: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_SECRET }}
           AZURE_CLIENT_ID: ${{ secrets.LANDINGZONE_TESTING_PUBLISHER_CLIENT_ID }}
 
-      - name: Upload Test Harness Test Reports
-        uses: actions/upload-artifact@v1
-        if: always()
-        with:
-          name: Test Harness Reports
-          path: testharness/build/reports/tests
-
       - name: Upload Library Test Reports
         uses: actions/upload-artifact@v1
         if: always()
