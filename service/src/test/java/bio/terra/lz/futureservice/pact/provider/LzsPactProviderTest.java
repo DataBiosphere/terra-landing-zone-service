@@ -52,7 +52,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-@Tag("provider-test")
+@Tag("pact-provider-test")
 @Provider("terra-landing-zone-service")
 @PactBroker
 @SpringBootTest(
