@@ -58,8 +58,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(
     properties = {"otel.instrumentation.spring-webmvc.enabled=false"},
     classes = LandingZoneApplication.class)
-public class LzsPactProviderTest extends BaseSpringUnitTest {
-  private static final String CONSUMER_BRANCH = "arh-pact-mk2"; // System.getenv("CONSUMER_BRANCH");
+public class LandingZoneServicePactProviderTest extends BaseSpringUnitTest {
+  private static final String CONSUMER_BRANCH = System.getenv("CONSUMER_BRANCH");
 
   @MockBean BearerTokenFactory bearerTokenFactory;
   @MockBean LandingZoneAppService landingZoneAppService;
