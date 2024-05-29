@@ -31,7 +31,7 @@ as well as on merge to `main`.
 # Run setup to set the environment, including postgres running in docker:
 ./scripts/setup
 
-# Unit tests (currently library, service, and testharness tests):
+# Unit tests (currently library and service tests):
 ./scripts/run test
 
 # integration tests
