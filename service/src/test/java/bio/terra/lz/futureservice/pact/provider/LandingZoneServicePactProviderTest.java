@@ -12,6 +12,7 @@ import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
@@ -60,7 +61,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @Tag("pact-provider-test")
 @Provider("terra-landing-zone-service")
 @PactBroker
-// @PactFolder("/path/to/pacts")
 @SpringBootTest(
     properties = {
       "otel.instrumentation.spring-webmvc.enabled=false",
@@ -93,42 +93,6 @@ public class LandingZoneServicePactProviderTest extends BaseSpringUnitTest {
   @BeforeEach
   void setUp(PactVerificationContext context) {
     context.setTarget(new MockMvcTestTarget(mockMvc));
-    when(landingZoneAppService.deleteLandingZone(any(), any(), any(), any()))
-        .thenReturn(
-            new ApiDeleteAzureLandingZoneResult()
-                .landingZoneId(UUID.randomUUID())
-                .jobReport(
-                    new ApiJobReport()
-                        .id("random")
-                        .description("fakedescription")
-                        .statusCode(200)
-                        .submitted("2024-05-28T14:29:00")
-                        .resultURL("fake")
-                        .status(ApiJobReport.StatusEnum.RUNNING)));
-    when(landingZoneAppService.listAzureLandingZoneResources(any(), any()))
-        .thenReturn(
-            new ApiAzureLandingZoneResourcesList()
-                .id(UUID.randomUUID())
-                .resources(
-                    List.of(
-                        new ApiAzureLandingZoneResourcesPurposeGroup()
-                            .purpose("testing")
-                            .deployedResources(
-                                List.of(
-                                    new ApiAzureLandingZoneDeployedResource()
-                                        .tags(Map.of("key", "value"))
-                                        .resourceType("resourceType")
-                                        .region("eastus")
-                                        .resourceId("resourceIdTesting")
-                                        .resourceName("fakeName"))))));
-
-    when(landingZoneAppService.getResourceQuota(any(), any(), any()))
-        .thenReturn(
-            new ApiResourceQuota()
-                .azureResourceId("fake")
-                .landingZoneId(UUID.randomUUID())
-                .resourceType("faketype")
-                .putQuotaValuesItem("fake", "1"));
 
     when(landingZoneAppService.listAzureLandingZonesDefinitions(any()))
         .thenReturn(new ApiAzureLandingZoneDefinitionList());
@@ -261,6 +225,43 @@ public class LandingZoneServicePactProviderTest extends BaseSpringUnitTest {
                 .region("eastus")
                 .version("v1")
                 .definition("fake"));
+
+    when(landingZoneAppService.deleteLandingZone(any(), any(), any(), any()))
+        .thenReturn(
+            new ApiDeleteAzureLandingZoneResult()
+                .landingZoneId(UUID.randomUUID())
+                .jobReport(
+                    new ApiJobReport()
+                        .id("random")
+                        .description("fakedescription")
+                        .statusCode(200)
+                        .submitted("2024-05-28T14:29:00")
+                        .resultURL("fake")
+                        .status(ApiJobReport.StatusEnum.RUNNING)));
+    when(landingZoneAppService.listAzureLandingZoneResources(any(), any()))
+        .thenReturn(
+            new ApiAzureLandingZoneResourcesList()
+                .id(UUID.randomUUID())
+                .resources(
+                    List.of(
+                        new ApiAzureLandingZoneResourcesPurposeGroup()
+                            .purpose("testing")
+                            .deployedResources(
+                                List.of(
+                                    new ApiAzureLandingZoneDeployedResource()
+                                        .tags(Map.of("key", "value"))
+                                        .resourceType("resourceType")
+                                        .region("eastus")
+                                        .resourceId("resourceIdTesting")
+                                        .resourceName("fakeName"))))));
+
+    when(landingZoneAppService.getResourceQuota(any(), any(), any()))
+        .thenReturn(
+            new ApiResourceQuota()
+                .azureResourceId("fake")
+                .landingZoneId(UUID.randomUUID())
+                .resourceType("faketype")
+                .putQuotaValuesItem("fake", "1"));
     return Map.of("landingZoneId", UUID.randomUUID().toString());
   }
 }
