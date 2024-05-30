@@ -17,6 +17,7 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerTokenFactory;
+import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.lz.futureservice.app.LandingZoneApplication;
 import bio.terra.lz.futureservice.app.service.LandingZoneAppService;
 import bio.terra.lz.futureservice.common.BaseSpringUnitTest;
@@ -61,13 +62,18 @@ import org.springframework.test.web.servlet.MockMvc;
 @PactBroker
 // @PactFolder("/path/to/pacts")
 @SpringBootTest(
-    properties = {"otel.instrumentation.spring-webmvc.enabled=false"},
+    properties = {
+      "otel.instrumentation.spring-webmvc.enabled=false",
+      "landingzone.landingzone-database.initialize-on-start=false",
+      "landingzone.landingzone-database.upgrade-on-start=false",
+    },
     classes = LandingZoneApplication.class)
 public class LandingZoneServicePactProviderTest extends BaseSpringUnitTest {
   private static final String CONSUMER_BRANCH = System.getenv("CONSUMER_BRANCH");
 
   @MockBean BearerTokenFactory bearerTokenFactory;
   @MockBean LandingZoneAppService landingZoneAppService;
+  @MockBean LandingZoneJobService landingZoneJobService;
   @Autowired private MockMvc mockMvc;
 
   @PactBrokerConsumerVersionSelectors
