@@ -203,7 +203,6 @@ jobs:
         # pactbroker.{host, scheme}
         # pactbroker.auth.{username, password}
         env:
-          CONSUMER_BRANCH:  "arh-pact-mk2" # TODO remove before merging
           PACT_BROKER_URL: 'https://pact-broker.dsp-eng-tools.broadinstitute.org'
           PACT_PROVIDER_VERSION: ${{ env.PROVIDER_VERSION }}
           PACT_PROVIDER_BRANCH:  ${{ env.PROVIDER_BRANCH }}
