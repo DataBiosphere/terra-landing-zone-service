@@ -20,6 +20,7 @@ import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.landingzone.job.LandingZoneJobService;
 import bio.terra.lz.futureservice.app.LandingZoneApplication;
 import bio.terra.lz.futureservice.app.service.LandingZoneAppService;
+import bio.terra.lz.futureservice.app.service.status.StatusService;
 import bio.terra.lz.futureservice.common.BaseSpringUnitTest;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZone;
 import bio.terra.lz.futureservice.generated.model.ApiAzureLandingZoneDefinitionList;
@@ -73,6 +74,7 @@ public class LandingZoneServicePactProviderTest extends BaseSpringUnitTest {
   @MockBean BearerTokenFactory bearerTokenFactory;
   @MockBean LandingZoneAppService landingZoneAppService;
   @MockBean LandingZoneJobService landingZoneJobService;
+  @MockBean StatusService statusService;
   @Autowired private MockMvc mockMvc;
 
   @PactBrokerConsumerVersionSelectors
