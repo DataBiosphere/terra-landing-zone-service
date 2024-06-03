@@ -15,5 +15,5 @@ dependencies {
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.5'
     implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.2'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:4.4.1.3373'
-    implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.2.3'
+    implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.3.0'
 }
