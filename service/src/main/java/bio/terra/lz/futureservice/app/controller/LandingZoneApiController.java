@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 
+// IGNORE
 @Controller
 public class LandingZoneApiController implements LandingZonesApi {
   private final HttpServletRequest request;
