@@ -110,6 +110,7 @@ jobs:
     outputs:
       provider-version: ${{ steps.verification-test.outputs.provider-version }}
 
+
     steps:
       - name: Checkout current code
         uses: actions/checkout@v3
@@ -202,6 +203,7 @@ jobs:
         # pactbroker.{host, scheme}
         # pactbroker.auth.{username, password}
         env:
+          CONSUMER_BRANCH:  "arh-pact-mk2" # TODO remove
           PACT_BROKER_URL: 'https://pact-broker.dsp-eng-tools.broadinstitute.org'
           PACT_PROVIDER_VERSION: ${{ env.PROVIDER_VERSION }}
           PACT_PROVIDER_BRANCH:  ${{ env.PROVIDER_BRANCH }}

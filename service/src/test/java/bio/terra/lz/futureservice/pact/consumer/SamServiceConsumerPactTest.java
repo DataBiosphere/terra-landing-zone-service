@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@Tag("pact-test")
+@Tag("pact-consumer-test")
 @ExtendWith(PactConsumerTestExt.class)
 public class SamServiceConsumerPactTest {
   private static final String RESOURCE_TYPE = "resourceType";

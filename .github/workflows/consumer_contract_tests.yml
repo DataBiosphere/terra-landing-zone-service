@@ -122,7 +122,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run consumer tests
-        run: ./gradlew pactTests
+        run: ./gradlew pactConsumerTests
       - name: Locate pact files
         id: locate-pacts
         run: |

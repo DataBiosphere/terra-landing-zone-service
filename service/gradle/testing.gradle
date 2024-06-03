@@ -1,11 +1,14 @@
 test {
+    useJUnitPlatform {
+        excludeTags "pact-consumer-test", "pact-provider-test"
+    }
     systemProperties['pact.rootDir'] = "$buildDir/pacts"
     systemProperties['pact.provider.version'] = "$project.version"
 }
 
-tasks.register("pactTests", Test) {
+tasks.register("pactConsumerTests", Test) {
     useJUnitPlatform {
-        includeTags "pact-test"
+        includeTags "pact-consumer-test"
     }
     testLogging {
         showStandardStreams = true
@@ -16,7 +19,7 @@ boolean isCiServer = System.getenv().containsKey("CI")
 // verify the provider side of pacts LZS has with other services
 tasks.register("verifyPacts", Test) {
     useJUnitPlatform {
-        includeTags "pact-verification"
+        includeTags "pact-provider-test"
     }
     testLogging {
         events = ["passed", "failed", "skipped", "started", "standard_out"]

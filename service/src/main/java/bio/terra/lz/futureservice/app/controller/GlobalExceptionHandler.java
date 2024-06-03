@@ -1,6 +1,7 @@
 package bio.terra.lz.futureservice.app.controller;
 
 import bio.terra.common.exception.AbstractGlobalExceptionHandler;
+import bio.terra.common.exception.NotFoundException;
 import bio.terra.lz.futureservice.generated.model.ApiErrorReport;
 import io.sentry.Sentry;
 import java.util.List;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends AbstractGlobalExceptionHandler<ApiErrorReport> {
+
   @Override
   public ApiErrorReport generateErrorReport(
       Throwable ex, HttpStatus statusCode, List<String> causes) {
@@ -39,5 +42,11 @@ public class GlobalExceptionHandler extends AbstractGlobalExceptionHandler<ApiEr
             .message("Invalid request " + ex.getClass().getSimpleName());
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorReport);
+  }
+
+  @ExceptionHandler({NoResourceFoundException.class, NotFoundException.class})
+  public ResponseEntity<ApiErrorReport> noResourceFoundHandler(Exception e) {
+    var report = new ApiErrorReport().message("Not found").statusCode(HttpStatus.NOT_FOUND.value());
+    return new ResponseEntity<>(report, HttpStatus.NOT_FOUND);
   }
 }
