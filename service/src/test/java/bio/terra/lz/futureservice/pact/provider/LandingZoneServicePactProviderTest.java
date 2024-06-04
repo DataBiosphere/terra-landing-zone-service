@@ -59,7 +59,7 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @AutoConfigureMockMvc
 @Tag("pact-provider-test")
-@Provider("terra-landing-zone-service")
+@Provider("landingzone")
 @PactBroker
 @SpringBootTest(
     properties = {
