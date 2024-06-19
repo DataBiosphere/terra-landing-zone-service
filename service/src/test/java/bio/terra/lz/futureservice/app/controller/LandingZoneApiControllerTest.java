@@ -1,5 +1,8 @@
 package bio.terra.lz.futureservice.app.controller;
 
+import static bio.terra.lz.futureservice.common.TestEndpoints.AZURE_LANDING_ZONE_PATH;
+import static bio.terra.lz.futureservice.common.TestEndpoints.GET_CREATE_AZURE_LANDING_ZONE_RESULT;
+import static bio.terra.lz.futureservice.common.TestEndpoints.LIST_AZURE_LANDING_ZONES_DEFINITIONS_PATH;
 import static bio.terra.lz.futureservice.common.utils.MockMvcUtils.USER_REQUEST;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -52,11 +55,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @AutoConfigureMockMvc
 public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
-  private static final String AZURE_LANDING_ZONE_PATH = "/api/landingzones/v1/azure";
-  private static final String GET_CREATE_AZURE_LANDING_ZONE_RESULT =
-      "/api/landingzones/v1/azure/create-result";
-  private static final String LIST_AZURE_LANDING_ZONES_DEFINITIONS_PATH =
-      "/api/landingzones/definitions/v1/azure";
   private static final String JOB_ID = "newJobId";
   private static final UUID LANDING_ZONE_ID = UUID.randomUUID();
   private static final UUID BILLING_PROFILE_ID = UUID.randomUUID();
