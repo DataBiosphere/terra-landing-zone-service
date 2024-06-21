@@ -23,6 +23,7 @@ import bio.terra.common.exception.InternalServerErrorException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.db.exception.DuplicateLandingZoneException;
+import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.job.LandingZoneJobBuilder;
@@ -315,6 +316,7 @@ public class LandingZoneServiceTest {
     var landingZoneId = UUID.randomUUID();
     String resultPath = "delete-result";
 
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(mock());
     LandingZoneJobBuilder mockJobBuilder = createMockJobBuilder(OperationType.DELETE);
     when(mockJobBuilder.addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId))
         .thenReturn(mockJobBuilder);
@@ -327,6 +329,21 @@ public class LandingZoneServiceTest {
 
     verify(landingZoneJobService, times(1)).newJob();
     verify(mockJobBuilder, times(1)).submit();
+  }
+
+  @Test
+  void startLandingZoneDeletionJob_ThrowsExceptionWhenLandingZoneNotFound() {
+    var landingZoneId = UUID.randomUUID();
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId))
+        .thenThrow(
+            new LandingZoneNotFoundException(
+                String.format("Landing Zone %s not found.", landingZoneId)));
+
+    Assertions.assertThrows(
+        LandingZoneNotFoundException.class,
+        () ->
+            landingZoneService.startLandingZoneDeletionJob(
+                bearerToken, "newJobId", landingZoneId, "delete-result"));
   }
 
   @Test
