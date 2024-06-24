@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
@@ -158,17 +157,16 @@ public class DeleteLandingZoneResourcesStepTest {
   }
 
   @Test
-  void doStep_failsIfLzNotFound() throws InterruptedException {
+  void doStep_succeedsWhenNoLandingZoneRecord() throws InterruptedException {
     var lzId = UUID.randomUUID();
     var deleteStep = new DeleteLandingZoneResourcesStep(landingZoneManagerProvider, landingZoneDao);
     when(flightContext.getInputParameters()).thenReturn(inputMap);
     inputMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, lzId);
-    when(landingZoneDao.getLandingZoneRecord(lzId))
-        .thenThrow(new LandingZoneNotFoundException("not found"));
+    when(landingZoneDao.getLandingZoneIfExists(lzId)).thenReturn(Optional.empty());
 
     var result = deleteStep.doStep(flightContext);
 
-    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_FAILURE_FATAL));
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
   }
 
   private LandingZoneRecord buildLandingZoneRecord(Map<String, String> properties) {
