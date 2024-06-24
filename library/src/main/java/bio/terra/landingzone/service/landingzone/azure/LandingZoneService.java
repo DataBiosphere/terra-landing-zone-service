@@ -215,10 +215,6 @@ public class LandingZoneService {
                 SamConstants.SamLandingZoneAction.DELETE),
         IS_AUTHORIZED);
 
-    // Validate landing zone actually exists - getLandingZoneRecord throws LandingZoneNotFound
-    // exception if missing
-    landingZoneDao.getLandingZoneRecord(landingZoneId);
-
     String jobDescription = "Deleting Azure Landing Zone. Landing Zone ID:%s";
     final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
