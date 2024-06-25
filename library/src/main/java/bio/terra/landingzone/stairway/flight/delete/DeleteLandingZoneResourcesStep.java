@@ -3,7 +3,6 @@ package bio.terra.landingzone.stairway.flight.delete;
 import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
@@ -46,14 +45,15 @@ public class DeleteLandingZoneResourcesStep implements Step {
     FlightUtils.validateRequiredEntries(inputMap, LandingZoneFlightMapKeys.LANDING_ZONE_ID);
     var landingZoneId = inputMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
-    LandingZoneRecord landingZoneRecord;
-    try {
-      // Look up the landing zone record from the database
-      landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
-    } catch (LandingZoneNotFoundException e) {
-      logger.error("Landing zone not found. id={}", landingZoneId, e);
-      return new StepResult(StepStatus.STEP_RESULT_FAILURE_FATAL, e);
+    var landingZoneRecordOpt = landingZoneDao.getLandingZoneIfExists(landingZoneId);
+    if (landingZoneRecordOpt.isEmpty()) {
+      // It's possible for the landing zone record to have been deleted, but the Sam resource to
+      // still exist
+      logger.info("Landing zone not found. id={}", landingZoneId);
+      return StepResult.getStepResultSuccess();
     }
+
+    LandingZoneRecord landingZoneRecord = landingZoneRecordOpt.get();
 
     try {
       LandingZoneTarget landingZoneTarget =

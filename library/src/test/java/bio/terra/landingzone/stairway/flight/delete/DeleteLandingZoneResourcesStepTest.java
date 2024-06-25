@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.db.LandingZoneDao;
-import bio.terra.landingzone.db.exception.LandingZoneNotFoundException;
 import bio.terra.landingzone.db.model.LandingZoneRecord;
 import bio.terra.landingzone.job.JobMapKeys;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
@@ -66,8 +65,8 @@ public class DeleteLandingZoneResourcesStepTest {
     inputMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneRecord.landingZoneId());
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
-    when(landingZoneDao.getLandingZoneRecord(eq(landingZoneRecord.landingZoneId())))
-        .thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneIfExists(eq(landingZoneRecord.landingZoneId())))
+        .thenReturn(Optional.of(landingZoneRecord));
     when(landingZoneManager.deleteResources(eq(landingZoneRecord.landingZoneId().toString())))
         .thenReturn(deletedResources);
 
@@ -93,8 +92,8 @@ public class DeleteLandingZoneResourcesStepTest {
     inputMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneRecord.landingZoneId());
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
-    when(landingZoneDao.getLandingZoneRecord(eq(landingZoneRecord.landingZoneId())))
-        .thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneIfExists(eq(landingZoneRecord.landingZoneId())))
+        .thenReturn(Optional.of(landingZoneRecord));
     when(landingZoneManager.deleteResources(eq(landingZoneRecord.landingZoneId().toString())))
         .thenThrow(new RuntimeException("Interrupted", new InterruptedException()));
 
@@ -114,8 +113,8 @@ public class DeleteLandingZoneResourcesStepTest {
         .thenThrow(
             new ManagementException(
                 "unauthed", null, new ManagementError("AuthorizationFailed", "unauthed")));
-    when(landingZoneDao.getLandingZoneRecord(landingZoneRecord.landingZoneId()))
-        .thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneIfExists(landingZoneRecord.landingZoneId()))
+        .thenReturn(Optional.of(landingZoneRecord));
 
     var result = deleteStep.doStep(flightContext);
 
@@ -141,8 +140,8 @@ public class DeleteLandingZoneResourcesStepTest {
     inputMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneRecord.landingZoneId());
     when(landingZoneManagerProvider.createLandingZoneManager(any(LandingZoneTarget.class)))
         .thenReturn(landingZoneManager);
-    when(landingZoneDao.getLandingZoneRecord(eq(landingZoneRecord.landingZoneId())))
-        .thenReturn(landingZoneRecord);
+    when(landingZoneDao.getLandingZoneIfExists(eq(landingZoneRecord.landingZoneId())))
+        .thenReturn(Optional.of(landingZoneRecord));
 
     var result = deleteStep.doStep(flightContext);
 
@@ -158,17 +157,16 @@ public class DeleteLandingZoneResourcesStepTest {
   }
 
   @Test
-  void doStep_failsIfLzNotFound() throws InterruptedException {
+  void doStep_succeedsWhenNoLandingZoneRecord() throws InterruptedException {
     var lzId = UUID.randomUUID();
     var deleteStep = new DeleteLandingZoneResourcesStep(landingZoneManagerProvider, landingZoneDao);
     when(flightContext.getInputParameters()).thenReturn(inputMap);
     inputMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, lzId);
-    when(landingZoneDao.getLandingZoneRecord(lzId))
-        .thenThrow(new LandingZoneNotFoundException("not found"));
+    when(landingZoneDao.getLandingZoneIfExists(lzId)).thenReturn(Optional.empty());
 
     var result = deleteStep.doStep(flightContext);
 
-    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_FAILURE_FATAL));
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
   }
 
   private LandingZoneRecord buildLandingZoneRecord(Map<String, String> properties) {

@@ -29,6 +29,7 @@ import bio.terra.stairway.exception.FlightNotFoundException;
 import bio.terra.stairway.exception.StairwayException;
 import com.azure.resourcemanager.batch.models.*;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.*;
@@ -164,7 +165,8 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
         LandingZoneRequestFixtures.createLandingZoneRecord(
             landingZoneId, resourceGroup.name(), azureProfile, profile);
     // even with isolated Flight for resource deletion we need to mock dao interaction
-    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(existingLandingZoneRecord);
+    when(landingZoneDao.getLandingZoneIfExists(landingZoneId))
+        .thenReturn(Optional.of(existingLandingZoneRecord));
 
     UUID deleteJobId = UUID.randomUUID();
     startLandingZoneResourceDeletionFlight(deleteJobId.toString(), landingZoneId, bearerToken, "");
