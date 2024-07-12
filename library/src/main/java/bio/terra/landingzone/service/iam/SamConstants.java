@@ -18,6 +18,7 @@ public class SamConstants {
 
   public static class SamSpendProfileAction {
     public static final String LINK = "link";
+    public static final String READ_JOB_RESULT = "read_job_result";
 
     private SamSpendProfileAction() {}
   }

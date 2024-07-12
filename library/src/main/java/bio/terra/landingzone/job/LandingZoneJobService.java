@@ -5,6 +5,7 @@ import static bio.terra.stairway.FlightStatus.ERROR;
 import static bio.terra.stairway.FlightStatus.FATAL;
 
 import bio.terra.common.db.DataSourceInitializer;
+import bio.terra.common.exception.ForbiddenException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.logging.LoggingUtils;
 import bio.terra.common.stairway.MonitoringHook;
@@ -26,8 +27,6 @@ import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayD
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
 import bio.terra.landingzone.service.iam.SamRethrow;
-import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
 import bio.terra.stairway.Flight;
 import bio.terra.stairway.FlightDebugInfo;
@@ -372,97 +371,54 @@ public class LandingZoneJobService {
   }
 
   /**
-   * Ensure the user in the user request has permission to read the landing zone associated with the
-   * Job ID. Throws ForbiddenException if not.
+   * Ensure the user in the user request has permission to read the Job ID. Throws
+   * ForbiddenException if not.
    *
    * @param bearerToken bearer token of the user request
    * @param jobId ID of running job
+   * @throws ForbiddenException if the user does not have READ_JOB_RESULT action on the billing
+   *     profile, the job id does not exist, the job does not have a billing profile id, or the
+   *     landing zone id of the job does not match the given landing zone id
    */
-  public void verifyUserAccess(BearerToken bearerToken, String jobId) {
+  public void verifyUserAccess(
+      BearerToken bearerToken, String jobId, Optional<UUID> landingZoneId) {
     try {
       FlightState flightState = stairwayComponent.get().getFlightState(jobId);
       FlightMap inputParameters = flightState.getInputParameters();
-      UUID landingZoneId =
-          inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-      if (landingZoneId == null) {
-        throw new JobNotFoundException("The landing zone does not exist for job");
-      }
-      var azureLandingZoneRequest =
-          inputParameters.get(
-              LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class);
 
-      if (getJobStatus(flightState.getFlightStatus()).equals(JobReport.StatusEnum.FAILED)) {
-        // Check that the calling user has "link" permission on the billing profile resource in Sam
-        SamRethrow.onInterrupted(
-            () ->
-                samService.checkAuthz(
-                    bearerToken,
-                    SamConstants.SamResourceType.SPEND_PROFILE,
-                    azureLandingZoneRequest.billingProfileId().toString(),
-                    SamConstants.SamSpendProfileAction.LINK),
-            IS_AUTHORIZED);
-      } else {
-        // Check that the calling user has "list-resources" permission on the landing zone resource
-        // in
-        // Sam
-        SamRethrow.onInterrupted(
-            () ->
-                samService.checkAuthz(
-                    bearerToken,
-                    SamConstants.SamResourceType.LANDING_ZONE,
-                    landingZoneId.toString(),
-                    SamConstants.SamLandingZoneAction.LIST_RESOURCES),
-            "isAuthorized");
-      }
+      var billingProfileId =
+          Optional.ofNullable(
+              inputParameters.get(LandingZoneFlightMapKeys.BILLING_PROFILE_ID, UUID.class));
+
+      // if given landing zone id does not match the flight's landing zone id, throw Forbidden
+      landingZoneId.ifPresent(
+          lzId -> {
+            UUID flightLandingZoneId =
+                inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+            if (flightLandingZoneId != lzId) {
+              throw newJobForbiddenException(jobId);
+            }
+          });
+
+      SamRethrow.onInterrupted(
+          () ->
+              samService.checkAuthz(
+                  bearerToken,
+                  SamConstants.SamResourceType.SPEND_PROFILE,
+                  billingProfileId.orElseThrow(() -> newJobForbiddenException(jobId)).toString(),
+                  SamConstants.SamSpendProfileAction.READ_JOB_RESULT),
+          IS_AUTHORIZED);
+
     } catch (DatabaseOperationException | InterruptedException ex) {
       throw new InternalStairwayException("Stairway exception looking up the job", ex);
-    } catch (FlightNotFoundException ex) {
-      throw new JobNotFoundException("Job not found", ex);
+    } catch (FlightNotFoundException | ForbiddenException ex) {
+      // handle ForbiddenException to avoid leaking the billing profile id
+      throw newJobForbiddenException(jobId);
     }
   }
 
-  public void verifyUserAccessForDeleteJobResult(
-      BearerToken bearerToken, UUID landingZoneId, String jobId) {
-    try {
-      FlightState flightState = stairwayComponent.get().getFlightState(jobId);
-      FlightMap inputParameters = flightState.getInputParameters();
-      UUID flightLandingZoneId =
-          inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-      if (!flightLandingZoneId.equals(landingZoneId)) {
-        throw new JobNotFoundException(
-            "The landing zone does not exist for job or the landing zone id is invalid.");
-      }
-
-      if (getJobStatus(flightState.getFlightStatus()).equals(JobReport.StatusEnum.SUCCEEDED)) {
-        var result = flightState.getResultMap().orElseThrow();
-        var deleted = result.get(JobMapKeys.RESPONSE.getKeyName(), DeletedLandingZone.class);
-
-        // Check that the calling user has "link" permission on the billing profile resource in Sam
-        SamRethrow.onInterrupted(
-            () ->
-                samService.checkAuthz(
-                    bearerToken,
-                    SamConstants.SamResourceType.SPEND_PROFILE,
-                    deleted.billingProfileId().toString(),
-                    SamConstants.SamSpendProfileAction.LINK),
-            IS_AUTHORIZED);
-      } else {
-        // Check that the calling user has "list-delete" permission on the landing zone resource in
-        // Sam
-        SamRethrow.onInterrupted(
-            () ->
-                samService.checkAuthz(
-                    bearerToken,
-                    SamConstants.SamResourceType.LANDING_ZONE,
-                    landingZoneId.toString(),
-                    SamConstants.SamLandingZoneAction.DELETE),
-            IS_AUTHORIZED);
-      }
-    } catch (DatabaseOperationException | InterruptedException ex) {
-      throw new InternalStairwayException("Stairway exception looking up the job", ex);
-    } catch (FlightNotFoundException ex) {
-      throw new JobNotFoundException("Job not found", ex);
-    }
+  private ForbiddenException newJobForbiddenException(String jobId) {
+    return new ForbiddenException("Caller is not authorized to view job " + jobId);
   }
 
   private <T> JobResultOrException<T> retrieveJobResultWorker(String jobId, Class<T> resultClass)

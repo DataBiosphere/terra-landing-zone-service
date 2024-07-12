@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -97,7 +98,7 @@ public class LandingZoneService {
   public AsyncJobResult<DeployedLandingZone> getAsyncJobResult(
       BearerToken bearerToken, String jobId) {
     // Check calling user has access to the landing zone referenced by this job
-    azureLandingZoneJobService.verifyUserAccess(bearerToken, jobId);
+    azureLandingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.empty());
     return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeployedLandingZone.class);
   }
 
@@ -112,8 +113,7 @@ public class LandingZoneService {
   public AsyncJobResult<DeletedLandingZone> getAsyncDeletionJobResult(
       BearerToken bearerToken, UUID landingZoneId, String jobId) {
     // Check calling user has access to the landing zone referenced by this job
-    azureLandingZoneJobService.verifyUserAccessForDeleteJobResult(
-        bearerToken, landingZoneId, jobId);
+    azureLandingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId));
     return azureLandingZoneJobService.retrieveAsyncJobResult(jobId, DeletedLandingZone.class);
   }
 
@@ -167,6 +167,8 @@ public class LandingZoneService {
                 LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, azureLandingZoneRequest)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
             .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE, profile)
+            // billing profile id parameter is redundant, but it is needed for authorization
+            .addParameter(LandingZoneFlightMapKeys.BILLING_PROFILE_ID, profile.getId())
             .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
 
     MetricUtils.incrementLandingZoneCreation(azureLandingZoneRequest.definition());
@@ -215,6 +217,8 @@ public class LandingZoneService {
                 SamConstants.SamLandingZoneAction.DELETE),
         IS_AUTHORIZED);
 
+    var landingZoneRecord = landingZoneDao.getLandingZoneRecord(landingZoneId);
+
     String jobDescription = "Deleting Azure Landing Zone. Landing Zone ID:%s";
     final LandingZoneJobBuilder jobBuilder =
         azureLandingZoneJobService
@@ -225,7 +229,10 @@ public class LandingZoneService {
             .operationType(OperationType.DELETE)
             .bearerToken(bearerToken)
             .addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId)
-            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath);
+            .addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath)
+            // billing profile id is not needed for deletion, but it is needed for authorization
+            .addParameter(
+                LandingZoneFlightMapKeys.BILLING_PROFILE_ID, landingZoneRecord.billingProfileId());
     return azureLandingZoneJobService.retrieveStartingAsyncJobResult(
         jobBuilder.submit(), new StartLandingZoneDeletion(landingZoneId));
   }

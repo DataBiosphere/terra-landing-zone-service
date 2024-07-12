@@ -145,7 +145,7 @@ public class LandingZoneServiceTest {
     verify(landingZoneJobService, times(1))
         .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
     verify(landingZoneJobService, times(1))
-        .verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
+        .verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId));
 
     assertEquals(jobId, jobIdCaptor.getValue());
     assertEquals(DeletedLandingZone.class, classCaptor.getValue());
@@ -160,7 +160,7 @@ public class LandingZoneServiceTest {
     verify(landingZoneJobService, times(1))
         .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
     verify(landingZoneJobService, times(1))
-        .verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
+        .verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId));
 
     assertEquals(jobId, jobIdCaptor.getValue());
     assertEquals(DeletedLandingZone.class, classCaptor.getValue());
