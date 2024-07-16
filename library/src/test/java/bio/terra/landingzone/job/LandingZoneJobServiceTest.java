@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -17,14 +16,12 @@ import bio.terra.common.exception.ForbiddenException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.stairway.StairwayComponent;
 import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
-import bio.terra.landingzone.job.exception.JobNotFoundException;
 import bio.terra.landingzone.job.model.JobReport;
 import bio.terra.landingzone.library.configuration.LandingZoneIngressConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneJobConfiguration;
 import bio.terra.landingzone.library.configuration.stairway.LandingZoneStairwayDatabaseConfiguration;
 import bio.terra.landingzone.service.iam.LandingZoneSamService;
 import bio.terra.landingzone.service.iam.SamConstants;
-import bio.terra.landingzone.service.landingzone.azure.model.DeletedLandingZone;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.StartLandingZoneCreation;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -35,7 +32,6 @@ import bio.terra.stairway.Stairway;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.opentelemetry.api.OpenTelemetry;
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,21 +79,31 @@ class LandingZoneJobServiceTest {
   }
 
   @Test
-  void verifyUserAccessForDeleteJobResult_jobSucceededValidSamUserIsChecked()
-      throws InterruptedException {
+  void verifyUserAccess_jobSucceededValidSamUserIsChecked() throws InterruptedException {
     String jobId = "myjob";
     UUID landingZoneId = UUID.randomUUID();
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    setupForDeleteAccessVerification(
-        FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
+    setupForDeleteAccessVerification(jobId, landingZoneId, landingZoneRequest);
 
-    landingZoneJobService.verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
+    landingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId));
   }
 
   @Test
-  void verifyUserAccessForDeleteJobResult_landingZoneIdDoesNotMatchInIdFromJob()
-      throws InterruptedException {
+  void verifyUserAccess_billingProfileIdMissing() throws InterruptedException {
+    String jobId = "myjob";
+
+    when(stairwayComponent.get()).thenReturn(stairwayInstance);
+    when(stairwayInstance.getFlightState(jobId)).thenReturn(flightState);
+    when(flightState.getInputParameters()).thenReturn(flightMap);
+
+    assertThrows(
+        ForbiddenException.class,
+        () -> landingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.empty()));
+  }
+
+  @Test
+  void verifyUserAccess_landingZoneIdDoesNotMatchInIdFromJob() throws InterruptedException {
     String jobId = "myjob";
     UUID landingZoneId = UUID.randomUUID();
     UUID flightLandingZoneId = UUID.randomUUID();
@@ -107,12 +113,13 @@ class LandingZoneJobServiceTest {
     when(flightState.getInputParameters()).thenReturn(flightMap);
     when(flightMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class))
         .thenReturn(flightLandingZoneId);
+    when(flightMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE_ID, UUID.class))
+        .thenReturn(UUID.randomUUID());
 
     assertThrows(
-        JobNotFoundException.class,
+        ForbiddenException.class,
         () ->
-            landingZoneJobService.verifyUserAccessForDeleteJobResult(
-                bearerToken, landingZoneId, jobId));
+            landingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId)));
   }
 
   @ParameterizedTest
@@ -120,70 +127,32 @@ class LandingZoneJobServiceTest {
       value = FlightStatus.class,
       names = {"SUCCESS", "ERROR"},
       mode = EnumSource.Mode.INCLUDE)
-  void verifyUserAccessForDeleteJobResult_jobIsRunningSamActionsAreChecked(
-      FlightStatus flightStatus) throws InterruptedException {
-    String jobId = "myjob";
-    UUID landingZoneId = UUID.randomUUID();
-    var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
-
-    setupForDeleteAccessVerification(flightStatus, jobId, landingZoneId, landingZoneRequest);
-
-    landingZoneJobService.verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
-
-    verify(samService, times(flightStatus.equals(FlightStatus.SUCCESS) ? 1 : 0))
-        .checkAuthz(
-            bearerToken,
-            SamConstants.SamResourceType.SPEND_PROFILE,
-            landingZoneRequest.billingProfileId().toString(),
-            SamConstants.SamSpendProfileAction.LINK);
-
-    verify(samService, times(flightStatus.equals(FlightStatus.ERROR) ? 1 : 0))
-        .checkAuthz(
-            bearerToken,
-            SamConstants.SamResourceType.LANDING_ZONE,
-            landingZoneId.toString(),
-            SamConstants.SamLandingZoneAction.DELETE);
-  }
-
-  @ParameterizedTest
-  @EnumSource(
-      value = FlightStatus.class,
-      names = {"SUCCESS", "ERROR"},
-      mode = EnumSource.Mode.INCLUDE)
-  void verifyUserAccessForCreateJobResult_jobIsRunningSamActionsAreChecked(
-      FlightStatus flightStatus) throws InterruptedException {
+  void verifyUserAccess_jobIsRunningSamActionsAreChecked(FlightStatus flightStatus)
+      throws InterruptedException {
     String jobId = "createJob";
     UUID landingZoneId = UUID.randomUUID();
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    setupForAccessVerification(flightStatus, jobId, landingZoneId, landingZoneRequest);
+    setupForAccessVerification(flightStatus, jobId, landingZoneRequest);
 
-    landingZoneJobService.verifyUserAccess(bearerToken, jobId);
+    landingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.empty());
 
-    verify(samService, times(flightStatus.equals(FlightStatus.ERROR) ? 1 : 0))
+    verify(samService)
         .checkAuthz(
             bearerToken,
             SamConstants.SamResourceType.SPEND_PROFILE,
             landingZoneRequest.billingProfileId().toString(),
-            SamConstants.SamSpendProfileAction.LINK);
-
-    verify(samService, times(flightStatus.equals(FlightStatus.SUCCESS) ? 1 : 0))
-        .checkAuthz(
-            bearerToken,
-            SamConstants.SamResourceType.LANDING_ZONE,
-            landingZoneId.toString(),
-            SamConstants.SamLandingZoneAction.LIST_RESOURCES);
+            SamConstants.SamSpendProfileAction.READ_JOB_RESULT);
   }
 
   @Test
-  void verifyUserAccessForDeleteJobResult_jobIsRunningSamBillingProfileLinkActionFailed()
+  void verifyUserAccess_jobIsRunningSamBillingProfileReadJobResultActionFailed()
       throws InterruptedException {
     String jobId = "myjob";
     UUID landingZoneId = UUID.randomUUID();
     var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
 
-    setupForDeleteAccessVerification(
-        FlightStatus.SUCCESS, jobId, landingZoneId, landingZoneRequest);
+    setupForDeleteAccessVerification(jobId, landingZoneId, landingZoneRequest);
 
     doThrow(ForbiddenException.class)
         .when(samService)
@@ -191,37 +160,12 @@ class LandingZoneJobServiceTest {
             eq(bearerToken),
             eq(SamConstants.SamResourceType.SPEND_PROFILE),
             eq(landingZoneRequest.billingProfileId().toString()),
-            eq(SamConstants.SamSpendProfileAction.LINK));
+            eq(SamConstants.SamSpendProfileAction.READ_JOB_RESULT));
 
     assertThrows(
         ErrorReportException.class,
         () ->
-            landingZoneJobService.verifyUserAccessForDeleteJobResult(
-                bearerToken, landingZoneId, jobId));
-  }
-
-  @Test
-  void verifyUserAccessForDeleteJobResult_jobIsRunningSamLandingZoneDeleteActionFailed()
-      throws InterruptedException {
-    String jobId = "myjob";
-    UUID landingZoneId = UUID.randomUUID();
-    var landingZoneRequest = createDefaultLandingZoneRequestBuilder().build();
-
-    setupForDeleteAccessVerification(FlightStatus.ERROR, jobId, landingZoneId, landingZoneRequest);
-
-    doThrow(ForbiddenException.class)
-        .when(samService)
-        .checkAuthz(
-            eq(bearerToken),
-            eq(SamConstants.SamResourceType.LANDING_ZONE),
-            eq(landingZoneId.toString()),
-            eq(SamConstants.SamLandingZoneAction.DELETE));
-
-    assertThrows(
-        ErrorReportException.class,
-        () ->
-            landingZoneJobService.verifyUserAccessForDeleteJobResult(
-                bearerToken, landingZoneId, jobId));
+            landingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId)));
   }
 
   @ParameterizedTest
@@ -310,42 +254,25 @@ class LandingZoneJobServiceTest {
   }
 
   private void setupForAccessVerification(
-      FlightStatus flightStatus,
-      String jobId,
-      UUID landingZoneId,
-      LandingZoneRequest landingZoneRequest)
+      FlightStatus flightStatus, String jobId, LandingZoneRequest landingZoneRequest)
       throws InterruptedException {
     when(stairwayComponent.get()).thenReturn(stairwayInstance);
     when(stairwayInstance.getFlightState(jobId)).thenReturn(flightState);
     when(flightState.getInputParameters()).thenReturn(flightMap);
-    when(flightState.getFlightStatus()).thenReturn(flightStatus);
-    when(flightMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class))
-        .thenReturn(landingZoneId);
-    when(flightMap.get(
-            LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, LandingZoneRequest.class))
-        .thenReturn(landingZoneRequest);
+    when(flightMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE_ID, UUID.class))
+        .thenReturn(landingZoneRequest.billingProfileId());
   }
 
   private void setupForDeleteAccessVerification(
-      FlightStatus flightStatus,
-      String jobId,
-      UUID landingZoneId,
-      LandingZoneRequest landingZoneRequest)
+      String jobId, UUID landingZoneId, LandingZoneRequest landingZoneRequest)
       throws InterruptedException {
     when(stairwayComponent.get()).thenReturn(stairwayInstance);
     when(stairwayInstance.getFlightState(jobId)).thenReturn(flightState);
     when(flightState.getInputParameters()).thenReturn(flightMap);
-    when(flightState.getFlightStatus()).thenReturn(flightStatus);
     when(flightMap.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class))
         .thenReturn(landingZoneId);
-
-    if (flightStatus.equals(FlightStatus.SUCCESS)) {
-      DeletedLandingZone deletedLandingZone =
-          new DeletedLandingZone(landingZoneId, List.of(), landingZoneRequest.billingProfileId());
-      when(flightMap.get(JobMapKeys.RESPONSE.getKeyName(), DeletedLandingZone.class))
-          .thenReturn(deletedLandingZone);
-      when(flightState.getResultMap()).thenReturn(Optional.of(flightMap));
-    }
+    when(flightMap.get(LandingZoneFlightMapKeys.BILLING_PROFILE_ID, UUID.class))
+        .thenReturn(landingZoneRequest.billingProfileId());
   }
 
   /**

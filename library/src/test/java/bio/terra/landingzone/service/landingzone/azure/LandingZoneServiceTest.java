@@ -5,7 +5,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,6 +54,7 @@ import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResourcesByPurpose;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
+import bio.terra.profile.model.ProfileModel;
 import com.azure.core.management.Region;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -112,6 +112,7 @@ public class LandingZoneServiceTest {
   @Mock private LandingZoneBillingProfileManagerService bpmService;
   @Mock private LandingZoneTestingConfiguration testingConfiguration;
   @Captor ArgumentCaptor<UUID> captorLandingZoneId;
+  @Captor ArgumentCaptor<UUID> captorBillingProfileId;
 
   @BeforeEach
   void setup() {
@@ -145,7 +146,7 @@ public class LandingZoneServiceTest {
     verify(landingZoneJobService, times(1))
         .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
     verify(landingZoneJobService, times(1))
-        .verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
+        .verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId));
 
     assertEquals(jobId, jobIdCaptor.getValue());
     assertEquals(DeletedLandingZone.class, classCaptor.getValue());
@@ -160,7 +161,7 @@ public class LandingZoneServiceTest {
     verify(landingZoneJobService, times(1))
         .retrieveAsyncJobResult(jobIdCaptor.capture(), classCaptor.capture());
     verify(landingZoneJobService, times(1))
-        .verifyUserAccessForDeleteJobResult(bearerToken, landingZoneId, jobId);
+        .verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId));
 
     assertEquals(jobId, jobIdCaptor.getValue());
     assertEquals(DeletedLandingZone.class, classCaptor.getValue());
@@ -172,6 +173,14 @@ public class LandingZoneServiceTest {
     when(mockJobBuilder.landingZoneRequest(any())).thenReturn(mockJobBuilder);
     when(mockJobBuilder.addParameter(any(), any())).thenReturn(mockJobBuilder);
     when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
+    when(bpmService.getBillingProfile(bearerToken, billingProfileId))
+        .thenReturn(new ProfileModel().id(billingProfileId));
+    when(mockJobBuilder.addParameter(
+            eq(LandingZoneFlightMapKeys.BILLING_PROFILE_ID), captorBillingProfileId.capture()))
+        .thenReturn(mockJobBuilder);
+    when(mockJobBuilder.addParameter(
+            eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), captorLandingZoneId.capture()))
+        .thenReturn(mockJobBuilder);
 
     LandingZoneRequest landingZoneRequest =
         LandingZoneRequest.builder()
@@ -184,10 +193,8 @@ public class LandingZoneServiceTest {
     landingZoneService.startLandingZoneCreationJob(
         bearerToken, "newJobId", landingZoneRequest, "create-result");
 
-    verify(mockJobBuilder, times(1))
-        .addParameter(eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), captorLandingZoneId.capture());
-    assertNotEquals(landingZoneId, captorLandingZoneId.getValue());
-    verify(landingZoneJobService, times(1)).newJob();
+    assertNotNull(captorLandingZoneId.getValue());
+    assertEquals(billingProfileId, captorBillingProfileId.getValue());
     verify(mockJobBuilder, times(1)).submit();
   }
 
@@ -197,6 +204,14 @@ public class LandingZoneServiceTest {
     when(mockJobBuilder.landingZoneRequest(any())).thenReturn(mockJobBuilder);
     when(mockJobBuilder.addParameter(any(), any())).thenReturn(mockJobBuilder);
     when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
+    when(bpmService.getBillingProfile(bearerToken, billingProfileId))
+        .thenReturn(new ProfileModel().id(billingProfileId));
+    when(mockJobBuilder.addParameter(
+            eq(LandingZoneFlightMapKeys.BILLING_PROFILE_ID), captorBillingProfileId.capture()))
+        .thenReturn(mockJobBuilder);
+    when(mockJobBuilder.addParameter(
+            eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), captorLandingZoneId.capture()))
+        .thenReturn(mockJobBuilder);
 
     LandingZoneRequest landingZoneRequest =
         LandingZoneRequest.builder()
@@ -210,9 +225,8 @@ public class LandingZoneServiceTest {
     landingZoneService.startLandingZoneCreationJob(
         bearerToken, "newJobId", landingZoneRequest, "create-result");
 
-    verify(mockJobBuilder, times(1))
-        .addParameter(eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), eq(landingZoneId));
-    verify(landingZoneJobService, times(1)).newJob();
+    assertEquals(billingProfileId, captorBillingProfileId.getValue());
+    assertEquals(landingZoneId, captorLandingZoneId.getValue());
     verify(mockJobBuilder, times(1)).submit();
   }
 
@@ -316,16 +330,22 @@ public class LandingZoneServiceTest {
     String resultPath = "delete-result";
 
     LandingZoneJobBuilder mockJobBuilder = createMockJobBuilder(OperationType.DELETE);
-    when(mockJobBuilder.addParameter(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId))
+    when(mockJobBuilder.addParameter(
+            eq(LandingZoneFlightMapKeys.LANDING_ZONE_ID), captorLandingZoneId.capture()))
         .thenReturn(mockJobBuilder);
     when(mockJobBuilder.addParameter(JobMapKeys.RESULT_PATH.getKeyName(), resultPath))
         .thenReturn(mockJobBuilder);
     when(landingZoneJobService.newJob()).thenReturn(mockJobBuilder);
+    when(landingZoneDao.getLandingZoneRecord(landingZoneId)).thenReturn(createLandingZoneRecord());
+    when(mockJobBuilder.addParameter(
+            eq(LandingZoneFlightMapKeys.BILLING_PROFILE_ID), captorBillingProfileId.capture()))
+        .thenReturn(mockJobBuilder);
 
     landingZoneService.startLandingZoneDeletionJob(
         bearerToken, "newJobId", landingZoneId, resultPath);
 
-    verify(landingZoneJobService, times(1)).newJob();
+    assertEquals(billingProfileId, captorBillingProfileId.getValue());
+    assertEquals(landingZoneId, captorLandingZoneId.getValue());
     verify(mockJobBuilder, times(1)).submit();
   }
 
