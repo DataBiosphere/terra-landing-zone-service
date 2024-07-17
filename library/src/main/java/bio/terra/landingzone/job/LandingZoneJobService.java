@@ -395,7 +395,7 @@ public class LandingZoneJobService {
           lzId -> {
             UUID flightLandingZoneId =
                 inputParameters.get(LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
-            if (flightLandingZoneId != lzId) {
+            if (!lzId.equals(flightLandingZoneId)) {
               throw newJobForbiddenException(jobId);
             }
           });
