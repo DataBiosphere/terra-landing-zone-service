@@ -86,7 +86,9 @@ class LandingZoneJobServiceTest {
 
     setupForDeleteAccessVerification(jobId, landingZoneId, landingZoneRequest);
 
-    landingZoneJobService.verifyUserAccess(bearerToken, jobId, Optional.of(landingZoneId));
+    // create new UUID instance to make sure it is not doing reference comparison
+    landingZoneJobService.verifyUserAccess(
+        bearerToken, jobId, Optional.of(UUID.fromString(landingZoneId.toString())));
   }
 
   @Test
