@@ -21,8 +21,8 @@ dependencies {
     api 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6d19a41'
     implementation 'bio.terra:billing-profile-manager-client:0.1.484-SNAPSHOT'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
-    implementation group: 'com.azure', name: 'azure-core', version: '1.50.0'
-    implementation (group: 'com.azure', name: 'azure-identity', version: '1.13.1') {
+    implementation group: 'com.azure', name: 'azure-core', version: '1.51.0'
+    implementation (group: 'com.azure', name: 'azure-identity', version: '1.13.2') {
         // azure-identity is still pulling in an old version of reactor-netty-http
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-http'
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
