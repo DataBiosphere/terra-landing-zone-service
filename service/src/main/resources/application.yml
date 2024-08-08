@@ -68,7 +68,7 @@ landingzone:
   sam:
     base-path: ${env.urls.sam}
     landing-zone-resource-users:
-      - workspace-dev@broad-dsde-dev.iam.gserviceaccount.com
+      - workspace-qa@broad-dsde-qa.iam.gserviceaccount.com
       - leonardo-dev@broad-dsde-dev.iam.gserviceaccount.com
   bpm.base-path: ${env.urls.bpm}
   protected-data:
