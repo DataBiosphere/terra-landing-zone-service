@@ -1,5 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.reference.resource.step;
 
+import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
+
 import bio.terra.landingzone.common.utils.MetricUtils;
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.factories.ParametersResolver;
@@ -16,37 +18,32 @@ import bio.terra.stairway.*;
 import bio.terra.stairway.exception.RetryException;
 import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.models.GenericResource;
-import org.apache.commons.collections4.map.HashedMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import static bio.terra.landingzone.stairway.flight.utils.FlightUtils.maybeThrowAzureInterruptedException;
+import org.apache.commons.collections4.map.HashedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class BaseReferencedResourceStep implements Step {
   private static final Logger logger = LoggerFactory.getLogger(BaseReferencedResourceStep.class);
 
-  protected static final String REFERENCED_RESOURCE_ID  = "referencedResourceId";
+  protected static final String REFERENCED_RESOURCE_ID = "referencedResourceId";
 
   protected static final String FAILED_TO_CREATE_REF_RESOURCE =
       "Failed to create landing zone {} referenced resource. landingZoneId={}. Error: {}";
 
   protected static final String RESOURCE_CREATED =
       "{} resource id='{}' in resource group '{}' successfully created.";
-  private static final String REFERENCED_RESOURCE_NOT_FOUND =
-      "{} doesn't exist.";
+  private static final String REFERENCED_RESOURCE_NOT_FOUND = "{} doesn't exist.";
   private static final String FAILED_ATTEMPT_TO_REMOVE_LZ_TAGS =
       "Failed attempt to remove the landing zone tags for resource: {}. Id={}";
 
-    protected final ArmManagers armManagers;
+  protected final ArmManagers armManagers;
 
-  protected BaseReferencedResourceStep(
-      ArmManagers armManagers) {
+  protected BaseReferencedResourceStep(ArmManagers armManagers) {
     this.armManagers = armManagers;
   }
 
@@ -55,9 +52,7 @@ public abstract class BaseReferencedResourceStep implements Step {
 
     var landingZoneId =
         getParameterOrThrow(
-            context.getWorkingMap(),
-            LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-            UUID.class);
+            context.getWorkingMap(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     var azureLandingZoneRequest =
         getParameterOrThrow(
@@ -77,9 +72,7 @@ public abstract class BaseReferencedResourceStep implements Step {
       stepDuration.record(Duration.ofMillis(finish - start));
     } catch (ManagementException e) {
       return handleManagementException(
-          e,
-          landingZoneId.toString(),
-          azureLandingZoneRequest.definition());
+          e, landingZoneId.toString(), azureLandingZoneRequest.definition());
     } catch (RuntimeException e) {
       MetricUtils.incrementLandingZoneCreationFailure(azureLandingZoneRequest.definition());
       throw maybeThrowAzureInterruptedException(e);
@@ -88,8 +81,14 @@ public abstract class BaseReferencedResourceStep implements Step {
   }
 
   private void tagReferencedResourceAndSetContext(FlightContext context) {
-    GenericResource resource = findReferencedResourceByArmResourceType(context)
-            .orElseThrow(()-> new RuntimeException(String.format("A resource of type:%s could not be found in resource group: %s", getArmResourceType(), getMRGName(context))));
+    GenericResource resource =
+        findReferencedResourceByArmResourceType(context)
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        String.format(
+                            "A resource of type:%s could not be found in resource group: %s",
+                            getArmResourceType(), getMRGName(context))));
 
     setLandingZoneResourceTags(context, resource);
 
@@ -98,32 +97,40 @@ public abstract class BaseReferencedResourceStep implements Step {
 
   private void setLandingZoneResourceTags(FlightContext context, GenericResource genericResource) {
     var landingZoneId =
-            getParameterOrThrow(
-                    context.getWorkingMap(),
-                    LandingZoneFlightMapKeys.LANDING_ZONE_ID,
-                    UUID.class);
+        getParameterOrThrow(
+            context.getWorkingMap(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     Map<String, String> resourceTags = getLandingZoneResourceTags(context, genericResource.id());
 
-    Map<String,String> tagsToApply = new HashedMap<>(resourceTags);
+    Map<String, String> tagsToApply = new HashedMap<>(resourceTags);
 
-    tagsToApply.put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
-            landingZoneId.toString());
+    tagsToApply.put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString());
 
-    if (isSharedResource()){
-      tagsToApply.put(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(), ResourcePurpose.SHARED_RESOURCE.toString());
+    if (isSharedResource()) {
+      tagsToApply.put(
+          LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+          ResourcePurpose.SHARED_RESOURCE.toString());
     }
 
-    armManagers.azureResourceManager().tagOperations().updateTags(genericResource.id(), tagsToApply);
+    armManagers
+        .azureResourceManager()
+        .tagOperations()
+        .updateTags(genericResource.id(), tagsToApply);
   }
 
   protected abstract boolean isSharedResource();
 
-  protected abstract Map<String,String> getLandingZoneResourceTags(FlightContext context, String resourceId);
+  protected abstract Map<String, String> getLandingZoneResourceTags(
+      FlightContext context, String resourceId);
 
-  private Optional<GenericResource> findReferencedResourceByArmResourceType(FlightContext flightContext){
-    for (GenericResource resource: armManagers.azureResourceManager().genericResources().listByResourceGroup(getMRGName(flightContext))){
-      if (resource.resourceType().equalsIgnoreCase(getArmResourceType().toString())){
+  private Optional<GenericResource> findReferencedResourceByArmResourceType(
+      FlightContext flightContext) {
+    for (GenericResource resource :
+        armManagers
+            .azureResourceManager()
+            .genericResources()
+            .listByResourceGroup(getMRGName(flightContext))) {
+      if (resource.resourceType().equalsIgnoreCase(getArmResourceType().toString())) {
         return Optional.of(resource);
       }
     }
@@ -145,34 +152,35 @@ public abstract class BaseReferencedResourceStep implements Step {
         return StepResult.getStepResultSuccess();
       }
 
-      //if the resource id is not set, that means that the referenced resource does not exist.
-      //There is no need to perform any rollback operation. Hence, we warn and return success.
+      // if the resource id is not set, that means that the referenced resource does not exist.
+      // There is no need to perform any rollback operation. Hence, we warn and return success.
       logger.warn(REFERENCED_RESOURCE_NOT_FOUND, getArmResourceType());
       return StepResult.getStepResultSuccess();
     } catch (RuntimeException e) {
-      logger.error(FAILED_ATTEMPT_TO_REMOVE_LZ_TAGS, getArmResourceType(), resourceId.orElse("n/a"));
+      logger.error(
+          FAILED_ATTEMPT_TO_REMOVE_LZ_TAGS, getArmResourceType(), resourceId.orElse("n/a"));
       return new StepResult(StepStatus.STEP_RESULT_FAILURE_RETRY, e);
     }
-
   }
 
   private void removeLandingZoneTags(FlightContext flightContext, String resourceId) {
-    //get tags for the resource.
-    Map<String,String> tags = armManagers.azureResourceManager().genericResources().getById(resourceId).tags();
+    // get tags for the resource.
+    Map<String, String> tags =
+        armManagers.azureResourceManager().genericResources().getById(resourceId).tags();
 
-    //only attempt to remove the landing zone tags if they are assigned to the current LZ
-    if (containsCurrentLzId(tags, flightContext)){
-      //remove LZ id tag.
+    // only attempt to remove the landing zone tags if they are assigned to the current LZ
+    if (containsCurrentLzId(tags, flightContext)) {
+      // remove LZ id tag.
       tags.remove(LandingZoneTagKeys.LANDING_ZONE_ID.toString());
 
-      //remove purpose tag.
-        if (isSharedResource()){
-            tags.remove(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString());
-        }
+      // remove purpose tag.
+      if (isSharedResource()) {
+        tags.remove(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString());
+      }
 
-      //remove the tags that were added by reference resource, if present.
+      // remove the tags that were added by reference resource, if present.
       for (String key : getLandingZoneResourceTags(flightContext, resourceId).keySet()) {
-          tags.remove(key);
+        tags.remove(key);
       }
 
       armManagers.azureResourceManager().tagOperations().updateTags(resourceId, tags);
@@ -181,22 +189,20 @@ public abstract class BaseReferencedResourceStep implements Step {
 
   private boolean containsCurrentLzId(Map<String, String> tags, FlightContext context) {
     var landingZoneId =
-            getParameterOrThrow(
-                    context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+        getParameterOrThrow(
+            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
     return tags.containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
-            &&
-            tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()).equals(landingZoneId.toString());
+        && tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()).equals(landingZoneId.toString());
   }
-
 
   protected abstract ArmResourceType getArmResourceType();
 
-  protected Optional<String> getResourceId(FlightContext context){
+  protected Optional<String> getResourceId(FlightContext context) {
     return Optional.ofNullable(context.getWorkingMap().get(REFERENCED_RESOURCE_ID, String.class));
   }
 
-    protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
+  protected <T> T getParameterOrThrow(FlightMap parameters, String name, Class<T> clazz) {
     FlightUtils.validateRequiredEntries(parameters, name);
     return parameters.get(name, clazz);
   }
@@ -225,9 +231,7 @@ public abstract class BaseReferencedResourceStep implements Step {
   }
 
   private StepResult handleManagementException(
-      ManagementException e,
-      String landingZoneId,
-      String landingZoneType) {
+      ManagementException e, String landingZoneId, String landingZoneType) {
     var handled = maybeHandleManagementException(e);
     if (handled.isPresent()) {
       var stepResult = handled.get();
@@ -239,7 +243,7 @@ public abstract class BaseReferencedResourceStep implements Step {
     }
 
     logger.error(
-            FAILED_TO_CREATE_REF_RESOURCE,
+        FAILED_TO_CREATE_REF_RESOURCE,
         getArmResourceType(),
         landingZoneId,
         ManagementExceptionUtils.buildErrorInfo(e));
