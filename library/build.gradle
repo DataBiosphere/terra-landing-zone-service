@@ -27,9 +27,9 @@ dependencies {
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
         exclude group: 'io.projectreactor', module: 'reactor-core'
     }
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.21'
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.21'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.8'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.22'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.22'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.9'
 
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.41.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
@@ -45,7 +45,7 @@ dependencies {
             because 'https://broadworkbench.atlassian.net/browse/WOR-1650'
         }
     }
-    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.13.2'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.13.3'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
