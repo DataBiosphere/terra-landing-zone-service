@@ -11,7 +11,12 @@ public class InputParametersValidationFactory {
       case CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE -> buildCromwellLandingZoneValidators();
       case PROTECTED_DATA_DEFINITION_STEPS_PROVIDER_NAME ->
           buildProtectedDataLandingZoneValidators();
+      case REFERENCED_DEFINITION_STEPS_PROVIDER_TYPE -> buildReferencedLandingZoneValidators();
     };
+  }
+
+  private static List<InputParameterValidator> buildReferencedLandingZoneValidators() {
+    return List.of(new ReferencedVNetValidator());
   }
 
   private static List<InputParameterValidator> buildCromwellLandingZoneValidators() {

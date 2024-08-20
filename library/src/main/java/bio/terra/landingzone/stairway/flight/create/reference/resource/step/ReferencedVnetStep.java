@@ -21,18 +21,12 @@ public class ReferencedVnetStep extends BaseReferencedResourceStep {
       FlightContext context, String resourceId) {
     // get subnet parameters and set them as tags...
     return Map.of(
-        SubnetResourcePurpose.POSTGRESQL_SUBNET.toString(),
-        getParametersResolver(context)
-            .getValue(LandingZoneDefaultParameters.ParametersNames.POSTGRESQL_SUBNET.name()),
         SubnetResourcePurpose.WORKSPACE_BATCH_SUBNET.toString(),
         getParametersResolver(context)
             .getValue(LandingZoneDefaultParameters.ParametersNames.BATCH_SUBNET.name()),
         SubnetResourcePurpose.WORKSPACE_COMPUTE_SUBNET.toString(),
         getParametersResolver(context)
-            .getValue(LandingZoneDefaultParameters.ParametersNames.COMPUTE_SUBNET.name()),
-        SubnetResourcePurpose.AKS_NODE_POOL_SUBNET.toString(),
-        getParametersResolver(context)
-            .getValue(LandingZoneDefaultParameters.ParametersNames.AKS_NODE_POOL_SUBNET.name()));
+            .getValue(LandingZoneDefaultParameters.ParametersNames.COMPUTE_SUBNET.name()));
   }
 
   @Override

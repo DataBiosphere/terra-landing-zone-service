@@ -10,6 +10,6 @@ public class ReferencedRelayNamespaceStep extends SharedReferencedResourceStep {
 
   @Override
   protected ArmResourceType getArmResourceType() {
-    return ArmResourceType.RELAY;
+    return ArmResourceType.RELAY_NAMESPACE;
   }
 }

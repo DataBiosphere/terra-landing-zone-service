@@ -51,10 +51,8 @@ public class LandingZoneDefaultParameters {
     ENABLE_PGBOUNCER,
 
     // The following parameters are used for referenced VNets
-    POSTGRESQL_SUBNET,
     COMPUTE_SUBNET,
     BATCH_SUBNET,
-    AKS_NODE_POOL_SUBNET,
   }
 
   public static Map<String, String> get() {

@@ -112,10 +112,7 @@ public abstract class BaseReferencedResourceStep implements Step {
           ResourcePurpose.SHARED_RESOURCE.toString());
     }
 
-    armManagers
-        .azureResourceManager()
-        .tagOperations()
-        .updateTags(genericResource.id(), tagsToApply);
+    armManagers.azureResourceManager().tagOperations().updateTags(genericResource, tagsToApply);
   }
 
   protected abstract boolean isSharedResource();
@@ -125,12 +122,19 @@ public abstract class BaseReferencedResourceStep implements Step {
 
   private Optional<GenericResource> findReferencedResourceByArmResourceType(
       FlightContext flightContext) {
+
+    var fullResourceType = getArmResourceType().toString();
+
+    var providerNamespace = fullResourceType.substring(0, fullResourceType.lastIndexOf('/'));
+    var resourceType = fullResourceType.substring(fullResourceType.lastIndexOf('/') + 1);
+
     for (GenericResource resource :
         armManagers
             .azureResourceManager()
             .genericResources()
             .listByResourceGroup(getMRGName(flightContext))) {
-      if (resource.resourceType().equalsIgnoreCase(getArmResourceType().toString())) {
+      if (resource.resourceType().equalsIgnoreCase(resourceType)
+          && resource.resourceProviderNamespace().equalsIgnoreCase(providerNamespace)) {
         return Optional.of(resource);
       }
     }

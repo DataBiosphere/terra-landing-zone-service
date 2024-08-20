@@ -2,7 +2,8 @@ package bio.terra.landingzone.library.landingzones.definition.factories;
 
 public enum StepsDefinitionFactoryType {
   CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE("CromwellBaseResourcesFactory"),
-  PROTECTED_DATA_DEFINITION_STEPS_PROVIDER_NAME("ProtectedDataResourcesFactory");
+  PROTECTED_DATA_DEFINITION_STEPS_PROVIDER_NAME("ProtectedDataResourcesFactory"),
+  REFERENCED_DEFINITION_STEPS_PROVIDER_TYPE("ReferencedResourcesFactory");
 
   private final String value;
 

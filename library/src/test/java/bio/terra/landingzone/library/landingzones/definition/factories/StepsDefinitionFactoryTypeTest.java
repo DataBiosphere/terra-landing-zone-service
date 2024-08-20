@@ -30,6 +30,8 @@ class StepsDefinitionFactoryTypeTest {
         Arguments.of("ProtectedDataResourcesFactory"),
         Arguments.of("cromwellbaseresourcesfactory"),
         Arguments.of("protecteddataresourcesfactory"),
+        Arguments.of("ReferencedResourcesFactory"),
+        Arguments.of("REFERENCEDRESOURCESFACTORY"),
         Arguments.of("CROMWELLBASERESOURCESFACTORY"),
         Arguments.of("PROTECTEDDATARESOURCESFACTORY"));
   }

@@ -6,7 +6,8 @@ public enum ArmResourceType {
   STORAGE_ACCOUNT("Microsoft.Storage/storageAccounts"),
   POSTGRES("Microsoft.DBforPostgreSQL/servers"),
   BATCH("Microsoft.Batch/batchAccounts"),
-  APP_INSIGHTS("Microsoft.Insights/components");
+  APP_INSIGHTS("Microsoft.Insights/components"),
+  RELAY_NAMESPACE("Microsoft.Relay/namespaces");
 
   private final String value;
 
