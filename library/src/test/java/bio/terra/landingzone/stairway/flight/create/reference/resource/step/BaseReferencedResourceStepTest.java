@@ -4,11 +4,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.library.landingzones.deployment.ResourcePurpose;
+import bio.terra.landingzone.library.landingzones.deployment.SubnetResourcePurpose;
 import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneRequest;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.LandingZoneFlightMapKeys;
@@ -48,23 +51,20 @@ public class BaseReferencedResourceStepTest {
   @Mock private GenericResource resource;
   @Mock private PagedIterable<GenericResource> genericResourcesPage;
 
-  private Map<String, String> tags;
-  private ArmResourceType armResourceType;
+  private final ArmResourceType armResourceType = ArmResourceType.STORAGE_ACCOUNT;
   private final UUID landingZoneId = UUID.randomUUID();
 
   @Mock private FlightContext context;
+  private FlightMap workingFlightMap;
 
   @BeforeEach
   void setUp() {
-    armResourceType = ArmResourceType.STORAGE_ACCOUNT;
-    tags = Map.of();
     setUpMocks();
   }
 
   @Test
   void doStep_resourceTypeIsFound_setsLzTagAndSucceeds() throws InterruptedException {
-    BaseReferencedResourceStep referencedResourceStep =
-        new ReferencedResourceStep(armManagers, tags, armResourceType, false);
+    BaseReferencedResourceStep referencedResourceStep = createReferenceResourceStep(false);
 
     setUpTagsCaptor();
 
@@ -82,7 +82,7 @@ public class BaseReferencedResourceStepTest {
   void doStep_resourceTypeIsNotFound_stepFailsAndThrowsException() {
     // set up sets a storage account as the only resource, so looking for aks should fail
     BaseReferencedResourceStep referencedResourceStep =
-        new ReferencedResourceStep(armManagers, tags, ArmResourceType.AKS, false);
+        new ReferencedResourceStep(armManagers, Map.of(), ArmResourceType.AKS, false);
 
     assertThrows(RuntimeException.class, () -> referencedResourceStep.doStep(context));
   }
@@ -90,8 +90,7 @@ public class BaseReferencedResourceStepTest {
   @Test
   void doStep_resourceTypeIsFoundAndIsShared_succeedsSetsLzAndShareTags()
       throws InterruptedException {
-    BaseReferencedResourceStep referencedResourceStep =
-        new ReferencedResourceStep(armManagers, tags, armResourceType, true);
+    BaseReferencedResourceStep referencedResourceStep = createReferenceResourceStep(true);
 
     setUpTagsCaptor();
 
@@ -109,8 +108,7 @@ public class BaseReferencedResourceStepTest {
 
   @Test
   void doStep_resourceHasLandingZoneTag_throwException() {
-    BaseReferencedResourceStep referencedResourceStep =
-        new ReferencedResourceStep(armManagers, tags, armResourceType, false);
+    BaseReferencedResourceStep referencedResourceStep = createReferenceResourceStep(false);
 
     when(resource.tags())
         .thenReturn(
@@ -121,8 +119,7 @@ public class BaseReferencedResourceStepTest {
 
   @Test
   void doStep_resourceHasExistingTags_tagsAreMerged() throws InterruptedException {
-    BaseReferencedResourceStep referencedResourceStep =
-        new ReferencedResourceStep(armManagers, tags, armResourceType, false);
+    BaseReferencedResourceStep referencedResourceStep = createReferenceResourceStep(false);
 
     Map<String, String> existingTags = Map.of("existingTag", "existingValue");
     when(resource.tags()).thenReturn(existingTags);
@@ -139,6 +136,79 @@ public class BaseReferencedResourceStepTest {
     assertThat(tags.get("existingTag"), equalTo("existingValue"));
   }
 
+  @Test
+  void doStep_resourceIsTagged_resourceIdIsSetInContext() throws InterruptedException {
+    BaseReferencedResourceStep referencedResourceStep = createReferenceResourceStep(false);
+
+    when(resource.id()).thenReturn("resourceId");
+
+    setUpTagsCaptor();
+
+    StepResult result = referencedResourceStep.doStep(context);
+
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    assertThat(
+        context
+            .getWorkingMap()
+            .get(BaseReferencedResourceStep.REFERENCED_RESOURCE_ID, String.class),
+        equalTo("resourceId"));
+  }
+
+  @Test
+  void undoStep_resourceIdIsSetInContext_addedTagsAreRemoved() throws InterruptedException {
+    BaseReferencedResourceStep referencedResourceStep =
+        new ReferencedResourceStep(
+            armManagers,
+            Map.of(
+                SubnetResourcePurpose.AKS_NODE_POOL_SUBNET.name(),
+                SubnetResourcePurpose.AKS_NODE_POOL_SUBNET.name()),
+            armResourceType,
+            true);
+
+    workingFlightMap.put(BaseReferencedResourceStep.REFERENCED_RESOURCE_ID, "resourceId");
+    when(genericResources.getById(eq("resourceId"))).thenReturn(resource);
+    when(resource.tags())
+        .thenReturn(
+            Map.of(
+                LandingZoneTagKeys.LANDING_ZONE_ID.toString(),
+                landingZoneId.toString(),
+                LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
+                ResourcePurpose.SHARED_RESOURCE.name(),
+                "existingTag",
+                "existingValue"));
+
+    setUpTagsCaptor();
+
+    StepResult result = referencedResourceStep.undoStep(context);
+
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    assertThat(
+        context
+            .getWorkingMap()
+            .get(BaseReferencedResourceStep.REFERENCED_RESOURCE_ID, String.class),
+        equalTo("resourceId"));
+
+    result = referencedResourceStep.undoStep(context);
+
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+    Map<String, String> tags = tagsCaptor.getValue();
+    assertThat(tags.get("existingTag"), equalTo("existingValue"));
+    assertThat(tags.keySet().size(), equalTo(1));
+  }
+
+  @Test
+  void undoStep_resourceIdNotSetInContext_succeeds() throws InterruptedException {
+    BaseReferencedResourceStep referencedResourceStep = createReferenceResourceStep(false);
+
+    StepResult result = referencedResourceStep.undoStep(context);
+
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+  }
+
+  private BaseReferencedResourceStep createReferenceResourceStep(boolean isShared) {
+    return new ReferencedResourceStep(armManagers, Map.of(), armResourceType, isShared);
+  }
+
   private void setUpTagsCaptor() {
     when(azureResourceManager.tagOperations()).thenReturn(tagOperations);
     when(tagOperations.updateTags(any(GenericResource.class), tagsCaptor.capture()))
@@ -146,27 +216,35 @@ public class BaseReferencedResourceStepTest {
   }
 
   private void setUpMocks() {
-    FlightMap flightMap = new FlightMap();
-    when(context.getWorkingMap()).thenReturn(flightMap);
-    flightMap.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId);
-    flightMap.put(
+    workingFlightMap = new FlightMap();
+    when(context.getWorkingMap()).thenReturn(workingFlightMap);
+    workingFlightMap.put(
         GetManagedResourceGroupInfo.TARGET_MRG_KEY,
         new TargetManagedResourceGroup("mrg", "armregion"));
 
+    setUpMockFlightParameters();
+
+    setUpMockResourceListing();
+  }
+
+  private void setUpMockResourceListing() {
+    lenient().when(armManagers.azureResourceManager()).thenReturn(azureResourceManager);
+    lenient().when(azureResourceManager.genericResources()).thenReturn(genericResources);
+    lenient().when(resource.resourceType()).thenReturn("storageAccounts");
+    lenient().when(resource.resourceProviderNamespace()).thenReturn("Microsoft.Storage");
+    var resources = List.of(resource);
+    lenient().when(genericResourcesPage.iterator()).thenReturn(resources.iterator());
+    lenient().when(genericResources.listByResourceGroup("mrg")).thenReturn(genericResourcesPage);
+  }
+
+  private void setUpMockFlightParameters() {
     FlightMap parameters = new FlightMap();
     LandingZoneRequest request =
         new LandingZoneRequest(
             "definition", "version", Map.of(), UUID.randomUUID(), Optional.of(landingZoneId));
-    when(context.getInputParameters()).thenReturn(parameters);
+    lenient().when(context.getInputParameters()).thenReturn(parameters);
     parameters.put(LandingZoneFlightMapKeys.LANDING_ZONE_CREATE_PARAMS, request);
-
-    when(armManagers.azureResourceManager()).thenReturn(azureResourceManager);
-    when(azureResourceManager.genericResources()).thenReturn(genericResources);
-    when(resource.resourceType()).thenReturn("storageAccounts");
-    when(resource.resourceProviderNamespace()).thenReturn("Microsoft.Storage");
-    var resources = List.of(resource);
-    when(genericResourcesPage.iterator()).thenReturn(resources.iterator());
-    when(genericResources.listByResourceGroup("mrg")).thenReturn(genericResourcesPage);
+    parameters.put(LandingZoneFlightMapKeys.LANDING_ZONE_ID, landingZoneId);
   }
 
   // Test implementation of BaseReferencedResourceStep

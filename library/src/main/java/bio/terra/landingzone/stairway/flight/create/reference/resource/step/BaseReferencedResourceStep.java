@@ -20,6 +20,7 @@ import com.azure.core.management.exception.ManagementException;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseReferencedResourceStep implements Step {
   private static final Logger logger = LoggerFactory.getLogger(BaseReferencedResourceStep.class);
 
-  protected static final String REFERENCED_RESOURCE_ID = "referencedResourceId";
+  public static final String REFERENCED_RESOURCE_ID = "referencedResourceId";
 
   protected static final String FAILED_TO_CREATE_REF_RESOURCE =
       "Failed to create landing zone {} referenced resource. landingZoneId={}. Error: {}";
@@ -51,9 +52,7 @@ public abstract class BaseReferencedResourceStep implements Step {
   @Override
   public StepResult doStep(FlightContext context) throws InterruptedException, RetryException {
 
-    var landingZoneId =
-        getParameterOrThrow(
-            context.getWorkingMap(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+    var landingZoneId = getLandingZoneId(context);
 
     var azureLandingZoneRequest =
         getParameterOrThrow(
@@ -79,6 +78,11 @@ public abstract class BaseReferencedResourceStep implements Step {
       throw maybeThrowAzureInterruptedException(e);
     }
     return StepResult.getStepResultSuccess();
+  }
+
+  private UUID getLandingZoneId(FlightContext context) {
+    return getParameterOrThrow(
+        context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
   }
 
   private void tagReferencedResourceAndSetContext(FlightContext context) {
@@ -122,15 +126,12 @@ public abstract class BaseReferencedResourceStep implements Step {
   @NotNull
   private Map<String, String> getLzResourceTags(
       FlightContext context, GenericResource genericResource) {
-    var landingZoneId =
-        getParameterOrThrow(
-            context.getWorkingMap(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
 
-    Map<String, String> resourceTags = getLandingZoneResourceTags(context, genericResource.id());
+    Map<String, String> tagsToApply =
+        new HashedMap<>(getLandingZoneResourceTags(context, genericResource.id()));
 
-    Map<String, String> tagsToApply = new HashedMap<>(resourceTags);
-
-    tagsToApply.put(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), landingZoneId.toString());
+    tagsToApply.put(
+        LandingZoneTagKeys.LANDING_ZONE_ID.toString(), getLandingZoneId(context).toString());
 
     if (isSharedResource()) {
       tagsToApply.put(
@@ -190,8 +191,9 @@ public abstract class BaseReferencedResourceStep implements Step {
 
   private void removeLandingZoneTags(FlightContext flightContext, String resourceId) {
     // get tags for the resource.
-    Map<String, String> tags =
-        armManagers.azureResourceManager().genericResources().getById(resourceId).tags();
+    var genericResource = armManagers.azureResourceManager().genericResources().getById(resourceId);
+
+    Map<String, String> tags = new HashMap<>(genericResource.tags());
 
     // only attempt to remove the landing zone tags if they are assigned to the current LZ
     if (containsCurrentLzId(tags, flightContext)) {
@@ -208,14 +210,12 @@ public abstract class BaseReferencedResourceStep implements Step {
         tags.remove(key);
       }
 
-      armManagers.azureResourceManager().tagOperations().updateTags(resourceId, tags);
+      armManagers.azureResourceManager().tagOperations().updateTags(genericResource, tags);
     }
   }
 
   private boolean containsCurrentLzId(Map<String, String> tags, FlightContext context) {
-    var landingZoneId =
-        getParameterOrThrow(
-            context.getInputParameters(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
+    var landingZoneId = getLandingZoneId(context);
 
     return tags.containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())
         && tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()).equals(landingZoneId.toString());
