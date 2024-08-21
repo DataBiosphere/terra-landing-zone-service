@@ -2,6 +2,7 @@ package bio.terra.landingzone.stairway.flight.create.reference.resource.step;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -18,7 +19,6 @@ import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.resourcemanager.monitor.models.TagsResource;
 import com.azure.resourcemanager.resources.models.GenericResource;
 import com.azure.resourcemanager.resources.models.GenericResources;
 import com.azure.resourcemanager.resources.models.TagOperations;
@@ -39,11 +39,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @Tag("unit")
 public class BaseReferencedResourceStepTest {
 
-  private static final String RESOURCE_ID = "resourceId";
-
   @Captor private ArgumentCaptor<Map<String, String>> tagsCaptor;
 
-  private TagsResource tagsResource;
   @Mock private TagOperations tagOperations;
   @Mock private ArmManagers armManagers;
   @Mock private AzureResourceManager azureResourceManager;
@@ -69,6 +66,8 @@ public class BaseReferencedResourceStepTest {
     BaseReferencedResourceStep referencedResourceStep =
         new ReferencedResourceStep(armManagers, tags, armResourceType, false);
 
+    setUpTagsCaptor();
+
     StepResult result = referencedResourceStep.doStep(context);
 
     assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
@@ -79,15 +78,71 @@ public class BaseReferencedResourceStepTest {
         tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()), equalTo(landingZoneId.toString()));
   }
 
-  protected void verifyBasicTags(Map<String, String> tags, UUID landingZoneId) {
-    // assertNotNull(tags);
-    // assertTrue(tags.containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString()));
+  @Test
+  void doStep_resourceTypeIsNotFound_stepFailsAndThrowsException() {
+    // set up sets a storage account as the only resource, so looking for aks should fail
+    BaseReferencedResourceStep referencedResourceStep =
+        new ReferencedResourceStep(armManagers, tags, ArmResourceType.AKS, false);
+
+    assertThrows(RuntimeException.class, () -> referencedResourceStep.doStep(context));
+  }
+
+  @Test
+  void doStep_resourceTypeIsFoundAndIsShared_succeedsSetsLzAndShareTags()
+      throws InterruptedException {
+    BaseReferencedResourceStep referencedResourceStep =
+        new ReferencedResourceStep(armManagers, tags, armResourceType, true);
+
+    setUpTagsCaptor();
+
+    StepResult result = referencedResourceStep.doStep(context);
+
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+
+    Map<String, String> tags = tagsCaptor.getValue();
     assertThat(
         tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()), equalTo(landingZoneId.toString()));
-    // assertTrue(tags.containsKey(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()));
     assertThat(
         tags.get(LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString()),
-        equalTo(ResourcePurpose.SHARED_RESOURCE.toString()));
+        equalTo(ResourcePurpose.SHARED_RESOURCE.name()));
+  }
+
+  @Test
+  void doStep_resourceHasLandingZoneTag_throwException() {
+    BaseReferencedResourceStep referencedResourceStep =
+        new ReferencedResourceStep(armManagers, tags, armResourceType, false);
+
+    when(resource.tags())
+        .thenReturn(
+            Map.of(LandingZoneTagKeys.LANDING_ZONE_ID.toString(), UUID.randomUUID().toString()));
+
+    assertThrows(RuntimeException.class, () -> referencedResourceStep.doStep(context));
+  }
+
+  @Test
+  void doStep_resourceHasExistingTags_tagsAreMerged() throws InterruptedException {
+    BaseReferencedResourceStep referencedResourceStep =
+        new ReferencedResourceStep(armManagers, tags, armResourceType, false);
+
+    Map<String, String> existingTags = Map.of("existingTag", "existingValue");
+    when(resource.tags()).thenReturn(existingTags);
+
+    setUpTagsCaptor();
+
+    StepResult result = referencedResourceStep.doStep(context);
+
+    assertThat(result.getStepStatus(), equalTo(StepStatus.STEP_RESULT_SUCCESS));
+
+    Map<String, String> tags = tagsCaptor.getValue();
+    assertThat(
+        tags.get(LandingZoneTagKeys.LANDING_ZONE_ID.toString()), equalTo(landingZoneId.toString()));
+    assertThat(tags.get("existingTag"), equalTo("existingValue"));
+  }
+
+  private void setUpTagsCaptor() {
+    when(azureResourceManager.tagOperations()).thenReturn(tagOperations);
+    when(tagOperations.updateTags(any(GenericResource.class), tagsCaptor.capture()))
+        .thenReturn(null);
   }
 
   private void setUpMocks() {
@@ -112,13 +167,7 @@ public class BaseReferencedResourceStepTest {
     var resources = List.of(resource);
     when(genericResourcesPage.iterator()).thenReturn(resources.iterator());
     when(genericResources.listByResourceGroup("mrg")).thenReturn(genericResourcesPage);
-    when(azureResourceManager.tagOperations()).thenReturn(tagOperations);
-    when(tagOperations.updateTags(any(GenericResource.class), tagsCaptor.capture()))
-        .thenReturn(null);
   }
-
-  @Test
-  void undoStep() {}
 
   // Test implementation of BaseReferencedResourceStep
   private static class ReferencedResourceStep extends BaseReferencedResourceStep {

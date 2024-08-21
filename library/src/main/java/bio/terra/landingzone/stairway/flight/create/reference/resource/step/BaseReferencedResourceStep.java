@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.collections4.map.HashedMap;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +97,31 @@ public abstract class BaseReferencedResourceStep implements Step {
   }
 
   private void setLandingZoneResourceTags(FlightContext context, GenericResource genericResource) {
+
+    if (genericResource.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())) {
+      throw new RuntimeException("Resource already tagged with a Landing Zone ID");
+    }
+
+    armManagers
+        .azureResourceManager()
+        .tagOperations()
+        .updateTags(genericResource, getTagsToApply(context, genericResource));
+  }
+
+  private Map<String, String> getTagsToApply(
+      FlightContext context, GenericResource genericResource) {
+
+    // merge the tags from the resource with the tags that need to be applied.
+    Map<String, String> tagsToApply = new HashedMap<>(getLzResourceTags(context, genericResource));
+
+    tagsToApply.putAll(genericResource.tags());
+
+    return tagsToApply;
+  }
+
+  @NotNull
+  private Map<String, String> getLzResourceTags(
+      FlightContext context, GenericResource genericResource) {
     var landingZoneId =
         getParameterOrThrow(
             context.getWorkingMap(), LandingZoneFlightMapKeys.LANDING_ZONE_ID, UUID.class);
@@ -111,8 +137,7 @@ public abstract class BaseReferencedResourceStep implements Step {
           LandingZoneTagKeys.LANDING_ZONE_PURPOSE.toString(),
           ResourcePurpose.SHARED_RESOURCE.toString());
     }
-
-    armManagers.azureResourceManager().tagOperations().updateTags(genericResource, tagsToApply);
+    return tagsToApply;
   }
 
   protected abstract boolean isSharedResource();
@@ -123,18 +148,14 @@ public abstract class BaseReferencedResourceStep implements Step {
   private Optional<GenericResource> findReferencedResourceByArmResourceType(
       FlightContext flightContext) {
 
-    var fullResourceType = getArmResourceType().toString();
-
-    var providerNamespace = fullResourceType.substring(0, fullResourceType.lastIndexOf('/'));
-    var resourceType = fullResourceType.substring(fullResourceType.lastIndexOf('/') + 1);
-
     for (GenericResource resource :
         armManagers
             .azureResourceManager()
             .genericResources()
             .listByResourceGroup(getMRGName(flightContext))) {
-      if (resource.resourceType().equalsIgnoreCase(resourceType)
-          && resource.resourceProviderNamespace().equalsIgnoreCase(providerNamespace)) {
+      var fullResourceTypeFromResource =
+          String.format("%s/%s", resource.resourceProviderNamespace(), resource.resourceType());
+      if (fullResourceTypeFromResource.equalsIgnoreCase(getArmResourceType().toString())) {
         return Optional.of(resource);
       }
     }
