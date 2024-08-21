@@ -349,6 +349,7 @@ public class LandingZoneApiControllerTest extends BaseSpringUnitTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.region", equalTo("southcentralus")));
   }
 
+  // TESTING
   @Test
   void listAzureLandingZoneByBillingProfileIdSuccess() throws Exception {
     var lzCreateDate = LocalDateTime.parse("2024-05-03T15:09:56").atOffset(ZoneOffset.UTC);
