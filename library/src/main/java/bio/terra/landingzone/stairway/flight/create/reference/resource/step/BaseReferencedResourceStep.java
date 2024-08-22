@@ -123,7 +123,6 @@ public abstract class BaseReferencedResourceStep implements Step {
     return tagsToApply;
   }
 
-  @NotNull
   private Map<String, String> getLzResourceTags(
       FlightContext context, GenericResource genericResource) {
 
@@ -154,9 +153,7 @@ public abstract class BaseReferencedResourceStep implements Step {
             .azureResourceManager()
             .genericResources()
             .listByResourceGroup(getMRGName(flightContext))) {
-      var fullResourceTypeFromResource =
-          String.format("%s/%s", resource.resourceProviderNamespace(), resource.resourceType());
-      if (fullResourceTypeFromResource.equalsIgnoreCase(getArmResourceType().toString())) {
+      if (resource.type().equalsIgnoreCase(getArmResourceType().toString())) {
         return Optional.of(resource);
       }
     }

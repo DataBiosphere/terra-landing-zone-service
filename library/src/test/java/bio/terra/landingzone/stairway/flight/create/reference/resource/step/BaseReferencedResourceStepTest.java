@@ -216,22 +216,25 @@ public class BaseReferencedResourceStepTest {
   }
 
   private void setUpMocks() {
-    workingFlightMap = new FlightMap();
-    when(context.getWorkingMap()).thenReturn(workingFlightMap);
-    workingFlightMap.put(
-        GetManagedResourceGroupInfo.TARGET_MRG_KEY,
-        new TargetManagedResourceGroup("mrg", "armregion"));
+    setUpFlightWorkingMap();
 
     setUpMockFlightParameters();
 
     setUpMockResourceListing();
   }
 
+  private void setUpFlightWorkingMap() {
+    workingFlightMap = new FlightMap();
+    when(context.getWorkingMap()).thenReturn(workingFlightMap);
+    workingFlightMap.put(
+        GetManagedResourceGroupInfo.TARGET_MRG_KEY,
+        new TargetManagedResourceGroup("mrg", "armregion"));
+  }
+
   private void setUpMockResourceListing() {
     lenient().when(armManagers.azureResourceManager()).thenReturn(azureResourceManager);
     lenient().when(azureResourceManager.genericResources()).thenReturn(genericResources);
-    lenient().when(resource.resourceType()).thenReturn("storageAccounts");
-    lenient().when(resource.resourceProviderNamespace()).thenReturn("Microsoft.Storage");
+    lenient().when(resource.type()).thenReturn("Microsoft.Storage/storageAccounts");
     var resources = List.of(resource);
     lenient().when(genericResourcesPage.iterator()).thenReturn(resources.iterator());
     lenient().when(genericResources.listByResourceGroup("mrg")).thenReturn(genericResourcesPage);

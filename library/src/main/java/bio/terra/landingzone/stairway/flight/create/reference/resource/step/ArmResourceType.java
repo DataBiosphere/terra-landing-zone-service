@@ -4,7 +4,7 @@ public enum ArmResourceType {
   AKS("Microsoft.ContainerService/managedClusters"),
   VNET("Microsoft.Network/virtualNetworks"),
   STORAGE_ACCOUNT("Microsoft.Storage/storageAccounts"),
-  POSTGRES("Microsoft.DBforPostgreSQL/servers"),
+  POSTGRES_FLEXIBLE("Microsoft.DBforPostgreSQL/flexibleServers"),
   BATCH("Microsoft.Batch/batchAccounts"),
   APP_INSIGHTS("Microsoft.Insights/components"),
   RELAY_NAMESPACE("Microsoft.Relay/namespaces");
