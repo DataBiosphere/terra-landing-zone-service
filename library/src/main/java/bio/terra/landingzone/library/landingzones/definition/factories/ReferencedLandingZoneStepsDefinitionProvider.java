@@ -18,7 +18,7 @@ import org.apache.commons.lang3.tuple.Pair;
 public class ReferencedLandingZoneStepsDefinitionProvider implements StepsDefinitionProvider {
   private static final String LZ_NAME = "Referenced Landing Zone";
   private static final String LZ_DESC =
-      "Enlist existing sources in a Landing Zone. Expected resources: VNet, AKS, Batch Account,"
+      "Referenced landing zones utilize existing resources. These resources should be available and deployed in the managed resource group. Expected resources include: VNet, AKS, Batch Account,"
           + " Storage Account, PostgreSQL server, Subnets for AKS, Batch, Postgresql, and Compute";
 
   @Override
