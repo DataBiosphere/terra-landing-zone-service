@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +102,9 @@ public abstract class BaseReferencedResourceStep implements Step {
 
   private void setLandingZoneResourceTags(FlightContext context, GenericResource genericResource) {
 
-    if (genericResource.tags().containsKey(LandingZoneTagKeys.LANDING_ZONE_ID.toString())) {
+    UUID lzId = getLandingZoneId(context);
+    String lzIdTagValue = genericResource.tags().get(LandingZoneTagKeys.LANDING_ZONE_ID.toString());
+    if (Strings.isNotBlank(lzIdTagValue) && !lzIdTagValue.equalsIgnoreCase(lzId.toString())) {
       throw new RuntimeException("Resource already tagged with a Landing Zone ID");
     }
 
