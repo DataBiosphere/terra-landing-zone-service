@@ -48,7 +48,11 @@ public class LandingZoneDefaultParameters {
     AKS_COST_SAVING_SPOT_NODES_ENABLED,
     AKS_COST_SAVING_VPA_ENABLED,
     STORAGE_ACCOUNT_SKU_TYPE,
-    ENABLE_PGBOUNCER
+    ENABLE_PGBOUNCER,
+
+    // The following parameters are used for referenced VNets
+    COMPUTE_SUBNET,
+    BATCH_SUBNET,
   }
 
   public static Map<String, String> get() {

@@ -8,6 +8,8 @@ public class LandingZoneStepsDefinitionProviderFactory {
       case CROMWELL_BASE_DEFINITION_STEPS_PROVIDER_TYPE -> new CromwellStepsDefinitionProvider();
       case PROTECTED_DATA_DEFINITION_STEPS_PROVIDER_NAME ->
           new ProtectedDataStepsDefinitionProvider();
+      case REFERENCED_DEFINITION_STEPS_PROVIDER_TYPE ->
+          new ReferencedLandingZoneStepsDefinitionProvider();
     };
   }
 }
