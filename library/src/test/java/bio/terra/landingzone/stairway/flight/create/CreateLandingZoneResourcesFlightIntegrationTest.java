@@ -139,6 +139,7 @@ public class CreateLandingZoneResourcesFlightIntegrationTest extends BaseIntegra
     jobBuilder.submit();
   }
 
+  @Disabled("Disabled due to timeouts when turning on an AKS cluster")
   @Test
   void createResourcesFlightDeploysProtectedDataResourcesAndDeleteIt() {
     // Step 1 - create lz
