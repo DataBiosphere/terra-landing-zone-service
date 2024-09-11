@@ -2,7 +2,6 @@ package bio.terra.landingzone.stairway.flight.create.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
 import bio.terra.landingzone.library.landingzones.definition.ResourceNameGenerator;
-import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneDiagnosticSetting;
 import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
@@ -47,14 +46,14 @@ public class CreateStorageAuditLogSettingsStep extends BaseResourceCreateStep {
             .withLog("StorageDelete", 0)
             .create();
 
-    context
-        .getWorkingMap()
-        .put(
-            STORAGE_AUDIT_LOG_SETTINGS_KEY,
-            new LandingZoneDiagnosticSetting(
-                storageAuditLogSettings.resourceId(),
-                storageAuditLogSettingsName,
-                storageAuditLogSettings.logs()));
+    // context
+    //    .getWorkingMap()
+    //    .put(
+    //        STORAGE_AUDIT_LOG_SETTINGS_KEY,
+    //        new LandingZoneDiagnosticSetting(
+    //            storageAuditLogSettings.resourceId(),
+    //            storageAuditLogSettingsName,
+    //            storageAuditLogSettings.logs()));
     logger.info(
         RESOURCE_CREATED, getResourceType(), storageAuditLogSettings.id(), getMRGName(context));
   }

@@ -108,7 +108,7 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
 
     var dataCollectionRuleId = createRule(landingZoneId, logAnalyticsWorkspaceId, context);
     // associate rule with aks resource.
-    createRuleAssociation(aksId, dataCollectionRuleId);
+    //createRuleAssociation(aksId, dataCollectionRuleId);
     logger.info(RESOURCE_CREATED, getResourceType(), dataCollectionRuleId, getMRGName(context));
   }
 
