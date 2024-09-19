@@ -106,10 +106,10 @@ public class CreateAksCostOptimizationDataCollectionRulesStep extends BaseResour
             String.class);
     var aksId = getParameterOrThrow(context.getWorkingMap(), CreateAksStep.AKS_ID, String.class);
 
-    //var dataCollectionRuleId = createRule(landingZoneId, logAnalyticsWorkspaceId, context);
+    // var dataCollectionRuleId = createRule(landingZoneId, logAnalyticsWorkspaceId, context);
     // associate rule with aks resource.
     // createRuleAssociation(aksId, dataCollectionRuleId);
-    //logger.info(RESOURCE_CREATED, getResourceType(), dataCollectionRuleId, getMRGName(context));
+    // logger.info(RESOURCE_CREATED, getResourceType(), dataCollectionRuleId, getMRGName(context));
   }
 
   @Override
