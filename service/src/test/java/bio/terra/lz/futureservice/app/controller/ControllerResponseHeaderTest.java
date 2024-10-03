@@ -30,4 +30,15 @@ public class ControllerResponseHeaderTest {
     assertEquals("no-store", response.getHeaders().getCacheControl());
     assertEquals("no-cache", response.getHeaders().getPragma());
   }
+
+  @Test
+  void listAzureLandingZoneDefinitions_ResponseContainsStrictTransportSecurityHeader() {
+    ResponseEntity<String> response =
+        restTemplate.getForEntity(
+            TestEndpoints.LIST_AZURE_LANDING_ZONES_DEFINITIONS_PATH, String.class);
+
+    assertEquals(
+        "max-age=63072000; includeSubDomains; preload",
+        response.getHeaders().get("Strict-Transport-Security").get(0));
+  }
 }
