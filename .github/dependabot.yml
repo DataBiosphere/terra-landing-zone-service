@@ -19,12 +19,12 @@ updates:
       timezone: "America/New_York"
     target-branch: "main"
     reviewers:
-      - "@DataBiosphere/broadworkspaces"
+      - "@DataBiosphere/broad-core-services"
     labels:
       - "dependency"
       - "gradle"
     commit-message:
-      prefix: "[WOR-1448]"
+      prefix: "[CORE-69]"
     ignore:
       # From 20.0.0 onward, k8s client publishes versions with and without '-legacy' suffix.
       # We use the non-legacy client: the legacy client is not compatible with our code.
