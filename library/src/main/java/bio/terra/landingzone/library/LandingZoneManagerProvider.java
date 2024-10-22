@@ -1,6 +1,7 @@
 package bio.terra.landingzone.library;
 
 import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
+import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import com.azure.core.credential.TokenCredential;
@@ -15,13 +16,16 @@ import org.springframework.stereotype.Component;
 public class LandingZoneManagerProvider {
   private AzureCustomerUsageConfiguration azureCustomerUsageConfiguration;
   private final AzureCredentialsProvider azureCredentialsProvider;
+  private final LandingZoneAzureConfiguration azureConfiguration;
 
   @Autowired
   public LandingZoneManagerProvider(
       AzureCustomerUsageConfiguration azureCustomerUsageConfiguration,
-      AzureCredentialsProvider azureCredentialsProvider) {
+      AzureCredentialsProvider azureCredentialsProvider,
+      LandingZoneAzureConfiguration azureConfiguration) {
     this.azureCustomerUsageConfiguration = azureCustomerUsageConfiguration;
     this.azureCredentialsProvider = azureCredentialsProvider;
+    this.azureConfiguration = azureConfiguration;
   }
 
   public LandingZoneManager createLandingZoneManager(LandingZoneTarget landingZoneTarget) {
@@ -38,7 +42,7 @@ public class LandingZoneManagerProvider {
     return new AzureProfile(
         landingZoneTarget.azureTenantId(),
         landingZoneTarget.azureSubscriptionId(),
-        AzureEnvironment.AZURE);
+        azureConfiguration.getAzureEnvironment());
   }
 
   public AzureResourceManager createAzureResourceManagerClient(

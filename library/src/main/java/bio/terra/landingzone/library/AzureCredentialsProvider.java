@@ -33,12 +33,15 @@ public class AzureCredentialsProvider {
         && Objects.nonNull(azureConfiguration.getManagedAppClientSecret())
         && Objects.nonNull(azureConfiguration.getManagedAppClientId())) {
       return new ClientSecretCredentialBuilder()
+          .authorityHost(azureConfiguration.getAzureEnvironment().getActiveDirectoryEndpoint())
           .clientId(azureConfiguration.getManagedAppClientId())
           .clientSecret(azureConfiguration.getManagedAppClientSecret())
           .tenantId(azureConfiguration.getManagedAppTenantId())
           .build();
     }
 
-    return new DefaultAzureCredentialBuilder().build();
+    return new DefaultAzureCredentialBuilder()
+            .authorityHost(azureConfiguration.getAzureEnvironment().getActiveDirectoryEndpoint())
+            .build();
   }
 }

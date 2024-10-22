@@ -112,7 +112,7 @@ public class CreateLandingZoneFlight extends Flight {
         new AzureProfile(
             landingZoneTarget.azureTenantId(),
             landingZoneTarget.azureSubscriptionId(),
-            AzureEnvironment.AZURE);
+            flightBeanBag.getAzureConfiguration().getAzureEnvironment());
     return LandingZoneManager.createArmManagers(
         flightBeanBag.getAzureCredentialsProvider().getTokenCredential(),
         azureProfile,

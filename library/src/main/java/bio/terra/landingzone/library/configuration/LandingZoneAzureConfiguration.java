@@ -1,5 +1,6 @@
 package bio.terra.landingzone.library.configuration;
 
+import com.azure.core.management.AzureEnvironment;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,6 +11,7 @@ public class LandingZoneAzureConfiguration {
   private String managedAppClientId;
   private String managedAppClientSecret;
   private String managedAppTenantId;
+  private String azureEnvironment;
 
   public String getManagedAppClientId() {
     return managedAppClientId;
@@ -33,5 +35,20 @@ public class LandingZoneAzureConfiguration {
 
   public void setManagedAppTenantId(String managedAppTenantId) {
     this.managedAppTenantId = managedAppTenantId;
+  }
+
+  public AzureEnvironment getAzureEnvironment() {
+      switch (azureEnvironment) {
+          case "AZURE":
+              return AzureEnvironment.AZURE;
+          case "AZURE_GOV":
+              return AzureEnvironment.AZURE_US_GOVERNMENT;
+          default:
+              throw new IllegalArgumentException(String.format("Unknown Azure environment: %s", azureEnvironment));
+      }
+  }
+
+  public void setAzureEnvironment(String azureEnvironment) {
+    this.azureEnvironment = azureEnvironment;
   }
 }

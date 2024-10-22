@@ -4,6 +4,7 @@ import bio.terra.landingzone.db.LandingZoneDao;
 import bio.terra.landingzone.library.AzureCredentialsProvider;
 import bio.terra.landingzone.library.LandingZoneManagerProvider;
 import bio.terra.landingzone.library.configuration.AzureCustomerUsageConfiguration;
+import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneProtectedDataConfiguration;
 import bio.terra.landingzone.library.configuration.LandingZoneTestingConfiguration;
 import bio.terra.landingzone.service.bpm.LandingZoneBillingProfileManagerService;
@@ -28,6 +29,8 @@ public class LandingZoneFlightBeanBag {
   private final ParametersResolverProvider parametersResolverProvider;
   private final AzureCustomerUsageConfiguration azureCustomerUsageConfiguration;
   private final AzureCredentialsProvider azureCredentialsProvider;
+  private final LandingZoneAzureConfiguration azureConfiguration;
+
 
   @Lazy
   @Autowired
@@ -42,6 +45,7 @@ public class LandingZoneFlightBeanBag {
       ParametersResolverProvider parametersResolverProvider,
       AzureCustomerUsageConfiguration azureCustomerUsageConfiguration,
       AzureCredentialsProvider azureCredentialsProvider,
+      LandingZoneAzureConfiguration azureConfiguration,
       ObjectMapper objectMapper) {
     this.landingZoneService = landingZoneService;
     this.landingZoneDao = landingZoneDao;
@@ -53,6 +57,7 @@ public class LandingZoneFlightBeanBag {
     this.parametersResolverProvider = parametersResolverProvider;
     this.azureCustomerUsageConfiguration = azureCustomerUsageConfiguration;
     this.azureCredentialsProvider = azureCredentialsProvider;
+    this.azureConfiguration =   azureConfiguration;
     this.objectMapper = objectMapper;
   }
 
@@ -103,4 +108,6 @@ public class LandingZoneFlightBeanBag {
   public AzureCredentialsProvider getAzureCredentialsProvider() {
     return azureCredentialsProvider;
   }
+
+  public LandingZoneAzureConfiguration getAzureConfiguration() {return azureConfiguration;}
 }
