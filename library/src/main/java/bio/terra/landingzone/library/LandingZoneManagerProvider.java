@@ -5,7 +5,6 @@ import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration
 import bio.terra.landingzone.library.landingzones.management.LandingZoneManager;
 import bio.terra.landingzone.model.LandingZoneTarget;
 import com.azure.core.credential.TokenCredential;
-import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import com.azure.resourcemanager.AzureResourceManager;
 import org.jetbrains.annotations.NotNull;

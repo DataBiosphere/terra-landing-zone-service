@@ -41,7 +41,7 @@ public class AzureCredentialsProvider {
     }
 
     return new DefaultAzureCredentialBuilder()
-            .authorityHost(azureConfiguration.getAzureEnvironment().getActiveDirectoryEndpoint())
-            .build();
+        .authorityHost(azureConfiguration.getAzureEnvironment().getActiveDirectoryEndpoint())
+        .build();
   }
 }

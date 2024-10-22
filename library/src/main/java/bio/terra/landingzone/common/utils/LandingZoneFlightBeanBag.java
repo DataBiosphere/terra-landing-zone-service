@@ -31,7 +31,6 @@ public class LandingZoneFlightBeanBag {
   private final AzureCredentialsProvider azureCredentialsProvider;
   private final LandingZoneAzureConfiguration azureConfiguration;
 
-
   @Lazy
   @Autowired
   public LandingZoneFlightBeanBag(
@@ -57,7 +56,7 @@ public class LandingZoneFlightBeanBag {
     this.parametersResolverProvider = parametersResolverProvider;
     this.azureCustomerUsageConfiguration = azureCustomerUsageConfiguration;
     this.azureCredentialsProvider = azureCredentialsProvider;
-    this.azureConfiguration =   azureConfiguration;
+    this.azureConfiguration = azureConfiguration;
     this.objectMapper = objectMapper;
   }
 
@@ -109,5 +108,7 @@ public class LandingZoneFlightBeanBag {
     return azureCredentialsProvider;
   }
 
-  public LandingZoneAzureConfiguration getAzureConfiguration() {return azureConfiguration;}
+  public LandingZoneAzureConfiguration getAzureConfiguration() {
+    return azureConfiguration;
+  }
 }

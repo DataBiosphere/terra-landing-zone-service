@@ -38,14 +38,15 @@ public class LandingZoneAzureConfiguration {
   }
 
   public AzureEnvironment getAzureEnvironment() {
-      switch (azureEnvironment) {
-          case "AZURE":
-              return AzureEnvironment.AZURE;
-          case "AZURE_GOV":
-              return AzureEnvironment.AZURE_US_GOVERNMENT;
-          default:
-              throw new IllegalArgumentException(String.format("Unknown Azure environment: %s", azureEnvironment));
-      }
+    switch (azureEnvironment) {
+      case "AZURE":
+        return AzureEnvironment.AZURE;
+      case "AZURE_GOV":
+        return AzureEnvironment.AZURE_US_GOVERNMENT;
+      default:
+        throw new IllegalArgumentException(
+            String.format("Unknown Azure environment: %s", azureEnvironment));
+    }
   }
 
   public void setAzureEnvironment(String azureEnvironment) {
