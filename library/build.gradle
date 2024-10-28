@@ -32,7 +32,7 @@ dependencies {
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.6.11'
 
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.44.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.2'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0-beta.3'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.0.0'
