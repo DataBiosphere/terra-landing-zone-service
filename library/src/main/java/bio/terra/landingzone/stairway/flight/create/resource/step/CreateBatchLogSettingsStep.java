@@ -44,9 +44,8 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
             .define(batchLogSettingsName)
             .withResource(batchAccountId)
             .withLogAnalytics(logAnalyticsWorkspaceId)
-            .withLog("allLogs", 0) // temporary change for different logs in gov vs commercial
-            //.withLog("ServiceLogs", 0) // retention is handled by the log analytics workspace
-            //.withLog("ServiceLog", 0)
+            .withLog("ServiceLogs", 0) // retention is handled by the log analytics workspace
+            //.withLog("ServiceLog", 0)     // temporary change for different logs in gov vs commercial
             //.withLog("AuditLog", 0)
             .create();
     logger.info(RESOURCE_CREATED, getResourceType(), batchLogSettings.id(), getMRGName(context));
