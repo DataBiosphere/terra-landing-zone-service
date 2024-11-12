@@ -7,6 +7,8 @@ public enum ArmResourceType {
   POSTGRES_FLEXIBLE("Microsoft.DBforPostgreSQL/flexibleServers"),
   BATCH("Microsoft.Batch/batchAccounts"),
   APP_INSIGHTS("Microsoft.Insights/components"),
+  MANAGED_IDENTITY("Microsoft.ManagedIdentity/userAssignedIdentities"),
+  PRIVATE_DNS_ZONE("Microsoft.Network/privateDnsZones"),
   RELAY_NAMESPACE("Microsoft.Relay/namespaces");
 
   private final String value;

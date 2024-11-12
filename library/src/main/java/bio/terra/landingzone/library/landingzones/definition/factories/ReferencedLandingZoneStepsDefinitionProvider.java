@@ -55,6 +55,8 @@ public class ReferencedLandingZoneStepsDefinitionProvider implements StepsDefini
         Pair.of(new ReferencedBatchStep(armManagers), RetryRules.cloud()),
         Pair.of(new ReferencedStorageStep(armManagers), RetryRules.cloud()),
         Pair.of(new ReferencedRelayNamespaceStep(armManagers), RetryRules.cloud()),
+        Pair.of(new ReferencedManagedIdentityStep(armManagers), RetryRules.cloud()),
+        Pair.of(new ReferencedPostgresqlServerStep(armManagers), RetryRules.cloud()),
         Pair.of(new ReferencedAppInsightsStep(armManagers), RetryRules.cloud()));
   }
 }
