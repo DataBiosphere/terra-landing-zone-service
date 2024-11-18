@@ -1,6 +1,7 @@
 package bio.terra.landingzone.stairway.flight.create.reference.resource.step;
 
 import bio.terra.landingzone.library.landingzones.definition.ArmManagers;
+import bio.terra.landingzone.service.landingzone.azure.model.LandingZoneResource;
 import bio.terra.stairway.FlightContext;
 
 import static bio.terra.landingzone.stairway.flight.create.resource.step.CreateAksStep.AKS_OIDC_ISSUER_URL;
@@ -31,6 +32,12 @@ public class ReferencedAksStep extends SharedReferencedResourceStep {
 
     context
             .getWorkingMap()
-            .put(AKS_RESOURCE_KEY, resourceId);
+            .put(AKS_RESOURCE_KEY, LandingZoneResource.builder()
+                    .resourceId(aks.id())
+                    .resourceType(aks.type())
+                    .tags(aks.tags())
+                    .region(aks.regionName())
+                    .resourceName(aks.name())
+                    .build());
   }
 }
