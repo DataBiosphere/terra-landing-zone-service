@@ -10,12 +10,11 @@ import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.landingzone.stairway.flight.create.resource.step.BaseResourceCreateStep;
 import bio.terra.stairway.FlightContext;
+import com.azure.core.management.AzureEnvironment;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.azure.core.management.AzureEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,8 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
   public static final String POSTGRESQL_DNS_ID = "POSTGRESQL_DNS_ID";
   public static final String POSTGRESQL_DNS_RESOURCE_KEY = "POSTGRESQL_DNS";
   public static final String POSTGRES_DNS_SUFFIX = ".private.postgres.database.azure.com";
-  public static final String POSTGRES_DNS_SUFFIX_GOV = ".private.postgres.database.usgovcloudapi.net";
+  public static final String POSTGRES_DNS_SUFFIX_GOV =
+      ".private.postgres.database.usgovcloudapi.net";
 
   public CreatePostgresqlDNSStep(
       ArmManagers armManagers, ResourceNameProvider resourceNameProvider) {
@@ -42,7 +42,10 @@ public class CreatePostgresqlDNSStep extends BaseResourceCreateStep {
 
     var dnsZoneName = resourceNameProvider.getName(getResourceType());
 
-    String postgresDnsSuffixForEnvironment = azureEnvironment == AzureEnvironment.AZURE_US_GOVERNMENT ? POSTGRES_DNS_SUFFIX_GOV : POSTGRES_DNS_SUFFIX;
+    String postgresDnsSuffixForEnvironment =
+        azureEnvironment == AzureEnvironment.AZURE_US_GOVERNMENT
+            ? POSTGRES_DNS_SUFFIX_GOV
+            : POSTGRES_DNS_SUFFIX;
 
     var dns =
         armManagers

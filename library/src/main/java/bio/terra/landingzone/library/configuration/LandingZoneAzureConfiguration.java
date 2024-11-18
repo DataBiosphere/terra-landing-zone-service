@@ -37,11 +37,13 @@ public class LandingZoneAzureConfiguration {
     this.managedAppTenantId = managedAppTenantId;
   }
 
+
+  // AzureCloud or AzureUSGovernmentCloud
   public AzureEnvironment getAzureEnvironment() {
     switch (azureEnvironment) {
-      case "AZURE":
+      case "AzureCloud":
         return AzureEnvironment.AZURE;
-      case "AZURE_GOV":
+      case "AzureUSGovernmentCloud":
         return AzureEnvironment.AZURE_US_GOVERNMENT;
       default:
         throw new IllegalArgumentException(

@@ -6,10 +6,9 @@ import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
+import com.azure.resourcemanager.monitor.models.DiagnosticSettingsCategory;
 import java.util.List;
 import java.util.Optional;
-
-import com.azure.resourcemanager.monitor.models.DiagnosticSettingsCategory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,10 +39,14 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
 
     var batchLogSettingsName = resourceNameProvider.getName(getResourceType());
 
-
-
-    for(DiagnosticSettingsCategory diagnosticSettingsCategory : armManagers.monitorManager().diagnosticSettings().listCategoriesByResource(batchAccountId)){
-      logger.info("Currently valid diagnostic settings category for batch in current azure Environment :" +diagnosticSettingsCategory.name());
+    for (DiagnosticSettingsCategory diagnosticSettingsCategory :
+        armManagers
+            .monitorManager()
+            .diagnosticSettings()
+            .listCategoriesByResource(batchAccountId)) {
+      logger.info(
+          "Currently valid diagnostic settings category for batch in current azure Environment :"
+              + diagnosticSettingsCategory.name());
     }
 
     var batchLogSettings =
@@ -53,9 +56,9 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
             .define(batchLogSettingsName)
             .withResource(batchAccountId)
             .withLogAnalytics(logAnalyticsWorkspaceId)
-            //withLog("ServiceLogs", 0) // retention is handled by the log analytics workspace
-            .withLog("ServiceLog", 0)     // temporary change for different logs in gov vs commercial
-            //.withLog("AuditLog", 0)
+            // withLog("ServiceLogs", 0) // retention is handled by the log analytics workspace
+            .withLog("ServiceLog", 0) // temporary change for different logs in gov vs commercial
+            // .withLog("AuditLog", 0)
             .create();
     logger.info(RESOURCE_CREATED, getResourceType(), batchLogSettings.id(), getMRGName(context));
   }
