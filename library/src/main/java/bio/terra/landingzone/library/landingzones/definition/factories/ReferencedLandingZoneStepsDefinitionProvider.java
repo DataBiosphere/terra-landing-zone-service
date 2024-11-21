@@ -58,6 +58,9 @@ public class ReferencedLandingZoneStepsDefinitionProvider implements StepsDefini
         Pair.of(new ReferencedManagedIdentityStep(armManagers), RetryRules.cloud()),
         Pair.of(new ReferencedPostgresqlServerStep(armManagers), RetryRules.cloud()),
         Pair.of(new ReferencedAppInsightsStep(armManagers), RetryRules.cloud()),
-        Pair.of(new CreateLandingZoneFederatedIdentityStep(armManagers, new KubernetesClientProviderImpl()), RetryRules.cloud()));
+        Pair.of(
+            new CreateLandingZoneFederatedIdentityStep(
+                armManagers, new KubernetesClientProviderImpl()),
+            RetryRules.cloud()));
   }
 }

@@ -102,7 +102,8 @@ public abstract class BaseReferencedResourceStep implements Step {
   }
 
   // Optional hook for subclasses
-  protected void updateWorkingMap(FlightContext context, ArmManagers armManagers, String resourceId) { }
+  protected void updateWorkingMap(
+      FlightContext context, ArmManagers armManagers, String resourceId) {}
 
   private void setLandingZoneResourceTags(FlightContext context, GenericResource genericResource) {
 
