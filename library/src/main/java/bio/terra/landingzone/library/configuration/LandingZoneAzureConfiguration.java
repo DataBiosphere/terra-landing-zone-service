@@ -37,7 +37,6 @@ public class LandingZoneAzureConfiguration {
     this.managedAppTenantId = managedAppTenantId;
   }
 
-
   // AzureCloud or AzureUSGovernmentCloud
   public AzureEnvironment getAzureEnvironment() {
     switch (azureEnvironment) {
