@@ -47,7 +47,6 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
   @Mock private LandingZoneFlightBeanBag mockLandingZoneFlightBeanBag;
   @Mock private LandingZoneAzureConfiguration mockAzureConfiguration;
 
-
   @BeforeEach
   void setup() {
     testStep = new CreatePostgresqlDNSStep(mockArmManagers, mockResourceNameProvider);
