@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -41,6 +42,7 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
   @Mock private PrivateDnsZone.DefinitionStages.Blank mockDefine;
   @Mock private PrivateDnsZone.DefinitionStages.WithCreate mockWithCreate;
   @Mock private PrivateDnsZone mockPrivateDnsZone;
+  @Mock private LandingZoneFlightBeanBag landingZoneFlightBeanBag;
 
   @BeforeEach
   void setup() {
@@ -52,6 +54,7 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
     final String resourceName = UUID.randomUUID().toString();
 
     when(mockResourceNameProvider.getName(testStep.getResourceType())).thenReturn(resourceName);
+    when(mockFlightContext.getApplicationContext()).thenReturn(landingZoneFlightBeanBag);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
