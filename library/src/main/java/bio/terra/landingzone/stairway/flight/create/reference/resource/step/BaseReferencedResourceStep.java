@@ -96,9 +96,14 @@ public abstract class BaseReferencedResourceStep implements Step {
                             getArmResourceType(), getMRGName(context))));
 
     setLandingZoneResourceTags(context, resource);
+    updateWorkingMap(context, armManagers, resource.id());
 
     context.getWorkingMap().put(REFERENCED_RESOURCE_ID, resource.id());
   }
+
+  // Optional hook for subclasses
+  protected void updateWorkingMap(
+      FlightContext context, ArmManagers armManagers, String resourceId) {}
 
   private void setLandingZoneResourceTags(FlightContext context, GenericResource genericResource) {
 
