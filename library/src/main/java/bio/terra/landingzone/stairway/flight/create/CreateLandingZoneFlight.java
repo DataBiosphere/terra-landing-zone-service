@@ -15,7 +15,6 @@ import bio.terra.landingzone.stairway.flight.create.resource.step.GetManagedReso
 import bio.terra.landingzone.stairway.flight.exception.LandingZoneCreateException;
 import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.*;
-import com.azure.core.management.AzureEnvironment;
 import com.azure.core.management.profile.AzureProfile;
 import java.util.UUID;
 
@@ -112,7 +111,7 @@ public class CreateLandingZoneFlight extends Flight {
         new AzureProfile(
             landingZoneTarget.azureTenantId(),
             landingZoneTarget.azureSubscriptionId(),
-            AzureEnvironment.AZURE);
+            flightBeanBag.getAzureConfiguration().getAzureEnvironment());
     return LandingZoneManager.createArmManagers(
         flightBeanBag.getAzureCredentialsProvider().getTokenCredential(),
         azureProfile,
