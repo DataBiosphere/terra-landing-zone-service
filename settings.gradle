@@ -1,6 +1,6 @@
 rootProject.name = 'terra-landing-zone-service'
 include('service','library', 'scripts')
 
-gradle.ext.releaseVersion = "0.0.377-SNAPSHOT"
+gradle.ext.releaseVersion = "0.0.378-SNAPSHOT"
 include 'client'
 
