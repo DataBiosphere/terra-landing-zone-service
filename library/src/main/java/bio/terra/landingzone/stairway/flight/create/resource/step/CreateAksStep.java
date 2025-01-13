@@ -184,10 +184,10 @@ public class CreateAksStep extends BaseResourceCreateStep {
   private KubernetesCluster handleConflictAndMaybeGetAks(
       FlightContext context, String aksName, ManagementException e) {
     return switch (e.getValue().getCode().toLowerCase()) {
-        /*duplicate request (Stairway has resumed flight after interruption)
-        but resource is not ready for use and is still being provisioned*/
+      /*duplicate request (Stairway has resumed flight after interruption)
+      but resource is not ready for use and is still being provisioned*/
       case "operationnotallowed" -> waitAndMaybeGetAksProvisioned(getMRGName(context), aksName);
-        /*duplicate request (Stairway resume flight after interruption), but resource is ready for use*/
+      /*duplicate request (Stairway resume flight after interruption), but resource is ready for use*/
       case "conflict" ->
           armManagers
               .azureResourceManager()
