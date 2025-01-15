@@ -7,12 +7,14 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.mockito.Mockito.when;
 
 import bio.terra.landingzone.library.landingzones.management.AzureResourceTypeUtils;
+import com.azure.json.JsonOptions;
+import com.azure.json.implementation.DefaultJsonProvider;
 import com.azure.resourcemanager.batch.BatchManager;
 import com.azure.resourcemanager.batch.models.BatchAccount;
 import com.azure.resourcemanager.batch.models.BatchAccounts;
 import com.azure.resourcemanager.batch.models.VirtualMachineFamilyCoreQuota;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,20 +59,22 @@ class BatchQuotaReaderTest {
     when(batchAccount.lowPriorityCoreQuota()).thenReturn(LOW_PRI_CORE_QUOTA);
   }
 
-  private void setUpDedicatedCoreQuotaPerFamily() throws JsonProcessingException {
+  private void setUpDedicatedCoreQuotaPerFamily() throws IOException {
     vmQuota = createVmFamilyCoreQuota();
     List<VirtualMachineFamilyCoreQuota> quotaPerVMFamily = List.of(vmQuota);
     when(batchAccount.dedicatedCoreQuotaPerVMFamily()).thenReturn(quotaPerVMFamily);
     when(batchAccount.dedicatedCoreQuotaPerVMFamilyEnforced()).thenReturn(true);
   }
 
-  private VirtualMachineFamilyCoreQuota createVmFamilyCoreQuota() throws JsonProcessingException {
+  private VirtualMachineFamilyCoreQuota createVmFamilyCoreQuota() throws IOException {
     var familyCoreQuotaJson = "{\"name\":\"vmsku\",\"coreQuota\":10}";
-    return new ObjectMapper().readValue(familyCoreQuotaJson, VirtualMachineFamilyCoreQuota.class);
+
+    return VirtualMachineFamilyCoreQuota.fromJson(
+        new DefaultJsonProvider().createReader(familyCoreQuotaJson, new JsonOptions()));
   }
 
   @Test
-  void getResourceQuota_returnsValidQuotaForBatchAccount() throws JsonProcessingException {
+  void getResourceQuota_returnsValidQuotaForBatchAccount() throws IOException {
 
     setUpBatchManager();
     setUpDedicatedCoreQuotaPerFamily();
