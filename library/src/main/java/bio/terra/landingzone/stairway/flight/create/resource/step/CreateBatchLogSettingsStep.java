@@ -6,6 +6,7 @@ import bio.terra.landingzone.stairway.flight.ResourceNameProvider;
 import bio.terra.landingzone.stairway.flight.ResourceNameRequirements;
 import bio.terra.stairway.FlightContext;
 import bio.terra.stairway.StepResult;
+import com.azure.resourcemanager.monitor.models.DiagnosticSettingsCategory;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -37,6 +38,17 @@ public class CreateBatchLogSettingsStep extends BaseResourceCreateStep {
             String.class);
 
     var batchLogSettingsName = resourceNameProvider.getName(getResourceType());
+
+    for (DiagnosticSettingsCategory diagnosticSettingsCategory :
+        armManagers
+            .monitorManager()
+            .diagnosticSettings()
+            .listCategoriesByResource(batchAccountId)) {
+      logger.info(
+          "Currently valid diagnostic settings category for batch in current azure Environment :"
+              + diagnosticSettingsCategory.name());
+    }
+
     var batchLogSettings =
         armManagers
             .monitorManager()

@@ -21,7 +21,7 @@ dependencies {
     implementation 'bio.terra:billing-profile-manager-client:0.1.484-SNAPSHOT'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
     implementation group: 'com.azure', name: 'azure-core', version: '1.54.1'
-    implementation (group: 'com.azure', name: 'azure-identity', version: '1.14.2') {
+    implementation (group: 'com.azure', name: 'azure-identity', version: '1.15.0') {
         // azure-identity is still pulling in an old version of reactor-netty-http
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-http'
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
@@ -34,7 +34,7 @@ dependencies {
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.46.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-batch', version: '2.0.0'
-    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.0.0'
+    implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-postgresqlflexibleserver', version: '1.1.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-loganalytics', version: '1.1.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-applicationinsights', version: '1.1.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-securityinsights', version: '1.0.0-beta.5'

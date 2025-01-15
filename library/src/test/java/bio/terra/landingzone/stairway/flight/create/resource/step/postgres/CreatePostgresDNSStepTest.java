@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.landingzone.common.utils.LandingZoneFlightBeanBag;
+import bio.terra.landingzone.library.configuration.LandingZoneAzureConfiguration;
 import bio.terra.landingzone.library.landingzones.deployment.LandingZoneTagKeys;
 import bio.terra.landingzone.stairway.common.model.TargetManagedResourceGroup;
 import bio.terra.landingzone.stairway.flight.FlightTestUtils;
@@ -20,6 +22,7 @@ import bio.terra.profile.model.ProfileModel;
 import bio.terra.stairway.FlightMap;
 import bio.terra.stairway.StepResult;
 import bio.terra.stairway.StepStatus;
+import com.azure.core.management.AzureEnvironment;
 import com.azure.resourcemanager.privatedns.models.PrivateDnsZone;
 import com.azure.resourcemanager.privatedns.models.PrivateDnsZones;
 import java.util.Map;
@@ -41,6 +44,8 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
   @Mock private PrivateDnsZone.DefinitionStages.Blank mockDefine;
   @Mock private PrivateDnsZone.DefinitionStages.WithCreate mockWithCreate;
   @Mock private PrivateDnsZone mockPrivateDnsZone;
+  @Mock private LandingZoneFlightBeanBag mockLandingZoneFlightBeanBag;
+  @Mock private LandingZoneAzureConfiguration mockAzureConfiguration;
 
   @BeforeEach
   void setup() {
@@ -52,6 +57,9 @@ public class CreatePostgresDNSStepTest extends BaseStepTest {
     final String resourceName = UUID.randomUUID().toString();
 
     when(mockResourceNameProvider.getName(testStep.getResourceType())).thenReturn(resourceName);
+    when(mockFlightContext.getApplicationContext()).thenReturn(mockLandingZoneFlightBeanBag);
+    when(mockLandingZoneFlightBeanBag.getAzureConfiguration()).thenReturn(mockAzureConfiguration);
+    when(mockAzureConfiguration.getAzureEnvironment()).thenReturn(AzureEnvironment.AZURE);
 
     TargetManagedResourceGroup mrg = ResourceStepFixture.createDefaultMrg();
     setupFlightContext(
