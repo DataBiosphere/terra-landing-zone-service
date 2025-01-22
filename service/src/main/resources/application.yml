@@ -34,7 +34,7 @@ spring:
 #since LZ is amalgamated we need to inherit "workspace" prefix. later it should be changed to landingzone.
 workspace:
   azure:
-    azureEnvironment: AZURE
+    azureEnvironment: AzureCloud
   ingress:
     # Default value that's overridden by Helm.
     domain-name: localhost:8080
