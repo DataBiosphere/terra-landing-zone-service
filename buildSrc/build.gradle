@@ -16,5 +16,5 @@ dependencies {
     implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.2'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:4.4.1.3373'
     implementation 'org.springframework.boot:spring-boot-gradle-plugin:3.4.3'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.18.2'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.18.3'
 }
