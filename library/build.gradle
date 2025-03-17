@@ -20,16 +20,16 @@ dependencies {
     api 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-6d19a41'
     implementation 'bio.terra:billing-profile-manager-client:0.1.484-SNAPSHOT'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
-    implementation group: 'com.azure', name: 'azure-core', version: '1.55.2'
-    implementation (group: 'com.azure', name: 'azure-identity', version: '1.15.3') {
+    implementation group: 'com.azure', name: 'azure-core', version: '1.55.3'
+    implementation (group: 'com.azure', name: 'azure-identity', version: '1.15.4') {
         // azure-identity is still pulling in an old version of reactor-netty-http
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-http'
         exclude group: 'io.projectreactor.netty', module: 'reactor-netty-core'
         exclude group: 'io.projectreactor', module: 'reactor-core'
     }
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.2.3'
-    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.2.3'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.7.3'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.2.4'
+    implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.2.4'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.7.4'
 
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager', version: '2.48.0'
     implementation group: 'com.azure.resourcemanager', name: 'azure-resourcemanager-relay', version: '1.0.0'
@@ -45,7 +45,7 @@ dependencies {
             because 'https://broadworkbench.atlassian.net/browse/WOR-1650'
         }
     }
-    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.14.4'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.14.5'
 
     testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
