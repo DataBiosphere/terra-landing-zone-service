@@ -48,3 +48,7 @@ task minniekenny(type:Exec) {
 build {
     dependsOn(minniekenny)
 }
+
+gitProperties {
+    dotGitDirectory = project.rootProject.layout.projectDirectory.dir(".git")
+}
