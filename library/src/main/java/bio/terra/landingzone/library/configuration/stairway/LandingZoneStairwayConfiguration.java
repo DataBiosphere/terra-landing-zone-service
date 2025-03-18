@@ -35,6 +35,8 @@ public class LandingZoneStairwayConfiguration {
     stairwayProperties.setGcpPubSubTopicId(landingZoneStairwayProperties.getGcpPubSubTopicId());
     stairwayProperties.setGcpPubSubSubscriptionId(
         landingZoneStairwayProperties.getGcpPubSubSubscriptionId());
-    return new StairwayComponent(kubeService, kubeProperties, stairwayProperties, stairwayProperties.stairwayExecutor());
+
+    return new StairwayComponent(
+        kubeService, kubeProperties, stairwayProperties, stairwayProperties.stairwayExecutor());
   }
 }
