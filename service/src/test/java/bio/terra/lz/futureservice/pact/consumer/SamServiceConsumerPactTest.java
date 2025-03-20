@@ -76,7 +76,8 @@ public class SamServiceConsumerPactTest {
         new PactDslJsonBody()
             .stringType("userSubjectId")
             .stringType("userEmail")
-            .booleanType("enabled");
+            .booleanType("enabled")
+            .booleanType("adminEnabled");
     return builder
         .given("user status info request with access token")
         .uponReceiving("a request for the user's status")
