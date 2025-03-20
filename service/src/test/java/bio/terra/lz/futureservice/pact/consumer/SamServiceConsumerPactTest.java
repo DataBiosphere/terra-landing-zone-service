@@ -46,7 +46,7 @@ public class SamServiceConsumerPactTest {
         .method("GET")
         .willRespondWith()
         .status(200)
-        .body(new PactDslJsonBody().booleanValue("ok", true))
+        .body(new PactDslJsonBody().booleanValue("ok", true).object("systems"))
         .toPact();
   }
 
