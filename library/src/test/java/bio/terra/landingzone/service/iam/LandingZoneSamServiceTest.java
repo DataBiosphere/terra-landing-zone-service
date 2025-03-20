@@ -24,7 +24,7 @@ import org.apache.http.HttpStatus;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
-import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipV2;
+import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipRequest;
 import org.broadinstitute.dsde.workbench.client.sam.model.CreateResourceRequestV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.FullyQualifiedResourceId;
 import org.broadinstitute.dsde.workbench.client.sam.model.RolesAndActions;
@@ -150,15 +150,15 @@ class LandingZoneSamServiceTest {
   @Test
   void createLandingZone_success() throws ApiException, InterruptedException {
     var listOfUsers = List.of(SAM_USER.getEmail());
-    Map<String, AccessPolicyMembershipV2> policies = new HashMap<>();
+    Map<String, AccessPolicyMembershipRequest> policies = new HashMap<>();
     policies.put(
         "owner",
-        new AccessPolicyMembershipV2()
+        new AccessPolicyMembershipRequest()
             .addMemberEmailsItem(SAM_USER.getEmail())
             .addRolesItem(SamConstants.SamRole.OWNER));
     policies.put(
         "user",
-        new AccessPolicyMembershipV2()
+        new AccessPolicyMembershipRequest()
             .memberEmails(listOfUsers)
             .addRolesItem(SamConstants.SamRole.USER));
     // Setup Mocks
@@ -176,10 +176,10 @@ class LandingZoneSamServiceTest {
   @Test
   void createLandingZone_noUsersInConfig() throws ApiException, InterruptedException {
     var listOfUsers = Collections.EMPTY_LIST;
-    Map<String, AccessPolicyMembershipV2> policies = new HashMap<>();
+    Map<String, AccessPolicyMembershipRequest> policies = new HashMap<>();
     policies.put(
         "owner",
-        new AccessPolicyMembershipV2()
+        new AccessPolicyMembershipRequest()
             .addMemberEmailsItem(SAM_USER.getEmail())
             .addRolesItem(SamConstants.SamRole.OWNER));
     // Setup Mocks
@@ -351,7 +351,7 @@ class LandingZoneSamServiceTest {
                 .enabled(enabled));
   }
 
-  private void verifyCreateResourceV2(Map<String, AccessPolicyMembershipV2> policies)
+  private void verifyCreateResourceV2(Map<String, AccessPolicyMembershipRequest> policies)
       throws ApiException {
     verify(resourcesApi)
         .createResourceV2(

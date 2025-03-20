@@ -14,7 +14,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
-import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipV2;
+import org.broadinstitute.dsde.workbench.client.sam.model.AccessPolicyMembershipRequest;
 import org.broadinstitute.dsde.workbench.client.sam.model.CreateResourceRequestV2;
 import org.broadinstitute.dsde.workbench.client.sam.model.FullyQualifiedResourceId;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserResourcesResponse;
@@ -104,16 +104,16 @@ public class LandingZoneSamService {
             .resourceId(billingProfileId.toString())
             .resourceTypeName(SamConstants.SamResourceType.SPEND_PROFILE);
 
-    Map<String, AccessPolicyMembershipV2> policies = new HashMap<>();
+    Map<String, AccessPolicyMembershipRequest> policies = new HashMap<>();
     policies.put(
         "owner",
-        new AccessPolicyMembershipV2()
+        new AccessPolicyMembershipRequest()
             .addMemberEmailsItem(userInfo.getUserEmail())
             .addRolesItem(SamConstants.SamRole.OWNER));
     if (CollectionUtils.isNotEmpty(samClient.getLandingZoneResourceUsers())) {
       policies.put(
           "user",
-          new AccessPolicyMembershipV2()
+          new AccessPolicyMembershipRequest()
               .memberEmails(samClient.getLandingZoneResourceUsers())
               .addRolesItem(SamConstants.SamRole.USER));
     }
