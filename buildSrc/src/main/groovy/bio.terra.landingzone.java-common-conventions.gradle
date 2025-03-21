@@ -55,7 +55,7 @@ dependencies {
     implementation 'com.google.guava:guava:33.1.0-jre'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.47'
 
-    implementation ('bio.terra:terra-common-lib:1.1.38-SNAPSHOT') {
+    implementation ('bio.terra:terra-common-lib:1.1.39-SNAPSHOT') {
         exclude group: "org.broadinstitute.dsde.workbench", module: "sam-client_2.13"
     }
 }
