@@ -19,7 +19,7 @@ apply(from: "$includeDir/testing.gradle")
 dependencies {
     implementation project(':library')
 
-    implementation 'io.sentry:sentry:8.13.2'
+    implementation 'io.sentry:sentry:8.16.0'
 
     implementation group: "org.springframework.boot", name: "spring-boot-starter-web"
     implementation group: "org.springframework.boot", name: "spring-boot-starter-validation"
